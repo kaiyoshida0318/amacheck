@@ -224,8 +224,9 @@
     font-size: 12px;
   }
   table.master td.mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
-  table.master td.img-cell { width: 50px; padding: 4px 10px; }
-  table.master td.img-cell .ph { width: 32px; height: 32px; font-size: 13px; }
+  table.master td.img-cell { width: 60px; padding: 4px 10px; }
+  table.master th.img-header { width: 60px; }
+  table.master td.img-cell .ph { width: 36px; height: 36px; font-size: 13px; }
   table.master .actions-cell { width: 110px; text-align: right; white-space: nowrap; }
   table.master .name-cell { max-width: 320px; }
 
@@ -337,6 +338,47 @@
 
   [hidden] { display: none !important; }
 
+  /* タブナビゲーション */
+  .tabs {
+    max-width: 1400px;
+    margin: 12px auto 0;
+    padding: 0 20px;
+    display: flex;
+    gap: 2px;
+    border-bottom: 1px solid var(--border);
+  }
+  .tab {
+    padding: 10px 18px 12px;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid transparent;
+    color: var(--text-secondary);
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    margin-bottom: -1px;
+    transition: color 0.15s, border-color 0.15s, background 0.15s;
+    border-radius: 6px 6px 0 0;
+  }
+  .tab:hover { color: var(--black); background: var(--bg-secondary); }
+  .tab.active {
+    color: var(--accent);
+    border-bottom-color: var(--accent);
+    background: transparent;
+  }
+  .tab i { font-size: 17px; }
+  .tab .count {
+    color: var(--text-tertiary);
+    font-weight: 400;
+    font-size: 13px;
+    margin-left: 2px;
+  }
+  .tab.active .count { color: var(--accent); }
+
   /* ヘッダー行（ロゴ + バージョン + 文字サイズ + アクション） */
   .page-header {
     max-width: 1400px;
@@ -401,7 +443,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.08</span>
+    <span class="version">v0.10</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -413,19 +455,18 @@
   </div>
 </header>
 
-<div class="container">
+<!-- タブナビゲーション -->
+<nav class="tabs">
+  <button class="tab" data-tab="master">
+    <i class="ti ti-list-details"></i> 商品マスタ
+    <span class="count" id="tab-master-count"></span>
+  </button>
+  <button class="tab" data-tab="shipment">
+    <i class="ti ti-truck-delivery"></i> 出荷数データ
+  </button>
+</nav>
 
-  <!-- ホーム -->
-  <div id="home-view" class="home">
-    <div class="actions">
-      <button class="big-btn secondary" id="open-master">
-        <i class="ti ti-list-details"></i> 商品マスタ
-      </button>
-      <button class="big-btn" id="open-shipment">
-        <i class="ti ti-truck-delivery"></i> 出荷数データ
-      </button>
-    </div>
-  </div>
+<div class="container">
 
   <!-- 商品情報追加（取り込み画面） -->
   <div id="add-view" hidden>
@@ -449,7 +490,6 @@
       <textarea class="paste-area" id="master-paste" placeholder="レポートの中身を直接貼り付けることもできます（タブ区切り）。1行目がヘッダー（sku / asin / fnsku / product-name など）になっている前提です。"></textarea>
       <div style="display:flex;gap:8px;margin-top:12px;">
         <button class="primary" id="parse-master"><i class="ti ti-check"></i> 取り込む</button>
-        <button id="load-sample-master">サンプルデータを読込</button>
       </div>
     </div>
   </div>
@@ -457,14 +497,12 @@
   <!-- 商品マスタ（一覧画面） -->
   <div id="master-view" hidden>
     <div class="toolbar">
-      <button class="ghost" data-back><i class="ti ti-arrow-left"></i> 戻る</button>
-      <h2>商品マスタ</h2>
+      <span id="product-count" style="color:var(--text-tertiary);font-size:13px;"></span>
       <div class="spacer"></div>
       <button class="danger" id="delete-selected" disabled><i class="ti ti-trash"></i> 選択を削除 <span id="selected-count"></span></button>
       <button class="danger" id="clear-master"><i class="ti ti-trash"></i> 全削除</button>
     </div>
     <div class="master-card">
-      <h3><i class="ti ti-list" style="color:var(--accent)"></i> 登録商品 <span id="product-count" style="color:var(--text-tertiary);font-weight:400;"></span></h3>
       <div id="master-list-wrap"></div>
     </div>
   </div>
@@ -472,7 +510,6 @@
   <!-- 出荷画面 -->
   <div id="shipment-view" hidden>
     <div class="toolbar">
-      <button class="ghost" data-back><i class="ti ti-arrow-left"></i> 戻る</button>
       <select id="month-select"></select>
       <div class="spacer"></div>
       <button class="primary" id="open-input"><i class="ti ti-plus"></i> 出荷数入力</button>
@@ -579,11 +616,13 @@ function init(){
 
   document.getElementById('paste-date').value = todayStr();
 
-  document.getElementById('open-shipment').addEventListener('click', () => switchView('shipment'));
-  document.getElementById('open-master').addEventListener('click', () => switchView('master'));
   document.getElementById('header-add-product').addEventListener('click', () => switchView('add'));
-  document.getElementById('logo-home').addEventListener('click', () => switchView('home'));
-  document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('home')));
+  document.getElementById('logo-home').addEventListener('click', () => switchView('master'));
+  // タブクリック
+  document.querySelectorAll('.tab').forEach(t => {
+    t.addEventListener('click', () => switchView(t.dataset.tab));
+  });
+  document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('master')));
   document.getElementById('open-input').addEventListener('click', openModal);
   document.getElementById('cancel').addEventListener('click', closeModal);
   document.getElementById('apply').addEventListener('click', applyShipment);
@@ -600,7 +639,6 @@ function init(){
     if (e.dataTransfer.files[0]) parseFileForMaster(e.dataTransfer.files[0]);
   });
   document.getElementById('parse-master').addEventListener('click', parsePastedMaster);
-  document.getElementById('load-sample-master').addEventListener('click', loadSampleMaster);
   document.getElementById('clear-master').addEventListener('click', clearMaster);
   document.getElementById('delete-selected').addEventListener('click', deleteSelected);
 
@@ -612,24 +650,41 @@ function init(){
   document.getElementById('edit-image-url').addEventListener('input', updateEditPreview);
 
   // ブラウザ・マウスの戻る/進むボタンで画面遷移できるよう履歴を管理
-  history.replaceState({ view: 'home' }, '');
+  history.replaceState({ view: 'master' }, '');
   window.addEventListener('popstate', (e) => {
-    const view = (e.state && e.state.view) || 'home';
+    const view = (e.state && e.state.view) || 'master';
     switchView(view, true);
   });
+
+  // 初期表示：商品マスタタブ
+  switchView('master', true);
 }
 
 function switchView(name, fromPop){
-  document.getElementById('home-view').hidden = (name !== 'home');
+  // home はマスタにリダイレクト
+  if (name === 'home') name = 'master';
   document.getElementById('add-view').hidden = (name !== 'add');
   document.getElementById('master-view').hidden = (name !== 'master');
   document.getElementById('shipment-view').hidden = (name !== 'shipment');
   if (name === 'shipment') renderShipmentTable();
   if (name === 'master') renderMasterList();
+  updateActiveTab(name);
   // ブラウザ履歴に積む（popstateからの呼び出しは積まない）
   if (!fromPop) {
     history.pushState({ view: name }, '');
   }
+}
+
+function updateActiveTab(view){
+  document.querySelectorAll('.tab').forEach(t => {
+    t.classList.toggle('active', t.dataset.tab === view);
+  });
+  updateTabCounts();
+}
+
+function updateTabCounts(){
+  const el = document.getElementById('tab-master-count');
+  if (el) el.textContent = products.length ? '(' + products.length + ')' : '';
 }
 
 function updateHomeStatus(){
@@ -736,7 +791,40 @@ function parseMasterText(text){
   saveProducts();
   document.getElementById('master-paste').value = '';
   toast(added + ' 件を取り込みました' + (skipped > 0 ? '（重複/空 ' + skipped + ' 件はスキップ）' : ''));
-  if (added > 0) switchView('master');
+  if (added > 0) {
+    switchView('master');
+    // 取り込んだ商品の画像を事前取得（成功したURLをマスタに保存）
+    const newProducts = products.slice(-added);
+    preloadProductImages(newProducts);
+  }
+}
+
+// 画像URLを実際に試して、ロードできたら商品データに保存
+function preloadProductImages(productList){
+  let success = 0, fail = 0;
+  let pending = 0;
+  const targets = productList.filter(p => p.asin && !p.imageUrl);
+  if (!targets.length) return;
+  pending = targets.length;
+  targets.forEach(p => {
+    const url = amazonImageUrl(p.asin);
+    const img = new Image();
+    img.onload = () => {
+      p.imageUrl = url;
+      success++;
+      if (--pending === 0) finalize();
+    };
+    img.onerror = () => {
+      fail++;
+      if (--pending === 0) finalize();
+    };
+    img.src = url;
+  });
+  function finalize(){
+    saveProducts();
+    renderMasterList();
+    toast('画像取得: 成功 ' + success + ' / 失敗 ' + fail);
+  }
 }
 
 function loadSampleMaster(){
@@ -782,7 +870,9 @@ function deleteProduct(fnsku){
 }
 
 function renderMasterList(){
-  document.getElementById('product-count').textContent = products.length ? '（' + products.length + ' 件）' : '';
+  const pcEl = document.getElementById('product-count');
+  if (pcEl) pcEl.textContent = products.length ? '登録商品: ' + products.length + ' 件' : '';
+  updateTabCounts();
   const wrap = document.getElementById('master-list-wrap');
   if (!products.length) {
     wrap.innerHTML = '<div class="empty-state">'
@@ -795,13 +885,12 @@ function renderMasterList(){
   }
   let html = '<div style="overflow-x:auto"><table class="master"><thead><tr>'
     + '<th class="check-cell"><input type="checkbox" id="select-all" title="全選択"></th>'
-    + '<th></th><th>SKU</th><th>ASIN</th><th>FNSKU</th><th>商品名</th><th class="actions-cell"></th>'
+    + '<th class="img-header">商品画像</th><th>ASIN</th><th>FNSKU</th><th>商品名</th><th class="actions-cell"></th>'
     + '</tr></thead><tbody>';
   products.forEach(p => {
     html += '<tr data-fnsku="'+escapeHtml(p.fnsku)+'">'
       + '<td class="check-cell"><input type="checkbox" class="product-checkbox" data-fnsku="'+escapeHtml(p.fnsku)+'"></td>'
       + '<td class="img-cell">' + productImageHtml(p) + '</td>'
-      + '<td class="mono">'+escapeHtml(p.sku||'-')+'</td>'
       + '<td class="mono">'+escapeHtml(p.asin||'-')+'</td>'
       + '<td class="mono">'+escapeHtml(p.fnsku)+'</td>'
       + '<td class="name-cell">'+escapeHtml(p.name)+'</td>'
