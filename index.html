@@ -224,9 +224,27 @@
     font-size: 12px;
   }
   table.master td.mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
-  table.master td.img-cell { width: 60px; padding: 4px 10px; }
+  table.master td.img-cell { width: 60px; padding: 4px 10px; position: relative; }
   table.master th.img-header { width: 60px; }
   table.master td.img-cell .ph { width: 36px; height: 36px; font-size: 13px; }
+  table.master td.img-cell.drag-over {
+    background: var(--accent-light);
+    outline: 2px dashed var(--accent);
+    outline-offset: -2px;
+  }
+  table.master td.img-cell .upload-hint {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    color: var(--accent);
+    font-weight: 600;
+    pointer-events: none;
+    opacity: 0;
+  }
+  table.master td.img-cell.drag-over .upload-hint { opacity: 1; }
   table.master .actions-cell { width: 110px; text-align: right; white-space: nowrap; }
   table.master .name-cell { max-width: 320px; }
 
@@ -443,7 +461,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.10</span>
+    <span class="version">v0.11</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -499,6 +517,8 @@
     <div class="toolbar">
       <span id="product-count" style="color:var(--text-tertiary);font-size:13px;"></span>
       <div class="spacer"></div>
+      <button id="bulk-images"><i class="ti ti-photo"></i> 画像一括登録</button>
+      <input type="file" id="bulk-images-input" accept="image/*" multiple style="display:none">
       <button class="danger" id="delete-selected" disabled><i class="ti ti-trash"></i> 選択を削除 <span id="selected-count"></span></button>
       <button class="danger" id="clear-master"><i class="ti ti-trash"></i> 全削除</button>
     </div>
@@ -548,7 +568,12 @@
       <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;" id="edit-name-orig"></div>
     </div>
     <div style="margin-bottom:14px;">
-      <label style="display:block;margin-bottom:6px;font-weight:600;font-size:13px;">画像URL（空欄でASINから自動取得）</label>
+      <label style="display:block;margin-bottom:6px;font-weight:600;font-size:13px;">画像ファイル</label>
+      <input type="file" id="edit-image-file" accept="image/*" style="font-size:13px;">
+      <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">ファイルを選ぶと自動で圧縮されて下のURL欄に入ります</div>
+    </div>
+    <div style="margin-bottom:14px;">
+      <label style="display:block;margin-bottom:6px;font-weight:600;font-size:13px;">画像URL（ファイル選択時は自動入力）</label>
       <input type="text" id="edit-image-url" placeholder="https://..." style="width:100%;font-size:13px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;">
     </div>
     <div style="display:flex;align-items:center;gap:12px;background:var(--bg-secondary);padding:12px;border-radius:8px;margin-bottom:8px;">
@@ -584,7 +609,12 @@ function loadProducts(){
   catch { return []; }
 }
 function saveProducts(){
-  localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
+  try {
+    localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
+  } catch (e) {
+    toast('ブラウザ保存容量が不足しています。一部画像を削除してください。');
+    throw e;
+  }
 }
 function loadShipments(){
   try { return JSON.parse(localStorage.getItem(STORAGE_SHIPMENTS) || '{}'); }
@@ -648,6 +678,27 @@ function init(){
   document.getElementById('edit-modal').addEventListener('click', (e) => { if (e.target.id === 'edit-modal') closeEditModal(); });
   document.getElementById('edit-name').addEventListener('input', updateEditPreview);
   document.getElementById('edit-image-url').addEventListener('input', updateEditPreview);
+  document.getElementById('edit-image-file').addEventListener('change', async (e) => {
+    const file = e.target.files[0];
+    if (!file) return;
+    try {
+      const dataUrl = await compressImage(file);
+      document.getElementById('edit-image-url').value = dataUrl;
+      updateEditPreview();
+    } catch (err) {
+      toast('画像処理に失敗しました');
+    }
+    e.target.value = '';
+  });
+
+  // 画像一括登録
+  document.getElementById('bulk-images').addEventListener('click', () => {
+    document.getElementById('bulk-images-input').click();
+  });
+  document.getElementById('bulk-images-input').addEventListener('change', (e) => {
+    bulkAddImages(Array.from(e.target.files));
+    e.target.value = '';
+  });
 
   // ブラウザ・マウスの戻る/進むボタンで画面遷移できるよう履歴を管理
   history.replaceState({ view: 'master' }, '');
@@ -908,6 +959,29 @@ function renderMasterList(){
   document.querySelectorAll('.product-checkbox').forEach(cb => {
     cb.addEventListener('change', onCheckboxChange);
   });
+
+  // 画像セルへのドラッグドロップ（個別画像登録）
+  document.querySelectorAll('table.master td.img-cell').forEach(cell => {
+    // ドロップターゲットの視覚ヒント
+    const hint = document.createElement('div');
+    hint.className = 'upload-hint';
+    hint.textContent = 'ドロップ';
+    cell.appendChild(hint);
+    cell.addEventListener('dragover', e => {
+      e.preventDefault();
+      cell.classList.add('drag-over');
+    });
+    cell.addEventListener('dragleave', () => cell.classList.remove('drag-over'));
+    cell.addEventListener('drop', e => {
+      e.preventDefault();
+      cell.classList.remove('drag-over');
+      const file = e.dataTransfer.files[0];
+      if (!file) return;
+      const fnsku = cell.closest('tr').dataset.fnsku;
+      setProductImageFromFile(fnsku, file);
+    });
+  });
+
   updateBulkControls();
 }
 
@@ -1192,6 +1266,80 @@ function saveEdit(){
   closeEditModal();
   renderMasterList();
   toast('保存しました');
+}
+
+// ============================================
+// 画像処理（圧縮・一括登録・ドラッグドロップ）
+// ============================================
+function compressImage(file, maxSize, quality){
+  maxSize = maxSize || 240;
+  quality = quality != null ? quality : 0.85;
+  return new Promise((resolve, reject) => {
+    if (!file.type.startsWith('image/')) { reject(new Error('画像ファイルではありません')); return; }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let w = img.width, h = img.height;
+        if (w > h) {
+          if (w > maxSize) { h = Math.round(h * maxSize / w); w = maxSize; }
+        } else {
+          if (h > maxSize) { w = Math.round(w * maxSize / h); h = maxSize; }
+        }
+        canvas.width = w;
+        canvas.height = h;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, w, h);
+        resolve(canvas.toDataURL('image/jpeg', quality));
+      };
+      img.onerror = () => reject(new Error('画像を読み込めません'));
+      img.src = e.target.result;
+    };
+    reader.onerror = () => reject(new Error('ファイル読み込みエラー'));
+    reader.readAsDataURL(file);
+  });
+}
+
+async function bulkAddImages(files){
+  if (!files.length) return;
+  const byAsin = new Map();
+  const byFnsku = new Map();
+  products.forEach(p => {
+    if (p.asin) byAsin.set(p.asin.toUpperCase(), p);
+    if (p.fnsku) byFnsku.set(p.fnsku.toUpperCase(), p);
+  });
+  let matched = 0, unmatched = 0, failed = 0;
+  for (const file of files) {
+    const stem = file.name.replace(/\.[^/.]+$/, '').toUpperCase();
+    const product = byAsin.get(stem) || byFnsku.get(stem);
+    if (!product) { unmatched++; continue; }
+    try {
+      product.imageUrl = await compressImage(file);
+      matched++;
+    } catch (e) {
+      failed++;
+    }
+  }
+  saveProducts();
+  renderMasterList();
+  let msg = '画像 ' + matched + ' 件登録';
+  if (unmatched) msg += '、' + unmatched + ' 件はASIN/FNSKU不一致';
+  if (failed) msg += '、' + failed + ' 件は処理失敗';
+  toast(msg);
+}
+
+async function setProductImageFromFile(fnsku, file){
+  const product = products.find(p => p.fnsku === fnsku);
+  if (!product) return;
+  try {
+    product.imageUrl = await compressImage(file);
+    saveProducts();
+    renderMasterList();
+    toast('画像を更新しました');
+  } catch (e) {
+    toast('画像処理に失敗しました');
+  }
 }
 
 // ============================================
