@@ -40,7 +40,11 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
+    cursor: pointer;
+    transition: opacity 0.15s;
+    user-select: none;
   }
+  .logo:hover { opacity: 0.85; }
   .logo i { font-size: 28px; color: #fff; }
   .logo .divider { width: 2px; height: 28px; background: rgba(255,255,255,0.4); }
   .logo .name { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
@@ -391,13 +395,13 @@
 <body>
 <!-- ヘッダー行（ロゴ + バージョン + 文字サイズ + 商品情報追加） -->
 <header class="page-header">
-  <div class="logo">
+  <div class="logo" id="logo-home" title="ホームに戻る">
     <i class="ti ti-shopping-cart"></i>
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.05</span>
+    <span class="version">v0.08</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -413,17 +417,14 @@
 
   <!-- ホーム -->
   <div id="home-view" class="home">
-    <h1>Amacheck</h1>
-    <p>Amazon 売上・広告・在庫のチェックツール</p>
     <div class="actions">
       <button class="big-btn secondary" id="open-master">
         <i class="ti ti-list-details"></i> 商品マスタ
       </button>
       <button class="big-btn" id="open-shipment">
-        <i class="ti ti-truck-delivery"></i> 出荷数を見る
+        <i class="ti ti-truck-delivery"></i> 出荷数データ
       </button>
     </div>
-    <div class="status" id="home-status"></div>
   </div>
 
   <!-- 商品情報追加（取り込み画面） -->
@@ -581,6 +582,7 @@ function init(){
   document.getElementById('open-shipment').addEventListener('click', () => switchView('shipment'));
   document.getElementById('open-master').addEventListener('click', () => switchView('master'));
   document.getElementById('header-add-product').addEventListener('click', () => switchView('add'));
+  document.getElementById('logo-home').addEventListener('click', () => switchView('home'));
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('home')));
   document.getElementById('open-input').addEventListener('click', openModal);
   document.getElementById('cancel').addEventListener('click', closeModal);
@@ -615,8 +617,6 @@ function init(){
     const view = (e.state && e.state.view) || 'home';
     switchView(view, true);
   });
-
-  updateHomeStatus();
 }
 
 function switchView(name, fromPop){
@@ -626,7 +626,6 @@ function switchView(name, fromPop){
   document.getElementById('shipment-view').hidden = (name !== 'shipment');
   if (name === 'shipment') renderShipmentTable();
   if (name === 'master') renderMasterList();
-  if (name === 'home') updateHomeStatus();
   // ブラウザ履歴に積む（popstateからの呼び出しは積まない）
   if (!fromPop) {
     history.pushState({ view: name }, '');
@@ -634,12 +633,7 @@ function switchView(name, fromPop){
 }
 
 function updateHomeStatus(){
-  const el = document.getElementById('home-status');
-  if (products.length === 0) {
-    el.innerHTML = '<i class="ti ti-info-circle"></i> まずは右上の「商品情報追加」から商品を登録してください';
-  } else {
-    el.textContent = '登録商品: ' + products.length + ' 件';
-  }
+  // ホーム中央のステータス表示は廃止
 }
 
 function ymKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0'); }
