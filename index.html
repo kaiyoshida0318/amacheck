@@ -1,877 +1,2045 @@
-<!DOCTYPE html>
-<html lang="ja">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Amacheck</title>
-<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" rel="stylesheet">
-<style>
-  :root {
-    --orange: #D8540E;
-    --orange-hover: #b94409;
-    --orange-light: rgba(216, 84, 14, 0.08);
-    --black: #111;
-    --text-secondary: #555;
-    --text-tertiary: #888;
-    --border: #e5e5e5;
-    --border-strong: #ccc;
-    --bg: #fafafa;
-    --bg-card: #ffffff;
-    --bg-secondary: #f5f5f5;
-    --success: #2e7d32;
-    --danger: #d32f2f;
-  }
-  * { box-sizing: border-box; }
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
-    margin: 0;
-    background: var(--bg);
-    color: var(--black);
-    font-size: 14px;
-    line-height: 1.6;
-  }
-  .container { max-width: 1400px; margin: 0 auto; padding: 20px 20px; }
 
-  .logo {
-    background: var(--orange);
-    border-radius: 10px;
-    padding: 12px 18px;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-  }
-  .logo i { font-size: 28px; color: #fff; }
-  .logo .divider { width: 2px; height: 28px; background: rgba(255,255,255,0.4); }
-  .logo .name { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
-  .logo .name .ama { color: #fff; }
-  .logo .name .check { color: var(--black); }
+ＫＡＩＲＹ
+日本
+検索
 
-  button, select, input[type="date"], input[type="text"] {
-    font-family: inherit;
-    font-size: 14px;
-    padding: 8px 14px;
-    border: 1px solid var(--border-strong);
-    background: #fff;
-    border-radius: 8px;
-    cursor: pointer;
-    color: var(--black);
-  }
-  input[type="text"] { cursor: text; }
-  button { display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
-  button:hover { border-color: var(--orange); color: var(--orange); }
-  button.primary { background: var(--orange); color: #fff; border-color: var(--orange); }
-  button.primary:hover { background: var(--orange-hover); color: #fff; border-color: var(--orange-hover); }
-  button.danger { background: #fff; color: var(--danger); border-color: var(--danger); }
-  button.danger:hover { background: var(--danger); color: #fff; }
-  button.ghost { border: none; background: transparent; padding: 8px 10px; }
-  button i { font-size: 16px; }
-  button:disabled { opacity: 0.4; cursor: not-allowed; }
-  select:focus, input:focus { outline: none; border-color: var(--orange); }
+新しいセラーセントラル
+新しいセラーセントラル
+JA
+ヘルプ
 
-  .home { text-align: center; padding: 60px 20px; }
-  .home h1 { font-size: 28px; margin: 0 0 12px; letter-spacing: -0.5px; }
-  .home p { color: var(--text-secondary); margin: 0 0 32px; }
-  .home .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
-  .big-btn {
-    font-size: 16px;
-    padding: 14px 28px;
-    background: var(--orange);
-    color: #fff;
-    border-color: var(--orange);
-    border-radius: 10px;
-  }
-  .big-btn:hover { background: var(--orange-hover); color: #fff; border-color: var(--orange-hover); }
-  .big-btn.secondary { background: #fff; color: var(--orange); border: 1px solid var(--orange); }
-  .big-btn.secondary:hover { background: var(--orange-light); }
-  .home .status {
-    margin-top: 24px;
-    font-size: 13px;
-    color: var(--text-tertiary);
-  }
+商品登録
+サービスを探る
+編集する
+注文管理詳細はこちら動画マニュアル
+検索
+検索
 
-  .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
-  .toolbar .spacer { flex: 1; }
-  .toolbar h2 { font-size: 18px; margin: 0; }
+注文番号
+注文番号
+Amazonによる取り扱い
+保留中すべての注文取り消し済み出品者出荷の注文を表示
+絞り込み:
+販売経路
+Amazon.co.jp
+Non-Amazon JP
+注文のタイプ
+Amazon定期おトク便
+法人/個人事業主
+フィルターの非表示
+101件日付範囲を調整する
+再読み込み
+商品の一覧表示設定を設定する
 
-  .table-wrap {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    overflow-x: auto;
-  }
-  table.ship { border-collapse: collapse; width: 100%; min-width: 1800px; }
-  table.ship th, table.ship td {
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border);
-    text-align: center;
-    font-size: 13px;
-    white-space: nowrap;
-  }
-  table.ship thead th {
-    background: var(--bg-secondary);
-    font-weight: 600;
-    color: var(--text-secondary);
-    font-size: 12px;
-    border-bottom: 1px solid var(--border-strong);
-  }
-  table.ship td.asin, table.ship td.fnsku { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
-  table.ship td.name { text-align: left; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
-  table.ship td.img { padding: 4px; }
-  table.ship td.img .ph {
-    width: 36px; height: 36px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 700;
-    font-size: 14px;
-  }
-  table.ship td.day { min-width: 32px; color: var(--text-tertiary); }
-  table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--orange-light); }
-  table.ship td.day.today { background: rgba(216,84,14,0.18); }
-  table.ship th.day.today { background: rgba(216,84,14,0.18); color: var(--orange); }
-  table.ship td.total, table.ship th.total {
-    background: var(--bg-secondary);
-    font-weight: 700;
-    border-left: 1px solid var(--border-strong);
-  }
-  table.ship tr:hover td:not(.total) { background: rgba(0,0,0,0.02); }
+100
+ページごとの結果: 100
 
-  /* 商品マスタ画面 */
-  .master-card {
-    background: var(--bg-card);
-    border: 1px solid var(--border);
-    border-radius: 12px;
-    padding: 20px;
-    margin-bottom: 20px;
-  }
-  .master-card h3 {
-    margin: 0 0 12px;
-    font-size: 15px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-  .upload-zone {
-    border: 2px dashed var(--border-strong);
-    border-radius: 10px;
-    padding: 32px;
-    text-align: center;
-    background: var(--bg-secondary);
-    cursor: pointer;
-    transition: all 0.15s;
-  }
-  .upload-zone:hover { border-color: var(--orange); background: var(--orange-light); }
-  .upload-zone i { font-size: 32px; color: var(--text-secondary); }
-  .upload-zone .main { font-size: 14px; font-weight: 600; margin-top: 8px; }
-  .upload-zone .sub { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
-  .upload-zone input { display: none; }
-  .paste-area {
-    width: 100%;
-    min-height: 120px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 12px;
-    resize: vertical;
-  }
-  .paste-area:focus { outline: none; border-color: var(--orange); }
+注文日（昇順）
+注文日（昇順）
+開始日:
+26/05/28
+宛先：
+26/05/28
 
-  table.master {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
-  }
-  table.master th, table.master td {
-    padding: 8px 10px;
-    border-bottom: 1px solid var(--border);
-    text-align: left;
-  }
-  table.master thead th {
-    background: var(--bg-secondary);
-    font-weight: 600;
-    color: var(--text-secondary);
-    font-size: 12px;
-  }
-  table.master td.mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
-  table.master td.img-cell { width: 50px; padding: 4px 10px; }
-  table.master td.img-cell .ph {
-    width: 32px; height: 32px;
-    border-radius: 6px;
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    color: #fff;
-    font-weight: 700;
-    font-size: 13px;
-  }
-  table.master .actions-cell { width: 100px; text-align: right; }
-  .empty-state {
-    text-align: center;
-    padding: 40px 20px;
-    color: var(--text-tertiary);
-    font-size: 13px;
-  }
+日付範囲を調整する
+日付の範囲: 日付範囲を調整する
+Dismiss
+	
+注文日
+注文の詳細
+画像
+製品名
+注文のタイプ
+注文状況
+アクション
+	
+2日前
+2026/5/28
+0:23 JST
+503-8180486-0174205
+購入者名:
+野口智帆
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-8180486-0174205
 
-  .modal-bg {
-    position: fixed;
-    inset: 0;
-    background: rgba(0,0,0,0.4);
-    display: flex;
-    align-items: flex-start;
-    justify-content: center;
-    padding: 40px 20px;
-    z-index: 100;
-    overflow-y: auto;
-  }
-  .modal { background: #fff; border-radius: 14px; width: 100%; max-width: 720px; padding: 24px; }
-  .modal h3 { margin: 0 0 4px; font-size: 18px; }
-  .modal .sub { color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
-  .row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
-  .row label { font-weight: 600; font-size: 13px; }
-  .paste-page {
-    border: 1px solid var(--border);
-    border-radius: 10px;
-    padding: 12px;
-    margin-bottom: 10px;
-    background: var(--bg-secondary);
-  }
-  .paste-page .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
-  .paste-page .ph-label { font-weight: 600; font-size: 13px; }
-  .paste-page .detected { font-size: 12px; color: var(--text-tertiary); }
-  .paste-page .detected.ok { color: var(--success); }
-  .paste-page textarea {
-    width: 100%;
-    min-height: 100px;
-    border: 1px solid var(--border);
-    border-radius: 8px;
-    padding: 10px;
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 12px;
-    resize: vertical;
-  }
-  .paste-page textarea:focus { outline: none; border-color: var(--orange); }
-  .modal-actions {
-    display: flex;
-    justify-content: flex-end;
-    gap: 8px;
-    margin-top: 20px;
-    padding-top: 16px;
-    border-top: 1px solid var(--border);
-  }
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YXV3PQ
+SKU: O4-AOO0-YBZC
+数量: 1
+商品の小計: ￥2,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+2日前
+2026/5/28
+0:38 JST
+249-7707942-6274210
+購入者名:
+秋吉
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-7707942-6274210
 
-  .toast {
-    position: fixed;
-    bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
-    background: var(--black);
-    color: #fff;
-    padding: 10px 18px;
-    border-radius: 8px;
-    font-size: 13px;
-    z-index: 200;
-    opacity: 0;
-    transition: opacity 0.2s;
-    pointer-events: none;
-    max-width: 600px;
-  }
-  .toast.show { opacity: 1; }
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YXV3PQ
+SKU: O4-AOO0-YBZC
+数量: 1
+商品の小計: ￥2,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+2日前
+2026/5/28
+0:44 JST
+503-0800512-2201400
+購入者名:
+竹上
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-0800512-2201400
 
-  .or-divider {
-    text-align: center;
-    color: var(--text-tertiary);
-    font-size: 12px;
-    margin: 16px 0;
-  }
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YXV3PQ
+SKU: O4-AOO0-YBZC
+数量: 1
+商品の小計: ￥2,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+2日前
+2026/5/28
+0:45 JST
+503-5038309-3832638
+購入者名:
+金栗知世
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-5038309-3832638
 
-  [hidden] { display: none !important; }
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+2日前
+2026/5/28
+1:03 JST
+249-8439327-9813426
+購入者名:
+山岸友恵
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-8439327-9813426
 
-  /* ヘッダー行（ロゴ + バージョン + 文字サイズ） */
-  .page-header {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px 20px 0;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    gap: 16px;
-    flex-wrap: wrap;
-  }
-  .header-right {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    opacity: 0.55;
-    transition: opacity 0.15s;
-  }
-  .header-right:hover { opacity: 1; }
-  .header-right .version {
-    color: var(--text-tertiary);
-    font-family: ui-monospace, "SF Mono", Menlo, monospace;
-    font-size: 11px;
-  }
-  .zoom-controls {
-    display: flex;
-    align-items: center;
-    gap: 1px;
-    background: var(--bg-secondary);
-    border-radius: 6px;
-    padding: 1px;
-  }
-  .zoom-btn {
-    padding: 2px 8px;
-    border: none;
-    background: transparent;
-    font-weight: 700;
-    font-size: 11px;
-    cursor: pointer;
-    border-radius: 4px;
-    color: var(--text-secondary);
-    transition: all 0.15s;
-  }
-  .zoom-btn:hover { background: #fff; color: var(--orange); }
-  .zoom-btn:disabled { opacity: 0.3; cursor: not-allowed; }
-  .zoom-btn:disabled:hover { background: transparent; color: var(--text-secondary); }
-  .zoom-level {
-    font-size: 10px;
-    color: var(--text-secondary);
-    min-width: 34px;
-    text-align: center;
-    font-variant-numeric: tabular-nums;
-  }
-</style>
-</head>
-<body>
-<!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
-<header class="page-header">
-  <div class="logo">
-    <i class="ti ti-shopping-cart"></i>
-    <div class="divider"></div>
-    <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
-  </div>
-  <div class="header-right">
-    <span class="version">v0.1.0</span>
-    <div class="zoom-controls">
-      <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
-      <span class="zoom-level" id="zoom-level">100%</span>
-      <button class="zoom-btn" id="zoom-in" title="文字を大きく">A+</button>
-    </div>
-  </div>
-</header>
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+2日前
+2026/5/28
+1:29 JST
+249-5831195-4513454
+購入者名:
+佐藤幸子
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-5831195-4513454
 
-<div class="container">
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YXV3PQ
+SKU: O4-AOO0-YBZC
+発送済みの数量: 1
+商品の小計: ￥2,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
 
-  <!-- ホーム -->
-  <div id="home-view" class="home">
-    <h1>Amacheck</h1>
-    <p>Amazon 売上・広告・在庫のチェックツール</p>
-    <div class="actions">
-      <button class="big-btn secondary" id="open-master">
-        <i class="ti ti-database"></i> 商品マスタ
-      </button>
-      <button class="big-btn" id="open-shipment">
-        <i class="ti ti-truck-delivery"></i> 出荷数を見る
-      </button>
-    </div>
-    <div class="status" id="home-status"></div>
-  </div>
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YW1HXJ
+SKU: CU-IBZE-W40Y
+発送済みの数量: 1
+商品の小計: ￥2,480
+	
+2日前
+2026/5/28
+1:44 JST
+250-6849261-7419818
+購入者名:
+近藤　広子
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-6849261-7419818
 
-  <!-- 商品マスタ画面 -->
-  <div id="master-view" hidden>
-    <div class="toolbar">
-      <button class="ghost" data-back><i class="ti ti-arrow-left"></i> 戻る</button>
-      <h2>商品マスタ</h2>
-      <div class="spacer"></div>
-      <button class="danger" id="clear-master"><i class="ti ti-trash"></i> 全削除</button>
-    </div>
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+2日前
+2026/5/28
+2:53 JST
+250-2242463-4026227
+購入者名:
+豊田　久康
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-2242463-4026227
 
-    <div class="master-card">
-      <h3><i class="ti ti-upload" style="color:var(--orange)"></i> FBA在庫レポートを取り込む</h3>
-      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;">セラーセントラル → レポート → フルフィルメント → 在庫レポート で取得した TSV / TXT / CSV ファイルをアップロードしてください。SKU・ASIN・FNSKU・商品名を自動で取り込みます。</p>
-      <label class="upload-zone" for="file-input">
-        <i class="ti ti-file-spreadsheet"></i>
-        <div class="main">ファイルをクリックまたはドラッグ&ドロップ</div>
-        <div class="sub">.txt / .tsv / .csv 対応</div>
-        <input type="file" id="file-input" accept=".txt,.tsv,.csv,text/plain">
-      </label>
-      <div class="or-divider">または</div>
-      <textarea class="paste-area" id="master-paste" placeholder="レポートの中身を直接貼り付けることもできます（タブ区切り）。1行目がヘッダー（sku / asin / fnsku / product-name など）になっている前提です。"></textarea>
-      <div style="display:flex;gap:8px;margin-top:12px;">
-        <button class="primary" id="parse-master"><i class="ti ti-check"></i> 取り込む</button>
-        <button id="load-sample-master">サンプルデータを読込</button>
-      </div>
-    </div>
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+2日前
+2026/5/28
+3:09 JST
+503-5744699-9875017
+購入者名:
+中村克己
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-5744699-9875017
 
-    <div class="master-card">
-      <h3><i class="ti ti-list" style="color:var(--orange)"></i> 登録済み商品 <span id="product-count" style="color:var(--text-tertiary);font-weight:400;"></span></h3>
-      <div id="master-list-wrap"></div>
-    </div>
-  </div>
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+2日前
+2026/5/28
+3:10 JST
+249-3040195-2846214
+購入者名:
+morit
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-3040195-2846214
 
-  <!-- 出荷画面 -->
-  <div id="shipment-view" hidden>
-    <div class="toolbar">
-      <button class="ghost" data-back><i class="ti ti-arrow-left"></i> 戻る</button>
-      <select id="month-select"></select>
-      <div class="spacer"></div>
-      <button class="primary" id="open-input"><i class="ti ti-plus"></i> 出荷数入力</button>
-    </div>
-    <div id="shipment-body"></div>
-  </div>
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YH4F3S
+SKU: OL-1ZSX-A8CV
+数量: 1
+商品の小計: ￥1,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+2日前
+2026/5/28
+3:28 JST
+249-4108775-7800628
+購入者名:
+清水貴寛
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-4108775-7800628
 
-</div>
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+4:30 JST
+249-7026757-5992644
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-7026757-5992644
 
-<!-- 貼付モーダル -->
-<div class="modal-bg" id="modal" hidden>
-  <div class="modal">
-    <h3>出荷数入力</h3>
-    <div class="sub">セラーセントラルの注文管理画面でCtrl+A → Ctrl+Cでコピーし、下の枠に貼り付けてください。FNSKUの出現回数で集計します。</div>
-    <div class="row">
-      <label for="paste-date">日付</label>
-      <input type="date" id="paste-date">
-    </div>
-    <div id="pages"></div>
-    <button id="add-page"><i class="ti ti-plus"></i> ページを追加（2ページ目以降）</button>
-    <div class="modal-actions">
-      <button id="cancel">キャンセル</button>
-      <button class="primary" id="apply"><i class="ti ti-check"></i> 反映する</button>
-    </div>
-  </div>
-</div>
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+保留中
+支払いの確認中
+	
+1日前
+2026/5/28
+5:35 JST
+249-3380936-5537446
+購入者名:
+アスチル
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-3380936-5537446
 
-<div class="toast" id="toast"></div>
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YX2RPX
+SKU: Y9-XKX3-TY7T
+数量: 1
+商品の小計: ￥2,780
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+6:04 JST
+249-8241743-8193437
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-8241743-8193437
 
-<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
-<script>
-// ============================================
-// 状態管理（localStorage 永続化）
-// ============================================
-const STORAGE_PRODUCTS = 'amacheck_products_v1';
-const STORAGE_SHIPMENTS = 'amacheck_shipments_v1';
-const STORAGE_ZOOM = 'amacheck_zoom_v1';
-const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YW1HXJ
+SKU: CU-IBZE-W40Y
+未発送品の数量: 1
+商品の小計: ￥2,480
+保留中
+支払いの確認中
 
-let products = loadProducts();
-let shipments = loadShipments();
-let currentMonth;
-let pageCounter = 0;
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YWQKRM
+SKU: 9H-BT4Z-W15Y
+未発送品の数量: 1
+商品の小計: ￥3,080
+	
+1日前
+2026/5/28
+6:17 JST
+249-5158278-8401423
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-5158278-8401423
 
-function loadProducts(){
-  try { return JSON.parse(localStorage.getItem(STORAGE_PRODUCTS) || '[]'); }
-  catch { return []; }
-}
-function saveProducts(){
-  localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
-}
-function loadShipments(){
-  try { return JSON.parse(localStorage.getItem(STORAGE_SHIPMENTS) || '{}'); }
-  catch { return {}; }
-}
-function saveShipments(){
-  localStorage.setItem(STORAGE_SHIPMENTS, JSON.stringify(shipments));
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+保留中
+支払いの確認中
+	
+1日前
+2026/5/28
+6:30 JST
+249-9204584-7943849
+購入者名:
+重武真由
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-9204584-7943849
 
-// ============================================
-// 初期化
-// ============================================
-function init(){
-  // ズーム初期化
-  initZoom();
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+6:49 JST
+503-7895582-5544656
+購入者名:
+山下淳一
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-7895582-5544656
 
-  const now = new Date();
-  const ms = document.getElementById('month-select');
-  const options = [];
-  for (let i = -12; i <= 1; i++) {
-    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
-    const key = ymKey(d);
-    options.push('<option value="'+key+'">'+d.getFullYear()+'年'+(d.getMonth()+1)+'月</option>');
-  }
-  ms.innerHTML = options.join('');
-  currentMonth = ymKey(now);
-  ms.value = currentMonth;
-  ms.addEventListener('change', () => { currentMonth = ms.value; renderShipmentTable(); });
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+7:02 JST
+249-6878221-9595016
+購入者名:
+田中
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-6878221-9595016
 
-  document.getElementById('paste-date').value = todayStr();
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YV3FHZ
+SKU: 2C-S9GC-POPA
+数量: 1
+商品の小計: ￥2,580
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+7:22 JST
+250-6526306-0463005
+購入者名:
+阿部　康伸
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-6526306-0463005
 
-  document.getElementById('open-shipment').addEventListener('click', () => switchView('shipment'));
-  document.getElementById('open-master').addEventListener('click', () => switchView('master'));
-  document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('home')));
-  document.getElementById('open-input').addEventListener('click', openModal);
-  document.getElementById('cancel').addEventListener('click', closeModal);
-  document.getElementById('apply').addEventListener('click', applyShipment);
-  document.getElementById('add-page').addEventListener('click', () => addPage());
-  document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+7:27 JST
+250-8528842-5027816
+購入者名:
+萩原
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-8528842-5027816
 
-  document.getElementById('file-input').addEventListener('change', handleFile);
-  const dz = document.querySelector('.upload-zone');
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--orange)'; });
-  dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
-  dz.addEventListener('drop', e => {
-    e.preventDefault();
-    dz.style.borderColor = '';
-    if (e.dataTransfer.files[0]) parseFileForMaster(e.dataTransfer.files[0]);
-  });
-  document.getElementById('parse-master').addEventListener('click', parsePastedMaster);
-  document.getElementById('load-sample-master').addEventListener('click', loadSampleMaster);
-  document.getElementById('clear-master').addEventListener('click', clearMaster);
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+7:33 JST
+249-1813995-2799868
+購入者名:
+佐々木　令子
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-1813995-2799868
 
-  updateHomeStatus();
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+7:35 JST
+250-1239407-0579849
+購入者名:
+EBINA
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-1239407-0579849
 
-function switchView(name){
-  document.getElementById('home-view').hidden = (name !== 'home');
-  document.getElementById('master-view').hidden = (name !== 'master');
-  document.getElementById('shipment-view').hidden = (name !== 'shipment');
-  if (name === 'shipment') renderShipmentTable();
-  if (name === 'master') renderMasterList();
-  if (name === 'home') updateHomeStatus();
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+7:35 JST
+503-7455998-6584669
+購入者名:
+霜野　健一
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-7455998-6584669
 
-function updateHomeStatus(){
-  const el = document.getElementById('home-status');
-  if (products.length === 0) {
-    el.innerHTML = '<i class="ti ti-info-circle"></i> まずは「商品マスタ」から商品を登録してください';
-  } else {
-    el.textContent = '登録商品: ' + products.length + ' 件';
-  }
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YWQKRM
+SKU: 9H-BT4Z-W15Y
+数量: 2
+商品の小計: ￥6,160
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+7:37 JST
+503-9386551-3754225
+購入者名:
+横山佳奈恵
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-9386551-3754225
 
-function ymKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0'); }
-function todayStr(){
-  const d = new Date();
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
-}
-function daysInMonth(ymStr){
-  const [y, m] = ymStr.split('-').map(Number);
-  return new Date(y, m, 0).getDate();
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YH4F3S
+SKU: OL-1ZSX-A8CV
+数量: 1
+商品の小計: ￥1,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+7:40 JST
+503-7953924-2780618
+購入者名:
+澤井高男
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-7953924-2780618
 
-// ============================================
-// 商品マスタ
-// ============================================
-function handleFile(e){
-  const f = e.target.files[0];
-  if (f) parseFileForMaster(f);
-  e.target.value = '';
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+7:56 JST
+249-2871352-9659042
+購入者名:
+成木弘明
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-2871352-9659042
 
-function parseFileForMaster(file){
-  const reader = new FileReader();
-  reader.onload = () => parseMasterText(reader.result);
-  reader.readAsText(file);
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+7:57 JST
+503-0037038-9003872
+購入者名:
+金子浩司
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-0037038-9003872
 
-function parsePastedMaster(){
-  const text = document.getElementById('master-paste').value.trim();
-  if (!text) { toast('貼り付けるか、ファイルを選択してください'); return; }
-  parseMasterText(text);
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+8:31 JST
+249-0461215-3044629
+購入者名:
+宗形
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-0461215-3044629
 
-function parseMasterText(text){
-  // タブ区切り優先、カンマもフォールバック
-  const firstLine = text.split('\n')[0];
-  const delim = firstLine.indexOf('\t') > -1 ? '\t' : ',';
-  const res = Papa.parse(text, { header: true, skipEmptyLines: true, delimiter: delim });
-  if (!res.data.length) { toast('データが見つかりませんでした'); return; }
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+8:36 JST
+249-5391262-2246216
+購入者名:
+森利江
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-5391262-2246216
 
-  // カラム名マッピング（日本語/英語/略称に対応）
-  const cols = Object.keys(res.data[0]);
-  const findCol = (keywords) => {
-    for (const c of cols) {
-      const lc = c.toLowerCase();
-      for (const kw of keywords) {
-        if (lc.indexOf(kw) > -1) return c;
-      }
-    }
-    return null;
-  };
-  const skuCol = findCol(['seller-sku','merchant-sku','sku','出品者sku']) || findCol(['sku']);
-  const asinCol = findCol(['asin1','asin']);
-  const fnskuCol = findCol(['fnsku']);
-  const nameCol = findCol(['product-name','item-name','商品名','商品タイトル','title','name']);
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YH4F3S
+SKU: OL-1ZSX-A8CV
+発送済みの数量: 2
+商品の小計: ￥3,960
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
 
-  if (!fnskuCol) { toast('FNSKU列が見つかりませんでした。FBA在庫レポートかご確認ください'); return; }
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YW1HXJ
+SKU: CU-IBZE-W40Y
+発送済みの数量: 1
+商品の小計: ￥2,480
+	
+1日前
+2026/5/28
+8:38 JST
+503-0357053-2138246
+購入者名:
+和田
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-0357053-2138246
 
-  let added = 0;
-  let skipped = 0;
-  const existing = new Set(products.map(p => p.fnsku));
-  res.data.forEach((row, i) => {
-    const fnsku = (row[fnskuCol] || '').trim();
-    if (!fnsku) { skipped++; return; }
-    if (existing.has(fnsku)) { skipped++; return; }
-    const idx = products.length;
-    products.push({
-      sku: (skuCol ? row[skuCol] : '').trim(),
-      asin: (asinCol ? row[asinCol] : '').trim(),
-      fnsku,
-      name: (nameCol ? row[nameCol] : '(無題)').trim(),
-      color: PALETTE[idx % PALETTE.length]
-    });
-    existing.add(fnsku);
-    added++;
-  });
-  saveProducts();
-  document.getElementById('master-paste').value = '';
-  renderMasterList();
-  toast(added + ' 件を取り込みました' + (skipped > 0 ? '（重複/空 ' + skipped + ' 件はスキップ）' : ''));
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YWQKRM
+SKU: 9H-BT4Z-W15Y
+数量: 1
+商品の小計: ￥3,080
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+8:43 JST
+249-8996793-9432630
+購入者名:
+長田悠樹
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-8996793-9432630
 
-function loadSampleMaster(){
-  const sample = [
-    ['SKU-001','B0CABC1234','X001AAAA00','ガジェットスタンド'],
-    ['SKU-002','B0CABC5678','X001BBBB00','ワイヤレス充電器 15W'],
-    ['SKU-003','B0CABC9012','X001CCCC00','スマホケース クリア'],
-    ['SKU-004','B0CABC3456','X001DDDD00','USB-Cケーブル 2m'],
-    ['SKU-005','B0CABC7890','X001EEEE00','ノートPC用バッグ 15.6"'],
-    ['SKU-006','B0CABC2468','X001FFFF00','モバイルバッテリー 10000mAh'],
-    ['SKU-007','B0CABC1357','X001GGGG00','Bluetoothイヤホン'],
-    ['SKU-008','B0CABC8642','X001HHHH00','LEDデスクライト']
-  ];
-  const existing = new Set(products.map(p => p.fnsku));
-  let added = 0;
-  sample.forEach((r, i) => {
-    if (existing.has(r[2])) return;
-    products.push({
-      sku: r[0], asin: r[1], fnsku: r[2], name: r[3],
-      color: PALETTE[products.length % PALETTE.length]
-    });
-    added++;
-  });
-  saveProducts();
-  renderMasterList();
-  toast('サンプル ' + added + ' 件を追加しました');
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+標準
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+8:43 JST
+249-6725955-9767810
+購入者名:
+原　知佳
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-6725955-9767810
 
-function clearMaster(){
-  if (!products.length) return;
-  if (!confirm('商品マスタを全削除します。よろしいですか？（出荷データは残ります）')) return;
-  products = [];
-  saveProducts();
-  renderMasterList();
-  toast('商品マスタを削除しました');
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YXV3PQ
+SKU: O4-AOO0-YBZC
+数量: 1
+商品の小計: ￥2,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+8:56 JST
+249-4610633-8919042
+購入者名:
+石橋亜季
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-4610633-8919042
 
-function deleteProduct(fnsku){
-  if (!confirm('この商品を削除しますか？')) return;
-  products = products.filter(p => p.fnsku !== fnsku);
-  saveProducts();
-  renderMasterList();
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+標準
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+8:57 JST
+250-5875141-7910261
+購入者名:
+深澤　一夫
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-5875141-7910261
 
-function renderMasterList(){
-  document.getElementById('product-count').textContent = products.length ? '（' + products.length + ' 件）' : '';
-  const wrap = document.getElementById('master-list-wrap');
-  if (!products.length) {
-    wrap.innerHTML = '<div class="empty-state">登録された商品はまだありません</div>';
-    return;
-  }
-  let html = '<div style="overflow-x:auto"><table class="master"><thead><tr><th></th><th>SKU</th><th>ASIN</th><th>FNSKU</th><th>商品名</th><th class="actions-cell"></th></tr></thead><tbody>';
-  products.forEach(p => {
-    const initial = (p.name || '?').trim().charAt(0).toUpperCase();
-    html += '<tr>'
-      + '<td class="img-cell"><span class="ph" style="background:'+p.color+'">'+initial+'</span></td>'
-      + '<td class="mono">'+(p.sku||'-')+'</td>'
-      + '<td class="mono">'+(p.asin||'-')+'</td>'
-      + '<td class="mono">'+p.fnsku+'</td>'
-      + '<td>'+p.name+'</td>'
-      + '<td class="actions-cell"><button class="ghost" onclick="deleteProduct(\''+p.fnsku+'\')"><i class="ti ti-trash" style="color:var(--danger)"></i></button></td>'
-      + '</tr>';
-  });
-  html += '</tbody></table></div>';
-  wrap.innerHTML = html;
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+9:33 JST
+250-4362081-2175825
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-4362081-2175825
 
-// ============================================
-// 出荷数表のレンダリング
-// ============================================
-function renderShipmentTable(){
-  const body = document.getElementById('shipment-body');
-  if (!products.length) {
-    body.innerHTML = '<div class="master-card"><div class="empty-state">'
-      + '<i class="ti ti-database-off" style="font-size:32px;color:var(--text-tertiary)"></i>'
-      + '<div style="margin-top:8px;">商品マスタが登録されていません</div>'
-      + '<button class="primary" style="margin-top:16px;" onclick="switchView(\'master\')"><i class="ti ti-database"></i> 商品マスタへ</button>'
-      + '</div></div>';
-    return;
-  }
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+保留中
+支払いの確認中
+	
+1日前
+2026/5/28
+9:42 JST
+249-7018577-3452640
+購入者名:
+塩澤　佳晃
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-7018577-3452640
 
-  const days = daysInMonth(currentMonth);
-  const todayKey = ymKey(new Date());
-  const todayDay = new Date().getDate();
-  const isCurrentMonth = (currentMonth === todayKey);
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+10:16 JST
+249-5962552-0931049
+購入者名:
+安田美和子
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-5962552-0931049
 
-  let html = '<div class="table-wrap"><table class="ship"><thead><tr>';
-  html += '<th>ASIN</th><th>FNSKU</th><th>画像</th><th>商品名</th>';
-  for (let d = 1; d <= days; d++) {
-    const isToday = isCurrentMonth && d === todayDay;
-    html += '<th class="day' + (isToday ? ' today' : '') + '">' + d + '</th>';
-  }
-  html += '<th class="total">合計</th></tr></thead><tbody>';
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+10:56 JST
+250-8001040-3087013
+購入者名:
+馬渡健之
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-8001040-3087013
 
-  const monthData = shipments[currentMonth] || {};
-  products.forEach(p => {
-    const fnskuData = monthData[p.fnsku] || {};
-    let total = 0;
-    const initial = (p.name || '?').trim().charAt(0).toUpperCase();
-    html += '<tr>';
-    html += '<td class="asin">' + (p.asin || '-') + '</td>';
-    html += '<td class="fnsku">' + p.fnsku + '</td>';
-    html += '<td class="img"><span class="ph" style="background:' + p.color + '">' + initial + '</span></td>';
-    html += '<td class="name" title="' + p.name + '">' + p.name + '</td>';
-    for (let d = 1; d <= days; d++) {
-      const q = fnskuData[d] || 0;
-      total += q;
-      const isToday = isCurrentMonth && d === todayDay;
-      const cls = 'day' + (q ? ' has' : '') + (isToday ? ' today' : '');
-      html += '<td class="' + cls + '">' + (q || '') + '</td>';
-    }
-    html += '<td class="total">' + (total || '–') + '</td></tr>';
-  });
-  html += '</tbody></table></div>';
-  body.innerHTML = html;
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+10:59 JST
+503-8395043-0031821
+購入者名:
+野田利恵
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-8395043-0031821
 
-// ============================================
-// 出荷数貼付モーダル
-// ============================================
-function openModal(){
-  if (!products.length) { toast('先に商品マスタを登録してください'); return; }
-  document.getElementById('paste-date').value = todayStr();
-  document.getElementById('pages').innerHTML = '';
-  addPage();
-  document.getElementById('modal').hidden = false;
-}
-function closeModal(){ document.getElementById('modal').hidden = true; }
+KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ダイヤル式 ファスナー式 防爆 防水 防災 防火バック �
+ASIN: B0DYNZ38NQ
+SKU: S0-MTDL-1ENQ
+数量: 1
+商品の小計: ￥4,480
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+11:14 JST
+249-8511939-8445428
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-8511939-8445428
 
-function addPage(){
-  pageCounter++;
-  const pages = document.getElementById('pages');
-  const idx = pages.querySelectorAll('.paste-page').length + 1;
-  const id = 'page-' + pageCounter;
-  const el = document.createElement('div');
-  el.className = 'paste-page';
-  el.innerHTML =
-    '<div class="head">'
-    + '<span class="ph-label">ページ ' + idx + ' の貼り付け</span>'
-    + '<span class="detected" id="d-' + id + '">未入力</span>'
-    + '</div>'
-    + '<textarea id="' + id + '" placeholder="ここにCtrl+Vで貼り付け..."></textarea>';
-  pages.appendChild(el);
-  el.querySelector('textarea').addEventListener('input', () => updatePreview(id));
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+未発送品の数量: 1
+商品の小計: ￥1,880
+保留中
+支払いの確認中
 
-function parseShipment(text){
-  const re = /\bX[0-9A-Z]{9}\b/g;
-  const counts = {};
-  let m;
-  while ((m = re.exec(text)) !== null) counts[m[0]] = (counts[m[0]] || 0) + 1;
-  return counts;
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+未発送品の数量: 1
+商品の小計: ￥1,680
+	
+1日前
+2026/5/28
+11:16 JST
+503-3613925-3571816
+購入者名:
+奥瀬
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-3613925-3571816
 
-function updatePreview(id){
-  const ta = document.getElementById(id);
-  const counts = parseShipment(ta.value);
-  const dEl = document.getElementById('d-' + id);
-  const total = Object.values(counts).reduce((a,b) => a+b, 0);
-  const validFnskus = new Set(products.map(p => p.fnsku));
-  const matched = Object.keys(counts).filter(f => validFnskus.has(f)).length;
-  if (total === 0) { dEl.textContent = '未入力'; dEl.className = 'detected'; }
-  else {
-    dEl.textContent = 'FNSKU検出: ' + Object.keys(counts).length + '種 / 一致: ' + matched + '種 / 合計: ' + total + '個';
-    dEl.className = 'detected ok';
-  }
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+11:23 JST
+503-6136559-6465414
+購入者名:
+世垣
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-6136559-6465414
 
-function applyShipment(){
-  const dateStr = document.getElementById('paste-date').value;
-  if (!dateStr) { toast('日付を選択してください'); return; }
-  const [y, m, d] = dateStr.split('-').map(Number);
-  const ym = y + '-' + String(m).padStart(2,'0');
-  const day = d;
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+11:32 JST
+250-3738315-9082218
+購入者名:
+田村　卓也
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-3738315-9082218
 
-  const allCounts = {};
-  document.querySelectorAll('#pages textarea').forEach(ta => {
-    const c = parseShipment(ta.value);
-    for (const k in c) allCounts[k] = (allCounts[k] || 0) + c[k];
-  });
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+11:39 JST
+249-2242927-7395063
+購入者名:
+無州淳子
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-2242927-7395063
 
-  const validFnskus = new Set(products.map(p => p.fnsku));
-  let appliedQty = 0, appliedFnsku = 0, ignoredFnsku = 0;
-  if (!shipments[ym]) shipments[ym] = {};
-  for (const fnsku in allCounts) {
-    if (!validFnskus.has(fnsku)) { ignoredFnsku++; continue; }
-    if (!shipments[ym][fnsku]) shipments[ym][fnsku] = {};
-    shipments[ym][fnsku][day] = (shipments[ym][fnsku][day] || 0) + allCounts[fnsku];
-    appliedFnsku++;
-    appliedQty += allCounts[fnsku];
-  }
-  saveShipments();
+KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ダイヤル式 ファスナー式 防爆 防水 防災 防火バック �
+ASIN: B0DYNZ38NQ
+SKU: S0-MTDL-1ENQ
+数量: 1
+商品の小計: ￥4,480
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+11:44 JST
+250-7154494-5510248
+購入者名:
+ニシシタ
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-7154494-5510248
 
-  currentMonth = ym;
-  document.getElementById('month-select').value = ym;
-  renderShipmentTable();
-  closeModal();
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+11:58 JST
+250-8475131-8081426
+購入者名:
+江藤　紫苑
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-8475131-8081426
 
-  if (appliedQty === 0) toast('反映する出荷データが見つかりませんでした');
-  else {
-    let msg = m + '/' + d + ' に ' + appliedFnsku + '種 / ' + appliedQty + '個 反映';
-    if (ignoredFnsku > 0) msg += '（商品リスト外 ' + ignoredFnsku + '種は無視）';
-    toast(msg);
-  }
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YH4F3S
+SKU: OL-1ZSX-A8CV
+数量: 1
+商品の小計: ￥1,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+12:26 JST
+250-3048218-5353448
+購入者名:
+田中
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-3048218-5353448
 
-// ============================================
-// ズーム（文字サイズ調整）
-// ============================================
-const ZOOM_STEPS = [0.7, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0];
-let zoomIdx = 3; // デフォルト 100%
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+12:29 JST
+503-8057180-1836653
+購入者名:
+西　智美
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-8057180-1836653
 
-function initZoom(){
-  const saved = parseFloat(localStorage.getItem(STORAGE_ZOOM));
-  if (!isNaN(saved)) {
-    const idx = ZOOM_STEPS.findIndex(z => Math.abs(z - saved) < 0.01);
-    if (idx >= 0) zoomIdx = idx;
-  }
-  applyZoom();
-  document.getElementById('zoom-in').addEventListener('click', () => {
-    if (zoomIdx < ZOOM_STEPS.length - 1) { zoomIdx++; applyZoom(); }
-  });
-  document.getElementById('zoom-out').addEventListener('click', () => {
-    if (zoomIdx > 0) { zoomIdx--; applyZoom(); }
-  });
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+12:57 JST
+503-0306235-4596637
+購入者名:
+曽根
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-0306235-4596637
 
-function applyZoom(){
-  const z = ZOOM_STEPS[zoomIdx];
-  // CSS zoom を container と modal に適用（topbar は固定サイズに保つ）
-  document.querySelector('.container').style.zoom = z;
-  document.getElementById('modal').style.zoom = z;
-  document.getElementById('zoom-level').textContent = Math.round(z * 100) + '%';
-  document.getElementById('zoom-in').disabled = (zoomIdx >= ZOOM_STEPS.length - 1);
-  document.getElementById('zoom-out').disabled = (zoomIdx <= 0);
-  localStorage.setItem(STORAGE_ZOOM, z);
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+13:32 JST
+250-3881005-3656614
+購入者名:
+藁科
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-3881005-3656614
 
-// ============================================
-// トースト
-// ============================================
-let toastTimer;
-function toast(msg){
-  const el = document.getElementById('toast');
-  el.textContent = msg;
-  el.classList.add('show');
-  clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
-}
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+13:52 JST
+503-1980670-5116640
+購入者名:
+川口　康子
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-1980670-5116640
 
-// グローバルに公開（onclick用）
-window.deleteProduct = deleteProduct;
-window.switchView = switchView;
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YV3FHZ
+SKU: 2C-S9GC-POPA
+数量: 2
+商品の小計: ￥5,160
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+14:08 JST
+503-2689959-3907050
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-2689959-3907050
 
-init();
-</script>
-</body>
-</html>
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YV3FHZ
+SKU: 2C-S9GC-POPA
+数量: 1
+商品の小計: ￥2,580
+保留中
+支払いの確認中
+	
+1日前
+2026/5/28
+14:17 JST
+503-0159932-3159859
+購入者名:
+三浦
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-0159932-3159859
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+14:21 JST
+249-8287901-9352646
+購入者名:
+村田菜々花
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-8287901-9352646
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YX2RPX
+SKU: Y9-XKX3-TY7T
+数量: 1
+商品の小計: ￥2,780
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+14:37 JST
+249-4827262-6694206
+購入者名:
+西村
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-4827262-6694206
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YYHMWY
+SKU: 1T-2BLC-QO6A
+数量: 1
+商品の小計: ￥3,280
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+14:45 JST
+250-6497103-4578223
+購入者名:
+株式会社AXIAS
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-6497103-4578223
+法人/個人事業主
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+14:49 JST
+250-2226453-7153402
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-2226453-7153402
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YW1HXJ
+SKU: CU-IBZE-W40Y
+数量: 1
+商品の小計: ￥2,480
+保留中
+支払いの確認中
+	
+1日前
+2026/5/28
+15:09 JST
+503-8170168-7633468
+購入者名:
+野木雄大
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-8170168-7633468
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+15:18 JST
+250-2578646-8168621
+購入者名:
+Liz
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-2578646-8168621
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+1日前
+2026/5/28
+15:24 JST
+249-4022761-8023019
+購入者名:
+上山まき
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-4022761-8023019
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+標準
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+24時間前
+2026/5/28
+15:51 JST
+250-6571531-7154203
+購入者名:
+KIGC
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-6571531-7154203
+法人/個人事業主
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YYHMWY
+SKU: 1T-2BLC-QO6A
+数量: 10
+商品の小計: ￥32,800
+標準
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+24時間前
+2026/5/28
+15:52 JST
+503-0815323-1678217
+購入者名:
+隅　靖夫
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-0815323-1678217
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+23時間前
+2026/5/28
+16:17 JST
+250-8863712-3523868
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-8863712-3523868
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+保留中
+支払いの確認中
+	
+23時間前
+2026/5/28
+16:29 JST
+250-0200611-6601467
+購入者名:
+馬場
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-0200611-6601467
+法人/個人事業主
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+23時間前
+2026/5/28
+16:55 JST
+503-5068416-3270252
+購入者名:
+松戸
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-5068416-3270252
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YH4F3S
+SKU: OL-1ZSX-A8CV
+数量: 1
+商品の小計: ￥1,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+22時間前
+2026/5/28
+17:32 JST
+250-7250571-4648656
+購入者名:
+櫛川智美
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-7250571-4648656
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+22時間前
+2026/5/28
+17:44 JST
+503-6081099-0648600
+購入者名:
+阿部鷹昭
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-6081099-0648600
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YX2RPX
+SKU: Y9-XKX3-TY7T
+数量: 1
+商品の小計: ￥2,780
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+21時間前
+2026/5/28
+18:44 JST
+503-3067619-5239858
+購入者名:
+中村麻理
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-3067619-5239858
+
+KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ダイヤル式 ファスナー式 防爆 防水 防災 防火バック �
+ASIN: B0DYNZ38NQ
+SKU: S0-MTDL-1ENQ
+数量: 1
+商品の小計: ￥4,480
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+20時間前
+2026/5/28
+19:07 JST
+250-7462524-2900626
+購入者名:
+田邉幹貴
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-7462524-2900626
+
+KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ダイヤル式 ファスナー式 防爆 防水 防災 防火バック �
+ASIN: B0DYNZ38NQ
+SKU: S0-MTDL-1ENQ
+数量: 1
+商品の小計: ￥4,480
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+20時間前
+2026/5/28
+19:12 JST
+249-8059641-6680667
+購入者名:
+ssekino0105
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-8059641-6680667
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+20時間前
+2026/5/28
+19:37 JST
+249-6191073-0827061
+購入者名:
+太田崇介
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-6191073-0827061
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+20時間前
+2026/5/28
+19:45 JST
+250-9598841-2695842
+購入者名:
+山之内忍
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-9598841-2695842
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+20時間前
+2026/5/28
+19:49 JST
+249-6581034-7080635
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-6581034-7080635
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+保留中
+支払いの確認中
+	
+20時間前
+2026/5/28
+20:00 JST
+250-0990708-2483056
+購入者名:
+林
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-0990708-2483056
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YW1HXJ
+SKU: CU-IBZE-W40Y
+数量: 1
+商品の小計: ￥2,480
+標準
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+19時間前
+2026/5/28
+20:13 JST
+249-6206135-1986269
+購入者名:
+吉野
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-6206135-1986269
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+19時間前
+2026/5/28
+20:20 JST
+250-8890093-8011830
+購入者名:
+奥
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-8890093-8011830
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YV3FHZ
+SKU: 2C-S9GC-POPA
+数量: 1
+商品の小計: ￥2,580
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+19時間前
+2026/5/28
+20:23 JST
+250-3204429-9210229
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-3204429-9210229
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+保留中
+支払いの確認中
+	
+19時間前
+2026/5/28
+20:31 JST
+249-3677105-4747868
+購入者名:
+土田真也
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-3677105-4747868
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+19時間前
+2026/5/28
+20:34 JST
+250-5378909-5557434
+購入者名:
+北村
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-5378909-5557434
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YW1HXJ
+SKU: CU-IBZE-W40Y
+数量: 1
+商品の小計: ￥2,480
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+19時間前
+2026/5/28
+20:38 JST
+250-3982278-5248637
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-3982278-5248637
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+保留中
+支払いの確認中
+	
+19時間前
+2026/5/28
+20:46 JST
+249-3822223-5929417
+購入者名:
+山本蓮
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-3822223-5929417
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+19時間前
+2026/5/28
+20:50 JST
+503-4978084-1098262
+購入者名:
+大山由夏
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-4978084-1098262
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YV3FHZ
+SKU: 2C-S9GC-POPA
+数量: 1
+商品の小計: ￥2,580
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+19時間前
+2026/5/28
+20:59 JST
+250-2630889-9901455
+購入者名:
+藤本加奈子
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-2630889-9901455
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YXV3PQ
+SKU: O4-AOO0-YBZC
+発送済みの数量: 1
+商品の小計: ￥2,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YX2RPX
+SKU: Y9-XKX3-TY7T
+発送済みの数量: 1
+商品の小計: ￥2,780
+	
+19時間前
+2026/5/28
+21:02 JST
+250-4287486-9570269
+購入者名:
+辻若奈
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-4287486-9570269
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YW1HXJ
+SKU: CU-IBZE-W40Y
+数量: 1
+商品の小計: ￥2,480
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+18時間前
+2026/5/28
+21:11 JST
+249-9883141-1072659
+購入者名:
+岩間夕希
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-9883141-1072659
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YW1HXJ
+SKU: CU-IBZE-W40Y
+数量: 1
+商品の小計: ￥2,480
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+18時間前
+2026/5/28
+21:24 JST
+250-3755129-0006231
+購入者名:
+阿部元昭
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-3755129-0006231
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+標準
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+18時間前
+2026/5/28
+21:26 JST
+503-9545867-7478258
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-9545867-7478258
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+保留中
+支払いの確認中
+	
+18時間前
+2026/5/28
+21:36 JST
+503-0612560-0643048
+購入者名:
+黒田利光
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-0612560-0643048
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+標準
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+18時間前
+2026/5/28
+21:36 JST
+249-5965281-5427019
+購入者名:
+ゲートサービス株式会社　文本鋭
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-5965281-5427019
+法人/個人事業主
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+18時間前
+2026/5/28
+21:50 JST
+249-1208427-4997469
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-1208427-4997469
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YW1HXJ
+SKU: CU-IBZE-W40Y
+数量: 1
+商品の小計: ￥2,480
+保留中
+支払いの確認中
+	
+18時間前
+2026/5/28
+21:56 JST
+250-3346578-7951056
+購入者名:
+小関房吉
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-3346578-7951056
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YL6SK6
+SKU: WD-OK56-IW3F
+数量: 1
+商品の小計: ￥1,880
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+18時間前
+2026/5/28
+22:05 JST
+503-5534529-9907060
+購入者名:
+宮崎
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-5534529-9907060
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YH4F3S
+SKU: OL-1ZSX-A8CV
+数量: 1
+商品の小計: ￥1,980
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+17時間前
+2026/5/28
+22:16 JST
+503-6186266-9967009
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-6186266-9967009
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+保留中
+支払いの確認中
+	
+17時間前
+2026/5/28
+22:20 JST
+503-7728916-8692649
+購入者名:
+深澤智子
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-7728916-8692649
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YWQKRM
+SKU: 9H-BT4Z-W15Y
+数量: 2
+商品の小計: ￥6,160
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+17時間前
+2026/5/28
+22:34 JST
+503-1018159-1563852
+購入者名:
+落合久美子
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-1018159-1563852
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+17時間前
+2026/5/28
+22:35 JST
+249-0405284-6419055
+購入者名:
+古木真美
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-0405284-6419055
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4YV3FHZ
+SKU: 2C-S9GC-POPA
+数量: 1
+商品の小計: ￥2,580
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+17時間前
+2026/5/28
+22:54 JST
+249-1959269-3877403
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-1959269-3877403
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+保留中
+支払いの確認中
+	
+16時間前
+2026/5/28
+23:06 JST
+250-2618386-4895015
+購入者名:
+市田
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 250-2618386-4895015
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+16時間前
+2026/5/28
+23:21 JST
+503-0591256-7648604
+購入者名:
+比佐
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 503-0591256-7648604
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0D4Y772G6
+SKU: LC-BXO4-P8DY
+数量: 1
+商品の小計: ￥1,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+	
+16時間前
+2026/5/28
+23:36 JST
+249-0610548-6459069
+購入者名:
+なおみ
+配送経路: Amazon
+販売経路: Amazon.co.jp
+出品者注文 ID: 249-0610548-6459069
+
+【ヒルナンデス！で紹介】KAIRYAL 耐火バッグ 耐火ケース 防火袋 耐火金庫 防火金庫 ファスナー式 防爆 防水 防�
+ASIN: B0CDGLZF8V
+SKU: ZQ-6MKD-K92U
+数量: 1
+商品の小計: ￥3,680
+エクスプレス（速達）
+支払い完了
+インボイスの管理
+注文を払い戻す
+次のページにジャンプする:
+移動
+←前へ
+1
+2
+次へ→
+1 から 100 までの 101 件の注文を表示しています。
+
+100
+ページごとの結果: 100
+フィードバック
+ヘルプ プログラムポリシー 
+
+日本語
+ 
+Amazonの出品者モバイルアプリをダウンロードする
+© 1999–2026, Amazon.com, Inc. またはその関連会社
