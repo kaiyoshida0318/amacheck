@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Amacheck</title>
+<link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" rel="stylesheet">
+<style>
+  :root {
+    --orange: #D8540E;
+    --orange-hover: #b94409;
+    --orange-light: rgba(216, 84, 14, 0.08);
+    --black: #111;
+    --text-secondary: #555;
+    --text-tertiary: #888;
+    --border: #e5e5e5;
+    --border-strong: #ccc;
+    --bg: #fafafa;
+    --bg-card: #ffffff;
+    --bg-secondary: #f5f5f5;
+    --success: #2e7d32;
+  }
+  * { box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif;
+    margin: 0;
+    background: var(--bg);
+    color: var(--black);
+    font-size: 14px;
+    line-height: 1.6;
+  }
+  .container { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
+
+  .logo {
+    background: var(--orange);
+    border-radius: 10px;
+    padding: 12px 18px;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 32px;
+  }
+  .logo i { font-size: 28px; color: #fff; }
+  .logo .divider { width: 2px; height: 28px; background: rgba(255,255,255,0.4); }
+  .logo .name { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
+  .logo .name .ama { color: #fff; }
+  .logo .name .check { color: var(--black); }
+
+  button, select, input[type="date"] {
+    font-family: inherit;
+    font-size: 14px;
+    padding: 8px 14px;
+    border: 1px solid var(--border-strong);
+    background: #fff;
+    border-radius: 8px;
+    cursor: pointer;
+    color: var(--black);
+  }
+  button { display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
+  button:hover { border-color: var(--orange); color: var(--orange); }
+  button.primary { background: var(--orange); color: #fff; border-color: var(--orange); }
+  button.primary:hover { background: var(--orange-hover); color: #fff; border-color: var(--orange-hover); }
+  button.ghost { border: none; background: transparent; padding: 8px 10px; }
+  button i { font-size: 16px; }
+  select:focus, input[type="date"]:focus { outline: none; border-color: var(--orange); }
+
+  .home { text-align: center; padding: 80px 20px; }
+  .home h1 { font-size: 28px; margin: 0 0 12px; letter-spacing: -0.5px; }
+  .home p { color: var(--text-secondary); margin: 0 0 32px; }
+  .big-btn {
+    font-size: 16px;
+    padding: 14px 28px;
+    background: var(--orange);
+    color: #fff;
+    border-color: var(--orange);
+    border-radius: 10px;
+  }
+  .big-btn:hover { background: var(--orange-hover); color: #fff; border-color: var(--orange-hover); }
+
+  .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
+  .toolbar .spacer { flex: 1; }
+
+  .table-wrap {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    overflow-x: auto;
+  }
+  table.ship {
+    border-collapse: collapse;
+    width: 100%;
+    min-width: 1800px;
+  }
+  table.ship th, table.ship td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: center;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+  table.ship thead th {
+    background: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 12px;
+    border-bottom: 1px solid var(--border-strong);
+  }
+  table.ship td.asin, table.ship td.fnsku { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
+  table.ship td.name { text-align: left; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
+  table.ship td.img { padding: 4px; }
+  table.ship td.img .ph {
+    width: 36px; height: 36px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 14px;
+  }
+  table.ship td.day { min-width: 32px; color: var(--text-tertiary); }
+  table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--orange-light); }
+  table.ship td.day.today { background: rgba(216,84,14,0.18); }
+  table.ship th.day.today { background: rgba(216,84,14,0.18); color: var(--orange); }
+  table.ship td.total, table.ship th.total {
+    background: var(--bg-secondary);
+    font-weight: 700;
+    border-left: 1px solid var(--border-strong);
+  }
+  table.ship tr:hover td:not(.total) { background: rgba(0,0,0,0.02); }
+  table.ship tr:hover td.day.has { background: rgba(216,84,14,0.15); }
+
+  .modal-bg {
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.4);
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    padding: 40px 20px;
+    z-index: 100;
+    overflow-y: auto;
+  }
+  .modal { background: #fff; border-radius: 14px; width: 100%; max-width: 720px; padding: 24px; }
+  .modal h3 { margin: 0 0 4px; font-size: 18px; }
+  .modal .sub { color: var(--text-secondary); font-size: 13px; margin-bottom: 20px; }
+  .row { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; }
+  .row label { font-weight: 600; font-size: 13px; }
+  .paste-page {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 12px;
+    margin-bottom: 10px;
+    background: var(--bg-secondary);
+  }
+  .paste-page .head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px; }
+  .paste-page .ph-label { font-weight: 600; font-size: 13px; }
+  .paste-page .detected { font-size: 12px; color: var(--text-tertiary); }
+  .paste-page .detected.ok { color: var(--success); }
+  .paste-page textarea {
+    width: 100%;
+    min-height: 100px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    resize: vertical;
+  }
+  .paste-page textarea:focus { outline: none; border-color: var(--orange); }
+  .modal-actions {
+    display: flex;
+    justify-content: flex-end;
+    gap: 8px;
+    margin-top: 20px;
+    padding-top: 16px;
+    border-top: 1px solid var(--border);
+  }
+
+  .toast {
+    position: fixed;
+    bottom: 24px;
+    left: 50%;
+    transform: translateX(-50%);
+    background: var(--black);
+    color: #fff;
+    padding: 10px 18px;
+    border-radius: 8px;
+    font-size: 13px;
+    z-index: 200;
+    opacity: 0;
+    transition: opacity 0.2s;
+    pointer-events: none;
+  }
+  .toast.show { opacity: 1; }
+
+  [hidden] { display: none !important; }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <div class="logo">
+    <i class="ti ti-shopping-cart"></i>
+    <div class="divider"></div>
+    <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
+  </div>
+
+  <div id="home-view" class="home">
+    <h1>Amacheck</h1>
+    <p>Amazon 売上・広告・在庫のチェックツール</p>
+    <button class="big-btn" id="open-shipment">
+      <i class="ti ti-truck-delivery"></i> 出荷数を見る
+    </button>
+  </div>
+
+  <div id="shipment-view" hidden>
+    <div class="toolbar">
+      <button class="ghost" id="back-home"><i class="ti ti-arrow-left"></i> 戻る</button>
+      <select id="month-select"></select>
+      <div class="spacer"></div>
+      <button class="primary" id="open-input"><i class="ti ti-plus"></i> 出荷数入力</button>
+    </div>
+    <div class="table-wrap">
+      <table class="ship" id="ship-table"></table>
+    </div>
+  </div>
+
+</div>
+
+<div class="modal-bg" id="modal" hidden>
+  <div class="modal">
+    <h3>出荷数入力</h3>
+    <div class="sub">セラーセントラルの注文管理画面でCtrl+A → Ctrl+Cでコピーし、下の枠に貼り付けてください。FNSKUの出現回数で集計します。</div>
+    <div class="row">
+      <label for="paste-date">日付</label>
+      <input type="date" id="paste-date">
+    </div>
+    <div id="pages"></div>
+    <button id="add-page"><i class="ti ti-plus"></i> ページを追加（2ページ目以降）</button>
+    <div class="modal-actions">
+      <button id="cancel">キャンセル</button>
+      <button class="primary" id="apply"><i class="ti ti-check"></i> 反映する</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const products = [
+  { asin:'B0CABC1234', fnsku:'X001AAAA00', name:'ガジェットスタンド', color:'#3498db' },
+  { asin:'B0CABC5678', fnsku:'X001BBBB00', name:'ワイヤレス充電器 15W', color:'#27ae60' },
+  { asin:'B0CABC9012', fnsku:'X001CCCC00', name:'スマホケース クリア', color:'#e91e63' },
+  { asin:'B0CABC3456', fnsku:'X001DDDD00', name:'USB-Cケーブル 2m', color:'#f39c12' },
+  { asin:'B0CABC7890', fnsku:'X001EEEE00', name:'ノートPC用バッグ 15.6"', color:'#7f8c8d' },
+  { asin:'B0CABC2468', fnsku:'X001FFFF00', name:'モバイルバッテリー 10000mAh', color:'#c0392b' },
+  { asin:'B0CABC1357', fnsku:'X001GGGG00', name:'Bluetoothイヤホン', color:'#9b59b6' },
+  { asin:'B0CABC8642', fnsku:'X001HHHH00', name:'LEDデスクライト', color:'#16a085' }
+];
+
+const shipments = {};
+let currentMonth;
+let pageCounter = 0;
+
+function init(){
+  const now = new Date();
+  const ms = document.getElementById('month-select');
+  const options = [];
+  for (let i = -12; i <= 1; i++) {
+    const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
+    const key = ymKey(d);
+    const label = d.getFullYear() + '年' + (d.getMonth()+1) + '月';
+    options.push('<option value="'+key+'">'+label+'</option>');
+  }
+  ms.innerHTML = options.join('');
+  currentMonth = ymKey(now);
+  ms.value = currentMonth;
+  ms.addEventListener('change', () => { currentMonth = ms.value; renderTable(); });
+
+  document.getElementById('paste-date').value = todayStr();
+
+  document.getElementById('open-shipment').addEventListener('click', () => switchView('shipment'));
+  document.getElementById('back-home').addEventListener('click', () => switchView('home'));
+  document.getElementById('open-input').addEventListener('click', openModal);
+  document.getElementById('cancel').addEventListener('click', closeModal);
+  document.getElementById('apply').addEventListener('click', applyShipment);
+  document.getElementById('add-page').addEventListener('click', () => addPage());
+  document.getElementById('modal').addEventListener('click', (e) => {
+    if (e.target.id === 'modal') closeModal();
+  });
+}
+
+function switchView(name){
+  document.getElementById('home-view').hidden = (name !== 'home');
+  document.getElementById('shipment-view').hidden = (name !== 'shipment');
+  if (name === 'shipment') renderTable();
+}
+
+function ymKey(d){
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0');
+}
+function todayStr(){
+  const d = new Date();
+  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
+}
+function daysInMonth(ymStr){
+  const [y, m] = ymStr.split('-').map(Number);
+  return new Date(y, m, 0).getDate();
+}
+
+function renderTable(){
+  const days = daysInMonth(currentMonth);
+  const todayKey = ymKey(new Date());
+  const todayDay = new Date().getDate();
+  const isCurrentMonth = (currentMonth === todayKey);
+
+  let html = '<thead><tr>';
+  html += '<th>ASIN</th><th>FNSKU</th><th>画像</th><th>商品名</th>';
+  for (let d = 1; d <= days; d++) {
+    const isToday = isCurrentMonth && d === todayDay;
+    html += '<th class="day' + (isToday ? ' today' : '') + '">' + d + '</th>';
+  }
+  html += '<th class="total">合計</th></tr></thead>';
+
+  html += '<tbody>';
+  const monthData = shipments[currentMonth] || {};
+  products.forEach(p => {
+    const fnskuData = monthData[p.fnsku] || {};
+    let total = 0;
+    const initial = (p.name || '?').trim().charAt(0).toUpperCase();
+    html += '<tr>';
+    html += '<td class="asin">' + p.asin + '</td>';
+    html += '<td class="fnsku">' + p.fnsku + '</td>';
+    html += '<td class="img"><span class="ph" style="background:' + p.color + '">' + initial + '</span></td>';
+    html += '<td class="name" title="' + p.name + '">' + p.name + '</td>';
+    for (let d = 1; d <= days; d++) {
+      const q = fnskuData[d] || 0;
+      total += q;
+      const isToday = isCurrentMonth && d === todayDay;
+      const cls = 'day' + (q ? ' has' : '') + (isToday ? ' today' : '');
+      html += '<td class="' + cls + '">' + (q || '') + '</td>';
+    }
+    html += '<td class="total">' + (total || '–') + '</td>';
+    html += '</tr>';
+  });
+  html += '</tbody>';
+
+  document.getElementById('ship-table').innerHTML = html;
+}
+
+function openModal(){
+  document.getElementById('paste-date').value = todayStr();
+  document.getElementById('pages').innerHTML = '';
+  addPage();
+  document.getElementById('modal').hidden = false;
+}
+function closeModal(){
+  document.getElementById('modal').hidden = true;
+}
+
+function addPage(){
+  pageCounter++;
+  const pages = document.getElementById('pages');
+  const idx = pages.querySelectorAll('.paste-page').length + 1;
+  const id = 'page-' + pageCounter;
+  const el = document.createElement('div');
+  el.className = 'paste-page';
+  el.innerHTML =
+    '<div class="head">'
+    + '<span class="ph-label">ページ ' + idx + ' の貼り付け</span>'
+    + '<span class="detected" id="d-' + id + '">未入力</span>'
+    + '</div>'
+    + '<textarea id="' + id + '" placeholder="ここにCtrl+Vで貼り付け..."></textarea>';
+  pages.appendChild(el);
+  const ta = el.querySelector('textarea');
+  ta.addEventListener('input', () => updatePreview(id));
+}
+
+function parseShipment(text){
+  const re = /\bX[0-9A-Z]{9}\b/g;
+  const counts = {};
+  let m;
+  while ((m = re.exec(text)) !== null) {
+    counts[m[0]] = (counts[m[0]] || 0) + 1;
+  }
+  return counts;
+}
+
+function updatePreview(id){
+  const ta = document.getElementById(id);
+  const counts = parseShipment(ta.value);
+  const dEl = document.getElementById('d-' + id);
+  const total = Object.values(counts).reduce((a,b) => a+b, 0);
+  const matched = Object.keys(counts).filter(f => products.some(p => p.fnsku === f)).length;
+  if (total === 0) {
+    dEl.textContent = '未入力';
+    dEl.className = 'detected';
+  } else {
+    dEl.textContent = 'FNSKU検出: ' + Object.keys(counts).length + '種 / 一致: ' + matched + '種 / 合計: ' + total + '個';
+    dEl.className = 'detected ok';
+  }
+}
+
+function applyShipment(){
+  const dateStr = document.getElementById('paste-date').value;
+  if (!dateStr) { toast('日付を選択してください'); return; }
+  const [y, m, d] = dateStr.split('-').map(Number);
+  const ym = y + '-' + String(m).padStart(2,'0');
+  const day = d;
+
+  const allCounts = {};
+  document.querySelectorAll('#pages textarea').forEach(ta => {
+    const c = parseShipment(ta.value);
+    for (const k in c) { allCounts[k] = (allCounts[k] || 0) + c[k]; }
+  });
+
+  const validFnskus = new Set(products.map(p => p.fnsku));
+  let appliedQty = 0;
+  let appliedFnsku = 0;
+  let ignoredFnsku = 0;
+  if (!shipments[ym]) shipments[ym] = {};
+  for (const fnsku in allCounts) {
+    if (!validFnskus.has(fnsku)) { ignoredFnsku++; continue; }
+    if (!shipments[ym][fnsku]) shipments[ym][fnsku] = {};
+    shipments[ym][fnsku][day] = (shipments[ym][fnsku][day] || 0) + allCounts[fnsku];
+    appliedFnsku++;
+    appliedQty += allCounts[fnsku];
+  }
+
+  currentMonth = ym;
+  document.getElementById('month-select').value = ym;
+  renderTable();
+  closeModal();
+
+  if (appliedQty === 0) {
+    toast('反映する出荷データが見つかりませんでした');
+  } else {
+    let msg = m + '/' + d + ' に ' + appliedFnsku + '種 / ' + appliedQty + '個 反映しました';
+    if (ignoredFnsku > 0) msg += '（商品リスト外 ' + ignoredFnsku + '種は無視）';
+    toast(msg);
+  }
+}
+
+let toastTimer;
+function toast(msg){
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+}
+
+init();
+</script>
+</body>
+</html>
