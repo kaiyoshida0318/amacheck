@@ -30,7 +30,7 @@
     font-size: 14px;
     line-height: 1.6;
   }
-  .container { max-width: 1400px; margin: 0 auto; padding: 24px 20px; }
+  .container { max-width: 1400px; margin: 0 auto; padding: 20px 20px; }
 
   .logo {
     background: var(--orange);
@@ -39,7 +39,6 @@
     display: inline-flex;
     align-items: center;
     gap: 10px;
-    margin-bottom: 32px;
   }
   .logo i { font-size: 28px; color: #fff; }
   .logo .divider { width: 2px; height: 28px; background: rgba(255,255,255,0.4); }
@@ -289,16 +288,81 @@
   }
 
   [hidden] { display: none !important; }
+
+  /* ヘッダー行（ロゴ + バージョン + 文字サイズ） */
+  .page-header {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 20px 20px 0;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 16px;
+    flex-wrap: wrap;
+  }
+  .header-right {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    opacity: 0.55;
+    transition: opacity 0.15s;
+  }
+  .header-right:hover { opacity: 1; }
+  .header-right .version {
+    color: var(--text-tertiary);
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 11px;
+  }
+  .zoom-controls {
+    display: flex;
+    align-items: center;
+    gap: 1px;
+    background: var(--bg-secondary);
+    border-radius: 6px;
+    padding: 1px;
+  }
+  .zoom-btn {
+    padding: 2px 8px;
+    border: none;
+    background: transparent;
+    font-weight: 700;
+    font-size: 11px;
+    cursor: pointer;
+    border-radius: 4px;
+    color: var(--text-secondary);
+    transition: all 0.15s;
+  }
+  .zoom-btn:hover { background: #fff; color: var(--orange); }
+  .zoom-btn:disabled { opacity: 0.3; cursor: not-allowed; }
+  .zoom-btn:disabled:hover { background: transparent; color: var(--text-secondary); }
+  .zoom-level {
+    font-size: 10px;
+    color: var(--text-secondary);
+    min-width: 34px;
+    text-align: center;
+    font-variant-numeric: tabular-nums;
+  }
 </style>
 </head>
 <body>
-<div class="container">
-
+<!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
+<header class="page-header">
   <div class="logo">
     <i class="ti ti-shopping-cart"></i>
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
+  <div class="header-right">
+    <span class="version">v0.1.0</span>
+    <div class="zoom-controls">
+      <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
+      <span class="zoom-level" id="zoom-level">100%</span>
+      <button class="zoom-btn" id="zoom-in" title="文字を大きく">A+</button>
+    </div>
+  </div>
+</header>
+
+<div class="container">
 
   <!-- ホーム -->
   <div id="home-view" class="home">
@@ -387,6 +451,7 @@
 // ============================================
 const STORAGE_PRODUCTS = 'amacheck_products_v1';
 const STORAGE_SHIPMENTS = 'amacheck_shipments_v1';
+const STORAGE_ZOOM = 'amacheck_zoom_v1';
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
 let products = loadProducts();
@@ -413,6 +478,9 @@ function saveShipments(){
 // 初期化
 // ============================================
 function init(){
+  // ズーム初期化
+  initZoom();
+
   const now = new Date();
   const ms = document.getElementById('month-select');
   const options = [];
@@ -753,6 +821,38 @@ function applyShipment(){
     if (ignoredFnsku > 0) msg += '（商品リスト外 ' + ignoredFnsku + '種は無視）';
     toast(msg);
   }
+}
+
+// ============================================
+// ズーム（文字サイズ調整）
+// ============================================
+const ZOOM_STEPS = [0.7, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0];
+let zoomIdx = 3; // デフォルト 100%
+
+function initZoom(){
+  const saved = parseFloat(localStorage.getItem(STORAGE_ZOOM));
+  if (!isNaN(saved)) {
+    const idx = ZOOM_STEPS.findIndex(z => Math.abs(z - saved) < 0.01);
+    if (idx >= 0) zoomIdx = idx;
+  }
+  applyZoom();
+  document.getElementById('zoom-in').addEventListener('click', () => {
+    if (zoomIdx < ZOOM_STEPS.length - 1) { zoomIdx++; applyZoom(); }
+  });
+  document.getElementById('zoom-out').addEventListener('click', () => {
+    if (zoomIdx > 0) { zoomIdx--; applyZoom(); }
+  });
+}
+
+function applyZoom(){
+  const z = ZOOM_STEPS[zoomIdx];
+  // CSS zoom を container と modal に適用（topbar は固定サイズに保つ）
+  document.querySelector('.container').style.zoom = z;
+  document.getElementById('modal').style.zoom = z;
+  document.getElementById('zoom-level').textContent = Math.round(z * 100) + '%';
+  document.getElementById('zoom-in').disabled = (zoomIdx >= ZOOM_STEPS.length - 1);
+  document.getElementById('zoom-out').disabled = (zoomIdx <= 0);
+  localStorage.setItem(STORAGE_ZOOM, z);
 }
 
 // ============================================
