@@ -168,6 +168,7 @@
     gap: 8px;
   }
   .upload-zone {
+    display: block;
     border: 2px dashed var(--border-strong);
     border-radius: 10px;
     padding: 32px;
@@ -180,7 +181,15 @@
   .upload-zone i { font-size: 32px; color: var(--text-secondary); }
   .upload-zone .main { font-size: 14px; font-weight: 600; margin-top: 8px; }
   .upload-zone .sub { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
-  .upload-zone input { display: none; }
+  .upload-zone input[type="file"] {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
+    pointer-events: none;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+  }
   .paste-area {
     width: 100%;
     min-height: 120px;
@@ -350,15 +359,16 @@
     align-items: center;
     gap: 2px;
     background: var(--bg-secondary);
+    border: 1px solid var(--border-strong);
     border-radius: 8px;
-    padding: 3px;
+    padding: 2px;
   }
   .zoom-btn {
-    padding: 5px 14px;
+    padding: 4px 12px;
     border: none;
     background: transparent;
     font-weight: 700;
-    font-size: 18px;
+    font-size: 16px;
     cursor: pointer;
     border-radius: 6px;
     color: var(--black);
@@ -368,10 +378,10 @@
   .zoom-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .zoom-btn:disabled:hover { background: transparent; color: var(--black); }
   .zoom-level {
-    font-size: 14px;
+    font-size: 13px;
     color: var(--black);
     font-weight: 500;
-    min-width: 50px;
+    min-width: 44px;
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
@@ -386,7 +396,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.01</span>
+    <span class="version">v0.03</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -598,10 +608,17 @@ function init(){
   document.getElementById('edit-name').addEventListener('input', updateEditPreview);
   document.getElementById('edit-image-url').addEventListener('input', updateEditPreview);
 
+  // ブラウザ・マウスの戻る/進むボタンで画面遷移できるよう履歴を管理
+  history.replaceState({ view: 'home' }, '');
+  window.addEventListener('popstate', (e) => {
+    const view = (e.state && e.state.view) || 'home';
+    switchView(view, true);
+  });
+
   updateHomeStatus();
 }
 
-function switchView(name){
+function switchView(name, fromPop){
   document.getElementById('home-view').hidden = (name !== 'home');
   document.getElementById('add-view').hidden = (name !== 'add');
   document.getElementById('master-view').hidden = (name !== 'master');
@@ -609,6 +626,10 @@ function switchView(name){
   if (name === 'shipment') renderShipmentTable();
   if (name === 'master') renderMasterList();
   if (name === 'home') updateHomeStatus();
+  // ブラウザ履歴に積む（popstateからの呼び出しは積まない）
+  if (!fromPop) {
+    history.pushState({ view: name }, '');
+  }
 }
 
 function updateHomeStatus(){
