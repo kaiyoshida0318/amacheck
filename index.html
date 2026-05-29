@@ -19,6 +19,7 @@
     --bg-card: #ffffff;
     --bg-secondary: #f5f5f5;
     --success: #2e7d32;
+    --danger: #d32f2f;
   }
   * { box-sizing: border-box; }
   body {
@@ -46,7 +47,7 @@
   .logo .name .ama { color: #fff; }
   .logo .name .check { color: var(--black); }
 
-  button, select, input[type="date"] {
+  button, select, input[type="date"], input[type="text"] {
     font-family: inherit;
     font-size: 14px;
     padding: 8px 14px;
@@ -56,17 +57,22 @@
     cursor: pointer;
     color: var(--black);
   }
+  input[type="text"] { cursor: text; }
   button { display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
   button:hover { border-color: var(--orange); color: var(--orange); }
   button.primary { background: var(--orange); color: #fff; border-color: var(--orange); }
   button.primary:hover { background: var(--orange-hover); color: #fff; border-color: var(--orange-hover); }
+  button.danger { background: #fff; color: var(--danger); border-color: var(--danger); }
+  button.danger:hover { background: var(--danger); color: #fff; }
   button.ghost { border: none; background: transparent; padding: 8px 10px; }
   button i { font-size: 16px; }
-  select:focus, input[type="date"]:focus { outline: none; border-color: var(--orange); }
+  button:disabled { opacity: 0.4; cursor: not-allowed; }
+  select:focus, input:focus { outline: none; border-color: var(--orange); }
 
-  .home { text-align: center; padding: 80px 20px; }
+  .home { text-align: center; padding: 60px 20px; }
   .home h1 { font-size: 28px; margin: 0 0 12px; letter-spacing: -0.5px; }
   .home p { color: var(--text-secondary); margin: 0 0 32px; }
+  .home .actions { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
   .big-btn {
     font-size: 16px;
     padding: 14px 28px;
@@ -76,9 +82,17 @@
     border-radius: 10px;
   }
   .big-btn:hover { background: var(--orange-hover); color: #fff; border-color: var(--orange-hover); }
+  .big-btn.secondary { background: #fff; color: var(--orange); border: 1px solid var(--orange); }
+  .big-btn.secondary:hover { background: var(--orange-light); }
+  .home .status {
+    margin-top: 24px;
+    font-size: 13px;
+    color: var(--text-tertiary);
+  }
 
   .toolbar { display: flex; align-items: center; gap: 12px; margin-bottom: 16px; flex-wrap: wrap; }
   .toolbar .spacer { flex: 1; }
+  .toolbar h2 { font-size: 18px; margin: 0; }
 
   .table-wrap {
     background: var(--bg-card);
@@ -86,11 +100,7 @@
     border-radius: 12px;
     overflow-x: auto;
   }
-  table.ship {
-    border-collapse: collapse;
-    width: 100%;
-    min-width: 1800px;
-  }
+  table.ship { border-collapse: collapse; width: 100%; min-width: 1800px; }
   table.ship th, table.ship td {
     padding: 8px 10px;
     border-bottom: 1px solid var(--border);
@@ -128,7 +138,83 @@
     border-left: 1px solid var(--border-strong);
   }
   table.ship tr:hover td:not(.total) { background: rgba(0,0,0,0.02); }
-  table.ship tr:hover td.day.has { background: rgba(216,84,14,0.15); }
+
+  /* 商品マスタ画面 */
+  .master-card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px;
+    margin-bottom: 20px;
+  }
+  .master-card h3 {
+    margin: 0 0 12px;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .upload-zone {
+    border: 2px dashed var(--border-strong);
+    border-radius: 10px;
+    padding: 32px;
+    text-align: center;
+    background: var(--bg-secondary);
+    cursor: pointer;
+    transition: all 0.15s;
+  }
+  .upload-zone:hover { border-color: var(--orange); background: var(--orange-light); }
+  .upload-zone i { font-size: 32px; color: var(--text-secondary); }
+  .upload-zone .main { font-size: 14px; font-weight: 600; margin-top: 8px; }
+  .upload-zone .sub { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
+  .upload-zone input { display: none; }
+  .paste-area {
+    width: 100%;
+    min-height: 120px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 10px;
+    font-family: ui-monospace, "SF Mono", Menlo, monospace;
+    font-size: 12px;
+    resize: vertical;
+  }
+  .paste-area:focus { outline: none; border-color: var(--orange); }
+
+  table.master {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+  }
+  table.master th, table.master td {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--border);
+    text-align: left;
+  }
+  table.master thead th {
+    background: var(--bg-secondary);
+    font-weight: 600;
+    color: var(--text-secondary);
+    font-size: 12px;
+  }
+  table.master td.mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+  table.master td.img-cell { width: 50px; padding: 4px 10px; }
+  table.master td.img-cell .ph {
+    width: 32px; height: 32px;
+    border-radius: 6px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    font-weight: 700;
+    font-size: 13px;
+  }
+  table.master .actions-cell { width: 100px; text-align: right; }
+  .empty-state {
+    text-align: center;
+    padding: 40px 20px;
+    color: var(--text-tertiary);
+    font-size: 13px;
+  }
 
   .modal-bg {
     position: fixed;
@@ -191,8 +277,16 @@
     opacity: 0;
     transition: opacity 0.2s;
     pointer-events: none;
+    max-width: 600px;
   }
   .toast.show { opacity: 1; }
+
+  .or-divider {
+    text-align: center;
+    color: var(--text-tertiary);
+    font-size: 12px;
+    margin: 16px 0;
+  }
 
   [hidden] { display: none !important; }
 </style>
@@ -206,28 +300,67 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
 
+  <!-- ホーム -->
   <div id="home-view" class="home">
     <h1>Amacheck</h1>
     <p>Amazon 売上・広告・在庫のチェックツール</p>
-    <button class="big-btn" id="open-shipment">
-      <i class="ti ti-truck-delivery"></i> 出荷数を見る
-    </button>
+    <div class="actions">
+      <button class="big-btn secondary" id="open-master">
+        <i class="ti ti-database"></i> 商品マスタ
+      </button>
+      <button class="big-btn" id="open-shipment">
+        <i class="ti ti-truck-delivery"></i> 出荷数を見る
+      </button>
+    </div>
+    <div class="status" id="home-status"></div>
   </div>
 
+  <!-- 商品マスタ画面 -->
+  <div id="master-view" hidden>
+    <div class="toolbar">
+      <button class="ghost" data-back><i class="ti ti-arrow-left"></i> 戻る</button>
+      <h2>商品マスタ</h2>
+      <div class="spacer"></div>
+      <button class="danger" id="clear-master"><i class="ti ti-trash"></i> 全削除</button>
+    </div>
+
+    <div class="master-card">
+      <h3><i class="ti ti-upload" style="color:var(--orange)"></i> FBA在庫レポートを取り込む</h3>
+      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;">セラーセントラル → レポート → フルフィルメント → 在庫レポート で取得した TSV / TXT / CSV ファイルをアップロードしてください。SKU・ASIN・FNSKU・商品名を自動で取り込みます。</p>
+      <label class="upload-zone" for="file-input">
+        <i class="ti ti-file-spreadsheet"></i>
+        <div class="main">ファイルをクリックまたはドラッグ&ドロップ</div>
+        <div class="sub">.txt / .tsv / .csv 対応</div>
+        <input type="file" id="file-input" accept=".txt,.tsv,.csv,text/plain">
+      </label>
+      <div class="or-divider">または</div>
+      <textarea class="paste-area" id="master-paste" placeholder="レポートの中身を直接貼り付けることもできます（タブ区切り）。1行目がヘッダー（sku / asin / fnsku / product-name など）になっている前提です。"></textarea>
+      <div style="display:flex;gap:8px;margin-top:12px;">
+        <button class="primary" id="parse-master"><i class="ti ti-check"></i> 取り込む</button>
+        <button id="load-sample-master">サンプルデータを読込</button>
+      </div>
+    </div>
+
+    <div class="master-card">
+      <h3><i class="ti ti-list" style="color:var(--orange)"></i> 登録済み商品 <span id="product-count" style="color:var(--text-tertiary);font-weight:400;"></span></h3>
+      <div id="master-list-wrap"></div>
+    </div>
+  </div>
+
+  <!-- 出荷画面 -->
   <div id="shipment-view" hidden>
     <div class="toolbar">
-      <button class="ghost" id="back-home"><i class="ti ti-arrow-left"></i> 戻る</button>
+      <button class="ghost" data-back><i class="ti ti-arrow-left"></i> 戻る</button>
       <select id="month-select"></select>
       <div class="spacer"></div>
       <button class="primary" id="open-input"><i class="ti ti-plus"></i> 出荷数入力</button>
     </div>
-    <div class="table-wrap">
-      <table class="ship" id="ship-table"></table>
-    </div>
+    <div id="shipment-body"></div>
   </div>
 
 </div>
 
+<!-- 貼付モーダル -->
 <div class="modal-bg" id="modal" hidden>
   <div class="modal">
     <h3>出荷数入力</h3>
@@ -247,22 +380,38 @@
 
 <div class="toast" id="toast"></div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script>
-const products = [
-  { asin:'B0CABC1234', fnsku:'X001AAAA00', name:'ガジェットスタンド', color:'#3498db' },
-  { asin:'B0CABC5678', fnsku:'X001BBBB00', name:'ワイヤレス充電器 15W', color:'#27ae60' },
-  { asin:'B0CABC9012', fnsku:'X001CCCC00', name:'スマホケース クリア', color:'#e91e63' },
-  { asin:'B0CABC3456', fnsku:'X001DDDD00', name:'USB-Cケーブル 2m', color:'#f39c12' },
-  { asin:'B0CABC7890', fnsku:'X001EEEE00', name:'ノートPC用バッグ 15.6"', color:'#7f8c8d' },
-  { asin:'B0CABC2468', fnsku:'X001FFFF00', name:'モバイルバッテリー 10000mAh', color:'#c0392b' },
-  { asin:'B0CABC1357', fnsku:'X001GGGG00', name:'Bluetoothイヤホン', color:'#9b59b6' },
-  { asin:'B0CABC8642', fnsku:'X001HHHH00', name:'LEDデスクライト', color:'#16a085' }
-];
+// ============================================
+// 状態管理（localStorage 永続化）
+// ============================================
+const STORAGE_PRODUCTS = 'amacheck_products_v1';
+const STORAGE_SHIPMENTS = 'amacheck_shipments_v1';
+const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
-const shipments = {};
+let products = loadProducts();
+let shipments = loadShipments();
 let currentMonth;
 let pageCounter = 0;
 
+function loadProducts(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_PRODUCTS) || '[]'); }
+  catch { return []; }
+}
+function saveProducts(){
+  localStorage.setItem(STORAGE_PRODUCTS, JSON.stringify(products));
+}
+function loadShipments(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_SHIPMENTS) || '{}'); }
+  catch { return {}; }
+}
+function saveShipments(){
+  localStorage.setItem(STORAGE_SHIPMENTS, JSON.stringify(shipments));
+}
+
+// ============================================
+// 初期化
+// ============================================
 function init(){
   const now = new Date();
   const ms = document.getElementById('month-select');
@@ -270,36 +419,59 @@ function init(){
   for (let i = -12; i <= 1; i++) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
     const key = ymKey(d);
-    const label = d.getFullYear() + '年' + (d.getMonth()+1) + '月';
-    options.push('<option value="'+key+'">'+label+'</option>');
+    options.push('<option value="'+key+'">'+d.getFullYear()+'年'+(d.getMonth()+1)+'月</option>');
   }
   ms.innerHTML = options.join('');
   currentMonth = ymKey(now);
   ms.value = currentMonth;
-  ms.addEventListener('change', () => { currentMonth = ms.value; renderTable(); });
+  ms.addEventListener('change', () => { currentMonth = ms.value; renderShipmentTable(); });
 
   document.getElementById('paste-date').value = todayStr();
 
   document.getElementById('open-shipment').addEventListener('click', () => switchView('shipment'));
-  document.getElementById('back-home').addEventListener('click', () => switchView('home'));
+  document.getElementById('open-master').addEventListener('click', () => switchView('master'));
+  document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('home')));
   document.getElementById('open-input').addEventListener('click', openModal);
   document.getElementById('cancel').addEventListener('click', closeModal);
   document.getElementById('apply').addEventListener('click', applyShipment);
   document.getElementById('add-page').addEventListener('click', () => addPage());
-  document.getElementById('modal').addEventListener('click', (e) => {
-    if (e.target.id === 'modal') closeModal();
+  document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
+
+  document.getElementById('file-input').addEventListener('change', handleFile);
+  const dz = document.querySelector('.upload-zone');
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--orange)'; });
+  dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
+  dz.addEventListener('drop', e => {
+    e.preventDefault();
+    dz.style.borderColor = '';
+    if (e.dataTransfer.files[0]) parseFileForMaster(e.dataTransfer.files[0]);
   });
+  document.getElementById('parse-master').addEventListener('click', parsePastedMaster);
+  document.getElementById('load-sample-master').addEventListener('click', loadSampleMaster);
+  document.getElementById('clear-master').addEventListener('click', clearMaster);
+
+  updateHomeStatus();
 }
 
 function switchView(name){
   document.getElementById('home-view').hidden = (name !== 'home');
+  document.getElementById('master-view').hidden = (name !== 'master');
   document.getElementById('shipment-view').hidden = (name !== 'shipment');
-  if (name === 'shipment') renderTable();
+  if (name === 'shipment') renderShipmentTable();
+  if (name === 'master') renderMasterList();
+  if (name === 'home') updateHomeStatus();
 }
 
-function ymKey(d){
-  return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0');
+function updateHomeStatus(){
+  const el = document.getElementById('home-status');
+  if (products.length === 0) {
+    el.innerHTML = '<i class="ti ti-info-circle"></i> まずは「商品マスタ」から商品を登録してください';
+  } else {
+    el.textContent = '登録商品: ' + products.length + ' 件';
+  }
 }
+
+function ymKey(d){ return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2, '0'); }
 function todayStr(){
   const d = new Date();
   return d.getFullYear() + '-' + String(d.getMonth()+1).padStart(2,'0') + '-' + String(d.getDate()).padStart(2,'0');
@@ -309,28 +481,175 @@ function daysInMonth(ymStr){
   return new Date(y, m, 0).getDate();
 }
 
-function renderTable(){
+// ============================================
+// 商品マスタ
+// ============================================
+function handleFile(e){
+  const f = e.target.files[0];
+  if (f) parseFileForMaster(f);
+  e.target.value = '';
+}
+
+function parseFileForMaster(file){
+  const reader = new FileReader();
+  reader.onload = () => parseMasterText(reader.result);
+  reader.readAsText(file);
+}
+
+function parsePastedMaster(){
+  const text = document.getElementById('master-paste').value.trim();
+  if (!text) { toast('貼り付けるか、ファイルを選択してください'); return; }
+  parseMasterText(text);
+}
+
+function parseMasterText(text){
+  // タブ区切り優先、カンマもフォールバック
+  const firstLine = text.split('\n')[0];
+  const delim = firstLine.indexOf('\t') > -1 ? '\t' : ',';
+  const res = Papa.parse(text, { header: true, skipEmptyLines: true, delimiter: delim });
+  if (!res.data.length) { toast('データが見つかりませんでした'); return; }
+
+  // カラム名マッピング（日本語/英語/略称に対応）
+  const cols = Object.keys(res.data[0]);
+  const findCol = (keywords) => {
+    for (const c of cols) {
+      const lc = c.toLowerCase();
+      for (const kw of keywords) {
+        if (lc.indexOf(kw) > -1) return c;
+      }
+    }
+    return null;
+  };
+  const skuCol = findCol(['seller-sku','merchant-sku','sku','出品者sku']) || findCol(['sku']);
+  const asinCol = findCol(['asin1','asin']);
+  const fnskuCol = findCol(['fnsku']);
+  const nameCol = findCol(['product-name','item-name','商品名','商品タイトル','title','name']);
+
+  if (!fnskuCol) { toast('FNSKU列が見つかりませんでした。FBA在庫レポートかご確認ください'); return; }
+
+  let added = 0;
+  let skipped = 0;
+  const existing = new Set(products.map(p => p.fnsku));
+  res.data.forEach((row, i) => {
+    const fnsku = (row[fnskuCol] || '').trim();
+    if (!fnsku) { skipped++; return; }
+    if (existing.has(fnsku)) { skipped++; return; }
+    const idx = products.length;
+    products.push({
+      sku: (skuCol ? row[skuCol] : '').trim(),
+      asin: (asinCol ? row[asinCol] : '').trim(),
+      fnsku,
+      name: (nameCol ? row[nameCol] : '(無題)').trim(),
+      color: PALETTE[idx % PALETTE.length]
+    });
+    existing.add(fnsku);
+    added++;
+  });
+  saveProducts();
+  document.getElementById('master-paste').value = '';
+  renderMasterList();
+  toast(added + ' 件を取り込みました' + (skipped > 0 ? '（重複/空 ' + skipped + ' 件はスキップ）' : ''));
+}
+
+function loadSampleMaster(){
+  const sample = [
+    ['SKU-001','B0CABC1234','X001AAAA00','ガジェットスタンド'],
+    ['SKU-002','B0CABC5678','X001BBBB00','ワイヤレス充電器 15W'],
+    ['SKU-003','B0CABC9012','X001CCCC00','スマホケース クリア'],
+    ['SKU-004','B0CABC3456','X001DDDD00','USB-Cケーブル 2m'],
+    ['SKU-005','B0CABC7890','X001EEEE00','ノートPC用バッグ 15.6"'],
+    ['SKU-006','B0CABC2468','X001FFFF00','モバイルバッテリー 10000mAh'],
+    ['SKU-007','B0CABC1357','X001GGGG00','Bluetoothイヤホン'],
+    ['SKU-008','B0CABC8642','X001HHHH00','LEDデスクライト']
+  ];
+  const existing = new Set(products.map(p => p.fnsku));
+  let added = 0;
+  sample.forEach((r, i) => {
+    if (existing.has(r[2])) return;
+    products.push({
+      sku: r[0], asin: r[1], fnsku: r[2], name: r[3],
+      color: PALETTE[products.length % PALETTE.length]
+    });
+    added++;
+  });
+  saveProducts();
+  renderMasterList();
+  toast('サンプル ' + added + ' 件を追加しました');
+}
+
+function clearMaster(){
+  if (!products.length) return;
+  if (!confirm('商品マスタを全削除します。よろしいですか？（出荷データは残ります）')) return;
+  products = [];
+  saveProducts();
+  renderMasterList();
+  toast('商品マスタを削除しました');
+}
+
+function deleteProduct(fnsku){
+  if (!confirm('この商品を削除しますか？')) return;
+  products = products.filter(p => p.fnsku !== fnsku);
+  saveProducts();
+  renderMasterList();
+}
+
+function renderMasterList(){
+  document.getElementById('product-count').textContent = products.length ? '（' + products.length + ' 件）' : '';
+  const wrap = document.getElementById('master-list-wrap');
+  if (!products.length) {
+    wrap.innerHTML = '<div class="empty-state">登録された商品はまだありません</div>';
+    return;
+  }
+  let html = '<div style="overflow-x:auto"><table class="master"><thead><tr><th></th><th>SKU</th><th>ASIN</th><th>FNSKU</th><th>商品名</th><th class="actions-cell"></th></tr></thead><tbody>';
+  products.forEach(p => {
+    const initial = (p.name || '?').trim().charAt(0).toUpperCase();
+    html += '<tr>'
+      + '<td class="img-cell"><span class="ph" style="background:'+p.color+'">'+initial+'</span></td>'
+      + '<td class="mono">'+(p.sku||'-')+'</td>'
+      + '<td class="mono">'+(p.asin||'-')+'</td>'
+      + '<td class="mono">'+p.fnsku+'</td>'
+      + '<td>'+p.name+'</td>'
+      + '<td class="actions-cell"><button class="ghost" onclick="deleteProduct(\''+p.fnsku+'\')"><i class="ti ti-trash" style="color:var(--danger)"></i></button></td>'
+      + '</tr>';
+  });
+  html += '</tbody></table></div>';
+  wrap.innerHTML = html;
+}
+
+// ============================================
+// 出荷数表のレンダリング
+// ============================================
+function renderShipmentTable(){
+  const body = document.getElementById('shipment-body');
+  if (!products.length) {
+    body.innerHTML = '<div class="master-card"><div class="empty-state">'
+      + '<i class="ti ti-database-off" style="font-size:32px;color:var(--text-tertiary)"></i>'
+      + '<div style="margin-top:8px;">商品マスタが登録されていません</div>'
+      + '<button class="primary" style="margin-top:16px;" onclick="switchView(\'master\')"><i class="ti ti-database"></i> 商品マスタへ</button>'
+      + '</div></div>';
+    return;
+  }
+
   const days = daysInMonth(currentMonth);
   const todayKey = ymKey(new Date());
   const todayDay = new Date().getDate();
   const isCurrentMonth = (currentMonth === todayKey);
 
-  let html = '<thead><tr>';
+  let html = '<div class="table-wrap"><table class="ship"><thead><tr>';
   html += '<th>ASIN</th><th>FNSKU</th><th>画像</th><th>商品名</th>';
   for (let d = 1; d <= days; d++) {
     const isToday = isCurrentMonth && d === todayDay;
     html += '<th class="day' + (isToday ? ' today' : '') + '">' + d + '</th>';
   }
-  html += '<th class="total">合計</th></tr></thead>';
+  html += '<th class="total">合計</th></tr></thead><tbody>';
 
-  html += '<tbody>';
   const monthData = shipments[currentMonth] || {};
   products.forEach(p => {
     const fnskuData = monthData[p.fnsku] || {};
     let total = 0;
     const initial = (p.name || '?').trim().charAt(0).toUpperCase();
     html += '<tr>';
-    html += '<td class="asin">' + p.asin + '</td>';
+    html += '<td class="asin">' + (p.asin || '-') + '</td>';
     html += '<td class="fnsku">' + p.fnsku + '</td>';
     html += '<td class="img"><span class="ph" style="background:' + p.color + '">' + initial + '</span></td>';
     html += '<td class="name" title="' + p.name + '">' + p.name + '</td>';
@@ -341,23 +660,23 @@ function renderTable(){
       const cls = 'day' + (q ? ' has' : '') + (isToday ? ' today' : '');
       html += '<td class="' + cls + '">' + (q || '') + '</td>';
     }
-    html += '<td class="total">' + (total || '–') + '</td>';
-    html += '</tr>';
+    html += '<td class="total">' + (total || '–') + '</td></tr>';
   });
-  html += '</tbody>';
-
-  document.getElementById('ship-table').innerHTML = html;
+  html += '</tbody></table></div>';
+  body.innerHTML = html;
 }
 
+// ============================================
+// 出荷数貼付モーダル
+// ============================================
 function openModal(){
+  if (!products.length) { toast('先に商品マスタを登録してください'); return; }
   document.getElementById('paste-date').value = todayStr();
   document.getElementById('pages').innerHTML = '';
   addPage();
   document.getElementById('modal').hidden = false;
 }
-function closeModal(){
-  document.getElementById('modal').hidden = true;
-}
+function closeModal(){ document.getElementById('modal').hidden = true; }
 
 function addPage(){
   pageCounter++;
@@ -373,17 +692,14 @@ function addPage(){
     + '</div>'
     + '<textarea id="' + id + '" placeholder="ここにCtrl+Vで貼り付け..."></textarea>';
   pages.appendChild(el);
-  const ta = el.querySelector('textarea');
-  ta.addEventListener('input', () => updatePreview(id));
+  el.querySelector('textarea').addEventListener('input', () => updatePreview(id));
 }
 
 function parseShipment(text){
   const re = /\bX[0-9A-Z]{9}\b/g;
   const counts = {};
   let m;
-  while ((m = re.exec(text)) !== null) {
-    counts[m[0]] = (counts[m[0]] || 0) + 1;
-  }
+  while ((m = re.exec(text)) !== null) counts[m[0]] = (counts[m[0]] || 0) + 1;
   return counts;
 }
 
@@ -392,11 +708,10 @@ function updatePreview(id){
   const counts = parseShipment(ta.value);
   const dEl = document.getElementById('d-' + id);
   const total = Object.values(counts).reduce((a,b) => a+b, 0);
-  const matched = Object.keys(counts).filter(f => products.some(p => p.fnsku === f)).length;
-  if (total === 0) {
-    dEl.textContent = '未入力';
-    dEl.className = 'detected';
-  } else {
+  const validFnskus = new Set(products.map(p => p.fnsku));
+  const matched = Object.keys(counts).filter(f => validFnskus.has(f)).length;
+  if (total === 0) { dEl.textContent = '未入力'; dEl.className = 'detected'; }
+  else {
     dEl.textContent = 'FNSKU検出: ' + Object.keys(counts).length + '種 / 一致: ' + matched + '種 / 合計: ' + total + '個';
     dEl.className = 'detected ok';
   }
@@ -412,13 +727,11 @@ function applyShipment(){
   const allCounts = {};
   document.querySelectorAll('#pages textarea').forEach(ta => {
     const c = parseShipment(ta.value);
-    for (const k in c) { allCounts[k] = (allCounts[k] || 0) + c[k]; }
+    for (const k in c) allCounts[k] = (allCounts[k] || 0) + c[k];
   });
 
   const validFnskus = new Set(products.map(p => p.fnsku));
-  let appliedQty = 0;
-  let appliedFnsku = 0;
-  let ignoredFnsku = 0;
+  let appliedQty = 0, appliedFnsku = 0, ignoredFnsku = 0;
   if (!shipments[ym]) shipments[ym] = {};
   for (const fnsku in allCounts) {
     if (!validFnskus.has(fnsku)) { ignoredFnsku++; continue; }
@@ -427,29 +740,36 @@ function applyShipment(){
     appliedFnsku++;
     appliedQty += allCounts[fnsku];
   }
+  saveShipments();
 
   currentMonth = ym;
   document.getElementById('month-select').value = ym;
-  renderTable();
+  renderShipmentTable();
   closeModal();
 
-  if (appliedQty === 0) {
-    toast('反映する出荷データが見つかりませんでした');
-  } else {
-    let msg = m + '/' + d + ' に ' + appliedFnsku + '種 / ' + appliedQty + '個 反映しました';
+  if (appliedQty === 0) toast('反映する出荷データが見つかりませんでした');
+  else {
+    let msg = m + '/' + d + ' に ' + appliedFnsku + '種 / ' + appliedQty + '個 反映';
     if (ignoredFnsku > 0) msg += '（商品リスト外 ' + ignoredFnsku + '種は無視）';
     toast(msg);
   }
 }
 
+// ============================================
+// トースト
+// ============================================
 let toastTimer;
 function toast(msg){
   const el = document.getElementById('toast');
   el.textContent = msg;
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3000);
+  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
 }
+
+// グローバルに公開（onclick用）
+window.deleteProduct = deleteProduct;
+window.switchView = switchView;
 
 init();
 </script>
