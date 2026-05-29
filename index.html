@@ -7,9 +7,10 @@
 <link href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@2.47.0/tabler-icons.min.css" rel="stylesheet">
 <style>
   :root {
-    --orange: #D8540E;
-    --orange-hover: #b94409;
-    --orange-light: rgba(216, 84, 14, 0.08);
+    --accent: #4f46e5;
+    --accent-hover: #4338ca;
+    --accent-light: rgba(79, 70, 229, 0.08);
+    --logo-color: #D8540E;
     --black: #111;
     --text-secondary: #555;
     --text-tertiary: #888;
@@ -33,7 +34,7 @@
   .container { max-width: 1400px; margin: 0 auto; padding: 20px 20px; }
 
   .logo {
-    background: var(--orange);
+    background: var(--logo-color);
     border-radius: 10px;
     padding: 12px 18px;
     display: inline-flex;
@@ -58,15 +59,15 @@
   }
   input[type="text"] { cursor: text; }
   button { display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
-  button:hover { border-color: var(--orange); color: var(--orange); }
-  button.primary { background: var(--orange); color: #fff; border-color: var(--orange); }
-  button.primary:hover { background: var(--orange-hover); color: #fff; border-color: var(--orange-hover); }
+  button:hover { border-color: var(--accent); color: var(--accent); }
+  button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
+  button.primary:hover { background: var(--accent-hover); color: #fff; border-color: var(--accent-hover); }
   button.danger { background: #fff; color: var(--danger); border-color: var(--danger); }
   button.danger:hover { background: var(--danger); color: #fff; }
   button.ghost { border: none; background: transparent; padding: 8px 10px; }
   button i { font-size: 16px; }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
-  select:focus, input:focus { outline: none; border-color: var(--orange); }
+  select:focus, input:focus { outline: none; border-color: var(--accent); }
 
   .home { text-align: center; padding: 60px 20px; }
   .home h1 { font-size: 28px; margin: 0 0 12px; letter-spacing: -0.5px; }
@@ -75,14 +76,14 @@
   .big-btn {
     font-size: 16px;
     padding: 14px 28px;
-    background: var(--orange);
+    background: var(--accent);
     color: #fff;
-    border-color: var(--orange);
+    border-color: var(--accent);
     border-radius: 10px;
   }
-  .big-btn:hover { background: var(--orange-hover); color: #fff; border-color: var(--orange-hover); }
-  .big-btn.secondary { background: #fff; color: var(--orange); border: 1px solid var(--orange); }
-  .big-btn.secondary:hover { background: var(--orange-light); }
+  .big-btn:hover { background: var(--accent-hover); color: #fff; border-color: var(--accent-hover); }
+  .big-btn.secondary { background: #fff; color: var(--accent); border: 1px solid var(--accent); }
+  .big-btn.secondary:hover { background: var(--accent-light); }
   .home .status {
     margin-top: 24px;
     font-size: 13px;
@@ -142,9 +143,9 @@
     background: #fff;
   }
   table.ship td.day { min-width: 32px; color: var(--text-tertiary); }
-  table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--orange-light); }
-  table.ship td.day.today { background: rgba(216,84,14,0.18); }
-  table.ship th.day.today { background: rgba(216,84,14,0.18); color: var(--orange); }
+  table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
+  table.ship td.day.today { background: rgba(79, 70, 229,0.18); }
+  table.ship th.day.today { background: rgba(79, 70, 229,0.18); color: var(--accent); }
   table.ship td.total, table.ship th.total {
     background: var(--bg-secondary);
     font-weight: 700;
@@ -177,7 +178,7 @@
     cursor: pointer;
     transition: all 0.15s;
   }
-  .upload-zone:hover { border-color: var(--orange); background: var(--orange-light); }
+  .upload-zone:hover { border-color: var(--accent); background: var(--accent-light); }
   .upload-zone i { font-size: 32px; color: var(--text-secondary); }
   .upload-zone .main { font-size: 14px; font-weight: 600; margin-top: 8px; }
   .upload-zone .sub { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
@@ -200,7 +201,7 @@
     font-size: 12px;
     resize: vertical;
   }
-  .paste-area:focus { outline: none; border-color: var(--orange); }
+  .paste-area:focus { outline: none; border-color: var(--accent); }
 
   table.master {
     width: 100%;
@@ -234,11 +235,11 @@
     width: 16px;
     height: 16px;
     cursor: pointer;
-    accent-color: var(--orange);
+    accent-color: var(--accent);
     margin: 0;
     vertical-align: middle;
   }
-  table.master tr.selected td { background: var(--orange-light); }
+  table.master tr.selected td { background: var(--accent-light); }
   button.danger:disabled {
     background: #fff;
     color: var(--text-tertiary);
@@ -295,7 +296,7 @@
     font-size: 12px;
     resize: vertical;
   }
-  .paste-page textarea:focus { outline: none; border-color: var(--orange); }
+  .paste-page textarea:focus { outline: none; border-color: var(--accent); }
   .modal-actions {
     display: flex;
     justify-content: flex-end;
@@ -374,7 +375,7 @@
     color: var(--black);
     transition: all 0.15s;
   }
-  .zoom-btn:hover { background: #fff; color: var(--orange); }
+  .zoom-btn:hover { background: #fff; color: var(--accent); }
   .zoom-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .zoom-btn:disabled:hover { background: transparent; color: var(--black); }
   .zoom-level {
@@ -396,7 +397,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.03</span>
+    <span class="version">v0.05</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -435,7 +436,7 @@
     </div>
 
     <div class="master-card">
-      <h3><i class="ti ti-upload" style="color:var(--orange)"></i> FBA在庫レポートを取り込む</h3>
+      <h3><i class="ti ti-upload" style="color:var(--accent)"></i> FBA在庫レポートを取り込む</h3>
       <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;">セラーセントラル → レポート → フルフィルメント → 在庫レポート で取得した TSV / TXT / CSV ファイルをアップロードしてください。SKU・ASIN・FNSKU・商品名を自動で取り込みます。</p>
       <label class="upload-zone" for="file-input">
         <i class="ti ti-file-spreadsheet"></i>
@@ -462,7 +463,7 @@
       <button class="danger" id="clear-master"><i class="ti ti-trash"></i> 全削除</button>
     </div>
     <div class="master-card">
-      <h3><i class="ti ti-list" style="color:var(--orange)"></i> 登録商品 <span id="product-count" style="color:var(--text-tertiary);font-weight:400;"></span></h3>
+      <h3><i class="ti ti-list" style="color:var(--accent)"></i> 登録商品 <span id="product-count" style="color:var(--text-tertiary);font-weight:400;"></span></h3>
       <div id="master-list-wrap"></div>
     </div>
   </div>
@@ -589,7 +590,7 @@ function init(){
 
   document.getElementById('file-input').addEventListener('change', handleFile);
   const dz = document.querySelector('.upload-zone');
-  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--orange)'; });
+  dz.addEventListener('dragover', e => { e.preventDefault(); dz.style.borderColor = 'var(--accent)'; });
   dz.addEventListener('dragleave', () => { dz.style.borderColor = ''; });
   dz.addEventListener('drop', e => {
     e.preventDefault();
@@ -793,7 +794,7 @@ function renderMasterList(){
     wrap.innerHTML = '<div class="empty-state">'
       + '<i class="ti ti-database-off" style="font-size:28px;color:var(--text-tertiary);"></i>'
       + '<div style="margin-top:8px;">登録された商品はまだありません</div>'
-      + '<button class="primary" style="margin-top:14px;" onclick="switchView(\'add\')"><i class="ti ti-plus"></i> 商品情報を追加</button>'
+      + '<div style="margin-top:6px;font-size:12px;color:var(--text-tertiary);">右上の「+ 商品情報追加」から登録してください</div>'
       + '</div>';
     updateBulkControls();
     return;
