@@ -102,11 +102,12 @@
     background: var(--bg-card);
     border: 1px solid var(--border);
     border-radius: 12px;
-    overflow-x: auto;
+    overflow: auto;
+    max-height: 70vh;
   }
-  table.ship { border-collapse: collapse; width: 100%; min-width: 1800px; }
+  table.ship { border-collapse: separate; border-spacing: 0; width: 100%; }
   table.ship th, table.ship td {
-    padding: 8px 10px;
+    padding: 6px 6px;
     border-bottom: 1px solid var(--border);
     text-align: center;
     font-size: 13px;
@@ -117,14 +118,17 @@
     font-weight: 600;
     color: var(--text-secondary);
     font-size: 12px;
-    border-bottom: 1px solid var(--border-strong);
+    position: sticky;
+    top: 0;
+    z-index: 5;
+    box-shadow: inset 0 -1px 0 var(--border-strong);
   }
-  table.ship td.asin, table.ship td.fnsku { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 12px; }
-  table.ship td.name { text-align: left; max-width: 220px; overflow: hidden; text-overflow: ellipsis; }
-  table.ship td.img { padding: 4px; }
+  table.ship td.asin { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; padding: 6px 8px; }
+  table.ship td.name { text-align: left; max-width: 220px; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
+  table.ship td.img { padding: 3px; }
   table.ship td.img .ph {
-    width: 36px; height: 36px;
-    font-size: 14px;
+    width: 32px; height: 32px;
+    font-size: 13px;
   }
   /* プレースホルダー：色＋頭文字、画像が乗ったらそれが上に重なる */
   .ph {
@@ -146,16 +150,55 @@
     object-fit: cover;
     background: #fff;
   }
-  table.ship td.day { min-width: 32px; color: var(--text-tertiary); }
+  table.ship td.day { width: 30px; padding: 6px 2px; color: var(--text-tertiary); font-size: 12px; }
   table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
   table.ship td.day.today { background: rgba(79, 70, 229,0.18); }
-  table.ship th.day.today { background: rgba(79, 70, 229,0.18); color: var(--accent); }
+  table.ship th.day { width: 30px; padding: 6px 2px; }
+  table.ship th.day.today { background: rgba(79, 70, 229,0.28); color: var(--accent); }
   table.ship td.total, table.ship th.total {
     background: var(--bg-secondary);
     font-weight: 700;
     border-left: 1px solid var(--border-strong);
+    min-width: 50px;
+  }
+  table.ship thead th.total {
+    background: var(--bg-secondary);
   }
   table.ship tr:hover td:not(.total) { background: rgba(0,0,0,0.02); }
+
+  /* 月別テーブル（日別と共通スタイル、列幅だけ違う） */
+  table.ship td.month, table.ship th.month { width: 60px; padding: 8px 4px; }
+  table.ship td.month { color: var(--text-tertiary); font-size: 13px; }
+  table.ship td.month.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
+  table.ship td.month.current { background: rgba(79, 70, 229,0.18); }
+  table.ship th.month.current { background: rgba(79, 70, 229,0.28); color: var(--accent); }
+
+  /* 日別/月別 切り替えトグル */
+  .period-toggle {
+    display: inline-flex;
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    padding: 2px;
+    gap: 2px;
+  }
+  .period-btn {
+    padding: 6px 16px;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-weight: 600;
+    font-size: 13px;
+    color: var(--text-secondary);
+    cursor: pointer;
+    border-radius: 6px;
+    transition: all 0.15s;
+  }
+  .period-btn.active {
+    background: #fff;
+    color: var(--accent);
+  }
+  .period-btn:hover:not(.active) { color: var(--black); }
 
   /* 商品マスタ画面 */
   .master-card {
@@ -492,7 +535,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.14</span>
+    <span class="version">v0.15</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -561,7 +604,12 @@
   <!-- 出荷画面 -->
   <div id="shipment-view" hidden>
     <div class="toolbar">
+      <div class="period-toggle">
+        <button class="period-btn active" data-period="daily">日別</button>
+        <button class="period-btn" data-period="monthly">月別</button>
+      </div>
       <select id="month-select"></select>
+      <select id="year-select" hidden></select>
       <div class="spacer"></div>
       <button class="primary" id="open-input"><svg class="icn"><use href="#i-plus"/></svg> 出荷数入力</button>
     </div>
@@ -633,6 +681,8 @@ const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9
 let products = loadProducts();
 let shipments = loadShipments();
 let currentMonth;
+let currentYear;
+let currentPeriod = 'daily'; // 'daily' or 'monthly'
 let pageCounter = 0;
 
 function loadProducts(){
@@ -674,6 +724,28 @@ function init(){
   currentMonth = ymKey(now);
   ms.value = currentMonth;
   ms.addEventListener('change', () => { currentMonth = ms.value; renderShipmentTable(); });
+
+  // 年度セレクタ
+  const ys = document.getElementById('year-select');
+  const yearOptions = [];
+  for (let y = now.getFullYear() - 3; y <= now.getFullYear() + 1; y++) {
+    yearOptions.push('<option value="'+y+'">'+y+'年</option>');
+  }
+  ys.innerHTML = yearOptions.join('');
+  currentYear = String(now.getFullYear());
+  ys.value = currentYear;
+  ys.addEventListener('change', () => { currentYear = ys.value; renderShipmentTable(); });
+
+  // 日別/月別 切り替えトグル
+  document.querySelectorAll('.period-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      currentPeriod = btn.dataset.period;
+      document.querySelectorAll('.period-btn').forEach(b => b.classList.toggle('active', b === btn));
+      ms.hidden = (currentPeriod !== 'daily');
+      ys.hidden = (currentPeriod !== 'monthly');
+      renderShipmentTable();
+    });
+  });
 
   document.getElementById('paste-date').value = todayStr();
 
@@ -1056,7 +1128,7 @@ function deleteSelected(){
 }
 
 // ============================================
-// 出荷数表のレンダリング
+// 出荷数表のレンダリング（日別/月別を切り替え）
 // ============================================
 function renderShipmentTable(){
   const body = document.getElementById('shipment-body');
@@ -1068,14 +1140,22 @@ function renderShipmentTable(){
       + '</div></div>';
     return;
   }
+  if (currentPeriod === 'monthly') {
+    renderMonthlyTable();
+  } else {
+    renderDailyTable();
+  }
+}
 
+function renderDailyTable(){
+  const body = document.getElementById('shipment-body');
   const days = daysInMonth(currentMonth);
   const todayKey = ymKey(new Date());
   const todayDay = new Date().getDate();
   const isCurrentMonth = (currentMonth === todayKey);
 
   let html = '<div class="table-wrap"><table class="ship"><thead><tr>';
-  html += '<th>ASIN</th><th>FNSKU</th><th>画像</th><th>商品名</th>';
+  html += '<th>ASIN</th><th>画像</th><th>商品名</th>';
   for (let d = 1; d <= days; d++) {
     const isToday = isCurrentMonth && d === todayDay;
     html += '<th class="day' + (isToday ? ' today' : '') + '">' + d + '</th>';
@@ -1088,7 +1168,6 @@ function renderShipmentTable(){
     let total = 0;
     html += '<tr>';
     html += '<td class="asin">' + escapeHtml(p.asin || '-') + '</td>';
-    html += '<td class="fnsku">' + escapeHtml(p.fnsku) + '</td>';
     html += '<td class="img">' + productImageHtml(p) + '</td>';
     html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
     for (let d = 1; d <= days; d++) {
@@ -1099,6 +1178,48 @@ function renderShipmentTable(){
       html += '<td class="' + cls + '">' + (q || '') + '</td>';
     }
     html += '<td class="total">' + (total || '–') + '</td></tr>';
+  });
+  html += '</tbody></table></div>';
+  body.innerHTML = html;
+}
+
+function renderMonthlyTable(){
+  const body = document.getElementById('shipment-body');
+  const year = currentYear;
+  const now = new Date();
+  const currentMm = now.getFullYear() === parseInt(year) ? (now.getMonth() + 1) : -1;
+
+  let html = '<div class="table-wrap"><table class="ship"><thead><tr>';
+  html += '<th>ASIN</th><th>画像</th><th>商品名</th>';
+  for (let m = 1; m <= 12; m++) {
+    const isCur = m === currentMm;
+    html += '<th class="month' + (isCur ? ' current' : '') + '">' + m + '月</th>';
+  }
+  html += '<th class="total">年計</th></tr></thead><tbody>';
+
+  products.forEach(p => {
+    let yearTotal = 0;
+    const monthlyTotals = [];
+    for (let m = 1; m <= 12; m++) {
+      const ym = year + '-' + String(m).padStart(2, '0');
+      const monthData = shipments[ym] || {};
+      const fnskuData = monthData[p.fnsku] || {};
+      let monthSum = 0;
+      for (const day in fnskuData) monthSum += fnskuData[day];
+      monthlyTotals.push(monthSum);
+      yearTotal += monthSum;
+    }
+    html += '<tr>';
+    html += '<td class="asin">' + escapeHtml(p.asin || '-') + '</td>';
+    html += '<td class="img">' + productImageHtml(p) + '</td>';
+    html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
+    for (let m = 1; m <= 12; m++) {
+      const q = monthlyTotals[m - 1];
+      const isCur = m === currentMm;
+      const cls = 'month' + (q ? ' has' : '') + (isCur ? ' current' : '');
+      html += '<td class="' + cls + '">' + (q || '') + '</td>';
+    }
+    html += '<td class="total">' + (yearTotal || '–') + '</td></tr>';
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
