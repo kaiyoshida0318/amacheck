@@ -7,9 +7,18 @@
   <!-- Tabler icons はインラインSVGスプライトで読み込みます（CDN不要） -->
 <style>
   :root {
-    --accent: #4f46e5;
-    --accent-hover: #4338ca;
-    --accent-light: rgba(79, 70, 229, 0.08);
+    --accent: #16a34a;
+    --accent-hover: #15803d;
+    --accent-light: rgba(22, 163, 74, 0.10);
+    --blue: #2563eb;
+    --blue-hover: #1d4ed8;
+    --blue-light: rgba(37, 99, 235, 0.10);
+    --teal: #0d9488;
+    --teal-hover: #0f766e;
+    --teal-light: rgba(13, 148, 136, 0.10);
+    --amber: #d97706;
+    --amber-light: rgba(217, 119, 6, 0.14);
+    --purple: #7e22ce;
     --logo-color: #D8540E;
     --black: #111;
     --text-secondary: #555;
@@ -63,15 +72,24 @@
   }
   input[type="text"] { cursor: text; }
   button { display: inline-flex; align-items: center; gap: 6px; transition: all 0.15s; }
-  button:hover { border-color: var(--accent); color: var(--accent); }
+  button:hover { border-color: var(--text-secondary); background: var(--bg-secondary); }
   button.primary { background: var(--accent); color: #fff; border-color: var(--accent); }
   button.primary:hover { background: var(--accent-hover); color: #fff; border-color: var(--accent-hover); }
+  button.confirm { background: var(--blue); color: #fff; border-color: var(--blue); }
+  button.confirm:hover { background: var(--blue-hover); color: #fff; border-color: var(--blue-hover); }
+  button.utility { background: var(--teal); color: #fff; border-color: var(--teal); }
+  button.utility:hover { background: var(--teal-hover); color: #fff; border-color: var(--teal-hover); }
   button.danger { background: #fff; color: var(--danger); border-color: var(--danger); }
   button.danger:hover { background: var(--danger); color: #fff; }
   button.ghost { border: none; background: transparent; padding: 8px 10px; }
-  button i { font-size: 16px; }
+  button.ghost:hover { background: var(--bg-secondary); }
+  button i, button svg { font-size: 16px; }
   button:disabled { opacity: 0.4; cursor: not-allowed; }
-  select:focus, input:focus { outline: none; border-color: var(--accent); }
+  select:focus, input:focus, textarea:focus {
+    outline: none;
+    border-color: var(--blue);
+    box-shadow: 0 0 0 3px var(--blue-light);
+  }
 
   .home { text-align: center; padding: 60px 20px; }
   .home h1 { font-size: 28px; margin: 0 0 12px; letter-spacing: -0.5px; }
@@ -152,9 +170,9 @@
   }
   table.ship td.day { width: 30px; padding: 6px 2px; color: var(--text-tertiary); font-size: 12px; }
   table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
-  table.ship td.day.today { background: rgba(79, 70, 229,0.18); }
+  table.ship td.day.today { background: var(--amber-light); }
   table.ship th.day { width: 30px; padding: 6px 2px; }
-  table.ship th.day.today { background: rgba(79, 70, 229,0.28); color: var(--accent); }
+  table.ship th.day.today { background: var(--amber-light); color: var(--amber); }
   table.ship td.total, table.ship th.total {
     background: var(--bg-secondary);
     font-weight: 700;
@@ -170,8 +188,8 @@
   table.ship td.month, table.ship th.month { width: 60px; padding: 8px 4px; }
   table.ship td.month { color: var(--text-tertiary); font-size: 13px; }
   table.ship td.month.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
-  table.ship td.month.current { background: rgba(79, 70, 229,0.18); }
-  table.ship th.month.current { background: rgba(79, 70, 229,0.28); color: var(--accent); }
+  table.ship td.month.current { background: var(--amber-light); }
+  table.ship th.month.current { background: var(--amber-light); color: var(--amber); }
 
   /* 日別/月別 切り替えトグル */
   .period-toggle {
@@ -196,7 +214,7 @@
   }
   .period-btn.active {
     background: #fff;
-    color: var(--accent);
+    color: var(--black);
   }
   .period-btn:hover:not(.active) { color: var(--black); }
 
@@ -225,7 +243,7 @@
     cursor: pointer;
     transition: all 0.15s;
   }
-  .upload-zone:hover { border-color: var(--accent); background: var(--accent-light); }
+  .upload-zone:hover { border-color: var(--blue); background: var(--blue-light); }
   .upload-zone i { font-size: 32px; color: var(--text-secondary); }
   .upload-zone .main { font-size: 14px; font-weight: 600; margin-top: 8px; }
   .upload-zone .sub { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
@@ -305,7 +323,7 @@
     margin: 0;
     vertical-align: middle;
   }
-  table.master tr.selected td { background: var(--accent-light); }
+  table.master tr.selected td { background: var(--amber-light); }
   button.danger:disabled {
     background: #fff;
     color: var(--text-tertiary);
@@ -414,9 +432,8 @@
 
   /* タブナビゲーション */
   .tabs {
-    max-width: 1400px;
-    margin: 12px auto 0;
-    padding: 0 20px;
+    margin-top: 12px;
+    padding: 0 24px;
     display: flex;
     gap: 2px;
     border-bottom: 1px solid var(--border);
@@ -440,24 +457,22 @@
   }
   .tab:hover { color: var(--black); background: var(--bg-secondary); }
   .tab.active {
-    color: var(--accent);
-    border-bottom-color: var(--accent);
+    color: var(--black);
+    border-bottom-color: var(--black);
     background: transparent;
   }
-  .tab i { font-size: 17px; }
+  .tab svg { font-size: 17px; }
   .tab .count {
     color: var(--text-tertiary);
     font-weight: 400;
     font-size: 13px;
     margin-left: 2px;
   }
-  .tab.active .count { color: var(--accent); }
+  .tab.active .count { color: var(--black); }
 
-  /* ヘッダー行（ロゴ + バージョン + 文字サイズ + アクション） */
+  /* ヘッダー行（ロゴ + バージョン + 文字サイズ） */
   .page-header {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 20px 20px 0;
+    padding: 16px 24px 0;
     display: flex;
     align-items: center;
     gap: 16px;
@@ -474,7 +489,6 @@
     font-size: 13px;
     font-weight: 500;
   }
-  .header-actions { margin-left: auto; }
   .zoom-controls {
     display: flex;
     align-items: center;
@@ -495,7 +509,7 @@
     color: var(--black);
     transition: all 0.15s;
   }
-  .zoom-btn:hover { background: #fff; color: var(--accent); }
+  .zoom-btn:hover { background: #fff; color: var(--black); }
   .zoom-btn:disabled { opacity: 0.3; cursor: not-allowed; }
   .zoom-btn:disabled:hover { background: transparent; color: var(--black); }
   .zoom-level {
@@ -527,7 +541,7 @@
     <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M5 12l14 0"/><path d="M5 12l4 4"/><path d="M5 12l4 -4"/></symbol>
   </defs>
 </svg>
-<!-- ヘッダー行（ロゴ + バージョン + 文字サイズ + 商品情報追加） -->
+<!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
 <header class="page-header">
   <div class="logo" id="logo-home" title="ホームに戻る">
     <svg class="icn"><use href="#i-shopping-cart"/></svg>
@@ -535,15 +549,12 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.15</span>
+    <span class="version">v0.16</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
       <button class="zoom-btn" id="zoom-in" title="文字を大きく">A+</button>
     </div>
-  </div>
-  <div class="header-actions">
-    <button class="primary" id="header-add-product"><svg class="icn"><use href="#i-plus"/></svg> 商品情報追加</button>
   </div>
 </header>
 
@@ -570,7 +581,7 @@
     </div>
 
     <div class="master-card">
-      <h3><svg class="icn" style="color:var(--accent)"><use href="#i-upload"/></svg> FBA在庫レポートを取り込む</h3>
+      <h3><svg class="icn" style="color:var(--blue)"><use href="#i-upload"/></svg> FBA在庫レポートを取り込む</h3>
       <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;">セラーセントラル → レポート → フルフィルメント → 在庫レポート で取得した TSV / TXT / CSV ファイルをアップロードしてください。SKU・ASIN・FNSKU・商品名を自動で取り込みます。</p>
       <label class="upload-zone" for="file-input">
         <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
@@ -581,7 +592,7 @@
       <div class="or-divider">または</div>
       <textarea class="paste-area" id="master-paste" placeholder="レポートの中身を直接貼り付けることもできます（タブ区切り）。1行目がヘッダー（sku / asin / fnsku / product-name など）になっている前提です。"></textarea>
       <div style="display:flex;gap:8px;margin-top:12px;">
-        <button class="primary" id="parse-master"><svg class="icn"><use href="#i-check"/></svg> 取り込む</button>
+        <button class="confirm" id="parse-master"><svg class="icn"><use href="#i-check"/></svg> 取り込む</button>
       </div>
     </div>
   </div>
@@ -591,10 +602,11 @@
     <div class="toolbar">
       <span id="product-count" style="color:var(--text-tertiary);font-size:13px;"></span>
       <div class="spacer"></div>
-      <button id="bulk-images"><svg class="icn"><use href="#i-photo"/></svg> 画像一括登録</button>
+      <button class="utility" id="bulk-images"><svg class="icn"><use href="#i-photo"/></svg> 画像一括登録</button>
       <input type="file" id="bulk-images-input" accept="image/*" multiple style="display:none">
       <button class="danger" id="delete-selected" disabled><svg class="icn"><use href="#i-trash"/></svg> 選択を削除 <span id="selected-count"></span></button>
       <button class="danger" id="clear-master"><svg class="icn"><use href="#i-trash"/></svg> 全削除</button>
+      <button class="primary" id="open-add"><svg class="icn"><use href="#i-plus"/></svg> 商品情報追加</button>
     </div>
     <div class="master-card">
       <div id="master-list-wrap"></div>
@@ -631,7 +643,7 @@
     <button id="add-page"><svg class="icn"><use href="#i-plus"/></svg> ページを追加（2ページ目以降）</button>
     <div class="modal-actions">
       <button id="cancel">キャンセル</button>
-      <button class="primary" id="apply"><svg class="icn"><use href="#i-check"/></svg> 反映する</button>
+      <button class="confirm" id="apply"><svg class="icn"><use href="#i-check"/></svg> 反映する</button>
     </div>
   </div>
 </div>
@@ -661,7 +673,7 @@
     </div>
     <div class="modal-actions">
       <button id="edit-cancel">キャンセル</button>
-      <button class="primary" id="edit-save"><svg class="icn"><use href="#i-check"/></svg> 保存</button>
+      <button class="confirm" id="edit-save"><svg class="icn"><use href="#i-check"/></svg> 保存</button>
     </div>
   </div>
 </div>
@@ -749,7 +761,7 @@ function init(){
 
   document.getElementById('paste-date').value = todayStr();
 
-  document.getElementById('header-add-product').addEventListener('click', () => switchView('add'));
+  document.getElementById('open-add').addEventListener('click', () => switchView('add'));
   document.getElementById('logo-home').addEventListener('click', () => switchView('master'));
   // タブクリック
   document.querySelectorAll('.tab').forEach(t => {
@@ -1049,7 +1061,7 @@ function renderMasterList(){
       + '<td class="mono">'+escapeHtml(p.fnsku)+'</td>'
       + '<td class="name-cell">'+escapeHtml(p.name)+'</td>'
       + '<td class="actions-cell">'
-        + '<button class="ghost" onclick="openEditModal(\''+p.fnsku+'\')" title="編集"><svg class="icn" style="color:var(--text-secondary)"><use href="#i-pencil"/></svg></button>'
+        + '<button class="ghost" onclick="openEditModal(\''+p.fnsku+'\')" title="編集"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg></button>'
         + '<button class="ghost" onclick="deleteProduct(\''+p.fnsku+'\')" title="削除"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button>'
       + '</td>'
       + '</tr>';
