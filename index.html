@@ -386,7 +386,44 @@
   table.master td.img-cell.drag-over .upload-hint { opacity: 1; }
   table.master .actions-cell { width: 110px; text-align: right; white-space: nowrap; }
   table.master .edit-cell, table.master .del-cell { width: 56px; text-align: center; white-space: nowrap; padding: 4px 6px; }
-  table.master .name-cell { max-width: 320px; }
+  table.master .name-cell {
+    max-width: var(--name-width, 320px);
+    width: var(--name-width, 320px);
+    min-width: 120px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  table.master th.name-header {
+    position: relative;
+    max-width: var(--name-width, 320px);
+    width: var(--name-width, 320px);
+    min-width: 120px;
+  }
+  table.master th.name-header .col-resize {
+    position: absolute;
+    right: -3px;
+    top: 0;
+    bottom: 0;
+    width: 7px;
+    cursor: col-resize;
+    z-index: 5;
+    user-select: none;
+  }
+  table.master th.name-header .col-resize::after {
+    content: '';
+    position: absolute;
+    right: 3px;
+    top: 30%;
+    bottom: 30%;
+    width: 1px;
+    background: var(--border);
+  }
+  table.master th.name-header .col-resize:hover::after,
+  table.master th.name-header .col-resize.dragging::after {
+    background: var(--blue);
+    width: 2px;
+  }
   table.master th.price, table.master td.price {
     text-align: right;
     font-family: ui-monospace, Menlo, monospace;
@@ -682,7 +719,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.28</span>
+    <span class="version">v0.29</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -735,8 +772,6 @@
     <div class="toolbar">
       <span id="product-count" style="color:var(--text-tertiary);font-size:13px;"></span>
       <div class="spacer"></div>
-      <button class="utility" id="bulk-images"><svg class="icn"><use href="#i-photo"/></svg> 画像一括登録</button>
-      <input type="file" id="bulk-images-input" accept="image/*" multiple style="display:none">
       <button class="danger" id="delete-selected" disabled><svg class="icn"><use href="#i-trash"/></svg> 選択を削除 <span id="selected-count"></span></button>
       <button class="primary" id="open-add"><svg class="icn"><use href="#i-plus"/></svg> 商品情報追加</button>
     </div>
@@ -866,6 +901,7 @@
 const STORAGE_PRODUCTS = 'amacheck_products_v1';
 const STORAGE_SHIPMENTS = 'amacheck_shipments_v1';
 const STORAGE_ZOOM = 'amacheck_zoom_v1';
+const STORAGE_NAMEWIDTH = 'amacheck_namewidth_v1';
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
 let products = loadProducts();
@@ -994,15 +1030,6 @@ function init(){
     } catch (err) {
       toast('画像処理に失敗しました');
     }
-    e.target.value = '';
-  });
-
-  // 画像一括登録
-  document.getElementById('bulk-images').addEventListener('click', () => {
-    document.getElementById('bulk-images-input').click();
-  });
-  document.getElementById('bulk-images-input').addEventListener('change', (e) => {
-    bulkAddImages(Array.from(e.target.files));
     e.target.value = '';
   });
 
@@ -1365,7 +1392,7 @@ function renderMasterList(){
     + '<th>ASIN</th>'
     + '<th>SKU</th>'
     + '<th>FNSKU</th>'
-    + '<th>商品名</th>'
+    + '<th class="name-header">商品名<span class="col-resize" title="ドラッグで横幅を変更"></span></th>'
     + '<th class="price">販売価格</th>'
     + '<th class="price">原価</th>'
     + '<th class="price">販売手数料</th>'
@@ -1428,6 +1455,14 @@ function renderMasterList(){
 
   updateBulkControls();
 
+  // 商品名列の幅を復元
+  const savedNameWidth = parseInt(localStorage.getItem(STORAGE_NAMEWIDTH), 10);
+  if (savedNameWidth && savedNameWidth >= 120) {
+    document.querySelector('table.master').style.setProperty('--name-width', savedNameWidth + 'px');
+  }
+  // リサイズハンドル配線
+  setupColumnResize();
+
   // Excel風セル操作
   setupMasterCellInteraction();
   applyMasterSelectionUI();
@@ -1436,6 +1471,41 @@ function renderMasterList(){
     cell.addEventListener('dblclick', () => editMasterPriceCell(cell));
   });
 }
+
+// 商品名列のドラッグリサイズ
+let resizingCol = null;
+function setupColumnResize(){
+  const handle = document.querySelector('table.master th.name-header .col-resize');
+  if (!handle) return;
+  handle.addEventListener('mousedown', (e) => {
+    const th = handle.closest('th');
+    const table = th.closest('table');
+    resizingCol = {
+      startX: e.clientX,
+      startWidth: th.offsetWidth,
+      table: table,
+      handle: handle,
+    };
+    handle.classList.add('dragging');
+    document.body.style.cursor = 'col-resize';
+    e.preventDefault();
+    e.stopPropagation();
+  });
+}
+document.addEventListener('mousemove', (e) => {
+  if (!resizingCol) return;
+  const delta = e.clientX - resizingCol.startX;
+  const newWidth = Math.max(120, Math.min(800, resizingCol.startWidth + delta));
+  resizingCol.table.style.setProperty('--name-width', newWidth + 'px');
+});
+document.addEventListener('mouseup', () => {
+  if (!resizingCol) return;
+  const finalWidth = parseInt(getComputedStyle(resizingCol.table).getPropertyValue('--name-width'), 10);
+  if (finalWidth) localStorage.setItem(STORAGE_NAMEWIDTH, finalWidth);
+  resizingCol.handle.classList.remove('dragging');
+  document.body.style.cursor = '';
+  resizingCol = null;
+});
 
 function toggleSelectAll(e){
   const checked = e.target.checked;
