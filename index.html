@@ -656,7 +656,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.25</span>
+    <span class="version">v0.26</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1264,12 +1264,12 @@ function renderMasterList(){
     + '<th>SKU</th>'
     + '<th>FNSKU</th>'
     + '<th>商品名</th>'
-    + '<th class="edit-cell">編集</th>'
     + '<th class="price">販売価格</th>'
     + '<th class="price">原価</th>'
     + '<th class="price">販売手数料</th>'
     + '<th class="price">Amazon手数料</th>'
     + '<th class="price">FBA手数料(送料)</th>'
+    + '<th class="edit-cell">編集</th>'
     + '<th class="del-cell">削除</th>'
     + '</tr></thead><tbody>';
   products.forEach(p => {
@@ -1280,12 +1280,12 @@ function renderMasterList(){
       + '<td class="mono">'+escapeHtml(p.sku||'-')+'</td>'
       + '<td class="mono">'+escapeHtml(p.fnsku)+'</td>'
       + '<td class="name-cell">'+escapeHtml(p.name)+'</td>'
-      + '<td class="edit-cell"><button class="ghost" onclick="openEditModal(\''+p.fnsku+'\')" title="編集"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg></button></td>'
       + '<td class="price">'+formatPrice(p.sellingPrice)+'</td>'
       + '<td class="price">'+formatPrice(p.cost)+'</td>'
       + '<td class="price">'+formatPrice(p.sellingFee)+'</td>'
       + '<td class="price">'+formatPrice(p.amazonFee)+'</td>'
       + '<td class="price">'+formatPrice(p.fbaFee)+'</td>'
+      + '<td class="edit-cell"><button class="ghost" onclick="openEditModal(\''+p.fnsku+'\')" title="編集"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg></button></td>'
       + '<td class="del-cell"><button class="ghost" onclick="deleteProduct(\''+p.fnsku+'\')" title="削除"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button></td>'
       + '</tr>';
   });
