@@ -427,7 +427,24 @@
     transition: opacity 0.2s;
     pointer-events: none;
     max-width: 600px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
   }
+  .toast.show { pointer-events: auto; }
+  .toast-action {
+    background: var(--amber);
+    color: #fff;
+    border: none;
+    padding: 6px 14px;
+    border-radius: 6px;
+    font-weight: 700;
+    font-size: 13px;
+    cursor: pointer;
+    font-family: inherit;
+    flex-shrink: 0;
+  }
+  .toast-action:hover { background: #b45309; }
   .toast.show { opacity: 1; }
 
   .or-divider {
@@ -573,7 +590,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.18</span>
+    <span class="version">v0.19</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -716,6 +733,7 @@ const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9
 
 let products = loadProducts();
 let shipments = loadShipments();
+let shipmentsBackup = null; // Undo用バックアップ
 let currentMonth;
 let currentYear;
 let currentPeriod = 'daily'; // 'daily' or 'monthly'
@@ -1403,6 +1421,45 @@ function applyShipment(){
     if (p.asin) productByAsin.set(p.asin.toUpperCase(), p);
   });
 
+  // 反映予定の集計（プレビュー用）
+  let willMatch = 0, willMatchQty = 0, willIgnore = 0;
+  for (const asin in allCounts) {
+    if (productByAsin.has(asin.toUpperCase())) {
+      willMatch++;
+      willMatchQty += allCounts[asin];
+    } else {
+      willIgnore++;
+    }
+  }
+
+  // 既存データの集計（上書きされる量）
+  let existingQty = 0, existingCount = 0;
+  if (shipments[ym]) {
+    for (const fnsku in shipments[ym]) {
+      if (shipments[ym][fnsku][day]) {
+        existingQty += shipments[ym][fnsku][day];
+        existingCount++;
+      }
+    }
+  }
+
+  // 事前確認ダイアログ（C）
+  const todayD = new Date();
+  const isToday = (y === todayD.getFullYear() && m === todayD.getMonth()+1 && d === todayD.getDate());
+  let msg = '';
+  if (!isToday) msg += '⚠️ 今日ではない日付です\n\n';
+  msg += y + '年' + m + '月' + d + '日 に反映\n\n';
+  msg += '反映内容: ' + willMatch + '種 / 合計 ' + willMatchQty + '個\n';
+  if (willIgnore) msg += '商品リスト外: ' + willIgnore + '種（無視）\n';
+  if (existingQty > 0) {
+    msg += '\n※ この日には既に ' + existingCount + '種 / 合計 ' + existingQty + '個 のデータがあり、上書きされます。\n';
+  }
+  msg += '\nよろしいですか？';
+  if (!confirm(msg)) return;
+
+  // バックアップ（A: Undo用）
+  shipmentsBackup = JSON.parse(JSON.stringify(shipments));
+
   if (!shipments[ym]) shipments[ym] = {};
 
   // 上書きモード：その日のデータを一度全クリアしてから新しい合計をセット
@@ -1428,9 +1485,19 @@ function applyShipment(){
   renderShipmentTable();
   closeModal();
 
-  let msg = m + '/' + d + ' を ' + appliedCount + '種 / 合計 ' + appliedQty + '個 で上書きしました';
-  if (ignored > 0) msg += '（商品リスト外 ' + ignored + '種は無視）';
-  toast(msg);
+  let toastMsg = m + '/' + d + ' に ' + appliedCount + '種 / 合計 ' + appliedQty + '個 を反映';
+  if (ignored > 0) toastMsg += '（商品リスト外 ' + ignored + '種は無視）';
+  toast(toastMsg, { label: '元に戻す', onClick: undoApply });
+}
+
+// 直前の反映を取り消す
+function undoApply(){
+  if (!shipmentsBackup) { toast('元に戻せる操作がありません'); return; }
+  shipments = shipmentsBackup;
+  shipmentsBackup = null;
+  saveShipments();
+  renderShipmentTable();
+  toast('元に戻しました');
 }
 
 // ============================================
@@ -1592,12 +1659,23 @@ async function setProductImageFromFile(fnsku, file){
 // トースト
 // ============================================
 let toastTimer;
-function toast(msg){
+function toast(msg, action){
   const el = document.getElementById('toast');
-  el.textContent = msg;
+  el.innerHTML = '';
+  el.appendChild(document.createTextNode(msg));
+  if (action) {
+    const btn = document.createElement('button');
+    btn.className = 'toast-action';
+    btn.textContent = action.label;
+    btn.addEventListener('click', () => {
+      el.classList.remove('show');
+      action.onClick();
+    });
+    el.appendChild(btn);
+  }
   el.classList.add('show');
   clearTimeout(toastTimer);
-  toastTimer = setTimeout(() => el.classList.remove('show'), 3500);
+  toastTimer = setTimeout(() => el.classList.remove('show'), action ? 10000 : 3500);
 }
 
 // グローバルに公開（onclick用）
