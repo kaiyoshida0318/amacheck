@@ -385,7 +385,17 @@
   }
   table.master td.img-cell.drag-over .upload-hint { opacity: 1; }
   table.master .actions-cell { width: 110px; text-align: right; white-space: nowrap; }
+  table.master .edit-cell, table.master .del-cell { width: 56px; text-align: center; white-space: nowrap; padding: 4px 6px; }
   table.master .name-cell { max-width: 320px; }
+  table.master th.price, table.master td.price {
+    text-align: right;
+    font-family: ui-monospace, Menlo, monospace;
+    font-size: 13px;
+    white-space: nowrap;
+    padding: 8px 10px;
+  }
+  table.master th.price { font-size: 12px; }
+  table.master td.price .price-empty { color: var(--text-tertiary); }
 
   /* チェックボックス */
   table.master th.check-cell, table.master td.check-cell {
@@ -646,7 +656,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.24</span>
+    <span class="version">v0.25</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -763,9 +773,36 @@
       <label style="display:block;margin-bottom:6px;font-weight:600;font-size:13px;">画像URL（ファイル選択時は自動入力）</label>
       <input type="text" id="edit-image-url" placeholder="https://..." style="width:100%;font-size:13px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;">
     </div>
-    <div style="display:flex;align-items:center;gap:12px;background:var(--bg-secondary);padding:12px;border-radius:8px;margin-bottom:8px;">
+    <div style="display:flex;align-items:center;gap:12px;background:var(--bg-secondary);padding:12px;border-radius:8px;margin-bottom:14px;">
       <span style="font-size:12px;color:var(--text-secondary);">プレビュー：</span>
       <span id="edit-preview"></span>
+    </div>
+    <div style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:8px;">
+      <div style="font-weight:600;font-size:13px;margin-bottom:10px;color:var(--text-secondary);">価格情報</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px;">
+        <div>
+          <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">販売価格</label>
+          <input type="number" id="edit-selling-price" min="0" step="1" placeholder="0" style="width:100%;font-size:14px;padding:6px 8px;font-family:ui-monospace,Menlo,monospace;text-align:right;">
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">原価</label>
+          <input type="number" id="edit-cost" min="0" step="1" placeholder="0" style="width:100%;font-size:14px;padding:6px 8px;font-family:ui-monospace,Menlo,monospace;text-align:right;">
+        </div>
+      </div>
+      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+        <div>
+          <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">販売手数料</label>
+          <input type="number" id="edit-selling-fee" min="0" step="1" placeholder="0" style="width:100%;font-size:14px;padding:6px 8px;font-family:ui-monospace,Menlo,monospace;text-align:right;">
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">Amazon手数料</label>
+          <input type="number" id="edit-amazon-fee" min="0" step="1" placeholder="0" style="width:100%;font-size:14px;padding:6px 8px;font-family:ui-monospace,Menlo,monospace;text-align:right;">
+        </div>
+        <div>
+          <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">FBA手数料(送料)</label>
+          <input type="number" id="edit-fba-fee" min="0" step="1" placeholder="0" style="width:100%;font-size:14px;padding:6px 8px;font-family:ui-monospace,Menlo,monospace;text-align:right;">
+        </div>
+      </div>
     </div>
     <div class="modal-actions">
       <button id="edit-cancel">キャンセル</button>
@@ -965,6 +1002,13 @@ function escapeHtml(s){
   return String(s||'').replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
 }
 
+function formatPrice(v){
+  if (v === undefined || v === null || v === '') return '<span class="price-empty">-</span>';
+  const n = Number(v);
+  if (isNaN(n)) return '<span class="price-empty">-</span>';
+  return '¥' + n.toLocaleString();
+}
+
 // ============================================
 // 商品画像URL（ASINベース自動生成）
 // 失敗したら色付きプレースホルダーにフォールバック
@@ -996,8 +1040,23 @@ function handleFile(e){
 
 function parseFileForMaster(file){
   const reader = new FileReader();
-  reader.onload = () => parseMasterText(reader.result);
-  reader.readAsText(file);
+  reader.onload = (e) => {
+    const buffer = e.target.result;
+    let text;
+    // UTF-8で厳密にデコードを試す。失敗したらShift-JISにフォールバック
+    try {
+      text = new TextDecoder('utf-8', { fatal: true }).decode(buffer);
+    } catch (err) {
+      try {
+        text = new TextDecoder('shift_jis').decode(buffer);
+      } catch (err2) {
+        toast('ファイルの文字コードを判別できませんでした');
+        return;
+      }
+    }
+    parseMasterText(text);
+  };
+  reader.readAsArrayBuffer(file);
 }
 
 function parsePastedMaster(){
@@ -1024,39 +1083,93 @@ function parseMasterText(text){
     }
     return null;
   };
+  // 完全一致優先（数値列の名前部分一致を防ぐ）
+  const findColExact = (names) => {
+    for (const c of cols) {
+      const lc = c.trim().toLowerCase();
+      for (const n of names) if (lc === n.toLowerCase()) return c;
+    }
+    return null;
+  };
   const skuCol = findCol(['seller-sku','merchant-sku','sku','出品者sku']) || findCol(['sku']);
   const asinCol = findCol(['asin1','asin']);
   const fnskuCol = findCol(['fnsku']);
   const nameCol = findCol(['product-name','item-name','商品名','商品タイトル','title','name']);
+  const costCol = findColExact(['原価','cost']) || findCol(['原価','cost']);
+  const sellingPriceCol = findColExact(['販売価格','selling_price','sellingprice','price']) || findCol(['販売価格']);
+  const sellingFeeCol = findColExact(['販売手数料','selling_fee']) || findCol(['販売手数料']);
+  const amazonFeeCol = findColExact(['amazon手数料','amazon_fee']) || findCol(['amazon手数料']);
+  const fbaFeeCol = findColExact(['fba手数料(送料)','fba手数料','fba_fee']) || findCol(['fba手数料']);
 
-  if (!fnskuCol) { toast('FNSKU列が見つかりませんでした。FBA在庫レポートかご確認ください'); return; }
+  if (!fnskuCol) { toast('FNSKU列が見つかりませんでした'); return; }
+
+  const parsePrice = (v) => {
+    if (v === undefined || v === null || v === '') return null;
+    const cleaned = String(v).replace(/[¥,，\s円]/g, '');
+    const n = parseFloat(cleaned);
+    return isNaN(n) ? null : n;
+  };
 
   let added = 0;
+  let updated = 0;
   let skipped = 0;
-  const existing = new Set(products.map(p => p.fnsku));
-  res.data.forEach((row, i) => {
+  const existingMap = new Map(products.map(p => [p.fnsku, p]));
+  res.data.forEach((row) => {
     const fnsku = (row[fnskuCol] || '').trim();
     if (!fnsku) { skipped++; return; }
-    if (existing.has(fnsku)) { skipped++; return; }
-    const idx = products.length;
-    products.push({
-      sku: (skuCol ? row[skuCol] : '').trim(),
-      asin: (asinCol ? row[asinCol] : '').trim(),
-      fnsku,
-      name: (nameCol ? row[nameCol] : '(無題)').trim(),
-      color: PALETTE[idx % PALETTE.length]
-    });
-    existing.add(fnsku);
-    added++;
+
+    const data = { fnsku };
+    if (skuCol) data.sku = (row[skuCol] || '').trim();
+    if (asinCol) data.asin = (row[asinCol] || '').trim();
+    if (nameCol) data.name = (row[nameCol] || '').trim();
+    if (costCol) { const v = parsePrice(row[costCol]); if (v !== null) data.cost = v; }
+    if (sellingPriceCol) { const v = parsePrice(row[sellingPriceCol]); if (v !== null) data.sellingPrice = v; }
+    if (sellingFeeCol) { const v = parsePrice(row[sellingFeeCol]); if (v !== null) data.sellingFee = v; }
+    if (amazonFeeCol) { const v = parsePrice(row[amazonFeeCol]); if (v !== null) data.amazonFee = v; }
+    if (fbaFeeCol) { const v = parsePrice(row[fbaFeeCol]); if (v !== null) data.fbaFee = v; }
+
+    if (existingMap.has(fnsku)) {
+      // 既存レコードを更新（フィールド単位でマージ。color/imageUrlなどは保持）
+      const existing = existingMap.get(fnsku);
+      Object.keys(data).forEach(k => {
+        if (data[k] !== '' && data[k] !== undefined) existing[k] = data[k];
+      });
+      updated++;
+    } else {
+      const idx = products.length;
+      const newProduct = {
+        sku: data.sku || '',
+        asin: data.asin || '',
+        fnsku,
+        name: data.name || '(無題)',
+        color: PALETTE[idx % PALETTE.length]
+      };
+      ['cost','sellingPrice','sellingFee','amazonFee','fbaFee'].forEach(k => {
+        if (data[k] !== undefined) newProduct[k] = data[k];
+      });
+      products.push(newProduct);
+      existingMap.set(fnsku, newProduct);
+      added++;
+    }
   });
   saveProducts();
   document.getElementById('master-paste').value = '';
-  toast(added + ' 件を取り込みました' + (skipped > 0 ? '（重複/空 ' + skipped + ' 件はスキップ）' : ''));
-  if (added > 0) {
+
+  const parts = [];
+  if (added > 0) parts.push('新規 ' + added + ' 件');
+  if (updated > 0) parts.push('更新 ' + updated + ' 件');
+  if (skipped > 0) parts.push('スキップ ' + skipped + ' 件');
+  toast(parts.length ? parts.join(' / ') : '取り込み完了');
+
+  if (added > 0 || updated > 0) {
     switchView('master');
-    // 取り込んだ商品の画像を事前取得（成功したURLをマスタに保存）
-    const newProducts = products.slice(-added);
-    preloadProductImages(newProducts);
+    // 新規商品のみ画像事前取得
+    if (added > 0) {
+      const newProducts = products.slice(-added);
+      preloadProductImages(newProducts);
+    } else {
+      renderMasterList();
+    }
   }
 }
 
@@ -1146,19 +1259,34 @@ function renderMasterList(){
   }
   let html = '<div style="overflow-x:auto"><table class="master"><thead><tr>'
     + '<th class="check-cell"><input type="checkbox" id="select-all" title="全選択"></th>'
-    + '<th class="img-header">商品画像</th><th>ASIN</th><th>FNSKU</th><th>商品名</th><th class="actions-cell"></th>'
+    + '<th class="img-header">商品画像</th>'
+    + '<th>ASIN</th>'
+    + '<th>SKU</th>'
+    + '<th>FNSKU</th>'
+    + '<th>商品名</th>'
+    + '<th class="edit-cell">編集</th>'
+    + '<th class="price">販売価格</th>'
+    + '<th class="price">原価</th>'
+    + '<th class="price">販売手数料</th>'
+    + '<th class="price">Amazon手数料</th>'
+    + '<th class="price">FBA手数料(送料)</th>'
+    + '<th class="del-cell">削除</th>'
     + '</tr></thead><tbody>';
   products.forEach(p => {
     html += '<tr data-fnsku="'+escapeHtml(p.fnsku)+'">'
       + '<td class="check-cell"><input type="checkbox" class="product-checkbox" data-fnsku="'+escapeHtml(p.fnsku)+'"></td>'
       + '<td class="img-cell">' + productImageHtml(p) + '</td>'
       + '<td class="mono">'+escapeHtml(p.asin||'-')+'</td>'
+      + '<td class="mono">'+escapeHtml(p.sku||'-')+'</td>'
       + '<td class="mono">'+escapeHtml(p.fnsku)+'</td>'
       + '<td class="name-cell">'+escapeHtml(p.name)+'</td>'
-      + '<td class="actions-cell">'
-        + '<button class="ghost" onclick="openEditModal(\''+p.fnsku+'\')" title="編集"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg></button>'
-        + '<button class="ghost" onclick="deleteProduct(\''+p.fnsku+'\')" title="削除"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button>'
-      + '</td>'
+      + '<td class="edit-cell"><button class="ghost" onclick="openEditModal(\''+p.fnsku+'\')" title="編集"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg></button></td>'
+      + '<td class="price">'+formatPrice(p.sellingPrice)+'</td>'
+      + '<td class="price">'+formatPrice(p.cost)+'</td>'
+      + '<td class="price">'+formatPrice(p.sellingFee)+'</td>'
+      + '<td class="price">'+formatPrice(p.amazonFee)+'</td>'
+      + '<td class="price">'+formatPrice(p.fbaFee)+'</td>'
+      + '<td class="del-cell"><button class="ghost" onclick="deleteProduct(\''+p.fnsku+'\')" title="削除"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button></td>'
       + '</tr>';
   });
   html += '</tbody></table></div>';
@@ -2015,6 +2143,12 @@ function openEditModal(fnsku){
   editingFnsku = fnsku;
   document.getElementById('edit-name').value = p.name || '';
   document.getElementById('edit-image-url').value = p.imageUrl || '';
+  // 価格5項目
+  document.getElementById('edit-selling-price').value = (p.sellingPrice != null) ? p.sellingPrice : '';
+  document.getElementById('edit-cost').value = (p.cost != null) ? p.cost : '';
+  document.getElementById('edit-selling-fee').value = (p.sellingFee != null) ? p.sellingFee : '';
+  document.getElementById('edit-amazon-fee').value = (p.amazonFee != null) ? p.amazonFee : '';
+  document.getElementById('edit-fba-fee').value = (p.fbaFee != null) ? p.fbaFee : '';
   // 元商品名（編集前のオリジナル）を保持していれば表示
   document.getElementById('edit-name-orig').textContent = p.nameOrig ? '元の商品名: ' + p.nameOrig : '';
   updateEditPreview();
@@ -2047,6 +2181,20 @@ function saveEdit(){
   if (newName) p.name = newName;
   if (newUrl) p.imageUrl = newUrl;
   else delete p.imageUrl;
+  // 価格5項目（空欄はフィールド削除、値あれば数値で保存）
+  const readPrice = (id, field) => {
+    const v = document.getElementById(id).value.trim();
+    if (v === '') { delete p[field]; }
+    else {
+      const n = parseFloat(v);
+      if (!isNaN(n)) p[field] = n;
+    }
+  };
+  readPrice('edit-selling-price', 'sellingPrice');
+  readPrice('edit-cost', 'cost');
+  readPrice('edit-selling-fee', 'sellingFee');
+  readPrice('edit-amazon-fee', 'amazonFee');
+  readPrice('edit-fba-fee', 'fbaFee');
   saveProducts();
   closeEditModal();
   renderMasterList();
