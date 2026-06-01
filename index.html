@@ -386,6 +386,32 @@
   }
   table.master td.img-cell.drag-over .upload-hint { opacity: 1; }
   table.master .actions-cell { width: 110px; text-align: right; white-space: nowrap; }
+  table.master .drag-cell {
+    width: 28px;
+    padding: 4px 2px 4px 8px;
+    text-align: center;
+  }
+  table.master .drag-handle {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 22px;
+    height: 28px;
+    color: var(--text-tertiary);
+    cursor: grab;
+    user-select: none;
+    border-radius: 4px;
+  }
+  table.master .drag-handle:hover {
+    background: var(--blue-light);
+    color: var(--blue);
+  }
+  table.master .drag-handle:active { cursor: grabbing; }
+  table.master .drag-handle .icn { font-size: 18px; }
+  /* ドラッグ中の行スタイル */
+  table.master tr.dragging-row { opacity: 0.35; }
+  table.master tr.drop-above > td { box-shadow: 0 -3px 0 var(--blue) inset; }
+  table.master tr.drop-below > td { box-shadow: 0 3px 0 var(--blue) inset; }
   table.master .edit-cell, table.master .del-cell { width: 56px; text-align: center; white-space: nowrap; padding: 4px 6px; }
   table.master .name-cell {
     max-width: var(--name-width, 320px);
@@ -711,6 +737,7 @@
     <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="M6 15l6 -6l6 6"/></symbol>
     <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"/></symbol>
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></symbol>
+    <symbol id="i-grip" viewBox="0 0 24 24"><path d="M5 9h2v2h-2z"/><path d="M5 13h2v2h-2z"/><path d="M9 9h2v2h-2z"/><path d="M9 13h2v2h-2z"/><path d="M13 9h2v2h-2z"/><path d="M13 13h2v2h-2z"/><path d="M17 9h2v2h-2z"/><path d="M17 13h2v2h-2z"/></symbol>
   </defs>
 </svg>
 <!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
@@ -721,7 +748,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.30</span>
+    <span class="version">v0.32</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -829,6 +856,7 @@
         <span id="edit-position" style="font-size:12px;color:var(--text-tertiary);white-space:nowrap;"></span>
         <button id="edit-prev" class="ghost" title="前の商品 (↑)" style="padding:6px 8px;"><svg class="icn"><use href="#i-chevron-up"/></svg></button>
         <button id="edit-next" class="ghost" title="次の商品 (↓)" style="padding:6px 8px;"><svg class="icn"><use href="#i-chevron-down"/></svg></button>
+        <button id="edit-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;margin-left:4px;"><svg class="icn"><use href="#i-x"/></svg></button>
       </div>
     </div>
     <div style="margin-bottom:14px;">
@@ -1009,6 +1037,7 @@ function init(){
   document.getElementById('edit-save').addEventListener('click', saveEdit);
   document.getElementById('edit-prev').addEventListener('click', () => navigateEdit(-1));
   document.getElementById('edit-next').addEventListener('click', () => navigateEdit(1));
+  document.getElementById('edit-close').addEventListener('click', closeEditModal);
   document.getElementById('edit-modal').addEventListener('click', (e) => { if (e.target.id === 'edit-modal') closeEditModal(); });
   // 価格入力時に利益額・利益率をリアルタイム計算
   ['edit-selling-price','edit-cost','edit-selling-fee','edit-amazon-fee','edit-fba-fee'].forEach(id => {
@@ -1393,6 +1422,7 @@ function renderMasterList(){
     return;
   }
   let html = '<div style="overflow-x:auto"><table class="master"><thead><tr>'
+    + '<th class="drag-cell"></th>'
     + '<th class="check-cell"><input type="checkbox" id="select-all" title="全選択"></th>'
     + '<th class="img-header">商品画像</th>'
     + '<th>ASIN</th>'
@@ -1411,6 +1441,7 @@ function renderMasterList(){
     + '</tr></thead><tbody>';
   products.forEach((p, idx) => {
     html += '<tr data-fnsku="'+escapeHtml(p.fnsku)+'" data-row="'+idx+'">'
+      + '<td class="drag-cell"><span class="drag-handle" draggable="true" title="ドラッグして並び替え"><svg class="icn"><use href="#i-grip"/></svg></span></td>'
       + '<td class="check-cell"><input type="checkbox" class="product-checkbox" data-fnsku="'+escapeHtml(p.fnsku)+'"></td>'
       + '<td class="img-cell">' + productImageHtml(p, 72) + '</td>'
       + '<td class="mono">'+escapeHtml(p.asin||'-')+'</td>'
@@ -1469,6 +1500,9 @@ function renderMasterList(){
   // リサイズハンドル配線
   setupColumnResize();
 
+  // ドラッグ&ドロップによる行並び替え
+  setupRowDragReorder();
+
   // Excel風セル操作
   setupMasterCellInteraction();
   applyMasterSelectionUI();
@@ -1476,6 +1510,67 @@ function renderMasterList(){
   document.querySelectorAll('table.master td.price.editable').forEach(cell => {
     cell.addEventListener('dblclick', () => editMasterPriceCell(cell));
   });
+}
+
+// 行のドラッグ&ドロップ並び替え
+function setupRowDragReorder(){
+  // ハンドルでドラッグ開始
+  document.querySelectorAll('table.master .drag-handle').forEach(handle => {
+    handle.addEventListener('dragstart', (e) => {
+      const tr = handle.closest('tr');
+      if (!tr) return;
+      e.dataTransfer.setData('text/plain', tr.dataset.fnsku);
+      e.dataTransfer.effectAllowed = 'move';
+      // ドラッグ中のプレビュー画像は行全体
+      try { e.dataTransfer.setDragImage(tr, 0, 0); } catch(_){}
+      // 視覚スタイル
+      setTimeout(() => tr.classList.add('dragging-row'), 0);
+    });
+    handle.addEventListener('dragend', () => {
+      document.querySelectorAll('table.master tr.dragging-row, table.master tr.drop-above, table.master tr.drop-below').forEach(t => {
+        t.classList.remove('dragging-row', 'drop-above', 'drop-below');
+      });
+    });
+  });
+
+  // 各行のドロップ受付
+  document.querySelectorAll('table.master tbody tr').forEach(row => {
+    row.addEventListener('dragover', (e) => {
+      e.preventDefault();
+      e.dataTransfer.dropEffect = 'move';
+      const rect = row.getBoundingClientRect();
+      const isAbove = (e.clientY - rect.top) < rect.height / 2;
+      document.querySelectorAll('table.master tr.drop-above, table.master tr.drop-below').forEach(t => {
+        t.classList.remove('drop-above', 'drop-below');
+      });
+      row.classList.add(isAbove ? 'drop-above' : 'drop-below');
+    });
+    row.addEventListener('drop', (e) => {
+      e.preventDefault();
+      const sourceFnsku = e.dataTransfer.getData('text/plain');
+      const targetFnsku = row.dataset.fnsku;
+      if (!sourceFnsku || sourceFnsku === targetFnsku) return;
+      const rect = row.getBoundingClientRect();
+      const isAbove = (e.clientY - rect.top) < rect.height / 2;
+      reorderProducts(sourceFnsku, targetFnsku, isAbove);
+    });
+  });
+}
+
+function reorderProducts(sourceFnsku, targetFnsku, insertBefore){
+  const sourceIdx = products.findIndex(p => p.fnsku === sourceFnsku);
+  if (sourceIdx < 0) return;
+  const [moved] = products.splice(sourceIdx, 1);
+  let targetIdx = products.findIndex(p => p.fnsku === targetFnsku);
+  if (targetIdx < 0) {
+    // 落とし先が見つからない場合は末尾
+    products.push(moved);
+  } else {
+    if (!insertBefore) targetIdx++;
+    products.splice(targetIdx, 0, moved);
+  }
+  saveProducts();
+  renderMasterList();
 }
 
 // 商品名列のドラッグリサイズ
