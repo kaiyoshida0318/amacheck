@@ -187,9 +187,59 @@
   }
   table.ship tr:hover td:not(.total) { background: rgba(0,0,0,0.02); }
   /* 編集可能な日別セルの視覚ヒント */
-  table.ship td.day { cursor: cell; }
+  table.ship td.day { cursor: cell; position: relative; user-select: none; }
   table.ship td.day:hover { background: var(--blue-light); }
   table.ship td.day.has:hover { background: var(--accent-light); filter: brightness(0.95); }
+
+  /* セル選択（複数選択） */
+  table.ship td.day.cell-selected { background: rgba(37, 99, 235, 0.18) !important; }
+  table.ship td.day.cell-active {
+    outline: 2px solid var(--blue);
+    outline-offset: -2px;
+    z-index: 3;
+  }
+  /* フィルハンドル（選択範囲の右下） */
+  .fill-handle {
+    position: absolute;
+    width: 9px;
+    height: 9px;
+    background: var(--blue);
+    border: 1.5px solid #fff;
+    bottom: -5px;
+    right: -5px;
+    cursor: crosshair;
+    z-index: 5;
+    box-shadow: 0 0 2px rgba(0,0,0,0.3);
+  }
+  /* フィル時のプレビュー */
+  table.ship td.day.fill-preview {
+    outline: 2px dashed var(--blue);
+    outline-offset: -2px;
+    background: rgba(37, 99, 235, 0.08) !important;
+  }
+  /* フィルオプションのポップアップ */
+  #fill-options-popup {
+    position: fixed;
+    background: #fff;
+    border: 1px solid var(--border-strong);
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    padding: 6px;
+    z-index: 300;
+    min-width: 160px;
+    font-size: 13px;
+  }
+  #fill-options-popup label {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    cursor: pointer;
+    padding: 6px 10px;
+    border-radius: 4px;
+  }
+  #fill-options-popup label:hover { background: var(--bg-secondary); }
+  #fill-options-popup input[type="radio"] { accent-color: var(--blue); }
+
   input.cell-edit {
     width: 100%;
     padding: 4px 2px;
@@ -590,7 +640,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.19</span>
+    <span class="version">v0.21</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -646,7 +696,6 @@
       <button class="utility" id="bulk-images"><svg class="icn"><use href="#i-photo"/></svg> 画像一括登録</button>
       <input type="file" id="bulk-images-input" accept="image/*" multiple style="display:none">
       <button class="danger" id="delete-selected" disabled><svg class="icn"><use href="#i-trash"/></svg> 選択を削除 <span id="selected-count"></span></button>
-      <button class="danger" id="clear-master"><svg class="icn"><use href="#i-trash"/></svg> 全削除</button>
       <button class="primary" id="open-add"><svg class="icn"><use href="#i-plus"/></svg> 商品情報追加</button>
     </div>
     <div class="master-card">
@@ -733,7 +782,6 @@ const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9
 
 let products = loadProducts();
 let shipments = loadShipments();
-let shipmentsBackup = null; // Undo用バックアップ
 let currentMonth;
 let currentYear;
 let currentPeriod = 'daily'; // 'daily' or 'monthly'
@@ -826,7 +874,6 @@ function init(){
     if (e.dataTransfer.files[0]) parseFileForMaster(e.dataTransfer.files[0]);
   });
   document.getElementById('parse-master').addEventListener('click', parsePastedMaster);
-  document.getElementById('clear-master').addEventListener('click', clearMaster);
   document.getElementById('delete-selected').addEventListener('click', deleteSelected);
 
   // 編集モーダルのイベント
@@ -1217,10 +1264,10 @@ function renderDailyTable(){
   html += '<th class="total">合計</th></tr></thead><tbody>';
 
   const monthData = shipments[currentMonth] || {};
-  products.forEach(p => {
+  products.forEach((p, idx) => {
     const fnskuData = monthData[p.fnsku] || {};
     let total = 0;
-    html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '">';
+    html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '" data-row="' + idx + '">';
     html += '<td class="asin">' + escapeHtml(p.asin || '-') + '</td>';
     html += '<td class="img">' + productImageHtml(p) + '</td>';
     html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
@@ -1229,7 +1276,7 @@ function renderDailyTable(){
       total += q;
       const isToday = isCurrentMonth && d === todayDay;
       const cls = 'day' + (q ? ' has' : '') + (isToday ? ' today' : '');
-      html += '<td class="' + cls + '" data-day="' + d + '" title="ダブルクリックで編集">' + (q || '') + '</td>';
+      html += '<td class="' + cls + '" data-day="' + d + '">' + (q || '') + '</td>';
     }
     html += '<td class="total">' + (total || '–') + '</td></tr>';
   });
@@ -1240,6 +1287,10 @@ function renderDailyTable(){
   body.querySelectorAll('table.ship td.day').forEach(cell => {
     cell.addEventListener('dblclick', () => editDayCell(cell));
   });
+
+  // Excel風セル選択・ドラッグフィル
+  setupCellInteraction();
+  applySelectionUI();
 }
 
 // 日別セルのダブルクリック編集
@@ -1267,6 +1318,11 @@ function editDayCell(cell){
     committed = true;
     const raw = input.value.trim();
     const newValue = raw === '' ? 0 : (parseInt(raw, 10) || 0);
+    if (newValue === numValue) {
+      cell.textContent = originalText;
+      return;
+    }
+    pushUndoState();
     if (!shipments[currentMonth]) shipments[currentMonth] = {};
     if (!shipments[currentMonth][fnsku]) shipments[currentMonth][fnsku] = {};
     if (newValue === 0) {
@@ -1329,6 +1385,399 @@ function renderMonthlyTable(){
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+}
+
+// ============================================
+// Excel風セル操作（複数選択・コピペ・Undo・フィル）
+// ============================================
+let cellSelection = null; // { anchorRow, anchorCol, focusRow, focusCol }
+let dragMode = null; // 'select' | 'fill' | null
+let fillEnd = null;
+let clipboard2D = null; // 内部クリップボード [[v,v,...],[v,v,...]]
+let lastFillInfo = null; // {srcRect, fillR, fillC, sourceData} 直近フィルの情報
+const undoStack = [];
+const UNDO_LIMIT = 30;
+let shipTableInteractionWired = false;
+
+function pushUndoState(){
+  undoStack.push(JSON.parse(JSON.stringify(shipments)));
+  if (undoStack.length > UNDO_LIMIT) undoStack.shift();
+}
+
+function undo(){
+  if (!undoStack.length) {
+    toast('元に戻せる操作がありません');
+    return;
+  }
+  shipments = undoStack.pop();
+  saveShipments();
+  renderShipmentTable();
+  toast('元に戻しました');
+}
+
+function getSelectionRect(){
+  if (!cellSelection) return null;
+  return {
+    minRow: Math.min(cellSelection.anchorRow, cellSelection.focusRow),
+    maxRow: Math.max(cellSelection.anchorRow, cellSelection.focusRow),
+    minCol: Math.min(cellSelection.anchorCol, cellSelection.focusCol),
+    maxCol: Math.max(cellSelection.anchorCol, cellSelection.focusCol),
+  };
+}
+
+function clearSelectionUI(){
+  document.querySelectorAll('table.ship td.cell-selected, table.ship td.cell-active, table.ship td.fill-preview').forEach(c => {
+    c.classList.remove('cell-selected', 'cell-active', 'fill-preview');
+  });
+  document.querySelectorAll('.fill-handle').forEach(h => h.remove());
+}
+
+function applySelectionUI(){
+  clearSelectionUI();
+  if (!cellSelection) return;
+  const rect = getSelectionRect();
+  const rows = document.querySelectorAll('table.ship tbody tr');
+  let brCell = null;
+  for (let r = rect.minRow; r <= rect.maxRow; r++) {
+    const row = rows[r];
+    if (!row) continue;
+    for (let c = rect.minCol; c <= rect.maxCol; c++) {
+      const cell = row.querySelector('td.day[data-day="' + c + '"]');
+      if (cell) {
+        cell.classList.add('cell-selected');
+        if (r === rect.maxRow && c === rect.maxCol) brCell = cell;
+      }
+    }
+  }
+  const anchorRow = rows[cellSelection.anchorRow];
+  if (anchorRow) {
+    const anchorCell = anchorRow.querySelector('td.day[data-day="' + cellSelection.anchorCol + '"]');
+    if (anchorCell) anchorCell.classList.add('cell-active');
+  }
+  if (brCell) {
+    const handle = document.createElement('div');
+    handle.className = 'fill-handle';
+    brCell.appendChild(handle);
+  }
+}
+
+function setupCellInteraction(){
+  if (shipTableInteractionWired) return;
+  shipTableInteractionWired = true;
+
+  document.addEventListener('mousedown', (e) => {
+    if (currentPeriod !== 'daily') return;
+    // フィルハンドル
+    if (e.target.classList.contains('fill-handle')) {
+      if (!cellSelection) return;
+      dragMode = 'fill';
+      const rect = getSelectionRect();
+      fillEnd = { row: rect.maxRow, col: rect.maxCol };
+      e.preventDefault();
+      e.stopPropagation();
+      return;
+    }
+    const cell = e.target.closest('table.ship td.day');
+    if (!cell) {
+      // テーブル外クリックで選択解除
+      const inTable = e.target.closest('table.ship');
+      if (!inTable && !e.target.closest('#fill-options-popup')) {
+        cellSelection = null;
+        applySelectionUI();
+      }
+      return;
+    }
+    const day = parseInt(cell.dataset.day, 10);
+    const rowEl = cell.closest('tr');
+    const row = parseInt(rowEl.dataset.row, 10);
+    if (e.shiftKey && cellSelection) {
+      cellSelection.focusRow = row;
+      cellSelection.focusCol = day;
+    } else {
+      cellSelection = { anchorRow: row, anchorCol: day, focusRow: row, focusCol: day };
+    }
+    dragMode = 'select';
+    applySelectionUI();
+    e.preventDefault();
+  });
+
+  document.addEventListener('mousemove', (e) => {
+    if (!dragMode) return;
+    const cell = e.target.closest('table.ship td.day');
+    if (!cell) return;
+    const day = parseInt(cell.dataset.day, 10);
+    const rowEl = cell.closest('tr');
+    const row = parseInt(rowEl.dataset.row, 10);
+    if (dragMode === 'select') {
+      cellSelection.focusRow = row;
+      cellSelection.focusCol = day;
+      applySelectionUI();
+    } else if (dragMode === 'fill') {
+      fillEnd = { row, col: day };
+      showFillPreview();
+    }
+  });
+
+  document.addEventListener('mouseup', () => {
+    if (dragMode === 'fill') {
+      executeFill('copy');
+    }
+    dragMode = null;
+  });
+
+  document.addEventListener('keydown', (e) => {
+    const shipView = document.getElementById('shipment-view');
+    if (!shipView || shipView.hidden) return;
+    if (currentPeriod !== 'daily') return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+
+    if (e.ctrlKey || e.metaKey) {
+      if (e.key === 'c' || e.key === 'C') {
+        e.preventDefault();
+        copySelectedCells();
+      } else if (e.key === 'v' || e.key === 'V') {
+        e.preventDefault();
+        pasteAtSelection();
+      } else if (e.key === 'z' || e.key === 'Z') {
+        e.preventDefault();
+        undo();
+      }
+    } else if (e.key === 'Delete' || e.key === 'Backspace') {
+      if (!cellSelection) return;
+      e.preventDefault();
+      clearSelectedCells();
+    }
+  });
+}
+
+function clearSelectedCells(){
+  if (!cellSelection) return;
+  const rect = getSelectionRect();
+  pushUndoState();
+  const rows = document.querySelectorAll('table.ship tbody tr');
+  if (!shipments[currentMonth]) shipments[currentMonth] = {};
+  for (let r = rect.minRow; r <= rect.maxRow; r++) {
+    const row = rows[r];
+    if (!row) continue;
+    const fnsku = row.dataset.fnsku;
+    if (!shipments[currentMonth][fnsku]) continue;
+    for (let c = rect.minCol; c <= rect.maxCol; c++) {
+      delete shipments[currentMonth][fnsku][c];
+    }
+  }
+  saveShipments();
+  renderShipmentTable();
+}
+
+function getSelectedData(){
+  const rect = getSelectionRect();
+  if (!rect) return null;
+  const rows = document.querySelectorAll('table.ship tbody tr');
+  const data = [];
+  for (let r = rect.minRow; r <= rect.maxRow; r++) {
+    const row = rows[r];
+    if (!row) continue;
+    const fnsku = row.dataset.fnsku;
+    const fnskuData = (shipments[currentMonth] && shipments[currentMonth][fnsku]) || {};
+    const rowData = [];
+    for (let c = rect.minCol; c <= rect.maxCol; c++) {
+      rowData.push(fnskuData[c] || 0);
+    }
+    data.push(rowData);
+  }
+  return data;
+}
+
+function copySelectedCells(){
+  const data = getSelectedData();
+  if (!data || !data.length) return;
+  clipboard2D = data;
+  const tsv = data.map(r => r.join('\t')).join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(tsv).catch(() => {});
+  }
+  toast(data.length + '行 × ' + data[0].length + '列 をコピー');
+}
+
+async function pasteAtSelection(){
+  if (!cellSelection) return;
+  let data = null;
+  if (navigator.clipboard && navigator.clipboard.readText) {
+    try {
+      const text = await navigator.clipboard.readText();
+      if (text && text.trim()) {
+        data = text.trim().split(/\r?\n/).map(line => line.split('\t').map(v => parseInt(v.trim(), 10) || 0));
+      }
+    } catch (e) {
+      // permission denied などはフォールバック
+    }
+  }
+  if (!data || !data.length) data = clipboard2D;
+  if (!data || !data.length) {
+    toast('クリップボードが空です');
+    return;
+  }
+
+  pushUndoState();
+  const rect = getSelectionRect();
+  const startRow = rect.minRow;
+  const startCol = rect.minCol;
+  const rows = document.querySelectorAll('table.ship tbody tr');
+  if (!shipments[currentMonth]) shipments[currentMonth] = {};
+  data.forEach((rowData, rIdx) => {
+    const row = rows[startRow + rIdx];
+    if (!row) return;
+    const fnsku = row.dataset.fnsku;
+    if (!shipments[currentMonth][fnsku]) shipments[currentMonth][fnsku] = {};
+    rowData.forEach((val, cIdx) => {
+      const day = startCol + cIdx;
+      if (val > 0) shipments[currentMonth][fnsku][day] = val;
+      else delete shipments[currentMonth][fnsku][day];
+    });
+  });
+  saveShipments();
+  cellSelection = {
+    anchorRow: startRow,
+    anchorCol: startCol,
+    focusRow: startRow + data.length - 1,
+    focusCol: startCol + data[0].length - 1,
+  };
+  renderShipmentTable();
+  toast(data.length + '行 × ' + data[0].length + '列 を貼り付け');
+}
+
+function showFillPreview(){
+  document.querySelectorAll('table.ship td.fill-preview').forEach(c => c.classList.remove('fill-preview'));
+  if (!cellSelection || !fillEnd) return;
+  const rect = getSelectionRect();
+  const fillR = Math.max(fillEnd.row, rect.maxRow);
+  const fillC = Math.max(fillEnd.col, rect.maxCol);
+  const rows = document.querySelectorAll('table.ship tbody tr');
+  for (let r = rect.minRow; r <= fillR; r++) {
+    const row = rows[r];
+    if (!row) continue;
+    for (let c = rect.minCol; c <= fillC; c++) {
+      if (r >= rect.minRow && r <= rect.maxRow && c >= rect.minCol && c <= rect.maxCol) continue;
+      const cell = row.querySelector('td.day[data-day="' + c + '"]');
+      if (cell) cell.classList.add('fill-preview');
+    }
+  }
+}
+
+function executeFill(mode){
+  if (!cellSelection || !fillEnd) { return; }
+  const rect = getSelectionRect();
+  const fillR = Math.max(fillEnd.row, rect.maxRow);
+  const fillC = Math.max(fillEnd.col, rect.maxCol);
+  document.querySelectorAll('table.ship td.fill-preview').forEach(c => c.classList.remove('fill-preview'));
+  if (fillR === rect.maxRow && fillC === rect.maxCol) return;
+
+  // Source data
+  const rows = document.querySelectorAll('table.ship tbody tr');
+  const sourceData = [];
+  for (let r = rect.minRow; r <= rect.maxRow; r++) {
+    const row = rows[r];
+    if (!row) continue;
+    const fnsku = row.dataset.fnsku;
+    const fnskuData = (shipments[currentMonth] && shipments[currentMonth][fnsku]) || {};
+    const rowData = [];
+    for (let c = rect.minCol; c <= rect.maxCol; c++) {
+      rowData.push(fnskuData[c] || 0);
+    }
+    sourceData.push(rowData);
+  }
+
+  lastFillInfo = { srcRect: rect, fillR, fillC, sourceData };
+  pushUndoState();
+  applyFillValues(mode);
+
+  cellSelection.anchorRow = rect.minRow;
+  cellSelection.anchorCol = rect.minCol;
+  cellSelection.focusRow = fillR;
+  cellSelection.focusCol = fillC;
+  renderShipmentTable();
+  showFillOptionsPopup(mode);
+}
+
+function applyFillValues(mode){
+  if (!lastFillInfo) return;
+  const { srcRect, fillR, fillC, sourceData } = lastFillInfo;
+  const sH = sourceData.length;
+  const sW = sourceData[0].length;
+  if (!shipments[currentMonth]) shipments[currentMonth] = {};
+  const rows = document.querySelectorAll('table.ship tbody tr');
+  for (let r = srcRect.minRow; r <= fillR; r++) {
+    const row = rows[r];
+    if (!row) continue;
+    const fnsku = row.dataset.fnsku;
+    if (!shipments[currentMonth][fnsku]) shipments[currentMonth][fnsku] = {};
+    for (let c = srcRect.minCol; c <= fillC; c++) {
+      // skip source area
+      if (r >= srcRect.minRow && r <= srcRect.maxRow && c >= srcRect.minCol && c <= srcRect.maxCol) continue;
+      let val;
+      if (mode === 'series') {
+        // 連続データ：列方向(下)・行方向(右)に対して線形補間
+        if (c > srcRect.maxCol) {
+          // 右方向の延長
+          const srcR = (r - srcRect.minRow) % sH;
+          const step = sW >= 2 ? sourceData[srcR][sW-1] - sourceData[srcR][sW-2] : 1;
+          val = sourceData[srcR][sW-1] + step * (c - srcRect.maxCol);
+        } else if (r > srcRect.maxRow) {
+          // 下方向の延長
+          const srcC = (c - srcRect.minCol) % sW;
+          const step = sH >= 2 ? sourceData[sH-1][srcC] - sourceData[sH-2][srcC] : 1;
+          val = sourceData[sH-1][srcC] + step * (r - srcRect.maxRow);
+        }
+      } else {
+        // コピーモード（タイル）
+        const srcR = (r - srcRect.minRow) % sH;
+        const srcC = (c - srcRect.minCol) % sW;
+        val = sourceData[srcR][srcC];
+      }
+      val = Math.max(0, Math.round(val || 0));
+      if (val > 0) shipments[currentMonth][fnsku][c] = val;
+      else delete shipments[currentMonth][fnsku][c];
+    }
+  }
+  saveShipments();
+}
+
+function showFillOptionsPopup(currentMode){
+  closeFillOptionsPopup();
+  const rect = getSelectionRect();
+  const rows = document.querySelectorAll('table.ship tbody tr');
+  const lastRow = rows[rect.maxRow];
+  if (!lastRow) return;
+  const lastCell = lastRow.querySelector('td.day[data-day="' + rect.maxCol + '"]');
+  if (!lastCell) return;
+  const cellRect = lastCell.getBoundingClientRect();
+  const popup = document.createElement('div');
+  popup.id = 'fill-options-popup';
+  popup.style.left = Math.min(window.innerWidth - 180, cellRect.right + 6) + 'px';
+  popup.style.top = (cellRect.bottom + 6) + 'px';
+  popup.innerHTML =
+    '<label><input type="radio" name="fmode" value="copy"' + (currentMode === 'copy' ? ' checked' : '') + '> セルのコピー</label>' +
+    '<label><input type="radio" name="fmode" value="series"' + (currentMode === 'series' ? ' checked' : '') + '> 連続データ</label>';
+  document.body.appendChild(popup);
+  popup.querySelectorAll('input[name="fmode"]').forEach(r => {
+    r.addEventListener('change', (e) => {
+      // 直前のフィルをundoして再適用
+      if (undoStack.length) shipments = undoStack[undoStack.length - 1] && JSON.parse(JSON.stringify(undoStack[undoStack.length - 1]));
+      applyFillValues(e.target.value);
+      renderShipmentTable();
+    });
+  });
+  setTimeout(() => { document.addEventListener('mousedown', popupOutsideHandler); }, 50);
+  setTimeout(closeFillOptionsPopup, 8000);
+}
+function popupOutsideHandler(e){
+  const p = document.getElementById('fill-options-popup');
+  if (p && !p.contains(e.target)) closeFillOptionsPopup();
+}
+function closeFillOptionsPopup(){
+  const p = document.getElementById('fill-options-popup');
+  if (p) p.remove();
+  document.removeEventListener('mousedown', popupOutsideHandler);
 }
 
 // ============================================
@@ -1457,8 +1906,8 @@ function applyShipment(){
   msg += '\nよろしいですか？';
   if (!confirm(msg)) return;
 
-  // バックアップ（A: Undo用）
-  shipmentsBackup = JSON.parse(JSON.stringify(shipments));
+  // Undo stackに保存（Ctrl+Zとトーストの「元に戻す」両方で復元可能）
+  pushUndoState();
 
   if (!shipments[ym]) shipments[ym] = {};
 
@@ -1487,17 +1936,7 @@ function applyShipment(){
 
   let toastMsg = m + '/' + d + ' に ' + appliedCount + '種 / 合計 ' + appliedQty + '個 を反映';
   if (ignored > 0) toastMsg += '（商品リスト外 ' + ignored + '種は無視）';
-  toast(toastMsg, { label: '元に戻す', onClick: undoApply });
-}
-
-// 直前の反映を取り消す
-function undoApply(){
-  if (!shipmentsBackup) { toast('元に戻せる操作がありません'); return; }
-  shipments = shipmentsBackup;
-  shipmentsBackup = null;
-  saveShipments();
-  renderShipmentTable();
-  toast('元に戻しました');
+  toast(toastMsg, { label: '元に戻す', onClick: undo });
 }
 
 // ============================================
