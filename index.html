@@ -125,28 +125,30 @@
   }
   table.ship { border-collapse: separate; border-spacing: 0; width: 100%; }
   table.ship th, table.ship td {
-    padding: 6px 6px;
+    padding: 8px 8px;
     border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
     text-align: center;
-    font-size: 13px;
+    font-size: 15px;
     white-space: nowrap;
   }
+  table.ship th:last-child, table.ship td:last-child { border-right: none; }
   table.ship thead th {
     background: var(--bg-secondary);
     font-weight: 600;
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: 13px;
     position: sticky;
     top: 0;
     z-index: 5;
     box-shadow: inset 0 -1px 0 var(--border-strong);
   }
-  table.ship td.asin { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 11px; padding: 6px 8px; }
-  table.ship td.name { text-align: left; max-width: 220px; overflow: hidden; text-overflow: ellipsis; padding-right: 8px; }
-  table.ship td.img { padding: 3px; }
+  table.ship td.asin { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; padding: 8px 10px; }
+  table.ship td.name { text-align: left; max-width: 240px; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; font-size: 14px; }
+  table.ship td.img { padding: 4px; }
   table.ship td.img .ph {
-    width: 32px; height: 32px;
-    font-size: 13px;
+    width: 34px; height: 34px;
+    font-size: 14px;
   }
   /* プレースホルダー：色＋頭文字、画像が乗ったらそれが上に重なる */
   .ph {
@@ -168,16 +170,17 @@
     object-fit: cover;
     background: #fff;
   }
-  table.ship td.day { width: 30px; padding: 6px 2px; color: var(--text-tertiary); font-size: 12px; }
+  table.ship td.day { width: 34px; padding: 8px 2px; color: var(--text-tertiary); font-size: 14px; }
   table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
   table.ship td.day.today { background: var(--amber-light); }
-  table.ship th.day { width: 30px; padding: 6px 2px; }
+  table.ship th.day { width: 34px; padding: 8px 2px; font-size: 13px; }
   table.ship th.day.today { background: var(--amber-light); color: var(--amber); }
   table.ship td.total, table.ship th.total {
     background: var(--bg-secondary);
     font-weight: 700;
     border-left: 1px solid var(--border-strong);
-    min-width: 50px;
+    min-width: 56px;
+    font-size: 15px;
   }
   table.ship thead th.total {
     background: var(--bg-secondary);
@@ -185,8 +188,8 @@
   table.ship tr:hover td:not(.total) { background: rgba(0,0,0,0.02); }
 
   /* 月別テーブル（日別と共通スタイル、列幅だけ違う） */
-  table.ship td.month, table.ship th.month { width: 60px; padding: 8px 4px; }
-  table.ship td.month { color: var(--text-tertiary); font-size: 13px; }
+  table.ship td.month, table.ship th.month { width: 64px; padding: 10px 4px; }
+  table.ship td.month { color: var(--text-tertiary); font-size: 14px; }
   table.ship td.month.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
   table.ship td.month.current { background: var(--amber-light); }
   table.ship th.month.current { background: var(--amber-light); color: var(--amber); }
@@ -270,21 +273,24 @@
 
   table.master {
     width: 100%;
-    border-collapse: collapse;
-    font-size: 13px;
+    border-collapse: separate;
+    border-spacing: 0;
+    font-size: 15px;
   }
   table.master th, table.master td {
-    padding: 8px 10px;
+    padding: 10px 12px;
     border-bottom: 1px solid var(--border);
+    border-right: 1px solid var(--border);
     text-align: left;
   }
+  table.master th:last-child, table.master td:last-child { border-right: none; }
   table.master thead th {
     background: var(--bg-secondary);
     font-weight: 600;
     color: var(--text-secondary);
-    font-size: 12px;
+    font-size: 14px;
   }
-  table.master td.mono { font-family: ui-monospace, Menlo, monospace; font-size: 12px; }
+  table.master td.mono { font-family: ui-monospace, Menlo, monospace; font-size: 14px; }
   table.master td.img-cell { width: 60px; padding: 4px 10px; position: relative; }
   table.master th.img-header { width: 60px; }
   table.master td.img-cell .ph { width: 36px; height: 36px; font-size: 13px; }
@@ -439,18 +445,18 @@
     border-bottom: 1px solid var(--border);
   }
   .tab {
-    padding: 10px 18px 12px;
+    padding: 12px 20px 14px;
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
     color: var(--text-secondary);
     font-family: inherit;
-    font-size: 14px;
+    font-size: 16px;
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 6px;
+    gap: 8px;
     margin-bottom: -1px;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
     border-radius: 6px 6px 0 0;
@@ -461,11 +467,13 @@
     border-bottom-color: var(--black);
     background: transparent;
   }
-  .tab svg { font-size: 17px; }
+  .tab svg { font-size: 20px; }
+  .tab[data-tab="master"] svg { color: var(--accent); }
+  .tab[data-tab="shipment"] svg { color: var(--blue); }
   .tab .count {
     color: var(--text-tertiary);
-    font-weight: 400;
-    font-size: 13px;
+    font-weight: 500;
+    font-size: 14px;
     margin-left: 2px;
   }
   .tab.active .count { color: var(--black); }
@@ -549,7 +557,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.16</span>
+    <span class="version">v0.17</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
