@@ -646,6 +646,8 @@
     <symbol id="i-truck-delivery" viewBox="0 0 24 24"><path d="M5 17a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M15 17a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M5 17h-2v-4m-1 -8h11v12m-4 0h6m4 0h2v-6h-8m0 -5h5l3 5"/><path d="M3 9l4 0"/></symbol>
     <symbol id="i-database-off" viewBox="0 0 24 24"><path d="M12.983 8.978c3.955 -.182 7.017 -1.446 7.017 -2.978c0 -1.657 -3.582 -3 -8 -3c-1.661 0 -3.204 .19 -4.483 .515"/><path d="M3 6c0 1.657 3.582 3 8 3"/><path d="M4 6v6c0 1.657 3.582 3 8 3c.986 0 1.93 -.067 2.802 -.19"/><path d="M19.802 14.825c.124 -.265 .198 -.539 .198 -.825v-8"/><path d="M4 12v6c0 1.657 3.582 3 8 3c3.217 0 5.991 -.712 7.261 -1.74m.739 -3.26v-4"/><path d="M3 3l18 18"/></symbol>
     <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M5 12l14 0"/><path d="M5 12l4 4"/><path d="M5 12l4 -4"/></symbol>
+    <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="M6 15l6 -6l6 6"/></symbol>
+    <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"/></symbol>
   </defs>
 </svg>
 <!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
@@ -656,7 +658,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.26</span>
+    <span class="version">v0.27</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -757,8 +759,17 @@
 <!-- 編集モーダル -->
 <div class="modal-bg" id="edit-modal" hidden>
   <div class="modal">
-    <h3>商品を編集</h3>
-    <div class="sub">商品名を短縮したり、画像URLを上書きしたりできます。</div>
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;">
+      <div style="flex:1;min-width:0;">
+        <h3 style="margin:0;">商品を編集</h3>
+        <div class="sub" style="margin-top:4px;">商品名を短縮したり、画像URLを上書きしたりできます。</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
+        <span id="edit-position" style="font-size:12px;color:var(--text-tertiary);white-space:nowrap;"></span>
+        <button id="edit-prev" class="ghost" title="前の商品 (↑)" style="padding:6px 8px;"><svg class="icn"><use href="#i-chevron-up"/></svg></button>
+        <button id="edit-next" class="ghost" title="次の商品 (↓)" style="padding:6px 8px;"><svg class="icn"><use href="#i-chevron-down"/></svg></button>
+      </div>
+    </div>
     <div style="margin-bottom:14px;">
       <label style="display:block;margin-bottom:6px;font-weight:600;font-size:13px;">商品名</label>
       <input type="text" id="edit-name" style="width:100%;font-size:14px;padding:8px 10px;">
@@ -922,7 +933,17 @@ function init(){
   // 編集モーダルのイベント
   document.getElementById('edit-cancel').addEventListener('click', closeEditModal);
   document.getElementById('edit-save').addEventListener('click', saveEdit);
+  document.getElementById('edit-prev').addEventListener('click', () => navigateEdit(-1));
+  document.getElementById('edit-next').addEventListener('click', () => navigateEdit(1));
   document.getElementById('edit-modal').addEventListener('click', (e) => { if (e.target.id === 'edit-modal') closeEditModal(); });
+  // ↑↓キーで前後の商品に移動（入力フィールド内では発動しない）
+  document.addEventListener('keydown', (e) => {
+    if (document.getElementById('edit-modal').hidden) return;
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'ArrowUp') { e.preventDefault(); navigateEdit(-1); }
+    else if (e.key === 'ArrowDown') { e.preventDefault(); navigateEdit(1); }
+    else if (e.key === 'Escape') { closeEditModal(); }
+  });
   document.getElementById('edit-name').addEventListener('input', updateEditPreview);
   document.getElementById('edit-image-url').addEventListener('input', updateEditPreview);
   document.getElementById('edit-image-file').addEventListener('change', async (e) => {
@@ -2138,6 +2159,11 @@ function applyZoom(){
 let editingFnsku = null;
 
 function openEditModal(fnsku){
+  loadProductIntoEditModal(fnsku);
+  document.getElementById('edit-modal').hidden = false;
+}
+
+function loadProductIntoEditModal(fnsku){
   const p = products.find(x => x.fnsku === fnsku);
   if (!p) return;
   editingFnsku = fnsku;
@@ -2152,7 +2178,48 @@ function openEditModal(fnsku){
   // 元商品名（編集前のオリジナル）を保持していれば表示
   document.getElementById('edit-name-orig').textContent = p.nameOrig ? '元の商品名: ' + p.nameOrig : '';
   updateEditPreview();
-  document.getElementById('edit-modal').hidden = false;
+  // 位置インジケータ・矢印有効/無効
+  const idx = products.findIndex(x => x.fnsku === fnsku);
+  document.getElementById('edit-position').textContent = (idx + 1) + ' / ' + products.length;
+  document.getElementById('edit-prev').disabled = (idx <= 0);
+  document.getElementById('edit-next').disabled = (idx >= products.length - 1);
+}
+
+function navigateEdit(dir){
+  if (!editingFnsku) return;
+  // 現在の入力を保存（モーダルは閉じない）
+  applyEditData();
+  saveProducts();
+  renderMasterList();
+  // 次/前の商品を読み込む
+  const idx = products.findIndex(x => x.fnsku === editingFnsku);
+  const newIdx = idx + dir;
+  if (newIdx < 0 || newIdx >= products.length) return;
+  loadProductIntoEditModal(products[newIdx].fnsku);
+}
+
+function applyEditData(){
+  const p = products.find(x => x.fnsku === editingFnsku);
+  if (!p) return;
+  const newName = document.getElementById('edit-name').value.trim();
+  const newUrl = document.getElementById('edit-image-url').value.trim();
+  if (newName && newName !== p.name && !p.nameOrig) p.nameOrig = p.name;
+  if (newName) p.name = newName;
+  if (newUrl) p.imageUrl = newUrl;
+  else delete p.imageUrl;
+  const readPrice = (id, field) => {
+    const v = document.getElementById(id).value.trim();
+    if (v === '') { delete p[field]; }
+    else {
+      const n = parseFloat(v);
+      if (!isNaN(n)) p[field] = n;
+    }
+  };
+  readPrice('edit-selling-price', 'sellingPrice');
+  readPrice('edit-cost', 'cost');
+  readPrice('edit-selling-fee', 'sellingFee');
+  readPrice('edit-amazon-fee', 'amazonFee');
+  readPrice('edit-fba-fee', 'fbaFee');
 }
 
 function closeEditModal(){
@@ -2172,29 +2239,7 @@ function updateEditPreview(){
 }
 
 function saveEdit(){
-  const p = products.find(x => x.fnsku === editingFnsku);
-  if (!p) return;
-  const newName = document.getElementById('edit-name').value.trim();
-  const newUrl = document.getElementById('edit-image-url').value.trim();
-  // 元の商品名を初回編集時のみ保存
-  if (newName && newName !== p.name && !p.nameOrig) p.nameOrig = p.name;
-  if (newName) p.name = newName;
-  if (newUrl) p.imageUrl = newUrl;
-  else delete p.imageUrl;
-  // 価格5項目（空欄はフィールド削除、値あれば数値で保存）
-  const readPrice = (id, field) => {
-    const v = document.getElementById(id).value.trim();
-    if (v === '') { delete p[field]; }
-    else {
-      const n = parseFloat(v);
-      if (!isNaN(n)) p[field] = n;
-    }
-  };
-  readPrice('edit-selling-price', 'sellingPrice');
-  readPrice('edit-cost', 'cost');
-  readPrice('edit-selling-fee', 'sellingFee');
-  readPrice('edit-amazon-fee', 'amazonFee');
-  readPrice('edit-fba-fee', 'fbaFee');
+  applyEditData();
   saveProducts();
   closeEditModal();
   renderMasterList();
