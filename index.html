@@ -565,6 +565,15 @@
     padding-top: 16px;
     border-top: 1px solid var(--border);
   }
+  /* ヘッダー非表示モード（表を広く使う） */
+  body.header-hidden .page-header,
+  body.header-hidden .tabs {
+    display: none;
+  }
+  body.header-hidden .container {
+    padding-top: 8px;
+  }
+
   /* 未保存マーカー（編集モーダルのタイトル横に出る小ドット） */
   .dirty-dot {
     display: inline-block;
@@ -763,7 +772,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.33</span>
+    <span class="version">v0.35</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -835,6 +844,7 @@
       <select id="year-select" hidden></select>
       <div class="spacer"></div>
       <button class="primary" id="open-input"><svg class="icn"><use href="#i-plus"/></svg> 出荷数入力</button>
+      <button class="utility" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div id="shipment-body"></div>
   </div>
@@ -1033,6 +1043,7 @@ function init(){
   });
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('master')));
   document.getElementById('open-input').addEventListener('click', openModal);
+  document.getElementById('toggle-header').addEventListener('click', toggleHeader);
   document.getElementById('cancel').addEventListener('click', closeModal);
   document.getElementById('apply').addEventListener('click', applyShipment);
   document.getElementById('add-page').addEventListener('click', () => addPage());
@@ -1711,10 +1722,7 @@ function renderDailyTable(){
   const todayDay = new Date().getDate();
   const isCurrentMonth = (currentMonth === todayKey);
 
-  let html = '<div style="font-size:12px;color:var(--text-tertiary);margin:4px 4px 8px;">'
-    + '💡 セルをクリック→Delete で消去 / ドラッグで複数選択 / Ctrl+C・V でコピー貼付 / 右下ハンドルでフィル / Ctrl+Z で取り消し'
-    + '</div>';
-  html += '<div class="table-wrap"><table class="ship"><thead><tr>';
+  let html = '<div class="table-wrap"><table class="ship"><thead><tr>';
   html += '<th>FNSKU</th><th>画像</th><th>商品名</th>';
   for (let d = 1; d <= days; d++) {
     const isToday = isCurrentMonth && d === todayDay;
@@ -1760,7 +1768,7 @@ function renderDailyTable(){
 }
 
 // 日別セルのダブルクリック編集
-function editDayCell(cell){
+function editDayCell(cell, initialChar){
   if (cell.querySelector('input')) return;
   const row = cell.closest('tr');
   const fnsku = row.dataset.fnsku;
@@ -1771,12 +1779,22 @@ function editDayCell(cell){
   const input = document.createElement('input');
   input.type = 'text';
   input.inputMode = 'numeric';
-  input.value = numValue || '';
+  // 初期値：キー入力でスタートした場合はそのキー、それ以外は既存値
+  if (initialChar !== undefined) {
+    input.value = initialChar;
+  } else {
+    input.value = numValue || '';
+  }
   input.className = 'cell-edit';
   cell.textContent = '';
   cell.appendChild(input);
   input.focus();
-  input.select();
+  if (initialChar !== undefined) {
+    // 末尾にカーソル（追加入力できるように）
+    input.setSelectionRange(input.value.length, input.value.length);
+  } else {
+    input.select();
+  }
 
   let committed = false;
   function commit(){
@@ -1960,6 +1978,13 @@ function setupMasterCellInteraction(){
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       clearMasterCells();
+    } else if (e.key.length === 1 && !e.altKey) {
+      // 数字キーで直接編集開始（Excelライク）
+      if (!/[0-9.]/.test(e.key)) return;
+      const activeCell = document.querySelector('table.master td.price.cell-active.editable');
+      if (!activeCell) return;
+      e.preventDefault();
+      editMasterPriceCell(activeCell, e.key);
     }
   });
 }
@@ -2060,9 +2085,10 @@ async function pasteMasterCells(){
 }
 
 // 価格セルのダブルクリック編集
-function editMasterPriceCell(cell){
+function editMasterPriceCell(cell, initialChar){
   const field = cell.dataset.field;
   if (!MASTER_EDITABLE.has(field)) return;
+  if (cell.querySelector('input')) return;
   const fnsku = cell.closest('tr').dataset.fnsku;
   const product = products.find(p => p.fnsku === fnsku);
   if (!product) return;
@@ -2074,12 +2100,17 @@ function editMasterPriceCell(cell){
   input.min = '0';
   input.step = '1';
   input.className = 'cell-edit';
-  input.value = currentVal;
+  // 初期値：キー入力で開始したらそのキー、それ以外は既存値
+  input.value = (initialChar !== undefined) ? initialChar : currentVal;
   input.style.textAlign = 'right';
   cell.innerHTML = '';
   cell.appendChild(input);
   input.focus();
-  input.select();
+  if (initialChar !== undefined) {
+    try { input.setSelectionRange(input.value.length, input.value.length); } catch(_){}
+  } else {
+    input.select();
+  }
 
   let committed = false;
   function commit(){
@@ -2265,6 +2296,13 @@ function setupCellInteraction(){
       if (!cellSelection) return;
       e.preventDefault();
       clearSelectedCells();
+    } else if (e.key.length === 1 && !e.altKey) {
+      // 数字キーで直接編集開始（Excelライク）
+      if (!/[0-9]/.test(e.key)) return;
+      const activeCell = document.querySelector('table.ship td.day.cell-active');
+      if (!activeCell) return;
+      e.preventDefault();
+      editDayCell(activeCell, e.key);
     }
   });
 }
@@ -2688,6 +2726,21 @@ function applyZoom(){
   document.getElementById('zoom-in').disabled = (zoomIdx >= ZOOM_STEPS.length - 1);
   document.getElementById('zoom-out').disabled = (zoomIdx <= 0);
   localStorage.setItem(STORAGE_ZOOM, z);
+}
+
+// ============================================
+// ヘッダー非表示トグル（出荷数データを画面いっぱいに）
+// ============================================
+function toggleHeader(){
+  const isHidden = document.body.classList.toggle('header-hidden');
+  const btn = document.getElementById('toggle-header');
+  if (isHidden) {
+    btn.innerHTML = '<svg class="icn"><use href="#i-chevron-down"/></svg> ヘッダーを表示';
+    btn.title = 'ヘッダーとタブを表示';
+  } else {
+    btn.innerHTML = '<svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す';
+    btn.title = 'ヘッダーとタブを非表示にして表を広く';
+  }
 }
 
 // ============================================
