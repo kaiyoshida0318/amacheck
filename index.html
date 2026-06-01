@@ -145,10 +145,11 @@
   }
   table.ship td.asin { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; padding: 8px 10px; }
   table.ship td.name { text-align: left; max-width: 240px; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; font-size: 14px; }
-  table.ship td.img { padding: 4px; }
+  table.ship td.img { padding: 6px; }
   table.ship td.img .ph {
-    width: 34px; height: 34px;
-    font-size: 14px;
+    width: 52px; height: 52px;
+    font-size: 18px;
+    border-radius: 6px;
   }
   /* プレースホルダー：色＋頭文字、画像が乗ったらそれが上に重なる */
   .ph {
@@ -363,9 +364,9 @@
     font-size: 14px;
   }
   table.master td.mono { font-family: ui-monospace, Menlo, monospace; font-size: 14px; }
-  table.master td.img-cell { width: 60px; padding: 4px 10px; position: relative; }
-  table.master th.img-header { width: 60px; }
-  table.master td.img-cell .ph { width: 36px; height: 36px; font-size: 13px; }
+  table.master td.img-cell { width: 96px; padding: 6px 10px; position: relative; }
+  table.master th.img-header { width: 96px; }
+  table.master td.img-cell .ph { width: 72px; height: 72px; font-size: 22px; border-radius: 8px; }
   table.master td.img-cell.drag-over {
     background: var(--accent-light);
     outline: 2px dashed var(--accent);
@@ -709,6 +710,7 @@
     <symbol id="i-arrow-left" viewBox="0 0 24 24"><path d="M5 12l14 0"/><path d="M5 12l4 4"/><path d="M5 12l4 -4"/></symbol>
     <symbol id="i-chevron-up" viewBox="0 0 24 24"><path d="M6 15l6 -6l6 6"/></symbol>
     <symbol id="i-chevron-down" viewBox="0 0 24 24"><path d="M6 9l6 6l6 -6"/></symbol>
+    <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></symbol>
   </defs>
 </svg>
 <!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
@@ -719,7 +721,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.29</span>
+    <span class="version">v0.30</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -821,7 +823,7 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;">
       <div style="flex:1;min-width:0;">
         <h3 style="margin:0;">商品を編集</h3>
-        <div class="sub" style="margin-top:4px;">商品名を短縮したり、画像URLを上書きしたりできます。</div>
+        <div class="sub" style="margin-top:4px;">商品名や画像、価格を編集できます。</div>
       </div>
       <div style="display:flex;align-items:center;gap:6px;flex-shrink:0;">
         <span id="edit-position" style="font-size:12px;color:var(--text-tertiary);white-space:nowrap;"></span>
@@ -835,17 +837,19 @@
       <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;" id="edit-name-orig"></div>
     </div>
     <div style="margin-bottom:14px;">
-      <label style="display:block;margin-bottom:6px;font-weight:600;font-size:13px;">画像ファイル</label>
-      <input type="file" id="edit-image-file" accept="image/*" style="font-size:13px;">
-      <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;">ファイルを選ぶと自動で圧縮されて下のURL欄に入ります</div>
-    </div>
-    <div style="margin-bottom:14px;">
-      <label style="display:block;margin-bottom:6px;font-weight:600;font-size:13px;">画像URL（ファイル選択時は自動入力）</label>
-      <input type="text" id="edit-image-url" placeholder="https://..." style="width:100%;font-size:13px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;">
-    </div>
-    <div style="display:flex;align-items:center;gap:12px;background:var(--bg-secondary);padding:12px;border-radius:8px;margin-bottom:14px;">
-      <span style="font-size:12px;color:var(--text-secondary);">プレビュー：</span>
-      <span id="edit-preview"></span>
+      <label style="display:block;margin-bottom:8px;font-weight:600;font-size:13px;">商品画像</label>
+      <div style="display:flex;gap:16px;align-items:flex-start;background:var(--bg-secondary);padding:14px;border-radius:8px;">
+        <div id="edit-preview" style="flex-shrink:0;"></div>
+        <div style="flex:1;display:flex;flex-direction:column;gap:8px;min-width:0;">
+          <input type="file" id="edit-image-file" accept="image/*" style="font-size:13px;">
+          <div id="edit-image-actions" style="display:none;gap:6px;flex-wrap:wrap;">
+            <button id="edit-image-download" class="ghost" type="button" style="font-size:12px;padding:6px 10px;"><svg class="icn"><use href="#i-upload"/></svg> ダウンロード</button>
+            <button id="edit-image-delete" class="ghost" type="button" style="font-size:12px;padding:6px 10px;color:var(--danger);"><svg class="icn"><use href="#i-trash"/></svg> 画像を削除</button>
+          </div>
+          <div style="font-size:11px;color:var(--text-tertiary);">画像を選ぶと自動で圧縮されます</div>
+        </div>
+      </div>
+      <input type="hidden" id="edit-image-data">
     </div>
     <div style="border-top:1px solid var(--border);padding-top:14px;margin-bottom:8px;">
       <div style="font-weight:600;font-size:13px;margin-bottom:10px;color:var(--text-secondary);">価格情報</div>
@@ -1019,19 +1023,21 @@ function init(){
     else if (e.key === 'Escape') { closeEditModal(); }
   });
   document.getElementById('edit-name').addEventListener('input', updateEditPreview);
-  document.getElementById('edit-image-url').addEventListener('input', updateEditPreview);
   document.getElementById('edit-image-file').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
     try {
       const dataUrl = await compressImage(file);
-      document.getElementById('edit-image-url').value = dataUrl;
+      document.getElementById('edit-image-data').value = dataUrl;
       updateEditPreview();
+      updateImageActions();
     } catch (err) {
       toast('画像処理に失敗しました');
     }
     e.target.value = '';
   });
+  document.getElementById('edit-image-download').addEventListener('click', downloadCurrentImage);
+  document.getElementById('edit-image-delete').addEventListener('click', deleteCurrentImage);
 
   // ブラウザ・マウスの戻る/進むボタンで画面遷移できるよう履歴を管理
   history.replaceState({ view: 'master' }, '');
@@ -1406,7 +1412,7 @@ function renderMasterList(){
   products.forEach((p, idx) => {
     html += '<tr data-fnsku="'+escapeHtml(p.fnsku)+'" data-row="'+idx+'">'
       + '<td class="check-cell"><input type="checkbox" class="product-checkbox" data-fnsku="'+escapeHtml(p.fnsku)+'"></td>'
-      + '<td class="img-cell">' + productImageHtml(p) + '</td>'
+      + '<td class="img-cell">' + productImageHtml(p, 72) + '</td>'
       + '<td class="mono">'+escapeHtml(p.asin||'-')+'</td>'
       + '<td class="mono">'+escapeHtml(p.sku||'-')+'</td>'
       + '<td class="mono">'+escapeHtml(p.fnsku)+'</td>'
@@ -1595,7 +1601,7 @@ function renderDailyTable(){
     let total = 0;
     html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '" data-row="' + idx + '">';
     html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
-    html += '<td class="img">' + productImageHtml(p) + '</td>';
+    html += '<td class="img">' + productImageHtml(p, 52) + '</td>';
     html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
     for (let d = 1; d <= days; d++) {
       const q = fnskuData[d] || 0;
@@ -1711,7 +1717,7 @@ function renderMonthlyTable(){
     }
     html += '<tr>';
     html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
-    html += '<td class="img">' + productImageHtml(p) + '</td>';
+    html += '<td class="img">' + productImageHtml(p, 52) + '</td>';
     html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
     for (let m = 1; m <= 12; m++) {
       const q = monthlyTotals[m - 1];
@@ -2572,7 +2578,7 @@ function loadProductIntoEditModal(fnsku){
   if (!p) return;
   editingFnsku = fnsku;
   document.getElementById('edit-name').value = p.name || '';
-  document.getElementById('edit-image-url').value = p.imageUrl || '';
+  document.getElementById('edit-image-data').value = p.imageUrl || '';
   // 価格5項目
   document.getElementById('edit-selling-price').value = (p.sellingPrice != null) ? p.sellingPrice : '';
   document.getElementById('edit-cost').value = (p.cost != null) ? p.cost : '';
@@ -2582,12 +2588,42 @@ function loadProductIntoEditModal(fnsku){
   // 元商品名（編集前のオリジナル）を保持していれば表示
   document.getElementById('edit-name-orig').textContent = p.nameOrig ? '元の商品名: ' + p.nameOrig : '';
   updateEditPreview();
+  updateImageActions();
   updateProfitDisplay();
   // 位置インジケータ・矢印有効/無効
   const idx = products.findIndex(x => x.fnsku === fnsku);
   document.getElementById('edit-position').textContent = (idx + 1) + ' / ' + products.length;
   document.getElementById('edit-prev').disabled = (idx <= 0);
   document.getElementById('edit-next').disabled = (idx >= products.length - 1);
+}
+
+function updateImageActions(){
+  const hasImg = !!document.getElementById('edit-image-data').value.trim();
+  document.getElementById('edit-image-actions').style.display = hasImg ? 'flex' : 'none';
+}
+
+function downloadCurrentImage(){
+  const dataUrl = document.getElementById('edit-image-data').value.trim();
+  if (!dataUrl) { toast('画像がありません'); return; }
+  const p = products.find(x => x.fnsku === editingFnsku);
+  const baseName = (p && (p.asin || p.fnsku)) || 'product';
+  // データURLの拡張子を推定
+  let ext = 'jpg';
+  const m = dataUrl.match(/^data:image\/(\w+)/);
+  if (m) ext = m[1] === 'jpeg' ? 'jpg' : m[1];
+  const a = document.createElement('a');
+  a.href = dataUrl;
+  a.download = baseName + '.' + ext;
+  document.body.appendChild(a);
+  a.click();
+  a.remove();
+}
+
+function deleteCurrentImage(){
+  if (!confirm('画像を削除しますか？')) return;
+  document.getElementById('edit-image-data').value = '';
+  updateEditPreview();
+  updateImageActions();
 }
 
 function updateProfitDisplay(){
@@ -2635,10 +2671,10 @@ function applyEditData(){
   const p = products.find(x => x.fnsku === editingFnsku);
   if (!p) return;
   const newName = document.getElementById('edit-name').value.trim();
-  const newUrl = document.getElementById('edit-image-url').value.trim();
+  const newImg = document.getElementById('edit-image-data').value.trim();
   if (newName && newName !== p.name && !p.nameOrig) p.nameOrig = p.name;
   if (newName) p.name = newName;
-  if (newUrl) p.imageUrl = newUrl;
+  if (newImg) p.imageUrl = newImg;
   else delete p.imageUrl;
   const readPrice = (id, field) => {
     const v = document.getElementById(id).value.trim();
@@ -2663,19 +2699,20 @@ function closeEditModal(){
 function updateEditPreview(){
   const p = products.find(x => x.fnsku === editingFnsku);
   if (!p) return;
-  const customUrl = document.getElementById('edit-image-url').value.trim();
+  const customUrl = document.getElementById('edit-image-data').value.trim();
   const preview = { ...p,
     name: document.getElementById('edit-name').value || p.name,
     imageUrl: customUrl || undefined
   };
-  document.getElementById('edit-preview').innerHTML = productImageHtml(preview, 48);
+  document.getElementById('edit-preview').innerHTML = productImageHtml(preview, 128);
 }
 
 function saveEdit(){
   applyEditData();
   saveProducts();
-  closeEditModal();
   renderMasterList();
+  // モーダルは閉じない。保存後の値を再ロードして表示を同期
+  if (editingFnsku) loadProductIntoEditModal(editingFnsku);
   toast('保存しました');
 }
 
