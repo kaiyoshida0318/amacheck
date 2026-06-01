@@ -192,11 +192,13 @@
   table.ship td.day.has:hover { background: var(--accent-light); filter: brightness(0.95); }
 
   /* セル選択（複数選択） */
-  table.ship td.day.cell-selected { background: rgba(37, 99, 235, 0.18) !important; }
+  table.ship td.day.cell-selected { background: rgba(37, 99, 235, 0.22) !important; }
   table.ship td.day.cell-active {
-    outline: 2px solid var(--blue);
-    outline-offset: -2px;
+    outline: 3px solid var(--blue);
+    outline-offset: -3px;
     z-index: 3;
+    background: rgba(37, 99, 235, 0.22) !important;
+    box-shadow: 0 0 0 1px var(--blue);
   }
   /* フィルハンドル（選択範囲の右下） */
   .fill-handle {
@@ -640,7 +642,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.21</span>
+    <span class="version">v0.22</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1255,8 +1257,11 @@ function renderDailyTable(){
   const todayDay = new Date().getDate();
   const isCurrentMonth = (currentMonth === todayKey);
 
-  let html = '<div class="table-wrap"><table class="ship"><thead><tr>';
-  html += '<th>ASIN</th><th>画像</th><th>商品名</th>';
+  let html = '<div style="font-size:12px;color:var(--text-tertiary);margin:4px 4px 8px;">'
+    + '💡 セルをクリック→Delete で消去 / ドラッグで複数選択 / Ctrl+C・V でコピー貼付 / 右下ハンドルでフィル / Ctrl+Z で取り消し'
+    + '</div>';
+  html += '<div class="table-wrap"><table class="ship"><thead><tr>';
+  html += '<th>FNSKU</th><th>画像</th><th>商品名</th>';
   for (let d = 1; d <= days; d++) {
     const isToday = isCurrentMonth && d === todayDay;
     html += '<th class="day' + (isToday ? ' today' : '') + '">' + d + '</th>';
@@ -1268,7 +1273,7 @@ function renderDailyTable(){
     const fnskuData = monthData[p.fnsku] || {};
     let total = 0;
     html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '" data-row="' + idx + '">';
-    html += '<td class="asin">' + escapeHtml(p.asin || '-') + '</td>';
+    html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
     html += '<td class="img">' + productImageHtml(p) + '</td>';
     html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
     for (let d = 1; d <= days; d++) {
@@ -1352,7 +1357,7 @@ function renderMonthlyTable(){
   const currentMm = now.getFullYear() === parseInt(year) ? (now.getMonth() + 1) : -1;
 
   let html = '<div class="table-wrap"><table class="ship"><thead><tr>';
-  html += '<th>ASIN</th><th>画像</th><th>商品名</th>';
+  html += '<th>FNSKU</th><th>画像</th><th>商品名</th>';
   for (let m = 1; m <= 12; m++) {
     const isCur = m === currentMm;
     html += '<th class="month' + (isCur ? ' current' : '') + '">' + m + '月</th>';
@@ -1372,7 +1377,7 @@ function renderMonthlyTable(){
       yearTotal += monthSum;
     }
     html += '<tr>';
-    html += '<td class="asin">' + escapeHtml(p.asin || '-') + '</td>';
+    html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
     html += '<td class="img">' + productImageHtml(p) + '</td>';
     html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
     for (let m = 1; m <= 12; m++) {
