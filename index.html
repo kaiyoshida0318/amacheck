@@ -171,8 +171,10 @@
     background: #fff;
   }
   table.ship td.day { width: 34px; padding: 8px 2px; color: var(--text-tertiary); font-size: 14px; }
+  table.ship td.day.zero { background: #ededed; color: #999; }
   table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
   table.ship td.day.today { background: var(--amber-light); }
+  table.ship td.day.zero.today { background: var(--amber-light); color: var(--amber); }
   table.ship th.day { width: 34px; padding: 8px 2px; font-size: 13px; }
   table.ship th.day.today { background: var(--amber-light); color: var(--amber); }
   table.ship td.total, table.ship th.total {
@@ -258,8 +260,10 @@
   /* 月別テーブル（日別と共通スタイル、列幅だけ違う） */
   table.ship td.month, table.ship th.month { width: 64px; padding: 10px 4px; }
   table.ship td.month { color: var(--text-tertiary); font-size: 14px; }
+  table.ship td.month.zero { background: #ededed; color: #999; }
   table.ship td.month.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
   table.ship td.month.current { background: var(--amber-light); }
+  table.ship td.month.zero.current { background: var(--amber-light); color: var(--amber); }
   table.ship th.month.current { background: var(--amber-light); color: var(--amber); }
 
   /* 日別/月別 切り替えトグル */
@@ -642,7 +646,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.22</span>
+    <span class="version">v0.24</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1252,6 +1256,11 @@ function renderShipmentTable(){
 
 function renderDailyTable(){
   const body = document.getElementById('shipment-body');
+  // スクロール位置を保存
+  const oldWrap = body.querySelector('.table-wrap');
+  const savedScrollTop = oldWrap ? oldWrap.scrollTop : 0;
+  const savedScrollLeft = oldWrap ? oldWrap.scrollLeft : 0;
+
   const days = daysInMonth(currentMonth);
   const todayKey = ymKey(new Date());
   const todayDay = new Date().getDate();
@@ -1280,13 +1289,20 @@ function renderDailyTable(){
       const q = fnskuData[d] || 0;
       total += q;
       const isToday = isCurrentMonth && d === todayDay;
-      const cls = 'day' + (q ? ' has' : '') + (isToday ? ' today' : '');
-      html += '<td class="' + cls + '" data-day="' + d + '">' + (q || '') + '</td>';
+      const cls = 'day' + (q ? ' has' : ' zero') + (isToday ? ' today' : '');
+      html += '<td class="' + cls + '" data-day="' + d + '">' + q + '</td>';
     }
-    html += '<td class="total">' + (total || '–') + '</td></tr>';
+    html += '<td class="total">' + total + '</td></tr>';
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+
+  // スクロール位置を復元
+  const newWrap = body.querySelector('.table-wrap');
+  if (newWrap) {
+    newWrap.scrollTop = savedScrollTop;
+    newWrap.scrollLeft = savedScrollLeft;
+  }
 
   // ダブルクリックでセル編集
   body.querySelectorAll('table.ship td.day').forEach(cell => {
@@ -1352,6 +1368,11 @@ function editDayCell(cell){
 
 function renderMonthlyTable(){
   const body = document.getElementById('shipment-body');
+  // スクロール位置を保存
+  const oldWrap = body.querySelector('.table-wrap');
+  const savedScrollTop = oldWrap ? oldWrap.scrollTop : 0;
+  const savedScrollLeft = oldWrap ? oldWrap.scrollLeft : 0;
+
   const year = currentYear;
   const now = new Date();
   const currentMm = now.getFullYear() === parseInt(year) ? (now.getMonth() + 1) : -1;
@@ -1383,13 +1404,20 @@ function renderMonthlyTable(){
     for (let m = 1; m <= 12; m++) {
       const q = monthlyTotals[m - 1];
       const isCur = m === currentMm;
-      const cls = 'month' + (q ? ' has' : '') + (isCur ? ' current' : '');
-      html += '<td class="' + cls + '">' + (q || '') + '</td>';
+      const cls = 'month' + (q ? ' has' : ' zero') + (isCur ? ' current' : '');
+      html += '<td class="' + cls + '">' + q + '</td>';
     }
-    html += '<td class="total">' + (yearTotal || '–') + '</td></tr>';
+    html += '<td class="total">' + yearTotal + '</td></tr>';
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+
+  // スクロール位置を復元
+  const newWrap = body.querySelector('.table-wrap');
+  if (newWrap) {
+    newWrap.scrollTop = savedScrollTop;
+    newWrap.scrollLeft = savedScrollLeft;
+  }
 }
 
 // ============================================
