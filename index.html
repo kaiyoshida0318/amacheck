@@ -186,6 +186,22 @@
     background: var(--bg-secondary);
   }
   table.ship tr:hover td:not(.total) { background: rgba(0,0,0,0.02); }
+  /* 編集可能な日別セルの視覚ヒント */
+  table.ship td.day { cursor: cell; }
+  table.ship td.day:hover { background: var(--blue-light); }
+  table.ship td.day.has:hover { background: var(--accent-light); filter: brightness(0.95); }
+  input.cell-edit {
+    width: 100%;
+    padding: 4px 2px;
+    font-size: 14px;
+    text-align: center;
+    border: 2px solid var(--blue);
+    border-radius: 4px;
+    outline: none;
+    background: #fff;
+    box-sizing: border-box;
+    font-family: inherit;
+  }
 
   /* 月別テーブル（日別と共通スタイル、列幅だけ違う） */
   table.ship td.month, table.ship th.month { width: 64px; padding: 10px 4px; }
@@ -557,7 +573,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.17</span>
+    <span class="version">v0.18</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1186,7 +1202,7 @@ function renderDailyTable(){
   products.forEach(p => {
     const fnskuData = monthData[p.fnsku] || {};
     let total = 0;
-    html += '<tr>';
+    html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '">';
     html += '<td class="asin">' + escapeHtml(p.asin || '-') + '</td>';
     html += '<td class="img">' + productImageHtml(p) + '</td>';
     html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
@@ -1195,12 +1211,64 @@ function renderDailyTable(){
       total += q;
       const isToday = isCurrentMonth && d === todayDay;
       const cls = 'day' + (q ? ' has' : '') + (isToday ? ' today' : '');
-      html += '<td class="' + cls + '">' + (q || '') + '</td>';
+      html += '<td class="' + cls + '" data-day="' + d + '" title="ダブルクリックで編集">' + (q || '') + '</td>';
     }
     html += '<td class="total">' + (total || '–') + '</td></tr>';
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+
+  // ダブルクリックでセル編集
+  body.querySelectorAll('table.ship td.day').forEach(cell => {
+    cell.addEventListener('dblclick', () => editDayCell(cell));
+  });
+}
+
+// 日別セルのダブルクリック編集
+function editDayCell(cell){
+  if (cell.querySelector('input')) return;
+  const row = cell.closest('tr');
+  const fnsku = row.dataset.fnsku;
+  const day = parseInt(cell.dataset.day, 10);
+  const originalText = cell.textContent.trim();
+  const numValue = parseInt(originalText, 10) || 0;
+
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.inputMode = 'numeric';
+  input.value = numValue || '';
+  input.className = 'cell-edit';
+  cell.textContent = '';
+  cell.appendChild(input);
+  input.focus();
+  input.select();
+
+  let committed = false;
+  function commit(){
+    if (committed) return;
+    committed = true;
+    const raw = input.value.trim();
+    const newValue = raw === '' ? 0 : (parseInt(raw, 10) || 0);
+    if (!shipments[currentMonth]) shipments[currentMonth] = {};
+    if (!shipments[currentMonth][fnsku]) shipments[currentMonth][fnsku] = {};
+    if (newValue === 0) {
+      delete shipments[currentMonth][fnsku][day];
+    } else {
+      shipments[currentMonth][fnsku][day] = newValue;
+    }
+    saveShipments();
+    renderShipmentTable();
+  }
+  function cancel(){
+    if (committed) return;
+    committed = true;
+    cell.textContent = originalText;
+  }
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    else if (e.key === 'Escape') { e.preventDefault(); input.removeEventListener('blur', commit); cancel(); }
+  });
 }
 
 function renderMonthlyTable(){
