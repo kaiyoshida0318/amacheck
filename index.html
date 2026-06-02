@@ -121,7 +121,10 @@
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: auto;
-    max-height: 70vh;
+    max-height: calc(100vh - 240px);
+  }
+  body.header-hidden .table-wrap {
+    max-height: calc(100vh - 120px);
   }
   table.ship { border-collapse: separate; border-spacing: 0; width: 100%; }
   table.ship th, table.ship td {
@@ -460,6 +463,21 @@
     position: relative;
     user-select: none;
   }
+  /* マスタ表のスクロールラッパーとヘッダー固定 */
+  .master-scroll {
+    overflow: auto;
+    max-height: calc(100vh - 240px);
+  }
+  body.header-hidden .master-scroll {
+    max-height: calc(100vh - 120px);
+  }
+  table.master thead th {
+    position: sticky;
+    top: 0;
+    background: var(--bg-secondary);
+    z-index: 2;
+    box-shadow: 0 1px 0 var(--border-strong);
+  }
   table.master th.price { font-size: 12px; }
   /* 値なしセル：出荷数表の0セルと同様の灰色 */
   table.master td.price.zero { background: #ededed; color: #999; }
@@ -772,7 +790,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.35</span>
+    <span class="version">v0.36</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -916,14 +934,10 @@
           <input type="number" id="edit-cost" min="0" step="1" placeholder="0" style="width:100%;font-size:14px;padding:6px 8px;font-family:ui-monospace,Menlo,monospace;text-align:right;">
         </div>
       </div>
-      <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px;">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div>
           <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">販売手数料</label>
           <input type="number" id="edit-selling-fee" min="0" step="1" placeholder="0" style="width:100%;font-size:14px;padding:6px 8px;font-family:ui-monospace,Menlo,monospace;text-align:right;">
-        </div>
-        <div>
-          <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">Amazon手数料</label>
-          <input type="number" id="edit-amazon-fee" min="0" step="1" placeholder="0" style="width:100%;font-size:14px;padding:6px 8px;font-family:ui-monospace,Menlo,monospace;text-align:right;">
         </div>
         <div>
           <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">FBA手数料(送料)</label>
@@ -1071,7 +1085,7 @@ function init(){
   document.getElementById('edit-close').addEventListener('click', closeEditModal);
   document.getElementById('edit-modal').addEventListener('click', (e) => { if (e.target.id === 'edit-modal') closeEditModal(); });
   // 価格入力時に利益額・利益率をリアルタイム計算
-  ['edit-selling-price','edit-cost','edit-selling-fee','edit-amazon-fee','edit-fba-fee'].forEach(id => {
+  ['edit-selling-price','edit-cost','edit-selling-fee','edit-fba-fee'].forEach(id => {
     document.getElementById(id).addEventListener('input', () => { updateProfitDisplay(); markDirty(); });
   });
   // ↑↓キーで前後（フィールド内では発動しない）／Ctrl+S, Ctrl+Enter
@@ -1183,9 +1197,8 @@ function calcProfit(p){
   const sp = Number(p.sellingPrice) || 0;
   const cost = Number(p.cost) || 0;
   const sFee = Number(p.sellingFee) || 0;
-  const aFee = Number(p.amazonFee) || 0;
   const fFee = Number(p.fbaFee) || 0;
-  return sp - cost - sFee - aFee - fFee;
+  return sp - cost - sFee - fFee;
 }
 
 function calcMargin(p){
@@ -1197,8 +1210,8 @@ function calcMargin(p){
 }
 
 // 価格セル1個のHTMLを生成（state classも含めて統一）
-const MASTER_FIELDS = ['sellingPrice','cost','sellingFee','amazonFee','fbaFee','profit','margin'];
-const MASTER_EDITABLE = new Set(['sellingPrice','cost','sellingFee','amazonFee','fbaFee']);
+const MASTER_FIELDS = ['sellingPrice','cost','sellingFee','fbaFee','profit','margin'];
+const MASTER_EDITABLE = new Set(['sellingPrice','cost','sellingFee','fbaFee']);
 
 function priceCellHtml(p, field, col){
   let val;
@@ -1351,7 +1364,7 @@ function parseMasterText(text){
         name: data.name || '(無題)',
         color: PALETTE[idx % PALETTE.length]
       };
-      ['cost','sellingPrice','sellingFee','amazonFee','fbaFee'].forEach(k => {
+      ['cost','sellingPrice','sellingFee','fbaFee'].forEach(k => {
         if (data[k] !== undefined) newProduct[k] = data[k];
       });
       products.push(newProduct);
@@ -1455,6 +1468,10 @@ function renderMasterList(){
   if (pcEl) pcEl.textContent = products.length ? '登録商品: ' + products.length + ' 件' : '';
   updateTabCounts();
   const wrap = document.getElementById('master-list-wrap');
+  // スクロール位置を保存
+  const oldScroll = wrap ? wrap.querySelector('.master-scroll') : null;
+  const savedScrollTop = oldScroll ? oldScroll.scrollTop : 0;
+  const savedScrollLeft = oldScroll ? oldScroll.scrollLeft : 0;
   if (!products.length) {
     wrap.innerHTML = '<div class="empty-state">'
       + '<svg class="icn" style="font-size:28px;color:var(--text-tertiary);"><use href="#i-database-off"/></svg>'
@@ -1464,7 +1481,7 @@ function renderMasterList(){
     updateBulkControls();
     return;
   }
-  let html = '<div style="overflow-x:auto"><table class="master"><thead><tr>'
+  let html = '<div class="master-scroll"><table class="master"><thead><tr>'
     + '<th class="drag-cell"></th>'
     + '<th class="check-cell"><input type="checkbox" id="select-all" title="全選択"></th>'
     + '<th class="img-header">商品画像</th>'
@@ -1475,7 +1492,6 @@ function renderMasterList(){
     + '<th class="price">販売価格</th>'
     + '<th class="price">原価</th>'
     + '<th class="price">販売手数料</th>'
-    + '<th class="price">Amazon手数料</th>'
     + '<th class="price">FBA手数料(送料)</th>'
     + '<th class="price">利益額</th>'
     + '<th class="price">利益率</th>'
@@ -1494,16 +1510,22 @@ function renderMasterList(){
       + priceCellHtml(p, 'sellingPrice', 0)
       + priceCellHtml(p, 'cost', 1)
       + priceCellHtml(p, 'sellingFee', 2)
-      + priceCellHtml(p, 'amazonFee', 3)
-      + priceCellHtml(p, 'fbaFee', 4)
-      + priceCellHtml(p, 'profit', 5)
-      + priceCellHtml(p, 'margin', 6)
+      + priceCellHtml(p, 'fbaFee', 3)
+      + priceCellHtml(p, 'profit', 4)
+      + priceCellHtml(p, 'margin', 5)
       + '<td class="edit-cell"><button class="ghost" onclick="openEditModal(\''+p.fnsku+'\')" title="編集"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg></button></td>'
       + '<td class="del-cell"><button class="ghost" onclick="deleteProduct(\''+p.fnsku+'\')" title="削除"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button></td>'
       + '</tr>';
   });
   html += '</tbody></table></div>';
   wrap.innerHTML = html;
+
+  // スクロール位置を復元
+  const newScroll = wrap.querySelector('.master-scroll');
+  if (newScroll) {
+    newScroll.scrollTop = savedScrollTop;
+    newScroll.scrollLeft = savedScrollLeft;
+  }
 
   // チェックボックスのイベント
   document.getElementById('select-all').addEventListener('change', toggleSelectAll);
@@ -1824,7 +1846,8 @@ function editDayCell(cell, initialChar){
   }
   input.addEventListener('blur', commit);
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); input.blur(); }
+    if (e.key === 'Enter') { e.preventDefault(); commit(); moveShipSelection(1, 0); }
+    else if (e.key === 'Tab') { e.preventDefault(); commit(); moveShipSelection(0, e.shiftKey ? -1 : 1); }
     else if (e.key === 'Escape') { e.preventDefault(); input.removeEventListener('blur', commit); cancel(); }
   });
 }
@@ -1930,13 +1953,18 @@ function setupMasterCellInteraction(){
   document.addEventListener('mousedown', (e) => {
     const masterView = document.getElementById('master-view');
     if (!masterView || masterView.hidden) return;
+    // 編集中inputがあれば先に確定
+    const activeInput = document.querySelector('table.master input.cell-edit');
+    if (activeInput && !activeInput.contains(e.target)) {
+      activeInput.blur();
+    }
     const cell = e.target.closest('table.master td.price[data-field]');
     if (!cell) {
-      // テーブル内の他箇所(ASIN/SKU/画像など)クリックは選択解除
-      if (e.target.closest('table.master') && !e.target.closest('button') && !e.target.closest('input')) {
-        masterSelection = null;
-        applyMasterSelectionUI();
-      }
+      // インタラクティブ要素（ボタン・チェックボックス・編集中input）は触らない
+      if (e.target.closest('button') || e.target.tagName === 'INPUT') return;
+      // それ以外（表外、または表内の他セル）は選択解除
+      masterSelection = null;
+      applyMasterSelectionUI();
       return;
     }
     const col = parseInt(cell.dataset.col, 10);
@@ -1949,7 +1977,7 @@ function setupMasterCellInteraction(){
     }
     masterDragMode = 'select';
     applyMasterSelectionUI();
-    e.preventDefault();
+    if (!activeInput) e.preventDefault();
   });
 
   document.addEventListener('mousemove', (e) => {
@@ -1978,6 +2006,21 @@ function setupMasterCellInteraction(){
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
       clearMasterCells();
+    } else if (e.key === 'Tab') {
+      e.preventDefault();
+      moveMasterSelection(0, e.shiftKey ? -1 : 1);
+    } else if (e.key === 'ArrowUp') {
+      e.preventDefault();
+      moveMasterSelection(-1, 0);
+    } else if (e.key === 'ArrowDown') {
+      e.preventDefault();
+      moveMasterSelection(1, 0);
+    } else if (e.key === 'ArrowLeft') {
+      e.preventDefault();
+      moveMasterSelection(0, -1);
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault();
+      moveMasterSelection(0, 1);
     } else if (e.key.length === 1 && !e.altKey) {
       // 数字キーで直接編集開始（Excelライク）
       if (!/[0-9.]/.test(e.key)) return;
@@ -1987,6 +2030,18 @@ function setupMasterCellInteraction(){
       editMasterPriceCell(activeCell, e.key);
     }
   });
+}
+
+function moveMasterSelection(dr, dc){
+  if (!masterSelection) return;
+  const numRows = products.length;
+  const numCols = MASTER_FIELDS.length;
+  let newRow = Math.max(0, Math.min(numRows - 1, masterSelection.anchorRow + dr));
+  let newCol = Math.max(0, Math.min(numCols - 1, masterSelection.anchorCol + dc));
+  masterSelection = { anchorRow: newRow, anchorCol: newCol, focusRow: newRow, focusCol: newCol };
+  applyMasterSelectionUI();
+  const cell = document.querySelector('table.master td.price.cell-active');
+  if (cell && cell.scrollIntoView) cell.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 function clearMasterCells(){
@@ -2132,7 +2187,8 @@ function editMasterPriceCell(cell, initialChar){
   }
   input.addEventListener('blur', commit);
   input.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter') { e.preventDefault(); commit(); }
+    if (e.key === 'Enter') { e.preventDefault(); commit(); moveMasterSelection(1, 0); }
+    else if (e.key === 'Tab') { e.preventDefault(); commit(); moveMasterSelection(0, e.shiftKey ? -1 : 1); }
     else if (e.key === 'Escape') { e.preventDefault(); cancel(); }
   });
 }
@@ -2227,14 +2283,21 @@ function setupCellInteraction(){
       e.stopPropagation();
       return;
     }
+    // 編集中inputがあれば、まずそれを確定（クリック先がinput自身なら何もしない）
+    const activeInput = document.querySelector('table.ship input.cell-edit');
+    if (activeInput && !activeInput.contains(e.target)) {
+      activeInput.blur(); // commit発火、その後DOM再構築
+    }
     const cell = e.target.closest('table.ship td.day');
     if (!cell) {
-      // テーブル外クリックで選択解除
+      // 表外、または表内のヘッダー・合計列など → 選択解除
       const inTable = e.target.closest('table.ship');
-      if (!inTable && !e.target.closest('#fill-options-popup')) {
+      const onTotalOrHead = e.target.closest('th, td.total, td.asin, td.img, td.name');
+      if (!inTable || onTotalOrHead) {
         cellSelection = null;
         applySelectionUI();
       }
+      // 編集中だった場合はpreventDefaultしない（blurさせる）
       return;
     }
     const day = parseInt(cell.dataset.day, 10);
@@ -2248,7 +2311,8 @@ function setupCellInteraction(){
     }
     dragMode = 'select';
     applySelectionUI();
-    e.preventDefault();
+    // 編集中でなければtext-selection防止のpreventDefault
+    if (!activeInput) e.preventDefault();
   });
 
   document.addEventListener('mousemove', (e) => {
@@ -2296,6 +2360,26 @@ function setupCellInteraction(){
       if (!cellSelection) return;
       e.preventDefault();
       clearSelectedCells();
+    } else if (e.key === 'Tab') {
+      if (!cellSelection) return;
+      e.preventDefault();
+      moveShipSelection(0, e.shiftKey ? -1 : 1);
+    } else if (e.key === 'ArrowUp') {
+      if (!cellSelection) return;
+      e.preventDefault();
+      moveShipSelection(-1, 0);
+    } else if (e.key === 'ArrowDown') {
+      if (!cellSelection) return;
+      e.preventDefault();
+      moveShipSelection(1, 0);
+    } else if (e.key === 'ArrowLeft') {
+      if (!cellSelection) return;
+      e.preventDefault();
+      moveShipSelection(0, -1);
+    } else if (e.key === 'ArrowRight') {
+      if (!cellSelection) return;
+      e.preventDefault();
+      moveShipSelection(0, 1);
     } else if (e.key.length === 1 && !e.altKey) {
       // 数字キーで直接編集開始（Excelライク）
       if (!/[0-9]/.test(e.key)) return;
@@ -2305,6 +2389,19 @@ function setupCellInteraction(){
       editDayCell(activeCell, e.key);
     }
   });
+}
+
+function moveShipSelection(dr, dc){
+  if (!cellSelection) return;
+  const numRows = document.querySelectorAll('table.ship tbody tr').length;
+  const numDays = daysInMonth(currentMonth);
+  let newRow = Math.max(0, Math.min(numRows - 1, cellSelection.anchorRow + dr));
+  let newCol = Math.max(1, Math.min(numDays, cellSelection.anchorCol + dc));
+  cellSelection = { anchorRow: newRow, anchorCol: newCol, focusRow: newRow, focusCol: newCol };
+  applySelectionUI();
+  // スクロールで視界に入れる
+  const cell = document.querySelector('table.ship td.day.cell-active');
+  if (cell && cell.scrollIntoView) cell.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
 function clearSelectedCells(){
@@ -2781,7 +2878,6 @@ function loadProductIntoEditModal(fnsku){
   document.getElementById('edit-selling-price').value = (p.sellingPrice != null) ? p.sellingPrice : '';
   document.getElementById('edit-cost').value = (p.cost != null) ? p.cost : '';
   document.getElementById('edit-selling-fee').value = (p.sellingFee != null) ? p.sellingFee : '';
-  document.getElementById('edit-amazon-fee').value = (p.amazonFee != null) ? p.amazonFee : '';
   document.getElementById('edit-fba-fee').value = (p.fbaFee != null) ? p.fbaFee : '';
   // 元商品名（編集前のオリジナル）を保持していれば表示
   document.getElementById('edit-name-orig').textContent = p.nameOrig ? '元の商品名: ' + p.nameOrig : '';
@@ -2833,7 +2929,6 @@ function updateProfitDisplay(){
     sellingPrice: parseFloat(document.getElementById('edit-selling-price').value) || null,
     cost: parseFloat(document.getElementById('edit-cost').value) || 0,
     sellingFee: parseFloat(document.getElementById('edit-selling-fee').value) || 0,
-    amazonFee: parseFloat(document.getElementById('edit-amazon-fee').value) || 0,
     fbaFee: parseFloat(document.getElementById('edit-fba-fee').value) || 0,
   };
   const profit = calcProfit(tempP);
@@ -2906,7 +3001,6 @@ function applyEditData(){
   readPrice('edit-selling-price', 'sellingPrice');
   readPrice('edit-cost', 'cost');
   readPrice('edit-selling-fee', 'sellingFee');
-  readPrice('edit-amazon-fee', 'amazonFee');
   readPrice('edit-fba-fee', 'fbaFee');
 }
 
