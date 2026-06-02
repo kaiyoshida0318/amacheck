@@ -174,15 +174,13 @@
     object-fit: cover;
     background: #fff;
   }
-  table.ship td.day { width: 34px; padding: 8px 2px; color: var(--black); font-size: 14px; }
-  /* 未入力：空白・控えめなグレー */
-  table.ship td.day.empty { background: #e8eaed; }
-  /* 値あり：はっきりした緑＋通常の濃さの文字 */
-  table.ship td.day.has { color: var(--black); font-weight: 600; background: rgba(22,163,74,0.32); }
-  /* 月が全日埋まったときの上位5日（濃い緑）・下位5日（赤） */
-  table.ship td.day.rank-top { background: var(--accent); color: #fff; font-weight: 700; }
-  table.ship td.day.rank-bottom { background: rgba(211,47,47,0.16); color: var(--danger); font-weight: 700; }
+  table.ship td.day { width: 34px; padding: 8px 2px; color: var(--text-tertiary); font-size: 14px; }
+  table.ship td.day.zero { background: #ededed; color: #999; }
+  table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
+  table.ship td.day.today { background: var(--amber-light); }
+  table.ship td.day.zero.today { background: var(--amber-light); color: var(--amber); }
   table.ship th.day { width: 34px; padding: 8px 2px; font-size: 13px; }
+  table.ship th.day.today { background: var(--amber-light); color: var(--amber); }
   /* クリック可能な日付ヘッダー（出荷数入力へ） */
   table.ship th.day-clickable {
     cursor: pointer;
@@ -220,29 +218,11 @@
   table.ship thead th.total {
     background: var(--bg-secondary);
   }
-  /* 総合計フッター行（最下部に固定表示） */
-  table.ship tfoot td {
-    position: sticky;
-    bottom: 0;
-    z-index: 4;
-    background: #eef1f4;
-    font-weight: 700;
-    border-top: 2px solid var(--border-strong);
-    box-shadow: inset 0 1px 0 var(--border-strong);
-  }
-  table.ship tfoot td.ft-label { text-align: right; padding-right: 10px; color: var(--text-secondary); }
-  table.ship tfoot td.ft-day { font-size: 13px; color: var(--text-secondary); }
-  table.ship tfoot td.ft-grand {
-    background: var(--accent);
-    color: #fff;
-    font-size: 15px;
-    border-left: 1px solid var(--accent);
-  }
   table.ship tr:hover td:not(.total) { background: rgba(0,0,0,0.02); }
   /* 編集可能な日別セルの視覚ヒント */
   table.ship td.day { cursor: cell; position: relative; user-select: none; }
   table.ship td.day:hover { background: var(--blue-light); }
-  table.ship td.day.has:hover, table.ship td.day.rank-top:hover, table.ship td.day.rank-bottom:hover { filter: brightness(0.95); }
+  table.ship td.day.has:hover { background: var(--accent-light); filter: brightness(0.95); }
 
   /* セル選択（複数選択） */
   table.ship td.day.cell-selected { background: rgba(37, 99, 235, 0.22) !important; }
@@ -310,10 +290,12 @@
 
   /* 月別テーブル（日別と共通スタイル、列幅だけ違う） */
   table.ship td.month, table.ship th.month { width: 64px; padding: 10px 4px; }
-  table.ship td.month { color: var(--black); font-size: 14px; }
-  table.ship td.month.empty { background: #e8eaed; }
-  table.ship td.month.has { color: var(--black); font-weight: 600; background: rgba(22,163,74,0.32); }
-  table.ship td.month.current { box-shadow: inset 0 0 0 2px var(--amber); }
+  table.ship td.month { color: var(--text-tertiary); font-size: 14px; }
+  table.ship td.month.zero { background: #ededed; color: #999; }
+  table.ship td.month.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
+  table.ship td.month.current { background: var(--amber-light); }
+  table.ship td.month.zero.current { background: var(--amber-light); color: var(--amber); }
+  table.ship th.month.current { background: var(--amber-light); color: var(--amber); }
 
   /* 日別/月別 切り替えトグル */
   .period-toggle {
@@ -848,7 +830,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.40</span>
+    <span class="version">v0.42</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1879,19 +1861,8 @@ function renderDailyTable(){
   html += '<th class="total">合計</th></tr></thead><tbody>';
 
   const monthData = shipments[currentMonth] || {};
-  const dayTotals = new Array(days + 1).fill(0);
-  let grandTotal = 0;
   products.forEach((p, idx) => {
     const fnskuData = monthData[p.fnsku] || {};
-    // 上位5日・下位5日の判定（その商品の全日が埋まっているときのみ）
-    const filledDays = [];
-    for (let d = 1; d <= days; d++) { if (fnskuData[d]) filledDays.push({ d: d, q: fnskuData[d] }); }
-    const topSet = new Set(), botSet = new Set();
-    if (filledDays.length === days && days > 10) {
-      const sorted = filledDays.slice().sort((a, b) => b.q - a.q);
-      sorted.slice(0, 5).forEach(o => topSet.add(o.d));   // 上位5日
-      sorted.slice(-5).forEach(o => botSet.add(o.d));     // 下位5日
-    }
     let total = 0;
     html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '" data-row="' + idx + '">';
     html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
@@ -1900,32 +1871,12 @@ function renderDailyTable(){
     for (let d = 1; d <= days; d++) {
       const q = fnskuData[d] || 0;
       total += q;
-      dayTotals[d] += q;
-      let cls = 'day';
-      let txt = '';
-      if (q) {
-        cls += ' has';
-        if (topSet.has(d)) cls += ' rank-top';
-        else if (botSet.has(d)) cls += ' rank-bottom';
-        txt = q;
-      } else {
-        cls += ' empty';   // 未入力は空白
-      }
-      html += '<td class="' + cls + '" data-day="' + d + '">' + txt + '</td>';
+      const cls = 'day' + (q ? ' has' : ' zero');
+      html += '<td class="' + cls + '" data-day="' + d + '">' + q + '</td>';
     }
-    grandTotal += total;
     html += '<td class="total">' + total + '</td></tr>';
   });
-  html += '</tbody>';
-  // 総合計フッター（全商品の合計を合算）
-  html += '<tfoot><tr class="grand-row">';
-  html += '<td class="ft-label" colspan="3">総合計</td>';
-  for (let d = 1; d <= days; d++) {
-    html += '<td class="ft-day">' + (dayTotals[d] || '') + '</td>';
-  }
-  html += '<td class="total ft-grand">' + grandTotal + '</td>';
-  html += '</tr></tfoot>';
-  html += '</table></div>';
+  html += '</tbody></table></div>';
   body.innerHTML = html;
 
   // スクロール位置を復元
@@ -2046,8 +1997,8 @@ function renderMonthlyTable(){
     for (let m = 1; m <= 12; m++) {
       const q = monthlyTotals[m - 1];
       const isCur = m === currentMm;
-      const cls = 'month' + (q ? ' has' : ' empty') + (isCur ? ' current' : '');
-      html += '<td class="' + cls + '">' + (q || '') + '</td>';
+      const cls = 'month' + (q ? ' has' : ' zero') + (isCur ? ' current' : '');
+      html += '<td class="' + cls + '">' + q + '</td>';
     }
     html += '<td class="total">' + yearTotal + '</td></tr>';
   });
@@ -2511,6 +2462,16 @@ function setupCellInteraction(){
       } else if (e.key === 'z' || e.key === 'Z') {
         e.preventDefault();
         undo();
+      } else if (e.key === 'a' || e.key === 'A') {
+        // Ctrl+A：表全体を選択
+        e.preventDefault();
+        selectAllShipCells();
+      } else if (e.key.indexOf('Arrow') === 0) {
+        if (!cellSelection) return;
+        e.preventDefault();
+        const d = arrowDelta(e.key);
+        if (e.shiftKey) extendShipSelectionToEdge(d[0], d[1]);  // Ctrl+Shift+矢印：端まで選択拡張
+        else moveShipActiveToEdge(d[0], d[1]);                  // Ctrl+矢印：端へジャンプ
       }
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       if (!cellSelection) return;
@@ -2520,22 +2481,12 @@ function setupCellInteraction(){
       if (!cellSelection) return;
       e.preventDefault();
       moveShipSelection(0, e.shiftKey ? -1 : 1);
-    } else if (e.key === 'ArrowUp') {
+    } else if (e.key.indexOf('Arrow') === 0) {
       if (!cellSelection) return;
       e.preventDefault();
-      moveShipSelection(-1, 0);
-    } else if (e.key === 'ArrowDown') {
-      if (!cellSelection) return;
-      e.preventDefault();
-      moveShipSelection(1, 0);
-    } else if (e.key === 'ArrowLeft') {
-      if (!cellSelection) return;
-      e.preventDefault();
-      moveShipSelection(0, -1);
-    } else if (e.key === 'ArrowRight') {
-      if (!cellSelection) return;
-      e.preventDefault();
-      moveShipSelection(0, 1);
+      const d = arrowDelta(e.key);
+      if (e.shiftKey) extendShipSelection(d[0], d[1]);  // Shift+矢印：1セルずつ選択拡張
+      else moveShipSelection(d[0], d[1]);
     } else if (e.key.length === 1 && !e.altKey) {
       // 数字キーで直接編集開始（Excelライク）
       if (!/[0-9]/.test(e.key)) return;
@@ -2558,6 +2509,96 @@ function moveShipSelection(dr, dc){
   // スクロールで視界に入れる
   const cell = document.querySelector('table.ship td.day.cell-active');
   if (cell && cell.scrollIntoView) cell.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+// 矢印キー → 行列の増分
+function arrowDelta(key){
+  if (key === 'ArrowUp') return [-1, 0];
+  if (key === 'ArrowDown') return [1, 0];
+  if (key === 'ArrowLeft') return [0, -1];
+  if (key === 'ArrowRight') return [0, 1];
+  return [0, 0];
+}
+
+// 出荷数（その日の値）。1以上を「データあり」とみなす
+function shipCellVal(rows, r, day){
+  const row = rows[r];
+  if (!row) return 0;
+  const fnsku = row.dataset.fnsku;
+  return (shipments[currentMonth] && shipments[currentMonth][fnsku] && shipments[currentMonth][fnsku][day]) || 0;
+}
+
+// Excel互換：Ctrl(+Shift)+矢印で飛ぶ先を計算
+function shipJumpEdge(startRow, startCol, dr, dc){
+  const rows = document.querySelectorAll('table.ship tbody tr');
+  const numRows = rows.length;
+  const numDays = daysInMonth(currentMonth);
+  const inB = (r, c) => r >= 0 && r < numRows && c >= 1 && c <= numDays;
+  const filled = (r, c) => shipCellVal(rows, r, c) > 0;
+  let r = startRow, c = startCol;
+  if (!inB(r + dr, c + dc)) return { row: r, col: c }; // すでに端
+  if (filled(r, c) && filled(r + dr, c + dc)) {
+    // データの連続の終端まで
+    while (inB(r + dr, c + dc) && filled(r + dr, c + dc)) { r += dr; c += dc; }
+  } else if (filled(r, c)) {
+    // 隣が空白：空白を飛ばして次のデータへ
+    r += dr; c += dc;
+    while (inB(r + dr, c + dc) && !filled(r + dr, c + dc)) { r += dr; c += dc; }
+    if (inB(r + dr, c + dc) && filled(r + dr, c + dc)) { r += dr; c += dc; }
+  } else {
+    // 現在が空白：次のデータ（無ければ端）まで
+    while (inB(r + dr, c + dc) && !filled(r + dr, c + dc)) { r += dr; c += dc; }
+    if (inB(r + dr, c + dc) && filled(r + dr, c + dc)) { r += dr; c += dc; }
+  }
+  return { row: r, col: c };
+}
+
+function scrollShipFocusIntoView(){
+  if (!cellSelection) return;
+  const rows = document.querySelectorAll('table.ship tbody tr');
+  const row = rows[cellSelection.focusRow];
+  if (!row) return;
+  const cell = row.querySelector('td.day[data-day="' + cellSelection.focusCol + '"]');
+  if (cell && cell.scrollIntoView) cell.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+}
+
+// Shift+矢印：選択範囲を1セル広げる
+function extendShipSelection(dr, dc){
+  if (!cellSelection) return;
+  const numRows = document.querySelectorAll('table.ship tbody tr').length;
+  const numDays = daysInMonth(currentMonth);
+  cellSelection.focusRow = Math.max(0, Math.min(numRows - 1, cellSelection.focusRow + dr));
+  cellSelection.focusCol = Math.max(1, Math.min(numDays, cellSelection.focusCol + dc));
+  applySelectionUI();
+  scrollShipFocusIntoView();
+}
+
+// Ctrl+Shift+矢印：端まで選択を拡張
+function extendShipSelectionToEdge(dr, dc){
+  if (!cellSelection) return;
+  const t = shipJumpEdge(cellSelection.focusRow, cellSelection.focusCol, dr, dc);
+  cellSelection.focusRow = t.row;
+  cellSelection.focusCol = t.col;
+  applySelectionUI();
+  scrollShipFocusIntoView();
+}
+
+// Ctrl+矢印：端へジャンプ（選択は1セルに）
+function moveShipActiveToEdge(dr, dc){
+  if (!cellSelection) return;
+  const t = shipJumpEdge(cellSelection.anchorRow, cellSelection.anchorCol, dr, dc);
+  cellSelection = { anchorRow: t.row, anchorCol: t.col, focusRow: t.row, focusCol: t.col };
+  applySelectionUI();
+  scrollShipFocusIntoView();
+}
+
+// Ctrl+A：表全体を選択
+function selectAllShipCells(){
+  const numRows = document.querySelectorAll('table.ship tbody tr').length;
+  const numDays = daysInMonth(currentMonth);
+  if (!numRows) return;
+  cellSelection = { anchorRow: 0, anchorCol: 1, focusRow: numRows - 1, focusCol: numDays };
+  applySelectionUI();
 }
 
 function clearSelectedCells(){
