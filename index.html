@@ -180,7 +180,7 @@
   table.ship td.day.today { background: var(--amber-light); }
   table.ship td.day.zero.today { background: var(--amber-light); color: var(--amber); }
   table.ship th.day { width: 34px; padding: 8px 2px; font-size: 13px; }
-  table.ship th.day.today { background: var(--amber-light); color: var(--amber); }
+  table.ship th.day.today { background: #f2e3d0; color: var(--amber); }
   /* クリック可能な日付ヘッダー（出荷数入力へ） */
   table.ship th.day-clickable {
     cursor: pointer;
@@ -218,11 +218,8 @@
   table.ship thead th.total {
     background: var(--bg-secondary);
   }
-  table.ship tr:hover td:not(.total) { background: rgba(0,0,0,0.02); }
   /* 編集可能な日別セルの視覚ヒント */
   table.ship td.day { cursor: cell; position: relative; user-select: none; }
-  table.ship td.day:hover { background: var(--blue-light); }
-  table.ship td.day.has:hover { background: var(--accent-light); filter: brightness(0.95); }
 
   /* セル選択（複数選択） */
   table.ship td.day.cell-selected { background: rgba(37, 99, 235, 0.22) !important; }
@@ -304,7 +301,7 @@
   table.ship td.month.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
   table.ship td.month.current { background: var(--amber-light); }
   table.ship td.month.zero.current { background: var(--amber-light); color: var(--amber); }
-  table.ship th.month.current { background: var(--amber-light); color: var(--amber); }
+  table.ship th.month.current { background: #f2e3d0; color: var(--amber); }
 
   /* 日別/月別 切り替えトグル */
   .period-toggle {
@@ -839,7 +836,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.44</span>
+    <span class="version">v0.46</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
