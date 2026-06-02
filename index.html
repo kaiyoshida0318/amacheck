@@ -412,9 +412,21 @@
   table.master .drag-handle:active { cursor: grabbing; }
   table.master .drag-handle .icn { font-size: 18px; }
   /* ドラッグ中の行スタイル */
-  table.master tr.dragging-row { opacity: 0.35; }
-  table.master tr.drop-above > td { box-shadow: 0 -3px 0 var(--blue) inset; }
-  table.master tr.drop-below > td { box-shadow: 0 3px 0 var(--blue) inset; }
+  table.master tr.dragging-row { opacity: 0.4; background: var(--blue-light); }
+  /* 正確なドロップ位置を示す水平ライン */
+  .row-drop-line {
+    position: absolute;
+    left: 0; right: 0;
+    height: 0;
+    border-top: 2px solid var(--blue);
+    box-shadow: 0 0 0 1px rgba(37,99,235,0.25);
+    pointer-events: none;
+    z-index: 20;
+    margin-top: -1px;
+  }
+  /* ドラッグ中はテキスト選択を抑止してカクつきを防ぐ */
+  body.row-dragging { cursor: grabbing; user-select: none; }
+  body.row-dragging * { cursor: grabbing !important; }
   table.master .edit-cell, table.master .del-cell { width: 56px; text-align: center; white-space: nowrap; padding: 4px 6px; }
   table.master .name-cell {
     max-width: var(--name-width, 320px);
@@ -790,7 +802,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.36</span>
+    <span class="version">v0.37</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1058,6 +1070,7 @@ function init(){
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('master')));
   document.getElementById('open-input').addEventListener('click', openModal);
   document.getElementById('toggle-header').addEventListener('click', toggleHeader);
+  window.addEventListener('resize', adjustHiddenTableHeight);
   document.getElementById('cancel').addEventListener('click', closeModal);
   document.getElementById('apply').addEventListener('click', applyShipment);
   document.getElementById('add-page').addEventListener('click', () => addPage());
@@ -1500,7 +1513,7 @@ function renderMasterList(){
     + '</tr></thead><tbody>';
   products.forEach((p, idx) => {
     html += '<tr data-fnsku="'+escapeHtml(p.fnsku)+'" data-row="'+idx+'">'
-      + '<td class="drag-cell"><span class="drag-handle" draggable="true" title="ドラッグして並び替え"><svg class="icn"><use href="#i-grip"/></svg></span></td>'
+      + '<td class="drag-cell"><span class="drag-handle" title="ドラッグして並び替え"><svg class="icn"><use href="#i-grip"/></svg></span></td>'
       + '<td class="check-cell"><input type="checkbox" class="product-checkbox" data-fnsku="'+escapeHtml(p.fnsku)+'"></td>'
       + '<td class="img-cell">' + productImageHtml(p, 72) + '</td>'
       + '<td class="mono">'+escapeHtml(p.asin||'-')+'</td>'
@@ -1575,65 +1588,132 @@ function renderMasterList(){
   document.querySelectorAll('table.master td.price.editable').forEach(cell => {
     cell.addEventListener('dblclick', () => editMasterPriceCell(cell));
   });
+  adjustHiddenTableHeight();
 }
 
-// 行のドラッグ&ドロップ並び替え
+// 行のドラッグ&ドロップ並び替え（ポインターベース・高精度）
 function setupRowDragReorder(){
-  // ハンドルでドラッグ開始
-  document.querySelectorAll('table.master .drag-handle').forEach(handle => {
-    handle.addEventListener('dragstart', (e) => {
-      const tr = handle.closest('tr');
-      if (!tr) return;
-      e.dataTransfer.setData('text/plain', tr.dataset.fnsku);
-      e.dataTransfer.effectAllowed = 'move';
-      // ドラッグ中のプレビュー画像は行全体
-      try { e.dataTransfer.setDragImage(tr, 0, 0); } catch(_){}
-      // 視覚スタイル
-      setTimeout(() => tr.classList.add('dragging-row'), 0);
-    });
-    handle.addEventListener('dragend', () => {
-      document.querySelectorAll('table.master tr.dragging-row, table.master tr.drop-above, table.master tr.drop-below').forEach(t => {
-        t.classList.remove('dragging-row', 'drop-above', 'drop-below');
-      });
-    });
-  });
+  const table = document.querySelector('table.master');
+  const scroll = document.querySelector('.master-scroll');
+  if (!table || !scroll) return;
 
-  // 各行のドロップ受付
-  document.querySelectorAll('table.master tbody tr').forEach(row => {
-    row.addEventListener('dragover', (e) => {
+  // ドロップ位置を示す水平ライン（スクロール領域基準で絶対配置）
+  scroll.style.position = 'relative';
+  let line = scroll.querySelector('.row-drop-line');
+  if (!line) {
+    line = document.createElement('div');
+    line.className = 'row-drop-line';
+    line.hidden = true;
+    scroll.appendChild(line);
+  }
+
+  document.querySelectorAll('table.master .drag-handle').forEach(handle => {
+    handle.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
       e.preventDefault();
-      e.dataTransfer.dropEffect = 'move';
-      const rect = row.getBoundingClientRect();
-      const isAbove = (e.clientY - rect.top) < rect.height / 2;
-      document.querySelectorAll('table.master tr.drop-above, table.master tr.drop-below').forEach(t => {
-        t.classList.remove('drop-above', 'drop-below');
-      });
-      row.classList.add(isAbove ? 'drop-above' : 'drop-below');
-    });
-    row.addEventListener('drop', (e) => {
-      e.preventDefault();
-      const sourceFnsku = e.dataTransfer.getData('text/plain');
-      const targetFnsku = row.dataset.fnsku;
-      if (!sourceFnsku || sourceFnsku === targetFnsku) return;
-      const rect = row.getBoundingClientRect();
-      const isAbove = (e.clientY - rect.top) < rect.height / 2;
-      reorderProducts(sourceFnsku, targetFnsku, isAbove);
+      const sourceRow = handle.closest('tr');
+      if (!sourceRow) return;
+      startRowDrag(e, sourceRow, table, scroll, line);
     });
   });
 }
 
-function reorderProducts(sourceFnsku, targetFnsku, insertBefore){
+function startRowDrag(downEvent, sourceRow, table, scroll, line){
+  const sourceFnsku = sourceRow.dataset.fnsku;
+  let started = false;
+  let targetIdx = null;      // 挿入位置（products配列のインデックス）
+  let autoScrollTimer = null;
+  const startY = downEvent.clientY;
+
+  // 現在の全行と、その中央Y座標（ビューポート基準）を取得
+  function rowInfos(){
+    return Array.from(table.querySelectorAll('tbody tr')).map(tr => {
+      const r = tr.getBoundingClientRect();
+      return { tr, top: r.top, bottom: r.bottom, mid: r.top + r.height / 2 };
+    });
+  }
+
+  // カーソルYから挿入位置を決定し、ライン位置を更新
+  function updateTarget(clientY){
+    const rows = rowInfos();
+    if (!rows.length) return;
+    // カーソル位置の上にある「境界」を探す。各行の中央より上なら、その行の前に挿入。
+    let insertDomIndex = rows.length; // 既定は末尾
+    for (let i = 0; i < rows.length; i++){
+      if (clientY < rows[i].mid){ insertDomIndex = i; break; }
+    }
+    targetIdx = insertDomIndex;
+
+    // ラインのY位置（scroll領域内のローカル座標 = スクロール量加味）
+    const scRect = scroll.getBoundingClientRect();
+    let lineY;
+    if (insertDomIndex < rows.length){
+      lineY = rows[insertDomIndex].top - scRect.top + scroll.scrollTop;
+    } else {
+      lineY = rows[rows.length - 1].bottom - scRect.top + scroll.scrollTop;
+    }
+    line.style.top = lineY + 'px';
+    line.hidden = false;
+  }
+
+  // 端に近いとき自動スクロール
+  function maybeAutoScroll(clientY){
+    const scRect = scroll.getBoundingClientRect();
+    const edge = 40;
+    let dir = 0;
+    if (clientY < scRect.top + edge) dir = -1;
+    else if (clientY > scRect.bottom - edge) dir = 1;
+    if (dir !== 0 && !autoScrollTimer){
+      autoScrollTimer = setInterval(() => {
+        scroll.scrollTop += dir * 12;
+        updateTarget(lastY);
+      }, 16);
+    } else if (dir === 0 && autoScrollTimer){
+      clearInterval(autoScrollTimer); autoScrollTimer = null;
+    }
+  }
+
+  let lastY = startY;
+
+  function onMove(e){
+    lastY = e.clientY;
+    if (!started){
+      if (Math.abs(e.clientY - startY) < 4) return; // 微小な動きは無視
+      started = true;
+      sourceRow.classList.add('dragging-row');
+      document.body.classList.add('row-dragging');
+    }
+    updateTarget(e.clientY);
+    maybeAutoScroll(e.clientY);
+  }
+
+  function onUp(){
+    document.removeEventListener('pointermove', onMove);
+    document.removeEventListener('pointerup', onUp);
+    if (autoScrollTimer){ clearInterval(autoScrollTimer); autoScrollTimer = null; }
+    line.hidden = true;
+    sourceRow.classList.remove('dragging-row');
+    document.body.classList.remove('row-dragging');
+    if (started && targetIdx !== null){
+      commitRowReorder(sourceFnsku, targetIdx);
+    }
+  }
+
+  document.addEventListener('pointermove', onMove);
+  document.addEventListener('pointerup', onUp);
+}
+
+// DOM上の挿入位置（行インデックス）をproducts配列に反映
+function commitRowReorder(sourceFnsku, domInsertIndex){
   const sourceIdx = products.findIndex(p => p.fnsku === sourceFnsku);
   if (sourceIdx < 0) return;
+  // 現在のDOM行順 = products順なので、挿入位置はそのままproductsインデックスに対応
+  let insertIdx = domInsertIndex;
+  // 元の行を取り除くと、それより後ろの挿入位置は1つ前にずれる
+  if (insertIdx > sourceIdx) insertIdx--;
+  if (insertIdx === sourceIdx) return; // 位置変化なし
   const [moved] = products.splice(sourceIdx, 1);
-  let targetIdx = products.findIndex(p => p.fnsku === targetFnsku);
-  if (targetIdx < 0) {
-    // 落とし先が見つからない場合は末尾
-    products.push(moved);
-  } else {
-    if (!insertBefore) targetIdx++;
-    products.splice(targetIdx, 0, moved);
-  }
+  products.splice(insertIdx, 0, moved);
   saveProducts();
   renderMasterList();
 }
@@ -1730,6 +1810,7 @@ function renderShipmentTable(){
   } else {
     renderDailyTable();
   }
+  adjustHiddenTableHeight();
 }
 
 function renderDailyTable(){
@@ -1747,8 +1828,7 @@ function renderDailyTable(){
   let html = '<div class="table-wrap"><table class="ship"><thead><tr>';
   html += '<th>FNSKU</th><th>画像</th><th>商品名</th>';
   for (let d = 1; d <= days; d++) {
-    const isToday = isCurrentMonth && d === todayDay;
-    html += '<th class="day' + (isToday ? ' today' : '') + '">' + d + '</th>';
+    html += '<th class="day">' + d + '</th>';
   }
   html += '<th class="total">合計</th></tr></thead><tbody>';
 
@@ -1763,8 +1843,7 @@ function renderDailyTable(){
     for (let d = 1; d <= days; d++) {
       const q = fnskuData[d] || 0;
       total += q;
-      const isToday = isCurrentMonth && d === todayDay;
-      const cls = 'day' + (q ? ' has' : ' zero') + (isToday ? ' today' : '');
+      const cls = 'day' + (q ? ' has' : ' zero');
       html += '<td class="' + cls + '" data-day="' + d + '">' + q + '</td>';
     }
     html += '<td class="total">' + total + '</td></tr>';
@@ -2838,6 +2917,26 @@ function toggleHeader(){
     btn.innerHTML = '<svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す';
     btn.title = 'ヘッダーとタブを非表示にして表を広く';
   }
+  adjustHiddenTableHeight();
+}
+
+// ヘッダー非表示時、表の下端を画面いっぱいまで伸ばす
+function adjustHiddenTableHeight(){
+  // 対象：現在表示中の表のスクロール領域
+  const scrollEl = document.querySelector('#shipment-view:not([hidden]) .table-wrap')
+                 || document.querySelector('#master-view:not([hidden]) .master-scroll');
+  if (!scrollEl) return;
+  if (!document.body.classList.contains('header-hidden')) {
+    // 通常時はインラインスタイルを外してCSSに戻す
+    scrollEl.style.maxHeight = '';
+    return;
+  }
+  // 画面上端から表のスクロール領域の上端までの距離を実測し、
+  // 残り全部（下に少しだけ余白）を高さにする
+  const top = scrollEl.getBoundingClientRect().top;
+  const bottomGap = 8;
+  const h = Math.max(160, window.innerHeight - top - bottomGap);
+  scrollEl.style.maxHeight = h + 'px';
 }
 
 // ============================================
