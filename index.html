@@ -226,6 +226,15 @@
 
   /* セル選択（複数選択） */
   table.ship td.day.cell-selected { background: rgba(37, 99, 235, 0.22) !important; }
+  table.ship td.total.cell-selected { background: rgba(37, 99, 235, 0.22) !important; }
+  table.ship td.total.cell-active {
+    outline: 3px solid var(--blue);
+    outline-offset: -3px;
+    position: relative;
+    z-index: 3;
+    background: rgba(37, 99, 235, 0.22) !important;
+    box-shadow: 0 0 0 1px var(--blue);
+  }
   table.ship td.day.cell-active {
     outline: 3px solid var(--blue);
     outline-offset: -3px;
@@ -830,7 +839,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.43</span>
+    <span class="version">v0.44</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2350,12 +2359,15 @@ function applySelectionUI(){
   if (!cellSelection) return;
   const rect = getSelectionRect();
   const rows = document.querySelectorAll('table.ship tbody tr');
+  const numDays = daysInMonth(currentMonth);
   let brCell = null;
   for (let r = rect.minRow; r <= rect.maxRow; r++) {
     const row = rows[r];
     if (!row) continue;
     for (let c = rect.minCol; c <= rect.maxCol; c++) {
-      const cell = row.querySelector('td.day[data-day="' + c + '"]');
+      const cell = (c <= numDays)
+        ? row.querySelector('td.day[data-day="' + c + '"]')
+        : row.querySelector('td.total');
       if (cell) {
         cell.classList.add('cell-selected');
         if (r === rect.maxRow && c === rect.maxCol) brCell = cell;
@@ -2364,10 +2376,13 @@ function applySelectionUI(){
   }
   const anchorRow = rows[cellSelection.anchorRow];
   if (anchorRow) {
-    const anchorCell = anchorRow.querySelector('td.day[data-day="' + cellSelection.anchorCol + '"]');
+    const anchorCell = (cellSelection.anchorCol <= numDays)
+      ? anchorRow.querySelector('td.day[data-day="' + cellSelection.anchorCol + '"]')
+      : anchorRow.querySelector('td.total');
     if (anchorCell) anchorCell.classList.add('cell-active');
   }
-  if (brCell) {
+  // フィルハンドルは日付セル範囲のときだけ（合計列には付けない）
+  if (brCell && rect.maxCol <= numDays) {
     const handle = document.createElement('div');
     handle.className = 'fill-handle';
     brCell.appendChild(handle);
@@ -2395,19 +2410,19 @@ function setupCellInteraction(){
     if (activeInput && !activeInput.contains(e.target)) {
       activeInput.blur(); // commit発火、その後DOM再構築
     }
-    const cell = e.target.closest('table.ship td.day');
+    const cell = e.target.closest('table.ship td.day, table.ship td.total');
     if (!cell) {
-      // 表外、または表内のヘッダー・合計列など → 選択解除
+      // 表外、または表内のヘッダー・商品情報列など → 選択解除
       const inTable = e.target.closest('table.ship');
-      const onTotalOrHead = e.target.closest('th, td.total, td.asin, td.img, td.name');
-      if (!inTable || onTotalOrHead) {
+      const onHead = e.target.closest('th, td.asin, td.img, td.name');
+      if (!inTable || onHead) {
         cellSelection = null;
         applySelectionUI();
       }
       // 編集中だった場合はpreventDefaultしない（blurさせる）
       return;
     }
-    const day = parseInt(cell.dataset.day, 10);
+    const day = cell.classList.contains('total') ? daysInMonth(currentMonth) + 1 : parseInt(cell.dataset.day, 10);
     const rowEl = cell.closest('tr');
     const row = parseInt(rowEl.dataset.row, 10);
     if (e.shiftKey && cellSelection) {
@@ -2424,17 +2439,20 @@ function setupCellInteraction(){
 
   document.addEventListener('mousemove', (e) => {
     if (!dragMode) return;
-    const cell = e.target.closest('table.ship td.day');
+    const dayCell = e.target.closest('table.ship td.day');
+    const totalCell = e.target.closest('table.ship td.total');
+    const cell = dayCell || totalCell;
     if (!cell) return;
-    const day = parseInt(cell.dataset.day, 10);
     const rowEl = cell.closest('tr');
     const row = parseInt(rowEl.dataset.row, 10);
     if (dragMode === 'select') {
+      const day = dayCell ? parseInt(dayCell.dataset.day, 10) : daysInMonth(currentMonth) + 1;
       cellSelection.focusRow = row;
       cellSelection.focusCol = day;
       applySelectionUI();
     } else if (dragMode === 'fill') {
-      fillEnd = { row, col: day };
+      if (!dayCell) return; // フィルは日付セルのみ
+      fillEnd = { row, col: parseInt(dayCell.dataset.day, 10) };
       showFillPreview();
     }
   });
@@ -2520,10 +2538,14 @@ function arrowDelta(key){
   return [0, 0];
 }
 
-// 出荷数（その日の値）。1以上を「データあり」とみなす
+// 出荷数（その日の値）。1以上を「データあり」とみなす。合計列(=日数+1)は行合計を返す
 function shipCellVal(rows, r, day){
   const row = rows[r];
   if (!row) return 0;
+  if (day === daysInMonth(currentMonth) + 1) {
+    const t = row.querySelector('td.total');
+    return t ? (parseInt(t.textContent, 10) || 0) : 0;
+  }
   const fnsku = row.dataset.fnsku;
   return (shipments[currentMonth] && shipments[currentMonth][fnsku] && shipments[currentMonth][fnsku][day]) || 0;
 }
@@ -2533,7 +2555,7 @@ function shipJumpEdge(startRow, startCol, dr, dc){
   const rows = document.querySelectorAll('table.ship tbody tr');
   const numRows = rows.length;
   const numDays = daysInMonth(currentMonth);
-  const inB = (r, c) => r >= 0 && r < numRows && c >= 1 && c <= numDays;
+  const inB = (r, c) => r >= 0 && r < numRows && c >= 1 && c <= numDays + 1;
   const filled = (r, c) => shipCellVal(rows, r, c) > 0;
   let r = startRow, c = startCol;
   if (!inB(r + dr, c + dc)) return { row: r, col: c }; // すでに端
@@ -2558,7 +2580,9 @@ function scrollShipFocusIntoView(){
   const rows = document.querySelectorAll('table.ship tbody tr');
   const row = rows[cellSelection.focusRow];
   if (!row) return;
-  const cell = row.querySelector('td.day[data-day="' + cellSelection.focusCol + '"]');
+  const cell = (cellSelection.focusCol <= daysInMonth(currentMonth))
+    ? row.querySelector('td.day[data-day="' + cellSelection.focusCol + '"]')
+    : row.querySelector('td.total');
   if (cell && cell.scrollIntoView) cell.scrollIntoView({ block: 'nearest', inline: 'nearest' });
 }
 
@@ -2568,7 +2592,7 @@ function extendShipSelection(dr, dc){
   const numRows = document.querySelectorAll('table.ship tbody tr').length;
   const numDays = daysInMonth(currentMonth);
   cellSelection.focusRow = Math.max(0, Math.min(numRows - 1, cellSelection.focusRow + dr));
-  cellSelection.focusCol = Math.max(1, Math.min(numDays, cellSelection.focusCol + dc));
+  cellSelection.focusCol = Math.max(1, Math.min(numDays + 1, cellSelection.focusCol + dc));
   applySelectionUI();
   scrollShipFocusIntoView();
 }
@@ -2597,7 +2621,7 @@ function selectAllShipCells(){
   const numRows = document.querySelectorAll('table.ship tbody tr').length;
   const numDays = daysInMonth(currentMonth);
   if (!numRows) return;
-  cellSelection = { anchorRow: 0, anchorCol: 1, focusRow: numRows - 1, focusCol: numDays };
+  cellSelection = { anchorRow: 0, anchorCol: 1, focusRow: numRows - 1, focusCol: numDays + 1 };
   applySelectionUI();
 }
 
@@ -2606,13 +2630,15 @@ function clearSelectedCells(){
   const rect = getSelectionRect();
   pushUndoState();
   const rows = document.querySelectorAll('table.ship tbody tr');
+  const numDays = daysInMonth(currentMonth);
   if (!shipments[currentMonth]) shipments[currentMonth] = {};
   for (let r = rect.minRow; r <= rect.maxRow; r++) {
     const row = rows[r];
     if (!row) continue;
     const fnsku = row.dataset.fnsku;
     if (!shipments[currentMonth][fnsku]) continue;
-    for (let c = rect.minCol; c <= rect.maxCol; c++) {
+    const lastCol = Math.min(rect.maxCol, numDays); // 合計列は実データが無いのでスキップ
+    for (let c = rect.minCol; c <= lastCol; c++) {
       delete shipments[currentMonth][fnsku][c];
     }
   }
@@ -2624,6 +2650,7 @@ function getSelectedData(){
   const rect = getSelectionRect();
   if (!rect) return null;
   const rows = document.querySelectorAll('table.ship tbody tr');
+  const numDays = daysInMonth(currentMonth);
   const data = [];
   for (let r = rect.minRow; r <= rect.maxRow; r++) {
     const row = rows[r];
@@ -2632,7 +2659,12 @@ function getSelectedData(){
     const fnskuData = (shipments[currentMonth] && shipments[currentMonth][fnsku]) || {};
     const rowData = [];
     for (let c = rect.minCol; c <= rect.maxCol; c++) {
-      rowData.push(fnskuData[c] || 0);
+      if (c <= numDays) {
+        rowData.push(fnskuData[c] || 0);
+      } else {
+        const t = row.querySelector('td.total');
+        rowData.push(t ? (parseInt(t.textContent, 10) || 0) : 0);
+      }
     }
     data.push(rowData);
   }
@@ -2682,6 +2714,7 @@ async function pasteAtSelection(){
     if (!shipments[currentMonth][fnsku]) shipments[currentMonth][fnsku] = {};
     rowData.forEach((val, cIdx) => {
       const day = startCol + cIdx;
+      if (day > daysInMonth(currentMonth)) return; // 合計列には貼り付けない
       if (val > 0) shipments[currentMonth][fnsku][day] = val;
       else delete shipments[currentMonth][fnsku][day];
     });
