@@ -174,13 +174,15 @@
     object-fit: cover;
     background: #fff;
   }
-  table.ship td.day { width: 34px; padding: 8px 2px; color: var(--text-tertiary); font-size: 14px; }
-  table.ship td.day.zero { background: #ededed; color: #999; }
-  table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
-  table.ship td.day.today { background: var(--amber-light); }
-  table.ship td.day.zero.today { background: var(--amber-light); color: var(--amber); }
+  table.ship td.day { width: 34px; padding: 8px 2px; color: var(--black); font-size: 14px; }
+  /* 未入力：空白・控えめなグレー */
+  table.ship td.day.empty { background: #e8eaed; }
+  /* 値あり：はっきりした緑＋通常の濃さの文字 */
+  table.ship td.day.has { color: var(--black); font-weight: 600; background: rgba(22,163,74,0.32); }
+  /* 月が全日埋まったときの上位5日（濃い緑）・下位5日（赤） */
+  table.ship td.day.rank-top { background: var(--accent); color: #fff; font-weight: 700; }
+  table.ship td.day.rank-bottom { background: rgba(211,47,47,0.16); color: var(--danger); font-weight: 700; }
   table.ship th.day { width: 34px; padding: 8px 2px; font-size: 13px; }
-  table.ship th.day.today { background: var(--amber-light); color: var(--amber); }
   /* クリック可能な日付ヘッダー（出荷数入力へ） */
   table.ship th.day-clickable {
     cursor: pointer;
@@ -218,11 +220,29 @@
   table.ship thead th.total {
     background: var(--bg-secondary);
   }
+  /* 総合計フッター行（最下部に固定表示） */
+  table.ship tfoot td {
+    position: sticky;
+    bottom: 0;
+    z-index: 4;
+    background: #eef1f4;
+    font-weight: 700;
+    border-top: 2px solid var(--border-strong);
+    box-shadow: inset 0 1px 0 var(--border-strong);
+  }
+  table.ship tfoot td.ft-label { text-align: right; padding-right: 10px; color: var(--text-secondary); }
+  table.ship tfoot td.ft-day { font-size: 13px; color: var(--text-secondary); }
+  table.ship tfoot td.ft-grand {
+    background: var(--accent);
+    color: #fff;
+    font-size: 15px;
+    border-left: 1px solid var(--accent);
+  }
   table.ship tr:hover td:not(.total) { background: rgba(0,0,0,0.02); }
   /* 編集可能な日別セルの視覚ヒント */
   table.ship td.day { cursor: cell; position: relative; user-select: none; }
   table.ship td.day:hover { background: var(--blue-light); }
-  table.ship td.day.has:hover { background: var(--accent-light); filter: brightness(0.95); }
+  table.ship td.day.has:hover, table.ship td.day.rank-top:hover, table.ship td.day.rank-bottom:hover { filter: brightness(0.95); }
 
   /* セル選択（複数選択） */
   table.ship td.day.cell-selected { background: rgba(37, 99, 235, 0.22) !important; }
@@ -290,12 +310,10 @@
 
   /* 月別テーブル（日別と共通スタイル、列幅だけ違う） */
   table.ship td.month, table.ship th.month { width: 64px; padding: 10px 4px; }
-  table.ship td.month { color: var(--text-tertiary); font-size: 14px; }
-  table.ship td.month.zero { background: #ededed; color: #999; }
-  table.ship td.month.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
-  table.ship td.month.current { background: var(--amber-light); }
-  table.ship td.month.zero.current { background: var(--amber-light); color: var(--amber); }
-  table.ship th.month.current { background: var(--amber-light); color: var(--amber); }
+  table.ship td.month { color: var(--black); font-size: 14px; }
+  table.ship td.month.empty { background: #e8eaed; }
+  table.ship td.month.has { color: var(--black); font-weight: 600; background: rgba(22,163,74,0.32); }
+  table.ship td.month.current { box-shadow: inset 0 0 0 2px var(--amber); }
 
   /* 日別/月別 切り替えトグル */
   .period-toggle {
@@ -830,7 +848,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.39</span>
+    <span class="version">v0.40</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1861,8 +1879,19 @@ function renderDailyTable(){
   html += '<th class="total">合計</th></tr></thead><tbody>';
 
   const monthData = shipments[currentMonth] || {};
+  const dayTotals = new Array(days + 1).fill(0);
+  let grandTotal = 0;
   products.forEach((p, idx) => {
     const fnskuData = monthData[p.fnsku] || {};
+    // 上位5日・下位5日の判定（その商品の全日が埋まっているときのみ）
+    const filledDays = [];
+    for (let d = 1; d <= days; d++) { if (fnskuData[d]) filledDays.push({ d: d, q: fnskuData[d] }); }
+    const topSet = new Set(), botSet = new Set();
+    if (filledDays.length === days && days > 10) {
+      const sorted = filledDays.slice().sort((a, b) => b.q - a.q);
+      sorted.slice(0, 5).forEach(o => topSet.add(o.d));   // 上位5日
+      sorted.slice(-5).forEach(o => botSet.add(o.d));     // 下位5日
+    }
     let total = 0;
     html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '" data-row="' + idx + '">';
     html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
@@ -1871,12 +1900,32 @@ function renderDailyTable(){
     for (let d = 1; d <= days; d++) {
       const q = fnskuData[d] || 0;
       total += q;
-      const cls = 'day' + (q ? ' has' : ' zero');
-      html += '<td class="' + cls + '" data-day="' + d + '">' + q + '</td>';
+      dayTotals[d] += q;
+      let cls = 'day';
+      let txt = '';
+      if (q) {
+        cls += ' has';
+        if (topSet.has(d)) cls += ' rank-top';
+        else if (botSet.has(d)) cls += ' rank-bottom';
+        txt = q;
+      } else {
+        cls += ' empty';   // 未入力は空白
+      }
+      html += '<td class="' + cls + '" data-day="' + d + '">' + txt + '</td>';
     }
+    grandTotal += total;
     html += '<td class="total">' + total + '</td></tr>';
   });
-  html += '</tbody></table></div>';
+  html += '</tbody>';
+  // 総合計フッター（全商品の合計を合算）
+  html += '<tfoot><tr class="grand-row">';
+  html += '<td class="ft-label" colspan="3">総合計</td>';
+  for (let d = 1; d <= days; d++) {
+    html += '<td class="ft-day">' + (dayTotals[d] || '') + '</td>';
+  }
+  html += '<td class="total ft-grand">' + grandTotal + '</td>';
+  html += '</tr></tfoot>';
+  html += '</table></div>';
   body.innerHTML = html;
 
   // スクロール位置を復元
@@ -1997,8 +2046,8 @@ function renderMonthlyTable(){
     for (let m = 1; m <= 12; m++) {
       const q = monthlyTotals[m - 1];
       const isCur = m === currentMm;
-      const cls = 'month' + (q ? ' has' : ' zero') + (isCur ? ' current' : '');
-      html += '<td class="' + cls + '">' + q + '</td>';
+      const cls = 'month' + (q ? ' has' : ' empty') + (isCur ? ' current' : '');
+      html += '<td class="' + cls + '">' + (q || '') + '</td>';
     }
     html += '<td class="total">' + yearTotal + '</td></tr>';
   });
