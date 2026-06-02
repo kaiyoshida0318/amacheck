@@ -175,7 +175,7 @@
     background: #fff;
   }
   table.ship td.day { width: 34px; padding: 8px 2px; color: var(--text-tertiary); font-size: 14px; }
-  table.ship td.day.zero { background: #ededed; color: #999; }
+  table.ship td.day.zero { background: #fff; color: #999; }
   table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
   table.ship td.day.today { background: var(--amber-light); }
   table.ship td.day.zero.today { background: var(--amber-light); color: var(--amber); }
@@ -830,7 +830,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.42</span>
+    <span class="version">v0.43</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1872,7 +1872,7 @@ function renderDailyTable(){
       const q = fnskuData[d] || 0;
       total += q;
       const cls = 'day' + (q ? ' has' : ' zero');
-      html += '<td class="' + cls + '" data-day="' + d + '">' + q + '</td>';
+      html += '<td class="' + cls + '" data-day="' + d + '">' + (q || '') + '</td>';
     }
     html += '<td class="total">' + total + '</td></tr>';
   });
