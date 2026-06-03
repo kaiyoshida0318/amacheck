@@ -329,6 +329,21 @@
   table.ship td.month.rank-hi { color: #d32f2f; font-weight: 700; }
   table.ship td.month.rank-lo { color: #2563eb; font-weight: 700; }
 
+  /* 合計出荷数（日付選択の右） */
+  .ship-total {
+    display: inline-flex;
+    align-items: baseline;
+    gap: 6px;
+    font-size: 13px;
+    color: var(--text-secondary);
+    background: var(--accent-light);
+    border: 1px solid rgba(22,163,74,0.25);
+    border-radius: 8px;
+    padding: 5px 12px;
+    white-space: nowrap;
+  }
+  .ship-total strong { font-size: 16px; color: var(--accent-hover); font-weight: 800; }
+
   /* 日別/月別 切り替えトグル */
   .period-toggle {
     display: inline-flex;
@@ -919,7 +934,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.56</span>
+  <span class="version">v0.57</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -992,6 +1007,7 @@
       </div>
       <select id="month-select"></select>
       <select id="year-select" hidden></select>
+      <span class="ship-total">合計出荷数 <strong id="ship-grand-total">0</strong></span>
       <div class="spacer"></div>
       <button class="primary" id="open-input"><svg class="icn"><use href="#i-plus"/></svg> 出荷数入力</button>
       <button class="utility" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
@@ -2010,10 +2026,16 @@ function deleteSelected(){
 // ============================================
 // 出荷数表のレンダリング（日別/月別を切り替え）
 // ============================================
+function setShipTotal(n){
+  const el = document.getElementById('ship-grand-total');
+  if (el) el.textContent = Number(n || 0).toLocaleString();
+}
+
 function renderShipmentTable(){
   updateWithdrawnButton();
   const body = document.getElementById('shipment-body');
   if (!products.length) {
+    setShipTotal(0);
     body.innerHTML = '<div class="master-card"><div class="empty-state">'
       + '<svg class="icn" style="font-size:32px;color:var(--text-tertiary)"><use href="#i-database-off"/></svg>'
       + '<div style="margin-top:8px;">商品情報がまだ登録されていません</div>'
@@ -2079,6 +2101,7 @@ function renderDailyTable(){
 
   const monthData = shipments[currentMonth] || {};
   const shipProducts = products.filter(isProductVisibleInShip);
+  let grandTotal = 0;
   shipProducts.forEach((p, idx) => {
     const fnskuData = monthData[p.fnsku] || {};
     // その月の全日が埋まったら、上位5日=赤・下位5日=青の数字色
@@ -2103,9 +2126,11 @@ function renderDailyTable(){
       html += '<td class="' + cls + '" data-day="' + d + '">' + (q || '') + '</td>';
     }
     html += '<td class="total">' + total + '</td></tr>';
+    grandTotal += total;
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+  setShipTotal(grandTotal);
 
   // スクロール位置を復元
   const newWrap = body.querySelector('.table-wrap');
@@ -2211,6 +2236,7 @@ function renderMonthlyTable(){
   }
   html += '<th class="total">年計</th></tr></thead><tbody>';
 
+  let grandTotal = 0;
   products.filter(isProductVisibleInShip).forEach(p => {
     let yearTotal = 0;
     const monthlyTotals = [];
@@ -2244,9 +2270,11 @@ function renderMonthlyTable(){
       html += '<td class="' + cls + '">' + q + '</td>';
     }
     html += '<td class="total">' + yearTotal + '</td></tr>';
+    grandTotal += yearTotal;
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+  setShipTotal(grandTotal);
 
   // スクロール位置を復元
   const newWrap = body.querySelector('.table-wrap');
