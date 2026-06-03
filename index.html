@@ -742,6 +742,7 @@
   .with-item .spacer { flex: 1; }
   /* セール一覧：スクロール＋折りたたみ＋ポップアップ */
   .sale-scroll { max-height: 220px; overflow-y: auto; padding-right: 2px; }
+  .sale-pc { font-size: 11px; background: rgba(126,34,206,0.12); color: var(--purple); border-radius: 10px; padding: 2px 8px; margin-left: 6px; white-space: nowrap; }
   .sale-ended-toggle {
     width: 100%; text-align: left; margin: 4px 0 8px;
     background: var(--bg-secondary); border: 1px dashed var(--border-strong);
@@ -972,14 +973,14 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.61</span>
+  <span class="version">v0.62</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
       <button class="zoom-btn" id="zoom-in" title="文字を大きく">A+</button>
     </div>
-    <button class="utility" id="open-sale" title="セール期間を設定して日別表に表示" style="font-size:13px;"><svg class="icn"><use href="#i-tag"/></svg> セール日設定</button>
+    <button class="utility" id="open-sale" title="セール期間・対象商品を設定" style="font-size:13px;"><svg class="icn"><use href="#i-tag"/></svg> セール設定</button>
   </div>
 </header>
 
@@ -1143,13 +1144,13 @@
   </div>
 </div>
 
-<!-- セール日設定モーダル -->
+<!-- セール設定モーダル -->
 <div class="modal-bg" id="sale-modal" hidden>
-  <div class="modal" style="max-width:520px;">
+  <div class="modal" style="max-width:560px;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
-        <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-tag"/></svg> セール日設定</h3>
-        <div class="sub" style="margin-bottom:0;">セール期間（開始日〜終了日）を登録すると、出荷数データ（日別）の日付の上にセール期間が表示されます。複数登録できます。</div>
+        <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-tag"/></svg> セール設定</h3>
+        <div class="sub" style="margin-bottom:0;">セール期間（開始日〜終了日）を登録すると、出荷数データ（日別）の日付の上にセール期間が表示されます。セール申請が通った商品リスト（タイムセール推奨商品リスト）を読み込むと、対象商品はセール期間中、総売上の計算にセール価格が使われます。</div>
       </div>
       <button id="sale-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
@@ -1167,12 +1168,18 @@
         <label style="display:block;margin-bottom:4px;font-weight:600;font-size:12px;">名称（任意）</label>
         <input type="text" id="sale-label" placeholder="例: プライムデー" style="width:100%;font-size:14px;padding:8px 10px;">
       </div>
-      <button class="confirm" id="sale-add" style="flex-shrink:0;"><svg class="icn"><use href="#i-plus"/></svg> 追加</button>
-      <button class="ghost" id="sale-edit-cancel" style="flex-shrink:0;" hidden>取消</button>
     </div>
+    <label class="upload-zone" for="sale-file-input" style="margin-top:14px;padding:18px;">
+      <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
+      <div class="main">セール対象商品リストをアップロード（任意）</div>
+      <div class="sub">タイムセール推奨商品リスト .xlsx / .csv（SKU・セール価格）</div>
+      <input type="file" id="sale-file-input" accept=".xlsx,.xls,.csv,text/csv">
+    </label>
+    <div id="sale-file-info" style="margin-top:8px;font-size:13px;color:var(--text-secondary);"></div>
     <div id="sale-list" style="margin-top:18px;"></div>
     <div class="modal-actions">
-      <button id="sale-done" class="primary"><svg class="icn"><use href="#i-check"/></svg> 完了</button>
+      <button id="sale-edit-cancel" class="ghost" hidden>取消</button>
+      <button id="sale-done" class="primary"><svg class="icn"><use href="#i-check"/></svg> 保存</button>
     </div>
   </div>
 </div>
@@ -1258,6 +1265,7 @@
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <script>
 // ============================================
 // 状態管理（localStorage 永続化）
@@ -1376,10 +1384,10 @@ function init(){
   document.getElementById('open-input').addEventListener('click', () => openModal());
   document.getElementById('toggle-header').addEventListener('click', toggleHeader);
   window.addEventListener('resize', adjustHiddenTableHeight);
-  // セール日設定
+  // セール設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
-  document.getElementById('sale-add').addEventListener('click', addSaleRange);
   document.getElementById('sale-edit-cancel').addEventListener('click', cancelSaleEdit);
+  document.getElementById('sale-file-input').addEventListener('change', handleSaleFile);
   // SALEバーをクリックで編集・削除ポップアップ
   document.addEventListener('click', (e) => {
     const band = e.target.closest('table.ship th.sale-band');
@@ -1391,7 +1399,7 @@ function init(){
     if (!e.target.closest('#sale-popup')) closeSalePopup();
   });
   document.getElementById('sale-close').addEventListener('click', closeSaleModal);
-  document.getElementById('sale-done').addEventListener('click', closeSaleModal);
+  document.getElementById('sale-done').addEventListener('click', saveSale);
   document.getElementById('sale-modal').addEventListener('mousedown', (e) => {
     if (e.target.id === 'sale-modal') closeSaleModal();
   });
@@ -3509,6 +3517,7 @@ function adjustHiddenTableHeight(){
 // セール日設定
 // ============================================
 let editingSaleId = null;
+let pendingSaleProducts = null; // 直近に読み込んだセール対象商品（保存時にセールへ付与）
 function openSaleModal(){
   cancelSaleEdit();
   renderSaleList();
@@ -3523,11 +3532,19 @@ function setSaleInputs(start, end, label){
   document.getElementById('sale-end').value = end || '';
   document.getElementById('sale-label').value = label || '';
 }
+function setSaleFileInfo(products){
+  const el = document.getElementById('sale-file-info');
+  if (!el) return;
+  el.innerHTML = (products && products.length)
+    ? '<span style="color:var(--success)">✓ セール対象商品 ' + products.length + ' 件を読み込み済み</span>'
+    : '';
+}
 function cancelSaleEdit(){
   editingSaleId = null;
+  pendingSaleProducts = null;
   setSaleInputs('', '', '');
-  const btn = document.getElementById('sale-add');
-  btn.innerHTML = '<svg class="icn"><use href="#i-plus"/></svg> 追加';
+  setSaleFileInfo(null);
+  const fi = document.getElementById('sale-file-input'); if (fi) fi.value = '';
   const cancel = document.getElementById('sale-edit-cancel');
   if (cancel) cancel.hidden = true;
 }
@@ -3546,10 +3563,11 @@ function renderSaleList(){
 
   function itemHtml(s){
     const lbl = s.label ? '<span class="lbl">' + escapeHtml(s.label) + '</span>' : '';
+    const pc = (s.products && s.products.length) ? '<span class="sale-pc" title="セール対象商品数">' + s.products.length + '商品</span>' : '';
     return '<div class="sale-item">'
       + '<div class="bar"></div>'
       + '<span class="dates">' + s.start + ' 〜 ' + s.end + '</span>'
-      + lbl
+      + lbl + pc
       + '<span class="spacer"></span>'
       + '<button class="ghost" title="編集" onclick="editSale(\'' + s.id + '\')"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg></button>'
       + '<button class="ghost" title="削除" onclick="deleteSaleById(\'' + s.id + '\')"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button>'
@@ -3575,36 +3593,40 @@ function toggleEndedSales(btn){
 }
 window.toggleEndedSales = toggleEndedSales;
 
-function addSaleRange(){
+function saveSale(){
   const start = document.getElementById('sale-start').value;
   const end = document.getElementById('sale-end').value;
   const label = document.getElementById('sale-label').value.trim();
+  if (!start && !end && !editingSaleId) { closeSaleModal(); return; } // 入力なし→閉じる
   if (!start || !end) { toast('開始日と終了日を選択してください'); return; }
   let s = start, e = end;
   if (s > e) { const t = s; s = e; e = t; }
   if (editingSaleId) {
     const sale = saleRanges.find(x => x.id === editingSaleId);
-    if (sale) { sale.start = s; sale.end = e; sale.label = label; }
-    toast('セール期間を更新しました');
+    if (sale) {
+      sale.start = s; sale.end = e; sale.label = label;
+      if (pendingSaleProducts !== null) sale.products = pendingSaleProducts;
+    }
   } else {
-    saleRanges.push({ id: genSaleId(), start: s, end: e, label: label });
-    toast('セール期間を追加しました');
+    const sale = { id: genSaleId(), start: s, end: e, label: label };
+    if (pendingSaleProducts && pendingSaleProducts.length) sale.products = pendingSaleProducts;
+    saleRanges.push(sale);
   }
   saveSales();
-  cancelSaleEdit();
-  renderSaleList();
   if (currentPeriod === 'daily') renderShipmentTable();
+  if (!document.getElementById('ad-view').hidden) renderAdTable();
+  toast('保存しました');
+  closeSaleModal();
 }
 function editSale(id){
   const s = saleRanges.find(x => x.id === id);
   if (!s) return;
   editingSaleId = id;
   setSaleInputs(s.start, s.end, s.label);
-  const btn = document.getElementById('sale-add');
-  btn.innerHTML = '<svg class="icn"><use href="#i-check"/></svg> 更新';
+  pendingSaleProducts = s.products ? s.products.slice() : [];
+  setSaleFileInfo(pendingSaleProducts);
   const cancel = document.getElementById('sale-edit-cancel');
   if (cancel) cancel.hidden = false;
-  // モーダルが閉じていれば開く（SALEバーからの編集用）
   if (document.getElementById('sale-modal').hidden) {
     renderSaleList();
     document.getElementById('sale-modal').hidden = false;
@@ -3619,9 +3641,65 @@ function deleteSaleById(id){
   saveSales();
   renderSaleList();
   if (currentPeriod === 'daily') renderShipmentTable();
+  if (!document.getElementById('ad-view').hidden) renderAdTable();
 }
 window.editSale = editSale;
 window.deleteSaleById = deleteSaleById;
+
+// セール対象商品リスト（xlsx/csv）の取り込み
+function saleParseNum(v){
+  if (v === null || v === undefined || v === '') return null;
+  const n = parseFloat(String(v).replace(/[¥￥,，\s円]/g, ''));
+  return isNaN(n) ? null : n;
+}
+function extractSaleProducts(rows){
+  if (!rows.length) return [];
+  const keys = Object.keys(rows[0]);
+  const skuKey = keys.find(k => k.toUpperCase().indexOf('SKU') > -1);
+  const childAsinKey = keys.find(k => k.indexOf('子ASIN') > -1) || keys.find(k => k.toUpperCase().indexOf('ASIN') > -1);
+  const parentAsinKey = keys.find(k => k.indexOf('親ASIN') > -1);
+  const titleKey = keys.find(k => k.indexOf('Title') > -1) || keys.find(k => k.indexOf('商品名') > -1) || keys.find(k => k.indexOf('タイトル') > -1);
+  const saleKey = keys.find(k => k.indexOf('セール価格') > -1);
+  const listKey = keys.find(k => k.indexOf('出品価格') > -1);
+  const out = [];
+  rows.forEach(r => {
+    const sku = skuKey ? String(r[skuKey] || '').trim() : '';
+    const asin = childAsinKey ? String(r[childAsinKey] || '').trim() : '';
+    const salePrice = saleKey ? saleParseNum(r[saleKey]) : null;
+    if ((!sku && !asin) || salePrice == null) return;
+    out.push({
+      sku: sku,
+      asin: asin,
+      parentAsin: parentAsinKey ? String(r[parentAsinKey] || '').trim() : '',
+      title: titleKey ? String(r[titleKey] || '').trim() : '',
+      salePrice: salePrice,
+      listPrice: listKey ? saleParseNum(r[listKey]) : null
+    });
+  });
+  return out;
+}
+function handleSaleFile(e){
+  const f = e.target.files[0];
+  if (!f) return;
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    try {
+      if (typeof XLSX === 'undefined') { toast('表計算ライブラリの読み込みに失敗しました'); return; }
+      const wb = XLSX.read(new Uint8Array(ev.target.result), { type: 'array' });
+      const ws = wb.Sheets[wb.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json(ws, { defval: null });
+      const products = extractSaleProducts(rows);
+      if (!products.length) { toast('セール対象商品（SKU・セール価格）が見つかりませんでした'); return; }
+      pendingSaleProducts = products;
+      setSaleFileInfo(products);
+      toast(products.length + ' 件のセール対象商品を読み込みました');
+    } catch (err) {
+      toast('ファイルを読み込めませんでした');
+    }
+  };
+  reader.readAsArrayBuffer(f);
+  e.target.value = '';
+}
 
 // SALEバーのポップアップ（編集・削除）
 function closeSalePopup(){
@@ -3891,6 +3969,52 @@ function adRowHasData(m){
   return (s.sp.kw + s.sp.shohin + s.sp.auto + s.sb.douga + s.sb.shokore
         + c.sp.kw + c.sp.shohin + c.sp.auto + c.sb.douga + c.sb.shokore) > 0;
 }
+// セール対象なら、その日に適用されるセール価格を返す（なければnull）
+function salePriceForProductOnDate(product, dateStr){
+  for (const sale of saleRanges) {
+    if (!sale.products || !sale.products.length) continue;
+    if (dateStr < sale.start || dateStr > sale.end) continue;
+    const hit = sale.products.find(sp =>
+      (sp.sku && product.sku && sp.sku === product.sku) ||
+      (sp.asin && product.asin && sp.asin === product.asin) ||
+      (sp.parentAsin && product.asin && sp.parentAsin === product.asin)
+    );
+    if (hit && hit.salePrice != null) return hit.salePrice;
+  }
+  return null;
+}
+function priceForProductOnDate(product, dateStr){
+  const sp = salePriceForProductOnDate(product, dateStr);
+  if (sp != null) return sp;
+  return Number(product.sellingPrice) || 0;
+}
+// 総売上 = Σ(出荷数 × 価格)。productFilterが商品名なら名称一致する商品のみ。
+function totalSalesForDate(dateStr, productFilter){
+  const ym = dateStr.slice(0, 7);
+  const day = parseInt(dateStr.slice(8, 10), 10);
+  const monthData = shipments[ym];
+  if (!monthData) return 0;
+  let total = 0;
+  products.forEach(p => {
+    if (productFilter !== 'all') {
+      const nm = p.name || '';
+      if (nm.indexOf(productFilter) < 0 && productFilter.indexOf(nm) < 0) return;
+    }
+    const qty = monthData[p.fnsku] && monthData[p.fnsku][day];
+    if (!qty) return;
+    total += qty * priceForProductOnDate(p, dateStr);
+  });
+  return total;
+}
+function totalSalesForMonth(prefix, productFilter){
+  let total = 0;
+  const ym = prefix; // YYYY-MM
+  const dim = daysInMonth(ym);
+  for (let d = 1; d <= dim; d++) {
+    total += totalSalesForDate(ym + '-' + String(d).padStart(2, '0'), productFilter);
+  }
+  return total;
+}
 function allAdProducts(){
   const set = new Set();
   Object.values(adData).forEach(day => Object.keys(day).forEach(p => set.add(p)));
@@ -3913,7 +4037,7 @@ function renderAdTable(){
   if (!body) return;
   populateAdMonthYear();
 
-  if (!Object.keys(adData).length) {
+  if (!Object.keys(adData).length && !Object.keys(shipments).length) {
     body.innerHTML = '<div class="master-card"><div class="empty-state">'
       + '<svg class="icn" style="font-size:32px;color:var(--text-tertiary)"><use href="#i-chart-bar"/></svg>'
       + '<div style="margin-top:8px;">広告データがまだありません</div>'
@@ -3927,7 +4051,7 @@ function renderAdTable(){
     const days = daysInMonth(adMonth);
     for (let d = 1; d <= days; d++) {
       const dateStr = adMonth + '-' + String(d).padStart(2, '0');
-      rows.push({ label: d, m: adMetricsForDate(dateStr, adProduct) });
+      rows.push({ label: d, m: adMetricsForDate(dateStr, adProduct), total: totalSalesForDate(dateStr, adProduct) });
     }
   } else {
     for (let mo = 1; mo <= 12; mo++) {
@@ -3943,7 +4067,7 @@ function renderAdTable(){
           ['douga', 'shokore'].forEach(k => { agg.sales.sb[k] += mm.sales.sb[k]; agg.cost.sb[k] += mm.cost.sb[k]; });
         }
       });
-      rows.push({ label: mo + '月', m: agg });
+      rows.push({ label: mo + '月', m: agg, total: totalSalesForMonth(prefix, adProduct) });
     }
   }
 
@@ -3981,11 +4105,14 @@ function renderAdTable(){
     const spCost = c.sp.kw + c.sp.shohin + c.sp.auto;
     const sbCost = c.sb.douga + c.sb.shokore;
     const has = adRowHasData(r.m);
+    const total = r.total || 0;             // 総売上 = Σ(出荷数×価格、対象商品はセール価格)
+    const seo = total - adSales;            // SEO売上 = 総売上 − 広告売上
     const cell = (v, cls) => '<td class="' + cls + '">' + (has ? yen(v) : '') + '</td>';
+    const tcell = (v, cls) => '<td class="' + cls + '">' + (total > 0 ? yen(v) : '') + '</td>';
     html += '<tr>'
       + '<td class="ad-daycol">' + r.label + '</td>'
-      + '<td class="adc-sales"></td>'
-      + '<td class="adc-sales"></td>'
+      + tcell(total, 'adc-sales')
+      + tcell(seo, 'adc-sales')
       + cell(adSales, 'adc-sales')
       + cell(sKw, 'adc-sales-sub')
       + cell(s.sp.shohin, 'adc-sales-sub')
