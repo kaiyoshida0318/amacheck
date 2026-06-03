@@ -329,6 +329,31 @@
   table.ship td.month.rank-hi { color: #d32f2f; font-weight: 700; }
   table.ship td.month.rank-lo { color: #2563eb; font-weight: 700; }
 
+  /* 広告キャンペーン管理 */
+  .switch { position: relative; display: inline-block; width: 42px; height: 22px; vertical-align: middle; }
+  .switch input { opacity: 0; width: 0; height: 0; }
+  .switch .slider { position: absolute; inset: 0; background: var(--border-strong); border-radius: 22px; transition: .2s; cursor: pointer; }
+  .switch .slider:before { content: ''; position: absolute; height: 16px; width: 16px; left: 3px; top: 3px; background: #fff; border-radius: 50%; transition: .2s; }
+  .switch input:checked + .slider { background: var(--accent); }
+  .switch input:checked + .slider:before { transform: translateX(20px); }
+  table.camp { border-collapse: collapse; width: 100%; font-size: 14px; }
+  table.camp th, table.camp td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
+  table.camp th { font-size: 12px; color: var(--text-secondary); font-weight: 700; }
+  table.camp th.col-sw, table.camp td.col-sw { width: 64px; text-align: center; }
+  table.camp th.col-type, table.camp td.col-type { width: 150px; }
+  table.camp th.col-status, table.camp td.col-status { width: 110px; }
+  table.camp th.col-del, table.camp td.col-del { width: 44px; text-align: center; }
+  .camp-status { font-size: 13px; font-weight: 700; }
+  .camp-status.on { color: var(--accent); }
+  .camp-status.off { color: var(--amber); }
+  .camp-name-edit { cursor: text; padding: 5px 8px; border-radius: 6px; display: inline-block; min-width: 120px; }
+  .camp-name-edit:hover { background: var(--bg-secondary); outline: 1px dashed var(--border-strong); }
+  .camp-type-select, .camp-name-input { font-size: 13px; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 6px; }
+  .camp-name-input { width: 100%; box-sizing: border-box; }
+  .camp-draft-box { border: 1px dashed var(--purple); border-radius: 10px; padding: 6px 12px 14px; margin-bottom: 18px; background: rgba(126,34,206,0.04); }
+  .camp-draft-box .draft-title { font-size: 13px; font-weight: 700; color: var(--purple); margin: 10px 2px; }
+  .camp-empty { color: var(--text-tertiary); font-size: 13px; padding: 16px 0; text-align: center; }
+
   /* 広告データテーブル */
   table.ad-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; }
   table.ad-table th, table.ad-table td {
@@ -876,6 +901,7 @@
   .tab[data-tab="master"] svg { color: var(--accent); }
   .tab[data-tab="shipment"] svg { color: var(--blue); }
   .tab[data-tab="ad"] svg { color: var(--purple); }
+  .tab[data-tab="campaign"] svg { color: var(--sale); }
   .tab .count {
     color: var(--text-tertiary);
     font-weight: 500;
@@ -973,7 +999,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.64</span>
+  <span class="version">v0.65</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -992,6 +1018,9 @@
   </button>
   <button class="tab" data-tab="shipment">
     <svg class="icn"><use href="#i-truck-delivery"/></svg> 出荷数データ
+  </button>
+  <button class="tab" data-tab="campaign">
+    <svg class="icn"><use href="#i-tag"/></svg> 広告キャンペーン
   </button>
   <button class="tab" data-tab="ad">
     <svg class="icn"><use href="#i-chart-bar"/></svg> 広告データ
@@ -1087,6 +1116,19 @@
     <div id="ad-body"></div>
   </div>
 
+  <!-- 広告キャンペーン管理画面 -->
+  <div id="campaign-view" hidden>
+    <div class="toolbar">
+      <h2 style="font-size:16px;margin:0;"><svg class="icn" style="color:var(--sale);vertical-align:-3px;"><use href="#i-tag"/></svg> 広告キャンペーン</h2>
+      <div class="spacer"></div>
+      <button class="primary" id="add-campaign-row"><svg class="icn"><use href="#i-plus"/></svg> キャンペーン追加</button>
+    </div>
+    <div class="master-card">
+      <div id="campaign-draft"></div>
+      <div id="campaign-list"></div>
+    </div>
+  </div>
+
   <!-- 撤退済み商品画面 -->
   <div id="withdrawn-view" hidden>
     <div class="toolbar">
@@ -1179,7 +1221,7 @@
     <div id="sale-list" style="margin-top:18px;"></div>
     <div class="modal-actions">
       <button id="sale-edit-cancel" class="ghost" hidden>取消</button>
-      <button id="sale-done" class="primary"><svg class="icn"><use href="#i-check"/></svg> 保存</button>
+      <button id="sale-done" class="primary"><svg class="icn"><use href="#i-check"/></svg> 登録</button>
     </div>
   </div>
 </div>
@@ -1276,12 +1318,15 @@ const STORAGE_ZOOM = 'amacheck_zoom_v1';
 const STORAGE_NAMEWIDTH = 'amacheck_namewidth_v1';
 const STORAGE_SALES = 'amacheck_sales_v1';
 const STORAGE_ADDATA = 'amacheck_addata_v1';
+const STORAGE_CAMPAIGNS = 'amacheck_adcampaigns_v1';
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
 let products = loadProducts();
 let shipments = loadShipments();
 let saleRanges = loadSales();
 let adData = loadAdData();
+let adCampaigns = (function(){ try { return JSON.parse(localStorage.getItem(STORAGE_CAMPAIGNS) || '[]'); } catch { return []; } })();
+let campaignDrafts = [];
 let adPeriod = 'daily';
 let adMonth = ymKey(new Date());
 let adYear = String(new Date().getFullYear());
@@ -1420,6 +1465,7 @@ function init(){
   document.getElementById('open-withdrawn').addEventListener('click', () => switchView('withdrawn'));
   // 広告データ
   document.getElementById('open-ad-add').addEventListener('click', openAdAddModal);
+  document.getElementById('add-campaign-row').addEventListener('click', addCampaignDraftRow);
   document.getElementById('ad-add-close').addEventListener('click', closeAdAddModal);
   document.getElementById('ad-add-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'ad-add-modal') closeAdAddModal(); });
   document.getElementById('ad-file-input').addEventListener('change', handleAdFile);
@@ -1522,10 +1568,12 @@ function switchView(name, fromPop){
   document.getElementById('shipment-view').hidden = (name !== 'shipment');
   document.getElementById('withdrawn-view').hidden = (name !== 'withdrawn');
   document.getElementById('ad-view').hidden = (name !== 'ad');
+  document.getElementById('campaign-view').hidden = (name !== 'campaign');
   if (name === 'shipment') renderShipmentTable();
   if (name === 'master') renderMasterList();
   if (name === 'withdrawn') renderWithdrawnList();
   if (name === 'ad') { populateAdProductSelect(); renderAdTable(); }
+  if (name === 'campaign') renderCampaignView();
   updateActiveTab(name);
   // ブラウザ履歴に積む（popstateからの呼び出しは積まない）
   if (!fromPop) {
@@ -3625,7 +3673,7 @@ function saveSale(){
   saveSales();
   if (currentPeriod === 'daily') renderShipmentTable();
   if (!document.getElementById('ad-view').hidden) renderAdTable();
-  toast('保存しました');
+  toast('登録しました');
   closeSaleModal();
 }
 function editSale(id){
@@ -3967,7 +4015,9 @@ function adMetricsForDate(dateStr, productFilter){
     cost:  { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } }
   };
   if (!day) return z;
-  const prods = productFilter === 'all' ? Object.keys(day) : [productFilter];
+  const prods = productFilter === 'all'
+    ? Object.keys(day)
+    : Object.keys(day).filter(pk => pk.indexOf(productFilter) > -1 || productFilter.indexOf(pk) > -1);
   prods.forEach(pr => {
     const pd = day[pr];
     if (!pd) return;
@@ -4035,11 +4085,13 @@ function allAdProducts(){
 function populateAdProductSelect(){
   const sel = document.getElementById('ad-product-select');
   if (!sel) return;
-  const prods = allAdProducts();
+  // 表示中の月（日別=その月／月別=その年の年末）を基準に、実施中・当月までのオフを表示
+  const refYm = (adPeriod === 'monthly') ? (adYear + '-12') : adMonth;
+  const visible = adCampaigns.filter(c => campaignVisibleForMonth(c, refYm));
   let html = '<option value="all">全体</option>';
-  prods.forEach(p => { html += '<option value="' + escapeHtml(p) + '">' + escapeHtml(p) + '</option>'; });
+  visible.forEach(c => { html += '<option value="' + escapeHtml(c.name) + '">' + escapeHtml(c.name) + '</option>'; });
   sel.innerHTML = html;
-  if (adProduct !== 'all' && prods.indexOf(adProduct) < 0) adProduct = 'all';
+  if (adProduct !== 'all' && !visible.some(c => c.name === adProduct)) adProduct = 'all';
   sel.value = adProduct;
 }
 function yen(n){ return n ? '¥' + Math.round(n).toLocaleString() : ''; }
@@ -4190,9 +4242,150 @@ function handleAdFile(e){
   e.target.value = '';
 }
 
+// ============================================
+// 広告キャンペーン管理
+// ============================================
+function saveCampaigns(){ localStorage.setItem(STORAGE_CAMPAIGNS, JSON.stringify(adCampaigns)); }
+function genCampId(){ return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
+const CAMP_TYPE_LABELS = { sp: 'SP広告', sb: 'SB広告' };
 
-let editingFnsku = null;
-let editDirty = false; // 未保存の変更があるか
+// 指定月に選択タブへ出すか（オフは「オフにした月」までは表示、翌月から非表示）
+function campaignVisibleForMonth(c, ym){
+  if (c.active) return true;
+  if (!c.offMonth) return true;
+  return ym <= c.offMonth;
+}
+
+function renderCampaignView(){
+  renderCampaignDraft();
+  renderCampaignList();
+}
+function renderCampaignList(){
+  const wrap = document.getElementById('campaign-list');
+  if (!wrap) return;
+  if (!adCampaigns.length) {
+    wrap.innerHTML = '<div class="camp-empty">登録されたキャンペーンはありません。「+ キャンペーン追加」から登録してください。</div>';
+    return;
+  }
+  let html = '<table class="camp"><thead><tr>'
+    + '<th class="col-sw">実施中</th>'
+    + '<th>キャンペーン名</th>'
+    + '<th class="col-status">ステータス</th>'
+    + '<th class="col-type">タイプ</th>'
+    + '<th class="col-del"></th>'
+    + '</tr></thead><tbody>';
+  adCampaigns.forEach(c => {
+    html += '<tr data-id="' + c.id + '">'
+      + '<td class="col-sw"><label class="switch"><input type="checkbox" ' + (c.active ? 'checked' : '') + ' onchange="toggleCampaign(\'' + c.id + '\', this.checked)"><span class="slider"></span></label></td>'
+      + '<td><span class="camp-name-edit" title="クリックで編集" onclick="startEditCampaignName(\'' + c.id + '\', this)">' + escapeHtml(c.name || '(無題)') + '</span></td>'
+      + '<td class="col-status"><span class="camp-status ' + (c.active ? 'on' : 'off') + '">' + (c.active ? '配信中' : '一時停止') + '</span></td>'
+      + '<td class="col-type"><select class="camp-type-select" onchange="setCampaignType(\'' + c.id + '\', this.value)">'
+        + '<option value="sp"' + (c.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
+        + '<option value="sb"' + (c.type === 'sb' ? ' selected' : '') + '>SB広告</option>'
+      + '</select></td>'
+      + '<td class="col-del"><button class="ghost" title="削除" onclick="deleteCampaign(\'' + c.id + '\')"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button></td>'
+      + '</tr>';
+  });
+  html += '</tbody></table>';
+  wrap.innerHTML = html;
+}
+function renderCampaignDraft(){
+  const wrap = document.getElementById('campaign-draft');
+  if (!wrap) return;
+  if (!campaignDrafts.length) { wrap.innerHTML = ''; return; }
+  let html = '<div class="camp-draft-box"><div class="draft-title">新規キャンペーン（記入して「登録」）</div>'
+    + '<table class="camp"><thead><tr>'
+    + '<th class="col-sw">実施中</th><th>キャンペーン名</th><th class="col-status">ステータス</th><th class="col-type">タイプ</th><th class="col-del"></th>'
+    + '</tr></thead><tbody>';
+  campaignDrafts.forEach((d, i) => {
+    html += '<tr>'
+      + '<td class="col-sw"><label class="switch"><input type="checkbox" ' + (d.active ? 'checked' : '') + ' onchange="updateDraft(' + i + ',\'active\',this.checked)"><span class="slider"></span></label></td>'
+      + '<td><input type="text" class="camp-name-input" placeholder="キャンペーン名" value="' + escapeHtml(d.name) + '" oninput="updateDraft(' + i + ',\'name\',this.value)"></td>'
+      + '<td class="col-status"><span class="camp-status ' + (d.active ? 'on' : 'off') + '">' + (d.active ? '配信中' : '一時停止') + '</span></td>'
+      + '<td class="col-type"><select class="camp-type-select" onchange="updateDraft(' + i + ',\'type\',this.value)">'
+        + '<option value="sp"' + (d.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
+        + '<option value="sb"' + (d.type === 'sb' ? ' selected' : '') + '>SB広告</option>'
+      + '</select></td>'
+      + '<td class="col-del"><button class="ghost" title="この行を削除" onclick="removeDraft(' + i + ')"><svg class="icn" style="color:var(--danger)"><use href="#i-x"/></svg></button></td>'
+      + '</tr>';
+  });
+  html += '</tbody></table>'
+    + '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">'
+    + '<button class="ghost" onclick="cancelDrafts()">取消</button>'
+    + '<button class="primary" onclick="registerCampaigns()"><svg class="icn"><use href="#i-check"/></svg> 登録</button>'
+    + '</div></div>';
+  wrap.innerHTML = html;
+}
+function addCampaignDraftRow(){
+  campaignDrafts.push({ name: '', type: 'sp', active: true });
+  renderCampaignDraft();
+}
+function updateDraft(i, field, val){
+  if (!campaignDrafts[i]) return;
+  campaignDrafts[i][field] = val;
+  if (field === 'active') renderCampaignDraft(); // ステータス表示を更新
+}
+function removeDraft(i){ campaignDrafts.splice(i, 1); renderCampaignDraft(); }
+function cancelDrafts(){ campaignDrafts = []; renderCampaignDraft(); }
+function registerCampaigns(){
+  const valid = campaignDrafts.filter(d => (d.name || '').trim());
+  if (!valid.length) { toast('キャンペーン名を入力してください'); return; }
+  valid.forEach(d => {
+    adCampaigns.push({ id: genCampId(), name: d.name.trim(), type: d.type || 'sp', active: !!d.active, offMonth: null });
+  });
+  campaignDrafts = [];
+  saveCampaigns();
+  renderCampaignView();
+  toast(valid.length + ' 件のキャンペーンを登録しました');
+}
+function toggleCampaign(id, checked){
+  const c = adCampaigns.find(x => x.id === id);
+  if (!c) return;
+  c.active = checked;
+  if (!checked) c.offMonth = ymKey(new Date()); // オフにした月を記録（翌月から非表示）
+  else c.offMonth = null;
+  saveCampaigns();
+  renderCampaignList();
+}
+function startEditCampaignName(id, span){
+  const c = adCampaigns.find(x => x.id === id);
+  if (!c) return;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'camp-name-input';
+  input.value = c.name || '';
+  const commit = () => {
+    c.name = input.value.trim() || c.name;
+    saveCampaigns();
+    renderCampaignList();
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') renderCampaignList(); });
+  span.replaceWith(input);
+  input.focus();
+  input.select();
+}
+function setCampaignType(id, type){
+  const c = adCampaigns.find(x => x.id === id);
+  if (!c) return;
+  c.type = type;
+  saveCampaigns();
+}
+function deleteCampaign(id){
+  const i = adCampaigns.findIndex(x => x.id === id);
+  if (i < 0) return;
+  adCampaigns.splice(i, 1);
+  saveCampaigns();
+  renderCampaignList();
+}
+window.toggleCampaign = toggleCampaign;
+window.startEditCampaignName = startEditCampaignName;
+window.setCampaignType = setCampaignType;
+window.deleteCampaign = deleteCampaign;
+window.updateDraft = updateDraft;
+window.removeDraft = removeDraft;
+window.cancelDrafts = cancelDrafts;
+window.registerCampaigns = registerCampaigns;
 
 function openEditModal(fnsku){
   loadProductIntoEditModal(fnsku);
