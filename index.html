@@ -374,7 +374,7 @@
   /* 広告データテーブル */
   table.ad-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; }
   table.ad-table th, table.ad-table td {
-    padding: 7px 8px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
+    padding: 7px 8px; border-bottom: 1px solid rgba(0,0,0,0.15); border-right: 1px solid rgba(0,0,0,0.15);
     text-align: right; white-space: nowrap;
   }
   table.ad-table thead th { position: sticky; top: 0; z-index: 5; text-align: center; font-weight: 700; }
@@ -397,14 +397,34 @@
   .adg-sales { background: #16a34a; }
   .adg-sp { background: #2563eb; }
   .adg-sb { background: #7e22ce; }
-  /* サブ見出し（全体＝濃いめ、内訳＝薄め） */
   .adh { font-size: 12px; }
-  .adc-sales { background: rgba(22,163,74,0.18); }
-  .adc-sales-sub { background: rgba(22,163,74,0.07); }
-  .adc-sp { background: rgba(37,99,235,0.18); }
-  .adc-sp-sub { background: rgba(37,99,235,0.07); }
-  .adc-sb { background: rgba(126,34,206,0.18); }
-  .adc-sb-sub { background: rgba(126,34,206,0.07); }
+  /* サブ見出し（全体＝濃い／広告売上＝中／内訳＝親色を段階的に薄くしたグラデーション）。
+     いずれも白(--bg-card)の上に色を重ねるので常に不透明＝スクロール時に本文が透けて濃く見えない */
+  .adc-sales, .adc-sales-mid, .adc-sales-b1, .adc-sales-b2, .adc-sales-b3 { --hue: 22,163,74; }
+  .adc-sp, .adc-sp-b1, .adc-sp-b2, .adc-sp-b3 { --hue: 37,99,235; }
+  .adc-sb, .adc-sb-b1, .adc-sb-b2 { --hue: 126,34,206; }
+  .adc-sales, .adc-sales-mid, .adc-sales-b1, .adc-sales-b2, .adc-sales-b3,
+  .adc-sp, .adc-sp-b1, .adc-sp-b2, .adc-sp-b3,
+  .adc-sb, .adc-sb-b1, .adc-sb-b2 {
+    background-color: var(--bg-card); background-repeat: no-repeat;
+  }
+  /* 売上金額：総売上/SEO売上＝濃いめ、広告売上＝中（内訳の親）、内訳KW/商品/オート＝段階的に薄く */
+  .adc-sales     { background-image: linear-gradient(rgba(var(--hue),0.17), rgba(var(--hue),0.17)); }
+  .adc-sales-mid { background-image: linear-gradient(rgba(var(--hue),0.10), rgba(var(--hue),0.10)); }
+  .adc-sales-b1  { background-image: linear-gradient(to right, rgba(var(--hue),0.085), rgba(var(--hue),0.07)); }
+  .adc-sales-b2  { background-image: linear-gradient(to right, rgba(var(--hue),0.07), rgba(var(--hue),0.055)); }
+  .adc-sales-b3  { background-image: linear-gradient(to right, rgba(var(--hue),0.055), rgba(var(--hue),0.04)); }
+  /* SP広告：広告全体＝濃い、内訳＝親色を右へ段階的に薄くしたグラデーション */
+  .adc-sp     { background-image: linear-gradient(rgba(var(--hue),0.18), rgba(var(--hue),0.18)); }
+  .adc-sp-b1  { background-image: linear-gradient(to right, rgba(var(--hue),0.115), rgba(var(--hue),0.09)); }
+  .adc-sp-b2  { background-image: linear-gradient(to right, rgba(var(--hue),0.09), rgba(var(--hue),0.065)); }
+  .adc-sp-b3  { background-image: linear-gradient(to right, rgba(var(--hue),0.065), rgba(var(--hue),0.04)); }
+  /* SB広告：同様 */
+  .adc-sb     { background-image: linear-gradient(rgba(var(--hue),0.18), rgba(var(--hue),0.18)); }
+  .adc-sb-b1  { background-image: linear-gradient(to right, rgba(var(--hue),0.11), rgba(var(--hue),0.085)); }
+  .adc-sb-b2  { background-image: linear-gradient(to right, rgba(var(--hue),0.085), rgba(var(--hue),0.05)); }
+  /* グループ境界の区切り線（売上金額／SP／SB の左端を少し強調） */
+  table.ad-table .adc-gstart { border-left: 2px solid rgba(0,0,0,0.22); }
   /* 広告費/ROAS 2分割：ROAS列はやや控えめ＋分割の境界線 */
   table.ad-table .ad-roas { color: var(--text-secondary); }
   table.ad-table .ad-cost { border-right-color: rgba(0,0,0,0.04); }
@@ -1043,7 +1063,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.78</span>
+  <span class="version">v0.80</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4344,28 +4364,28 @@ function renderAdTable(){
     + '<th colspan="6" class="adg adg-sb">SB広告</th>'
     + '</tr>'
     + '<tr>'
-    + '<th rowspan="2" class="adh adc-sales">総売上</th>'
+    + '<th rowspan="2" class="adh adc-sales adc-gstart">総売上</th>'
     + '<th rowspan="2" class="adh adc-sales">SEO売上</th>'
-    + '<th rowspan="2" class="adh adc-sales">広告売上</th>'
-    + '<th rowspan="2" class="adh adc-sales-sub">KW</th>'
-    + '<th rowspan="2" class="adh adc-sales-sub">商品</th>'
-    + '<th rowspan="2" class="adh adc-sales-sub">オート</th>'
-    + '<th colspan="2" class="adh adc-sp">広告全体</th>'
-    + '<th colspan="2" class="adh adc-sp-sub">KW</th>'
-    + '<th colspan="2" class="adh adc-sp-sub">商品</th>'
-    + '<th colspan="2" class="adh adc-sp-sub">オート</th>'
-    + '<th colspan="2" class="adh adc-sb">広告全体</th>'
-    + '<th colspan="2" class="adh adc-sb-sub">KW-動画</th>'
-    + '<th colspan="2" class="adh adc-sb-sub">KW-商コレ</th>'
+    + '<th rowspan="2" class="adh adc-sales-mid">広告売上</th>'
+    + '<th rowspan="2" class="adh adc-sales-b1">KW</th>'
+    + '<th rowspan="2" class="adh adc-sales-b2">商品</th>'
+    + '<th rowspan="2" class="adh adc-sales-b3">オート</th>'
+    + '<th colspan="2" class="adh adc-sp adc-gstart">広告全体</th>'
+    + '<th colspan="2" class="adh adc-sp-b1">KW</th>'
+    + '<th colspan="2" class="adh adc-sp-b2">商品</th>'
+    + '<th colspan="2" class="adh adc-sp-b3">オート</th>'
+    + '<th colspan="2" class="adh adc-sb adc-gstart">広告全体</th>'
+    + '<th colspan="2" class="adh adc-sb-b1">KW-動画</th>'
+    + '<th colspan="2" class="adh adc-sb-b2">KW-商コレ</th>'
     + '</tr>'
     + '<tr>'
-    + '<th class="adh adc-sp">広告費</th><th class="adh adc-sp ad-roas">ROAS</th>'
-    + '<th class="adh adc-sp-sub">広告費</th><th class="adh adc-sp-sub ad-roas">ROAS</th>'
-    + '<th class="adh adc-sp-sub">広告費</th><th class="adh adc-sp-sub ad-roas">ROAS</th>'
-    + '<th class="adh adc-sp-sub">広告費</th><th class="adh adc-sp-sub ad-roas">ROAS</th>'
-    + '<th class="adh adc-sb">広告費</th><th class="adh adc-sb ad-roas">ROAS</th>'
-    + '<th class="adh adc-sb-sub">広告費</th><th class="adh adc-sb-sub ad-roas">ROAS</th>'
-    + '<th class="adh adc-sb-sub">広告費</th><th class="adh adc-sb-sub ad-roas">ROAS</th>'
+    + '<th class="adh adc-sp adc-gstart">広告費</th><th class="adh adc-sp ad-roas">ROAS</th>'
+    + '<th class="adh adc-sp-b1">広告費</th><th class="adh adc-sp-b1 ad-roas">ROAS</th>'
+    + '<th class="adh adc-sp-b2">広告費</th><th class="adh adc-sp-b2 ad-roas">ROAS</th>'
+    + '<th class="adh adc-sp-b3">広告費</th><th class="adh adc-sp-b3 ad-roas">ROAS</th>'
+    + '<th class="adh adc-sb adc-gstart">広告費</th><th class="adh adc-sb ad-roas">ROAS</th>'
+    + '<th class="adh adc-sb-b1">広告費</th><th class="adh adc-sb-b1 ad-roas">ROAS</th>'
+    + '<th class="adh adc-sb-b2">広告費</th><th class="adh adc-sb-b2 ad-roas">ROAS</th>'
     + '</tr></thead><tbody>';
 
   rows.forEach(r => {
@@ -4385,8 +4405,8 @@ function renderAdTable(){
     const tcell = (v, cls) => '<td class="' + cls + '">' + (total > 0 ? yen(v) : '') + '</td>';
     // 広告費セル + ROAS(=売上÷広告費)セル のペア。全体時は集計値での平均ROAS。
     const fmtRoas = (v) => v.toFixed(2);
-    const pair = (cost, sales, cls) =>
-        '<td class="' + cls + ' ad-cost">' + (has ? yen(cost) : '') + '</td>'
+    const pair = (cost, sales, cls, gstart) =>
+        '<td class="' + cls + ' ad-cost' + (gstart ? ' adc-gstart' : '') + '">' + (has ? yen(cost) : '') + '</td>'
       + '<td class="' + cls + ' ad-roas">' + (has && cost > 0 ? fmtRoas(sales / cost) : '') + '</td>';
     const dayClickable = (adPeriod === 'daily');
     const dayCls = 'ad-daycol' + (r.sale ? ' ad-sale' : '') + (dayClickable ? ' ad-day-clickable' : '');
@@ -4396,19 +4416,19 @@ function renderAdTable(){
     const dayClick = dayClickable ? (' onclick="openAdAddForDay(' + r.label + ')"') : '';
     html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + '">'
       + '<td class="' + dayCls + '" title="' + dayTitle + '"' + dayClick + '>' + r.label + '</td>'
-      + tcell(total, 'adc-sales')
+      + tcell(total, 'adc-sales adc-gstart')
       + tcell(seo, 'adc-sales')
-      + cell(adSales, 'adc-sales')
-      + cell(sKw, 'adc-sales-sub')
-      + cell(s.sp.shohin, 'adc-sales-sub')
-      + cell(s.sp.auto, 'adc-sales-sub')
-      + pair(spCost, spSales, 'adc-sp')
-      + pair(c.sp.kw, s.sp.kw, 'adc-sp-sub')
-      + pair(c.sp.shohin, s.sp.shohin, 'adc-sp-sub')
-      + pair(c.sp.auto, s.sp.auto, 'adc-sp-sub')
-      + pair(sbCost, sbSales, 'adc-sb')
-      + pair(c.sb.douga, s.sb.douga, 'adc-sb-sub')
-      + pair(c.sb.shokore, s.sb.shokore, 'adc-sb-sub')
+      + cell(adSales, 'adc-sales-mid')
+      + cell(sKw, 'adc-sales-b1')
+      + cell(s.sp.shohin, 'adc-sales-b2')
+      + cell(s.sp.auto, 'adc-sales-b3')
+      + pair(spCost, spSales, 'adc-sp', true)
+      + pair(c.sp.kw, s.sp.kw, 'adc-sp-b1')
+      + pair(c.sp.shohin, s.sp.shohin, 'adc-sp-b2')
+      + pair(c.sp.auto, s.sp.auto, 'adc-sp-b3')
+      + pair(sbCost, sbSales, 'adc-sb', true)
+      + pair(c.sb.douga, s.sb.douga, 'adc-sb-b1')
+      + pair(c.sb.shokore, s.sb.shokore, 'adc-sb-b2')
       + '</tr>';
   });
   html += '</tbody></table></div>';
