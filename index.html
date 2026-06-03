@@ -382,6 +382,16 @@
   table.ad-table thead tr:nth-child(3) th { top: 60px; font-size: 11px; }
   table.ad-table .ad-daycol { text-align: center; background: var(--bg-secondary); font-weight: 700; min-width: 40px; }
   table.ad-table .ad-daycol.ad-sale { background: rgba(194,24,91,0.12); box-shadow: inset 3px 0 0 var(--sale); color: var(--sale); }
+  /* クリック可能な日付セル（広告データ追加へ） */
+  table.ad-table td.ad-day-clickable {
+    cursor: pointer;
+    color: var(--blue);
+    text-decoration: underline dotted var(--blue);
+    text-underline-offset: 2px;
+    transition: background 0.12s, color 0.12s;
+  }
+  table.ad-table td.ad-day-clickable.ad-sale { color: var(--sale); text-decoration-color: var(--sale); }
+  table.ad-table td.ad-day-clickable:hover { background: var(--blue); color: #fff; text-decoration: none; }
   /* グループ見出し */
   .adg { color: #fff; font-size: 13px; }
   .adg-sales { background: #16a34a; }
@@ -1033,7 +1043,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.76</span>
+  <span class="version">v0.78</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1126,7 +1136,7 @@
       <span class="ship-total">合計出荷数 <strong id="ship-grand-total">0</strong></span>
       <div class="spacer"></div>
       <button class="primary" id="open-input"><svg class="icn"><use href="#i-plus"/></svg> 出荷数入力</button>
-      <button class="utility" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
+      <button class="utility toggle-header-btn" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div id="shipment-body"></div>
   </div>
@@ -1146,6 +1156,7 @@
       </label>
       <div class="spacer"></div>
       <button class="primary" id="open-ad-add"><svg class="icn"><use href="#i-plus"/></svg> 広告データ追加</button>
+      <button class="utility toggle-header-btn" id="toggle-header-ad" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div id="ad-body"></div>
   </div>
@@ -1488,6 +1499,7 @@ function init(){
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('master')));
   document.getElementById('open-input').addEventListener('click', () => openModal());
   document.getElementById('toggle-header').addEventListener('click', toggleHeader);
+  document.getElementById('toggle-header-ad').addEventListener('click', toggleHeader);
   window.addEventListener('resize', adjustHiddenTableHeight);
   // セール設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
@@ -3712,14 +3724,15 @@ function applyZoom(){
 // ============================================
 function toggleHeader(){
   const isHidden = document.body.classList.toggle('header-hidden');
-  const btn = document.getElementById('toggle-header');
-  if (isHidden) {
-    btn.innerHTML = '<svg class="icn"><use href="#i-chevron-down"/></svg> ヘッダーを表示';
-    btn.title = 'ヘッダーとタブを表示';
-  } else {
-    btn.innerHTML = '<svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す';
-    btn.title = 'ヘッダーとタブを非表示にして表を広く';
-  }
+  document.querySelectorAll('.toggle-header-btn').forEach(btn => {
+    if (isHidden) {
+      btn.innerHTML = '<svg class="icn"><use href="#i-chevron-down"/></svg> ヘッダーを表示';
+      btn.title = 'ヘッダーとタブを表示';
+    } else {
+      btn.innerHTML = '<svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す';
+      btn.title = 'ヘッダーとタブを非表示にして表を広く';
+    }
+  });
   adjustHiddenTableHeight();
 }
 
@@ -3727,6 +3740,7 @@ function toggleHeader(){
 function adjustHiddenTableHeight(){
   // 対象：現在表示中の表のスクロール領域
   const scrollEl = document.querySelector('#shipment-view:not([hidden]) .table-wrap')
+                 || document.querySelector('#ad-view:not([hidden]) .table-wrap')
                  || document.querySelector('#master-view:not([hidden]) .master-scroll');
   if (!scrollEl) return;
   if (!document.body.classList.contains('header-hidden')) {
@@ -4374,8 +4388,14 @@ function renderAdTable(){
     const pair = (cost, sales, cls) =>
         '<td class="' + cls + ' ad-cost">' + (has ? yen(cost) : '') + '</td>'
       + '<td class="' + cls + ' ad-roas">' + (has && cost > 0 ? fmtRoas(sales / cost) : '') + '</td>';
+    const dayClickable = (adPeriod === 'daily');
+    const dayCls = 'ad-daycol' + (r.sale ? ' ad-sale' : '') + (dayClickable ? ' ad-day-clickable' : '');
+    const dayTitle = dayClickable
+      ? ('クリックで' + r.label + '日の広告データを追加' + (r.sale ? '（セール期間）' : ''))
+      : (r.sale ? 'セール期間' : '');
+    const dayClick = dayClickable ? (' onclick="openAdAddForDay(' + r.label + ')"') : '';
     html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + '">'
-      + '<td class="ad-daycol' + (r.sale ? ' ad-sale' : '') + '" title="' + (r.sale ? 'セール期間' : '') + '">' + r.label + '</td>'
+      + '<td class="' + dayCls + '" title="' + dayTitle + '"' + dayClick + '>' + r.label + '</td>'
       + tcell(total, 'adc-sales')
       + tcell(seo, 'adc-sales')
       + cell(adSales, 'adc-sales')
@@ -4393,6 +4413,7 @@ function renderAdTable(){
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+  if (document.body.classList.contains('header-hidden')) adjustHiddenTableHeight();
 }
 
 function populateAdMonthYear(){
@@ -4419,13 +4440,23 @@ function populateAdMonthYear(){
   if (ys) ys.hidden = (adPeriod !== 'monthly');
 }
 
-function openAdAddModal(){
-  const d = new Date();
-  d.setDate(d.getDate() - 1);
-  document.getElementById('ad-date').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+function openAdAddModal(presetDate){
+  let val = presetDate;
+  if (!val) {
+    const d = new Date();
+    d.setDate(d.getDate() - 1);
+    val = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  }
+  document.getElementById('ad-date').value = val;
   document.getElementById('ad-import-preview').innerHTML = '';
   document.getElementById('ad-add-modal').hidden = false;
 }
+// 広告データ表の日付クリックから、その日付で広告データ追加を開く
+function openAdAddForDay(day){
+  const dateStr = adMonth + '-' + String(day).padStart(2, '0');
+  openAdAddModal(dateStr);
+}
+window.openAdAddForDay = openAdAddForDay;
 function closeAdAddModal(){ document.getElementById('ad-add-modal').hidden = true; }
 function handleAdFile(e){
   const f = e.target.files[0];
