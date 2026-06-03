@@ -1063,7 +1063,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.80</span>
+  <span class="version">v0.81</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1230,6 +1230,10 @@
       <input type="file" id="ad-file-input" accept=".csv,.txt,text/csv,text/plain">
     </label>
     <div id="ad-import-preview" style="margin-top:12px;font-size:13px;color:var(--text-secondary);"></div>
+    <div class="modal-actions">
+      <button id="ad-add-cancel">キャンセル</button>
+      <button class="confirm" id="ad-add-apply" disabled><svg class="icn"><use href="#i-check"/></svg> 反映する</button>
+    </div>
   </div>
 </div>
 
@@ -1565,6 +1569,8 @@ function init(){
   document.getElementById('asin-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'asin-modal') closeAsinModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('asin-modal').hidden) closeAsinModal(); });
   document.getElementById('ad-add-close').addEventListener('click', closeAdAddModal);
+  document.getElementById('ad-add-cancel').addEventListener('click', closeAdAddModal);
+  document.getElementById('ad-add-apply').addEventListener('click', applyAdImport);
   document.getElementById('ad-add-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'ad-add-modal') closeAdAddModal(); });
   document.getElementById('ad-file-input').addEventListener('change', handleAdFile);
   document.getElementById('ad-month-select').addEventListener('change', (e) => { adMonth = e.target.value; renderAdTable(); });
@@ -4172,7 +4178,7 @@ function extractAdProduct(name){
   return out.join('-') || name.trim() || '(不明)';
 }
 
-function parseAdCsv(text, dateStr){
+function parseAdCsv(text){
   const res = Papa.parse(text, { header: true, skipEmptyLines: true });
   if (!res.data.length) { toast('データが見つかりませんでした'); return; }
   const cols = Object.keys(res.data[0]);
@@ -4200,17 +4206,12 @@ function parseAdCsv(text, dateStr){
   });
   if (!count) { toast('「有効」のキャンペーンが見つかりませんでした'); return; }
 
-  adData[dateStr] = agg;
-  saveAdData();
-  adMonth = dateStr.slice(0, 7);
-  adYear = dateStr.slice(0, 4);
-  populateAdProductSelect();
-  renderAdTable();
-  const previewEl = document.getElementById('ad-import-preview');
+  // ここでは確定せず、プレビューだけ表示。「反映する」で確定。
   const prods = Object.keys(agg);
-  if (previewEl) previewEl.innerHTML = '<span style="color:var(--success)">✓ ' + dateStr + ' に ' + count + ' 件（有効）を取り込みました（商品: ' + prods.join('、') + '）</span>';
-  toast(dateStr + ' の広告データを取り込みました（' + count + '件）');
-  setTimeout(closeAdAddModal, 900);
+  pendingAdImport = { agg, count, prods };
+  setAdApplyEnabled(true);
+  const previewEl = document.getElementById('ad-import-preview');
+  if (previewEl) previewEl.innerHTML = '<span style="color:var(--success)">✓ ' + count + ' 件（有効）を読み込みました（商品: ' + prods.join('、') + '）。「反映する」で確定します。</span>';
 }
 
 function adMetricsForDate(dateStr, productFilter){
@@ -4360,8 +4361,8 @@ function renderAdTable(){
     + '<tr>'
     + '<th rowspan="3" class="ad-daycol">' + (adPeriod === 'daily' ? '日' : '月') + '</th>'
     + '<th colspan="6" class="adg adg-sales">売上金額</th>'
-    + '<th colspan="8" class="adg adg-sp">SP広告</th>'
-    + '<th colspan="6" class="adg adg-sb">SB広告</th>'
+    + '<th colspan="8" class="adg adg-sp">スポンサープロダクト広告</th>'
+    + '<th colspan="6" class="adg adg-sb">スポンサーブランド広告</th>'
     + '</tr>'
     + '<tr>'
     + '<th rowspan="2" class="adh adc-sales adc-gstart">総売上</th>'
@@ -4460,6 +4461,12 @@ function populateAdMonthYear(){
   if (ys) ys.hidden = (adPeriod !== 'monthly');
 }
 
+let pendingAdImport = null; // {agg, count, prods} 反映ボタンで確定
+
+function setAdApplyEnabled(on){
+  const btn = document.getElementById('ad-add-apply');
+  if (btn) btn.disabled = !on;
+}
 function openAdAddModal(presetDate){
   let val = presetDate;
   if (!val) {
@@ -4469,6 +4476,8 @@ function openAdAddModal(presetDate){
   }
   document.getElementById('ad-date').value = val;
   document.getElementById('ad-import-preview').innerHTML = '';
+  pendingAdImport = null;
+  setAdApplyEnabled(false);
   document.getElementById('ad-add-modal').hidden = false;
 }
 // 広告データ表の日付クリックから、その日付で広告データ追加を開く
@@ -4477,21 +4486,37 @@ function openAdAddForDay(day){
   openAdAddModal(dateStr);
 }
 window.openAdAddForDay = openAdAddForDay;
-function closeAdAddModal(){ document.getElementById('ad-add-modal').hidden = true; }
+function closeAdAddModal(){
+  document.getElementById('ad-add-modal').hidden = true;
+  pendingAdImport = null;
+  setAdApplyEnabled(false);
+}
 function handleAdFile(e){
   const f = e.target.files[0];
   if (!f) return;
-  const dateStr = document.getElementById('ad-date').value;
-  if (!dateStr) { toast('対象日を選んでください'); e.target.value = ''; return; }
   const reader = new FileReader();
   reader.onload = (ev) => {
     let text;
     try { text = new TextDecoder('utf-8', { fatal: true }).decode(ev.target.result); }
     catch { try { text = new TextDecoder('shift_jis').decode(ev.target.result); } catch { toast('文字コードを判別できませんでした'); return; } }
-    parseAdCsv(text, dateStr);
+    parseAdCsv(text);
   };
   reader.readAsArrayBuffer(f);
   e.target.value = '';
+}
+// 「反映する」：プレビュー済みの内容を対象日に確定保存
+function applyAdImport(){
+  if (!pendingAdImport) { toast('先にCSVを読み込んでください'); return; }
+  const dateStr = document.getElementById('ad-date').value;
+  if (!dateStr) { toast('対象日を選んでください'); return; }
+  adData[dateStr] = pendingAdImport.agg;
+  saveAdData();
+  adMonth = dateStr.slice(0, 7);
+  adYear = dateStr.slice(0, 4);
+  populateAdProductSelect();
+  renderAdTable();
+  toast(dateStr + ' の広告データを反映しました（' + pendingAdImport.count + '件）');
+  closeAdAddModal();
 }
 
 // ============================================
@@ -4499,7 +4524,7 @@ function handleAdFile(e){
 // ============================================
 function saveCampaigns(){ localStorage.setItem(STORAGE_CAMPAIGNS, JSON.stringify(adCampaigns)); }
 function genCampId(){ return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
-const CAMP_TYPE_LABELS = { sp: 'SP広告', sb: 'SB広告' };
+const CAMP_TYPE_LABELS = { sp: 'スポンサープロダクト広告', sb: 'スポンサーブランド広告' };
 // キャンペーンの「商品」（広告データの絞り込み単位）。未設定ならキャンペーン名から自動推定
 function campProduct(c){
   const p = (c.product || '').trim();
@@ -4543,8 +4568,8 @@ function renderCampaignList(){
       + '<td class="col-product camp-product-cell"><span class="camp-name-edit" title="クリックで編集（広告データの絞り込み単位）" onclick="startEditCampaignProduct(\'' + c.id + '\', this)">' + escapeHtml(campProduct(c) || '(未設定)') + '</span></td>'
       + '<td class="col-status"><span class="camp-status ' + (c.active ? 'on' : 'off') + '">' + (c.active ? '配信中' : '一時停止') + '</span></td>'
       + '<td class="col-type"><select class="camp-type-select" onchange="setCampaignType(\'' + c.id + '\', this.value)">'
-        + '<option value="sp"' + (c.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
-        + '<option value="sb"' + (c.type === 'sb' ? ' selected' : '') + '>SB広告</option>'
+        + '<option value="sp"' + (c.type === 'sp' ? ' selected' : '') + '>スポンサープロダクト広告</option>'
+        + '<option value="sb"' + (c.type === 'sb' ? ' selected' : '') + '>スポンサーブランド広告</option>'
       + '</select></td>'
       + '<td class="col-asin"><div class="camp-asin-wrap">'
         + '<button class="asin-chip' + (asinTokens(c.asin).length ? ' has' : '') + '" title="クリックで対象ASINを編集" onclick="openAsinEditor(\'' + c.id + '\')">' + asinChipLabel(c.asin) + '</button>'
@@ -4572,8 +4597,8 @@ function renderCampaignDraft(){
       + '<td class="col-product"><input type="text" class="camp-name-input camp-product-input" placeholder="商品（自動）" value="' + escapeHtml(d.product || '') + '" oninput="updateDraft(' + i + ',\'product\',this.value)"></td>'
       + '<td class="col-status"><span class="camp-status ' + (d.active ? 'on' : 'off') + '">' + (d.active ? '配信中' : '一時停止') + '</span></td>'
       + '<td class="col-type"><select class="camp-type-select" onchange="updateDraft(' + i + ',\'type\',this.value)">'
-        + '<option value="sp"' + (d.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
-        + '<option value="sb"' + (d.type === 'sb' ? ' selected' : '') + '>SB広告</option>'
+        + '<option value="sp"' + (d.type === 'sp' ? ' selected' : '') + '>スポンサープロダクト広告</option>'
+        + '<option value="sb"' + (d.type === 'sb' ? ' selected' : '') + '>スポンサーブランド広告</option>'
       + '</select></td>'
       + '<td class="col-asin"><button class="asin-chip' + (asinTokens(d.asin).length ? ' has' : '') + '" title="クリックで対象ASINを入力" onclick="openAsinEditorDraft(' + i + ')">' + asinChipLabel(d.asin) + '</button></td>'
       + '<td class="col-del"><button class="ghost" title="この行を削除" onclick="removeDraft(' + i + ')"><svg class="icn" style="color:var(--danger)"><use href="#i-x"/></svg></button></td>'
