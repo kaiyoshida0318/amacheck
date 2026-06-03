@@ -1003,7 +1003,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.66</span>
+  <span class="version">v0.67</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4324,6 +4324,7 @@ function renderCampaignDraft(){
       + '</tr>';
   });
   html += '</tbody></table>'
+    + '<div style="margin-top:10px;"><button class="ghost" onclick="addCampaignDraftRow()" style="font-size:13px;"><svg class="icn"><use href="#i-plus"/></svg> 行を追加</button></div>'
     + '<div style="display:flex;gap:8px;justify-content:flex-end;margin-top:12px;">'
     + '<button class="ghost" onclick="cancelDrafts()">取消</button>'
     + '<button class="primary" onclick="registerCampaigns()"><svg class="icn"><use href="#i-check"/></svg> 登録</button>'
@@ -4393,6 +4394,7 @@ function deleteCampaign(id){
   renderCampaignList();
 }
 window.toggleCampaign = toggleCampaign;
+window.addCampaignDraftRow = addCampaignDraftRow;
 window.startEditCampaignName = startEditCampaignName;
 window.setCampaignType = setCampaignType;
 window.deleteCampaign = deleteCampaign;
