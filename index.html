@@ -945,7 +945,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.58</span>
+  <span class="version">v0.59</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -980,13 +980,13 @@
 
     <div class="master-card">
       <h3><svg class="icn" style="color:var(--blue)"><use href="#i-upload"/></svg> テンプレートに記入して取り込む</h3>
-      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 16px;">下のCSVテンプレートをダウンロードし、各列に商品情報を記入して保存したファイルをアップロードしてください。<strong>FNSKUは必須</strong>です（同じFNSKUの商品は上書き更新されます）。<strong>利益額・利益率は自動計算</strong>されるため記入不要です（空欄でOK）。</p>
+      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 16px;">下のCSVテンプレートをダウンロードし、各列に商品情報を記入して保存したファイルをアップロードしてください。<strong>FNSKUは必須</strong>です（同じFNSKUの商品は上書き更新されます）。<strong>利益額・利益率</strong>は販売価格・原価・各手数料から<strong>自動計算</strong>されます。</p>
 
       <div class="step-box">
         <div class="step-no">1</div>
         <div class="step-body">
           <div class="step-title">テンプレートをダウンロード</div>
-          <div class="step-desc">列：ASIN / SKU / FNSKU / 商品名 / 販売価格 / 原価 / 販売手数料 / FBA手数料(送料) / 利益額 / 利益率</div>
+          <div class="step-desc">列：ASIN / SKU / FNSKU / 商品名 / 販売価格 / 原価 / 販売手数料 / FBA手数料(送料)</div>
           <button class="confirm" id="download-template" style="margin-top:10px;"><svg class="icn"><use href="#i-download"/></svg> CSVテンプレートをダウンロード</button>
         </div>
       </div>
@@ -1518,7 +1518,7 @@ function handleFile(e){
 }
 
 function downloadTemplate(){
-  const headers = ['ASIN', 'SKU', 'FNSKU', '商品名', '販売価格', '原価', '販売手数料', 'FBA手数料(送料)', '利益額', '利益率'];
+  const headers = ['ASIN', 'SKU', 'FNSKU', '商品名', '販売価格', '原価', '販売手数料', 'FBA手数料(送料)'];
   // UTF-8 BOM付き（Excelで日本語が文字化けしないように）
   const csv = '\ufeff' + headers.join(',') + '\r\n';
   const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
