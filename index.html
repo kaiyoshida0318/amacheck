@@ -918,7 +918,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.53</span>
+  <span class="version">v0.54</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -975,6 +975,7 @@
       <div class="spacer"></div>
       <button class="danger" id="delete-selected" disabled><svg class="icn"><use href="#i-trash"/></svg> 選択を削除 <span id="selected-count"></span></button>
       <button class="primary" id="open-add"><svg class="icn"><use href="#i-plus"/></svg> 商品情報追加</button>
+      <button class="ghost" id="open-withdrawn" title="撤退済みの商品を表示" style="font-size:13px;"><svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品 <span class="wd-count" style="color:var(--text-tertiary);"></span></button>
     </div>
     <div class="master-card">
       <div id="master-list-wrap"></div>
@@ -991,7 +992,6 @@
       <select id="month-select"></select>
       <select id="year-select" hidden></select>
       <div class="spacer"></div>
-      <button class="ghost" id="open-withdrawn" title="撤退済みの商品を表示" style="font-size:12px;"><svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品 <span class="wd-count" style="color:var(--text-tertiary);"></span></button>
       <button class="primary" id="open-input"><svg class="icn"><use href="#i-plus"/></svg> 出荷数入力</button>
       <button class="utility" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
@@ -1054,7 +1054,7 @@
 
 <!-- 撤退済み商品モーダル -->
 <div class="modal-bg" id="withdrawn-modal" hidden>
-  <div class="modal" style="max-width:560px;">
+  <div class="modal" style="max-width:min(1200px, 95vw);">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <h3><svg class="icn" style="color:var(--text-secondary);vertical-align:-3px;"><use href="#i-database-off"/></svg> 撤退済み商品</h3>
@@ -2310,6 +2310,7 @@ function setupMasterCellInteraction(){
   masterCellWired = true;
 
   document.addEventListener('mousedown', (e) => {
+    if (e.target.closest('#withdrawn-modal')) return; // 撤退済みモーダル内の表は対象外
     const masterView = document.getElementById('master-view');
     if (!masterView || masterView.hidden) return;
     // 編集中inputがあれば先に確定
@@ -2341,6 +2342,7 @@ function setupMasterCellInteraction(){
 
   document.addEventListener('mousemove', (e) => {
     if (masterDragMode !== 'select') return;
+    if (e.target.closest('#withdrawn-modal')) return;
     const cell = e.target.closest('table.master td.price[data-field]');
     if (!cell) return;
     const col = parseInt(cell.dataset.col, 10);
@@ -3565,10 +3567,14 @@ function updateWithdrawnButton(){
 }
 
 function openWithdrawnModal(){
+  masterSelection = null; // マスタ選択をクリア（モーダルと混ざらないように）
   renderWithdrawnList();
   document.getElementById('withdrawn-modal').hidden = false;
 }
-function closeWithdrawnModal(){ document.getElementById('withdrawn-modal').hidden = true; }
+function closeWithdrawnModal(){
+  document.getElementById('withdrawn-modal').hidden = true;
+  renderMasterList(); // ステータス変更（現役化など）をマスタへ反映
+}
 function renderWithdrawnList(){
   const wrap = document.getElementById('withdrawn-list');
   const list = withdrawnProducts();
@@ -3576,16 +3582,40 @@ function renderWithdrawnList(){
     wrap.innerHTML = '<div class="sale-empty">撤退済みの商品はありません</div>';
     return;
   }
-  let html = '';
+  // 商品マスタと同じレイアウトの表（並べ替え・チェック列は省略）
+  let html = '<div class="master-scroll"><table class="master"><thead><tr>'
+    + '<th class="img-header">商品画像</th>'
+    + '<th>ASIN</th>'
+    + '<th>SKU</th>'
+    + '<th>FNSKU</th>'
+    + '<th class="name-header">商品名</th>'
+    + '<th class="price">販売価格</th>'
+    + '<th class="price">原価</th>'
+    + '<th class="price">販売手数料</th>'
+    + '<th class="price">FBA手数料(送料)</th>'
+    + '<th class="price">利益額</th>'
+    + '<th class="price">利益率</th>'
+    + '<th class="edit-cell">編集</th>'
+    + '<th class="status-cell">ステータス</th>'
+    + '</tr></thead><tbody>';
   list.forEach(p => {
-    html += '<div class="with-item">'
-      + '<div class="with-img">' + productImageHtml(p, 44) + '</div>'
-      + '<div class="with-info"><div class="with-name">' + escapeHtml(p.name || '-') + '</div>'
-      + '<div class="with-meta">' + escapeHtml(p.fnsku) + (p.withdrawnDate ? ' ・ 撤退日 ' + p.withdrawnDate : '') + '</div></div>'
-      + '<span class="spacer"></span>'
-      + '<button class="ghost" onclick="restoreProduct(\'' + p.fnsku + '\')">現役に戻す</button>'
-      + '</div>';
+    html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '">'
+      + '<td class="img-cell">' + productImageHtml(p, 72) + '</td>'
+      + '<td class="mono">' + escapeHtml(p.asin || '-') + '</td>'
+      + '<td class="mono">' + escapeHtml(p.sku || '-') + '</td>'
+      + '<td class="mono">' + escapeHtml(p.fnsku) + '</td>'
+      + '<td class="name-cell">' + escapeHtml(p.name) + '</td>'
+      + priceCellHtml(p, 'sellingPrice', 0)
+      + priceCellHtml(p, 'cost', 1)
+      + priceCellHtml(p, 'sellingFee', 2)
+      + priceCellHtml(p, 'fbaFee', 3)
+      + priceCellHtml(p, 'profit', 4)
+      + priceCellHtml(p, 'margin', 5)
+      + '<td class="edit-cell"><button class="ghost" onclick="openEditModal(\'' + p.fnsku + '\')" title="編集"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg></button></td>'
+      + '<td class="status-cell">' + statusCellHtml(p) + '</td>'
+      + '</tr>';
   });
+  html += '</tbody></table></div>';
   wrap.innerHTML = html;
 }
 function restoreProduct(fnsku){
