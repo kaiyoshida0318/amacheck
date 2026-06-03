@@ -1062,7 +1062,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.83</span>
+  <span class="version">v0.84</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4414,7 +4414,7 @@ function renderAdTable(){
     const cell = (v, cls) => '<td class="' + cls + '">' + (has ? yen(v) : '') + '</td>';
     const tcell = (v, cls) => '<td class="' + cls + '">' + (total > 0 ? yen(v) : '') + '</td>';
     // 広告費セル + ROAS(=売上÷広告費)セル のペア。全体時は集計値での平均ROAS。
-    const fmtRoas = (v) => v.toFixed(2);
+    const fmtRoas = (v) => v.toFixed(2) + '%';
     const pair = (cost, sales, cls, gstart) =>
         '<td class="' + cls + ' ad-cost' + (gstart ? ' adc-gstart' : '') + '">' + (has ? yen(cost) : '') + '</td>'
       + '<td class="' + cls + ' ad-roas">' + (has && cost > 0 ? fmtRoas(sales / cost) : '') + '</td>';
