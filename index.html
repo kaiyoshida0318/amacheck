@@ -973,7 +973,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.63</span>
+  <span class="version">v0.64</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1169,7 +1169,7 @@
         <input type="text" id="sale-label" placeholder="例: プライムデー" style="width:100%;font-size:14px;padding:8px 10px;">
       </div>
     </div>
-    <label class="upload-zone" for="sale-file-input" style="margin-top:14px;padding:18px;">
+    <label class="upload-zone" id="sale-upzone" for="sale-file-input" style="margin-top:14px;padding:18px;">
       <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
       <div class="main">セール対象商品リストをアップロード（任意）</div>
       <div class="sub">タイムセール推奨商品リスト .xlsx / .csv（SKU・セール価格）</div>
@@ -1388,6 +1388,16 @@ function init(){
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
   document.getElementById('sale-edit-cancel').addEventListener('click', cancelSaleEdit);
   document.getElementById('sale-file-input').addEventListener('change', handleSaleFile);
+  const saleDz = document.getElementById('sale-upzone');
+  if (saleDz) {
+    saleDz.addEventListener('dragover', e => { e.preventDefault(); saleDz.style.borderColor = 'var(--purple)'; saleDz.style.background = 'rgba(126,34,206,0.06)'; });
+    saleDz.addEventListener('dragleave', () => { saleDz.style.borderColor = ''; saleDz.style.background = ''; });
+    saleDz.addEventListener('drop', e => {
+      e.preventDefault();
+      saleDz.style.borderColor = ''; saleDz.style.background = '';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) processSaleFile(e.dataTransfer.files[0]);
+    });
+  }
   // SALEバーをクリックで編集・削除ポップアップ
   document.addEventListener('click', (e) => {
     const band = e.target.closest('table.ship th.sale-band');
@@ -3678,8 +3688,7 @@ function extractSaleProducts(rows){
   });
   return out;
 }
-function handleSaleFile(e){
-  const f = e.target.files[0];
+function processSaleFile(f){
   if (!f) return;
   const reader = new FileReader();
   reader.onload = (ev) => {
@@ -3698,6 +3707,9 @@ function handleSaleFile(e){
     }
   };
   reader.readAsArrayBuffer(f);
+}
+function handleSaleFile(e){
+  processSaleFile(e.target.files[0]);
   e.target.value = '';
 }
 
