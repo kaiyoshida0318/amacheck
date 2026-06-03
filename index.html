@@ -180,6 +180,9 @@
   table.ship td.day.today { background: var(--amber-light); }
   table.ship td.day.zero.today { background: var(--amber-light); color: var(--amber); }
   table.ship th.day { width: 34px; padding: 8px 2px; font-size: 13px; }
+  /* 上位/下位ランクの数字色（日別: 上位5日=赤 / 下位5日=青） */
+  table.ship td.day.rank-hi { color: #d32f2f; font-weight: 700; }
+  table.ship td.day.rank-lo { color: #2563eb; font-weight: 700; }
   table.ship th.day.today { background: #f2e3d0; color: var(--amber); }
   /* クリック可能な日付ヘッダー（出荷数入力へ） */
   table.ship th.day-clickable {
@@ -302,6 +305,9 @@
   table.ship td.month.current { background: var(--amber-light); }
   table.ship td.month.zero.current { background: var(--amber-light); color: var(--amber); }
   table.ship th.month.current { background: #f2e3d0; color: var(--amber); }
+  /* 上位/下位ランクの数字色（月別: 上位3月=赤 / 下位3月=青） */
+  table.ship td.month.rank-hi { color: #d32f2f; font-weight: 700; }
+  table.ship td.month.rank-lo { color: #2563eb; font-weight: 700; }
 
   /* 日別/月別 切り替えトグル */
   .period-toggle {
@@ -836,7 +842,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.46</span>
+    <span class="version">v0.47</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1869,6 +1875,15 @@ function renderDailyTable(){
   const monthData = shipments[currentMonth] || {};
   products.forEach((p, idx) => {
     const fnskuData = monthData[p.fnsku] || {};
+    // その月の全日が埋まったら、上位5日=赤・下位5日=青の数字色
+    const filledDays = [];
+    for (let d = 1; d <= days; d++) { if (fnskuData[d]) filledDays.push({ d: d, q: fnskuData[d] }); }
+    const dHi = new Set(), dLo = new Set();
+    if (filledDays.length === days && days >= 10) {
+      const sorted = filledDays.slice().sort((a, b) => b.q - a.q);
+      sorted.slice(0, 5).forEach(o => dHi.add(o.d));
+      sorted.slice(-5).forEach(o => dLo.add(o.d));
+    }
     let total = 0;
     html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '" data-row="' + idx + '">';
     html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
@@ -1877,7 +1892,8 @@ function renderDailyTable(){
     for (let d = 1; d <= days; d++) {
       const q = fnskuData[d] || 0;
       total += q;
-      const cls = 'day' + (q ? ' has' : ' zero');
+      let cls = 'day' + (q ? ' has' : ' zero');
+      if (q) { if (dHi.has(d)) cls += ' rank-hi'; else if (dLo.has(d)) cls += ' rank-lo'; }
       html += '<td class="' + cls + '" data-day="' + d + '">' + (q || '') + '</td>';
     }
     html += '<td class="total">' + total + '</td></tr>';
@@ -1996,6 +2012,15 @@ function renderMonthlyTable(){
       monthlyTotals.push(monthSum);
       yearTotal += monthSum;
     }
+    // 12ヶ月すべて埋まったら、上位3月=赤・下位3月=青の数字色
+    const filledMonths = [];
+    for (let m = 0; m < 12; m++) { if (monthlyTotals[m]) filledMonths.push({ m: m, q: monthlyTotals[m] }); }
+    const mHi = new Set(), mLo = new Set();
+    if (filledMonths.length === 12) {
+      const sorted = filledMonths.slice().sort((a, b) => b.q - a.q);
+      sorted.slice(0, 3).forEach(o => mHi.add(o.m));
+      sorted.slice(-3).forEach(o => mLo.add(o.m));
+    }
     html += '<tr>';
     html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
     html += '<td class="img">' + productImageHtml(p, 52) + '</td>';
@@ -2003,7 +2028,8 @@ function renderMonthlyTable(){
     for (let m = 1; m <= 12; m++) {
       const q = monthlyTotals[m - 1];
       const isCur = m === currentMm;
-      const cls = 'month' + (q ? ' has' : ' zero') + (isCur ? ' current' : '');
+      let cls = 'month' + (q ? ' has' : ' zero') + (isCur ? ' current' : '');
+      if (q) { if (mHi.has(m - 1)) cls += ' rank-hi'; else if (mLo.has(m - 1)) cls += ' rank-lo'; }
       html += '<td class="' + cls + '">' + q + '</td>';
     }
     html += '<td class="total">' + yearTotal + '</td></tr>';
