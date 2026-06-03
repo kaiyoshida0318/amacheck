@@ -425,10 +425,9 @@
   .adc-sb-b2  { background-image: linear-gradient(to right, rgba(var(--hue),0.085), rgba(var(--hue),0.05)); }
   /* グループ境界の区切り線（売上金額／SP／SB の左端を少し強調） */
   table.ad-table .adc-gstart { border-left: 2px solid rgba(0,0,0,0.22); }
-  /* 広告費/ROAS 2分割：ROAS列はやや控えめ＋分割の境界線 */
-  table.ad-table .ad-roas { color: var(--text-secondary); }
-  table.ad-table .ad-cost { border-right-color: rgba(0,0,0,0.04); }
-  table.ad-table tbody td { color: var(--black); }
+  /* 広告費/ROAS 2分割：境界線は通常の罫線と同じ濃さで（薄すぎて白く見えるのを解消） */
+  table.ad-table .ad-roas { color: var(--black); }
+  table.ad-table tbody td { color: var(--black); font-size: 14px; }
   table.ad-table tbody tr:hover td:not(.ad-daycol) { filter: brightness(0.97); }
 
   /* 合計出荷数（日付選択の右） */
@@ -1063,7 +1062,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.81</span>
+  <span class="version">v0.83</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1223,7 +1222,7 @@
       <label for="ad-date" style="font-weight:600;font-size:13px;">対象日</label>
       <input type="date" id="ad-date" style="font-size:14px;padding:8px 10px;">
     </div>
-    <label class="upload-zone" for="ad-file-input" style="margin-top:14px;">
+    <label class="upload-zone" id="ad-upzone" for="ad-file-input" style="margin-top:14px;">
       <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
       <div class="main">CSVをクリックまたはドラッグ&ドロップ</div>
       <div class="sub">キャンペーンレポート .csv</div>
@@ -1573,6 +1572,16 @@ function init(){
   document.getElementById('ad-add-apply').addEventListener('click', applyAdImport);
   document.getElementById('ad-add-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'ad-add-modal') closeAdAddModal(); });
   document.getElementById('ad-file-input').addEventListener('change', handleAdFile);
+  const adDz = document.getElementById('ad-upzone');
+  if (adDz) {
+    adDz.addEventListener('dragover', e => { e.preventDefault(); adDz.style.borderColor = 'var(--blue)'; adDz.style.background = 'var(--blue-light)'; });
+    adDz.addEventListener('dragleave', () => { adDz.style.borderColor = ''; adDz.style.background = ''; });
+    adDz.addEventListener('drop', e => {
+      e.preventDefault();
+      adDz.style.borderColor = ''; adDz.style.background = '';
+      if (e.dataTransfer.files && e.dataTransfer.files[0]) processAdFile(e.dataTransfer.files[0]);
+    });
+  }
   document.getElementById('ad-month-select').addEventListener('change', (e) => { adMonth = e.target.value; renderAdTable(); });
   document.getElementById('ad-year-select').addEventListener('change', (e) => { adYear = e.target.value; renderAdTable(); });
   document.getElementById('ad-product-select').addEventListener('change', (e) => { adProduct = e.target.value; renderAdTable(); });
@@ -4491,8 +4500,7 @@ function closeAdAddModal(){
   pendingAdImport = null;
   setAdApplyEnabled(false);
 }
-function handleAdFile(e){
-  const f = e.target.files[0];
+function processAdFile(f){
   if (!f) return;
   const reader = new FileReader();
   reader.onload = (ev) => {
@@ -4502,6 +4510,9 @@ function handleAdFile(e){
     parseAdCsv(text);
   };
   reader.readAsArrayBuffer(f);
+}
+function handleAdFile(e){
+  processAdFile(e.target.files[0]);
   e.target.value = '';
 }
 // 「反映する」：プレビュー済みの内容を対象日に確定保存
