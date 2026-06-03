@@ -329,6 +329,31 @@
   table.ship td.month.rank-hi { color: #d32f2f; font-weight: 700; }
   table.ship td.month.rank-lo { color: #2563eb; font-weight: 700; }
 
+  /* 広告データテーブル */
+  table.ad-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; }
+  table.ad-table th, table.ad-table td {
+    padding: 7px 8px; border-bottom: 1px solid var(--border); border-right: 1px solid var(--border);
+    text-align: right; white-space: nowrap;
+  }
+  table.ad-table thead th { position: sticky; top: 0; z-index: 5; text-align: center; font-weight: 700; }
+  table.ad-table thead tr:nth-child(2) th { top: 30px; }
+  table.ad-table .ad-daycol { text-align: center; background: var(--bg-secondary); font-weight: 700; min-width: 40px; }
+  /* グループ見出し */
+  .adg { color: #fff; font-size: 13px; }
+  .adg-sales { background: #16a34a; }
+  .adg-sp { background: #2563eb; }
+  .adg-sb { background: #7e22ce; }
+  /* サブ見出し（全体＝濃いめ、内訳＝薄め） */
+  .adh { font-size: 12px; }
+  .adc-sales { background: rgba(22,163,74,0.18); }
+  .adc-sales-sub { background: rgba(22,163,74,0.07); }
+  .adc-sp { background: rgba(37,99,235,0.18); }
+  .adc-sp-sub { background: rgba(37,99,235,0.07); }
+  .adc-sb { background: rgba(126,34,206,0.18); }
+  .adc-sb-sub { background: rgba(126,34,206,0.07); }
+  table.ad-table tbody td { color: var(--black); }
+  table.ad-table tbody tr:hover td:not(.ad-daycol) { filter: brightness(0.97); }
+
   /* 合計出荷数（日付選択の右） */
   .ship-total {
     display: inline-flex;
@@ -849,6 +874,7 @@
   .tab svg { font-size: 20px; }
   .tab[data-tab="master"] svg { color: var(--accent); }
   .tab[data-tab="shipment"] svg { color: var(--blue); }
+  .tab[data-tab="ad"] svg { color: var(--purple); }
   .tab .count {
     color: var(--text-tertiary);
     font-weight: 500;
@@ -936,6 +962,7 @@
     <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/><path d="M8 15h2v2h-2z"/></symbol>
     <symbol id="i-tag" viewBox="0 0 24 24"><path d="M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3z"/></symbol>
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></symbol>
+    <symbol id="i-chart-bar" viewBox="0 0 24 24"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/><path d="M4 20h14"/></symbol>
   </defs>
 </svg>
 <!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
@@ -945,7 +972,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.59</span>
+  <span class="version">v0.61</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -964,6 +991,9 @@
   </button>
   <button class="tab" data-tab="shipment">
     <svg class="icn"><use href="#i-truck-delivery"/></svg> 出荷数データ
+  </button>
+  <button class="tab" data-tab="ad">
+    <svg class="icn"><use href="#i-chart-bar"/></svg> 広告データ
   </button>
 </nav>
 
@@ -1037,6 +1067,25 @@
     <div id="shipment-body"></div>
   </div>
 
+  <!-- 広告データ画面 -->
+  <div id="ad-view" hidden>
+    <div class="toolbar">
+      <div class="period-toggle">
+        <button class="period-btn active" data-ad-period="daily">日別</button>
+        <button class="period-btn" data-ad-period="monthly">月別</button>
+      </div>
+      <select id="ad-month-select"></select>
+      <select id="ad-year-select" hidden></select>
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);">
+        表示
+        <select id="ad-product-select" style="font-size:13px;padding:6px 8px;"></select>
+      </label>
+      <div class="spacer"></div>
+      <button class="primary" id="open-ad-add"><svg class="icn"><use href="#i-plus"/></svg> 広告データ追加</button>
+    </div>
+    <div id="ad-body"></div>
+  </div>
+
   <!-- 撤退済み商品画面 -->
   <div id="withdrawn-view" hidden>
     <div class="toolbar">
@@ -1050,6 +1099,30 @@
     </div>
   </div>
 
+</div>
+
+<!-- 広告データ追加モーダル -->
+<div class="modal-bg" id="ad-add-modal" hidden>
+  <div class="modal" style="max-width:520px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+      <div>
+        <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-chart-bar"/></svg> 広告データ追加</h3>
+        <div class="sub" style="margin-bottom:0;">広告キャンペーンレポート（CSV）をアップロードし、対象日を選びます。<strong>状態が「有効」のキャンペーンのみ</strong>取り込みます。前日分の取り込みを想定し、日付は既定で前日になっています。</div>
+      </div>
+      <button id="ad-add-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="row" style="margin-top:16px;">
+      <label for="ad-date" style="font-weight:600;font-size:13px;">対象日</label>
+      <input type="date" id="ad-date" style="font-size:14px;padding:8px 10px;">
+    </div>
+    <label class="upload-zone" for="ad-file-input" style="margin-top:14px;">
+      <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
+      <div class="main">CSVをクリックまたはドラッグ&ドロップ</div>
+      <div class="sub">キャンペーンレポート .csv</div>
+      <input type="file" id="ad-file-input" accept=".csv,.txt,text/csv,text/plain">
+    </label>
+    <div id="ad-import-preview" style="margin-top:12px;font-size:13px;color:var(--text-secondary);"></div>
+  </div>
 </div>
 
 <!-- 貼付モーダル -->
@@ -1194,11 +1267,17 @@ const STORAGE_SHIPMENTS = 'amacheck_shipments_v1';
 const STORAGE_ZOOM = 'amacheck_zoom_v1';
 const STORAGE_NAMEWIDTH = 'amacheck_namewidth_v1';
 const STORAGE_SALES = 'amacheck_sales_v1';
+const STORAGE_ADDATA = 'amacheck_addata_v1';
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
 let products = loadProducts();
 let shipments = loadShipments();
 let saleRanges = loadSales();
+let adData = loadAdData();
+let adPeriod = 'daily';
+let adMonth = ymKey(new Date());
+let adYear = String(new Date().getFullYear());
+let adProduct = 'all';
 let currentMonth;
 let currentYear;
 let currentPeriod = 'daily'; // 'daily' or 'monthly'
@@ -1234,6 +1313,13 @@ function loadSales(){
 }
 function saveSales(){
   localStorage.setItem(STORAGE_SALES, JSON.stringify(saleRanges));
+}
+function loadAdData(){
+  try { return JSON.parse(localStorage.getItem(STORAGE_ADDATA) || '{}'); }
+  catch { return {}; }
+}
+function saveAdData(){
+  localStorage.setItem(STORAGE_ADDATA, JSON.stringify(adData));
 }
 
 // ============================================
@@ -1314,6 +1400,24 @@ function init(){
   });
   // 撤退済み商品（専用ページへ遷移）
   document.getElementById('open-withdrawn').addEventListener('click', () => switchView('withdrawn'));
+  // 広告データ
+  document.getElementById('open-ad-add').addEventListener('click', openAdAddModal);
+  document.getElementById('ad-add-close').addEventListener('click', closeAdAddModal);
+  document.getElementById('ad-add-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'ad-add-modal') closeAdAddModal(); });
+  document.getElementById('ad-file-input').addEventListener('change', handleAdFile);
+  document.getElementById('ad-month-select').addEventListener('change', (e) => { adMonth = e.target.value; renderAdTable(); });
+  document.getElementById('ad-year-select').addEventListener('change', (e) => { adYear = e.target.value; renderAdTable(); });
+  document.getElementById('ad-product-select').addEventListener('change', (e) => { adProduct = e.target.value; renderAdTable(); });
+  document.querySelectorAll('[data-ad-period]').forEach(btn => {
+    btn.addEventListener('click', () => {
+      adPeriod = btn.dataset.adPeriod;
+      document.querySelectorAll('[data-ad-period]').forEach(b => b.classList.toggle('active', b === btn));
+      renderAdTable();
+    });
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('ad-add-modal').hidden) closeAdAddModal();
+  });
   document.getElementById('cancel').addEventListener('click', closeModal);
   document.getElementById('apply').addEventListener('click', applyShipment);
   document.getElementById('add-page').addEventListener('click', () => addPage());
@@ -1399,9 +1503,11 @@ function switchView(name, fromPop){
   document.getElementById('master-view').hidden = (name !== 'master');
   document.getElementById('shipment-view').hidden = (name !== 'shipment');
   document.getElementById('withdrawn-view').hidden = (name !== 'withdrawn');
+  document.getElementById('ad-view').hidden = (name !== 'ad');
   if (name === 'shipment') renderShipmentTable();
   if (name === 'master') renderMasterList();
   if (name === 'withdrawn') renderWithdrawnList();
+  if (name === 'ad') { populateAdProductSelect(); renderAdTable(); }
   updateActiveTab(name);
   // ブラウザ履歴に積む（popstateからの呼び出しは積まない）
   if (!fromPop) {
@@ -3682,6 +3788,268 @@ function restoreProduct(fnsku){
   toast('「' + (p.name || p.fnsku) + '」を現役商品に戻しました');
 }
 window.restoreProduct = restoreProduct;
+
+// ============================================
+// 広告データ
+// ============================================
+const AD_PRICE_RE = /[￥¥,，\s円]/g;
+function adParsePrice(v){
+  if (v === undefined || v === null || v === '') return 0;
+  const n = parseFloat(String(v).replace(AD_PRICE_RE, ''));
+  return isNaN(n) ? 0 : n;
+}
+// キャンペーン名から商品名・媒体・内訳を判定
+function classifyCampaign(row){
+  const name = row['キャンペーン名'] || '';
+  const type = (row['タイプ'] || '').toUpperCase();
+  const tgt = (row['ターゲティング'] || '').toUpperCase();
+  const platform = type.indexOf('SB') === 0 ? 'sb' : 'sp';
+  let subtype;
+  if (platform === 'sb') {
+    subtype = name.indexOf('動画') > -1 ? 'douga' : 'shokore';
+  } else {
+    const lname = name.toLowerCase();
+    if (tgt === 'AUTOMATIC' || name.indexOf('オート') > -1 || lname.indexOf('auto') > -1) subtype = 'auto';
+    else if (name.indexOf('商品') > -1) subtype = 'shohin';
+    else subtype = 'kw';
+  }
+  return { platform: platform, subtype: subtype, product: extractAdProduct(name) };
+}
+function extractAdProduct(name){
+  let s = name.replace(/【[^】]*】/g, '');
+  const parts = s.split('-').map(t => t.trim()).filter(Boolean);
+  const typeTokens = ['kw', '商品', 'オート', 'auto', '動画', '商品コレ', '商コレ', '商品コレクション'];
+  const out = [];
+  parts.forEach(t => {
+    const lt = t.toLowerCase();
+    if (typeTokens.some(k => lt === k.toLowerCase())) return;
+    if (/^[0-9a-zA-Z]+$/.test(t) && t.length <= 5) return; // コード（23,05,24FB,04 等）
+    out.push(t);
+  });
+  return out.join('-') || name.trim() || '(不明)';
+}
+
+function parseAdCsv(text, dateStr){
+  const res = Papa.parse(text, { header: true, skipEmptyLines: true });
+  if (!res.data.length) { toast('データが見つかりませんでした'); return; }
+  const cols = Object.keys(res.data[0]);
+  const find = (kw) => cols.find(c => c.indexOf(kw) > -1);
+  const stateCol = find('状態');
+  const nameCol = find('キャンペーン名');
+  const salesCol = cols.find(c => c.trim() === '売上') || find('売上');
+  const costCol = cols.find(c => c.trim() === '合計費用') || find('費用');
+  if (!nameCol) { toast('キャンペーン名の列が見つかりませんでした'); return; }
+
+  // 集計：product -> platform -> subtype -> {sales, cost}
+  const agg = {};
+  let count = 0;
+  res.data.forEach(row => {
+    if (stateCol && (row[stateCol] || '').trim() !== '有効') return; // 有効のみ
+    const c = classifyCampaign(row);
+    const sales = adParsePrice(salesCol ? row[salesCol] : 0);
+    const cost = adParsePrice(costCol ? row[costCol] : 0);
+    if (!agg[c.product]) agg[c.product] = {};
+    if (!agg[c.product][c.platform]) agg[c.product][c.platform] = {};
+    if (!agg[c.product][c.platform][c.subtype]) agg[c.product][c.platform][c.subtype] = { sales: 0, cost: 0 };
+    agg[c.product][c.platform][c.subtype].sales += sales;
+    agg[c.product][c.platform][c.subtype].cost += cost;
+    count++;
+  });
+  if (!count) { toast('「有効」のキャンペーンが見つかりませんでした'); return; }
+
+  adData[dateStr] = agg;
+  saveAdData();
+  adMonth = dateStr.slice(0, 7);
+  adYear = dateStr.slice(0, 4);
+  populateAdProductSelect();
+  renderAdTable();
+  const previewEl = document.getElementById('ad-import-preview');
+  const prods = Object.keys(agg);
+  if (previewEl) previewEl.innerHTML = '<span style="color:var(--success)">✓ ' + dateStr + ' に ' + count + ' 件（有効）を取り込みました（商品: ' + prods.join('、') + '）</span>';
+  toast(dateStr + ' の広告データを取り込みました（' + count + '件）');
+  setTimeout(closeAdAddModal, 900);
+}
+
+function adMetricsForDate(dateStr, productFilter){
+  const day = adData[dateStr];
+  const z = {
+    sales: { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } },
+    cost:  { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } }
+  };
+  if (!day) return z;
+  const prods = productFilter === 'all' ? Object.keys(day) : [productFilter];
+  prods.forEach(pr => {
+    const pd = day[pr];
+    if (!pd) return;
+    if (pd.sp) { ['kw', 'shohin', 'auto'].forEach(k => { if (pd.sp[k]) { z.sales.sp[k] += pd.sp[k].sales; z.cost.sp[k] += pd.sp[k].cost; } }); }
+    if (pd.sb) { ['douga', 'shokore'].forEach(k => { if (pd.sb[k]) { z.sales.sb[k] += pd.sb[k].sales; z.cost.sb[k] += pd.sb[k].cost; } }); }
+  });
+  return z;
+}
+function adRowHasData(m){
+  const s = m.sales, c = m.cost;
+  return (s.sp.kw + s.sp.shohin + s.sp.auto + s.sb.douga + s.sb.shokore
+        + c.sp.kw + c.sp.shohin + c.sp.auto + c.sb.douga + c.sb.shokore) > 0;
+}
+function allAdProducts(){
+  const set = new Set();
+  Object.values(adData).forEach(day => Object.keys(day).forEach(p => set.add(p)));
+  return Array.from(set).sort();
+}
+function populateAdProductSelect(){
+  const sel = document.getElementById('ad-product-select');
+  if (!sel) return;
+  const prods = allAdProducts();
+  let html = '<option value="all">全体</option>';
+  prods.forEach(p => { html += '<option value="' + escapeHtml(p) + '">' + escapeHtml(p) + '</option>'; });
+  sel.innerHTML = html;
+  if (adProduct !== 'all' && prods.indexOf(adProduct) < 0) adProduct = 'all';
+  sel.value = adProduct;
+}
+function yen(n){ return n ? '¥' + Math.round(n).toLocaleString() : ''; }
+
+function renderAdTable(){
+  const body = document.getElementById('ad-body');
+  if (!body) return;
+  populateAdMonthYear();
+
+  if (!Object.keys(adData).length) {
+    body.innerHTML = '<div class="master-card"><div class="empty-state">'
+      + '<svg class="icn" style="font-size:32px;color:var(--text-tertiary)"><use href="#i-chart-bar"/></svg>'
+      + '<div style="margin-top:8px;">広告データがまだありません</div>'
+      + '<div style="margin-top:6px;font-size:12px;color:var(--text-tertiary);">「+ 広告データ追加」からCSVを取り込んでください</div>'
+      + '</div></div>';
+    return;
+  }
+
+  let rows = [];
+  if (adPeriod === 'daily') {
+    const days = daysInMonth(adMonth);
+    for (let d = 1; d <= days; d++) {
+      const dateStr = adMonth + '-' + String(d).padStart(2, '0');
+      rows.push({ label: d, m: adMetricsForDate(dateStr, adProduct) });
+    }
+  } else {
+    for (let mo = 1; mo <= 12; mo++) {
+      const prefix = adYear + '-' + String(mo).padStart(2, '0');
+      const agg = {
+        sales: { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } },
+        cost:  { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } }
+      };
+      Object.keys(adData).forEach(dateStr => {
+        if (dateStr.indexOf(prefix) === 0) {
+          const mm = adMetricsForDate(dateStr, adProduct);
+          ['kw', 'shohin', 'auto'].forEach(k => { agg.sales.sp[k] += mm.sales.sp[k]; agg.cost.sp[k] += mm.cost.sp[k]; });
+          ['douga', 'shokore'].forEach(k => { agg.sales.sb[k] += mm.sales.sb[k]; agg.cost.sb[k] += mm.cost.sb[k]; });
+        }
+      });
+      rows.push({ label: mo + '月', m: agg });
+    }
+  }
+
+  let html = '<div class="table-wrap"><table class="ad-table"><thead>'
+    + '<tr>'
+    + '<th rowspan="2" class="ad-daycol">' + (adPeriod === 'daily' ? '日' : '月') + '</th>'
+    + '<th colspan="6" class="adg adg-sales">売上金額</th>'
+    + '<th colspan="4" class="adg adg-sp">SP広告（広告費）</th>'
+    + '<th colspan="3" class="adg adg-sb">SB広告（広告費）</th>'
+    + '</tr>'
+    + '<tr>'
+    + '<th class="adh adc-sales">総売上</th>'
+    + '<th class="adh adc-sales">SEO売上</th>'
+    + '<th class="adh adc-sales">広告売上</th>'
+    + '<th class="adh adc-sales-sub">KW</th>'
+    + '<th class="adh adc-sales-sub">商品</th>'
+    + '<th class="adh adc-sales-sub">オート</th>'
+    + '<th class="adh adc-sp">広告全体</th>'
+    + '<th class="adh adc-sp-sub">KW</th>'
+    + '<th class="adh adc-sp-sub">商品</th>'
+    + '<th class="adh adc-sp-sub">オート</th>'
+    + '<th class="adh adc-sb">広告全体</th>'
+    + '<th class="adh adc-sb-sub">KW-動画</th>'
+    + '<th class="adh adc-sb-sub">KW-商コレ</th>'
+    + '</tr></thead><tbody>';
+
+  rows.forEach(r => {
+    const s = r.m.sales, c = r.m.cost;
+    // 売上金額（売上ベース）
+    const spSales = s.sp.kw + s.sp.shohin + s.sp.auto;
+    const sbSales = s.sb.douga + s.sb.shokore;
+    const adSales = spSales + sbSales;
+    const sKw = s.sp.kw + sbSales; // SBは-KWのためKWに合算
+    // SP/SB広告（広告費ベース）
+    const spCost = c.sp.kw + c.sp.shohin + c.sp.auto;
+    const sbCost = c.sb.douga + c.sb.shokore;
+    const has = adRowHasData(r.m);
+    const cell = (v, cls) => '<td class="' + cls + '">' + (has ? yen(v) : '') + '</td>';
+    html += '<tr>'
+      + '<td class="ad-daycol">' + r.label + '</td>'
+      + '<td class="adc-sales"></td>'
+      + '<td class="adc-sales"></td>'
+      + cell(adSales, 'adc-sales')
+      + cell(sKw, 'adc-sales-sub')
+      + cell(s.sp.shohin, 'adc-sales-sub')
+      + cell(s.sp.auto, 'adc-sales-sub')
+      + cell(spCost, 'adc-sp')
+      + cell(c.sp.kw, 'adc-sp-sub')
+      + cell(c.sp.shohin, 'adc-sp-sub')
+      + cell(c.sp.auto, 'adc-sp-sub')
+      + cell(sbCost, 'adc-sb')
+      + cell(c.sb.douga, 'adc-sb-sub')
+      + cell(c.sb.shokore, 'adc-sb-sub')
+      + '</tr>';
+  });
+  html += '</tbody></table></div>';
+  body.innerHTML = html;
+}
+
+function populateAdMonthYear(){
+  const ms = document.getElementById('ad-month-select');
+  const ys = document.getElementById('ad-year-select');
+  if (ms && !ms.options.length) {
+    let html = '';
+    const now = new Date();
+    for (let i = 0; i < 24; i++) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      html += '<option value="' + ymKey(d) + '">' + d.getFullYear() + '年' + (d.getMonth() + 1) + '月</option>';
+    }
+    ms.innerHTML = html;
+  }
+  if (ms) ms.value = adMonth;
+  if (ys && !ys.options.length) {
+    let html = '';
+    const y = new Date().getFullYear();
+    for (let i = 0; i < 4; i++) html += '<option value="' + (y - i) + '">' + (y - i) + '年</option>';
+    ys.innerHTML = html;
+  }
+  if (ys) ys.value = adYear;
+  if (ms) ms.hidden = (adPeriod !== 'daily');
+  if (ys) ys.hidden = (adPeriod !== 'monthly');
+}
+
+function openAdAddModal(){
+  const d = new Date();
+  d.setDate(d.getDate() - 1);
+  document.getElementById('ad-date').value = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
+  document.getElementById('ad-import-preview').innerHTML = '';
+  document.getElementById('ad-add-modal').hidden = false;
+}
+function closeAdAddModal(){ document.getElementById('ad-add-modal').hidden = true; }
+function handleAdFile(e){
+  const f = e.target.files[0];
+  if (!f) return;
+  const dateStr = document.getElementById('ad-date').value;
+  if (!dateStr) { toast('対象日を選んでください'); e.target.value = ''; return; }
+  const reader = new FileReader();
+  reader.onload = (ev) => {
+    let text;
+    try { text = new TextDecoder('utf-8', { fatal: true }).decode(ev.target.result); }
+    catch { try { text = new TextDecoder('shift_jis').decode(ev.target.result); } catch { toast('文字コードを判別できませんでした'); return; } }
+    parseAdCsv(text, dateStr);
+  };
+  reader.readAsArrayBuffer(f);
+  e.target.value = '';
+}
 
 
 let editingFnsku = null;
