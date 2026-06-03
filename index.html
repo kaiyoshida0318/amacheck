@@ -672,6 +672,7 @@
     border: 1px solid var(--border-strong); border-radius: 6px;
     background: #fff; cursor: pointer;
   }
+  .status-select.st-active { color: var(--accent); font-weight: 600; }
   .status-select.st-planned { color: var(--amber); font-weight: 600; }
   .status-select.st-withdrawn { color: var(--danger); font-weight: 600; }
   .withdraw-date {
@@ -918,7 +919,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.54</span>
+  <span class="version">v0.55</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -3513,7 +3514,7 @@ function withdrawnProducts(){ return products.filter(p => productStatus(p) === '
 
 function statusCellHtml(p){
   const st = productStatus(p);
-  const cls = st === 'withdrawn' ? ' st-withdrawn' : (st === 'planned' ? ' st-planned' : '');
+  const cls = st === 'withdrawn' ? ' st-withdrawn' : (st === 'planned' ? ' st-planned' : ' st-active');
   let h = '<select class="status-select' + cls + '" data-fnsku="' + escapeHtml(p.fnsku) + '" onchange="onStatusChange(this)">';
   ['active', 'planned', 'withdrawn'].forEach(v => {
     h += '<option value="' + v + '"' + (st === v ? ' selected' : '') + '>' + STATUS_LABELS[v] + '</option>';
