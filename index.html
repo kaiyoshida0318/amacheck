@@ -194,7 +194,9 @@
     white-space: nowrap;
     overflow: hidden;
     border-bottom: 2px solid #fff;
+    cursor: pointer;
   }
+  table.ship th.sale-band:hover { filter: brightness(1.1); }
   table.ship th.sale-band .icn { font-size: 12px; vertical-align: -2px; }
   table.ship th.sale-corner, table.ship th.sale-gap { background: var(--bg-secondary); border-bottom: 2px solid var(--bg-secondary); }
   table.ship th.day.sale-day { box-shadow: inset 0 3px 0 var(--sale); }
@@ -687,6 +689,24 @@
   .with-item .with-name { font-weight: 600; font-size: 14px; }
   .with-item .with-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
   .with-item .spacer { flex: 1; }
+  /* セール一覧：スクロール＋折りたたみ＋ポップアップ */
+  .sale-scroll { max-height: 220px; overflow-y: auto; padding-right: 2px; }
+  .sale-ended-toggle {
+    width: 100%; text-align: left; margin: 4px 0 8px;
+    background: var(--bg-secondary); border: 1px dashed var(--border-strong);
+    color: var(--text-secondary); font-size: 13px; padding: 8px 10px; border-radius: 8px; cursor: pointer;
+  }
+  .sale-ended-toggle .icn { vertical-align: -2px; margin-right: 4px; }
+  .sale-ended { opacity: 0.85; }
+  .sale-popup {
+    position: fixed; z-index: 200;
+    background: #fff; border: 1px solid var(--border-strong); border-radius: 10px;
+    box-shadow: 0 8px 24px rgba(0,0,0,0.18); padding: 8px;
+    min-width: 180px;
+  }
+  .sale-popup .sp-title { font-size: 12px; font-weight: 700; color: var(--sale); padding: 2px 4px 8px; }
+  .sale-popup .sp-actions { display: flex; gap: 6px; }
+  .sale-popup .sp-actions button { font-size: 13px; padding: 6px 10px; }
   /* ヘッダー非表示モード（表を広く使う） */
   body.header-hidden .page-header,
   body.header-hidden .tabs {
@@ -898,7 +918,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.52</span>
+  <span class="version">v0.53</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1023,6 +1043,7 @@
         <input type="text" id="sale-label" placeholder="例: プライムデー" style="width:100%;font-size:14px;padding:8px 10px;">
       </div>
       <button class="confirm" id="sale-add" style="flex-shrink:0;"><svg class="icn"><use href="#i-plus"/></svg> 追加</button>
+      <button class="ghost" id="sale-edit-cancel" style="flex-shrink:0;" hidden>取消</button>
     </div>
     <div id="sale-list" style="margin-top:18px;"></div>
     <div class="modal-actions">
@@ -1167,9 +1188,14 @@ function loadShipments(){
 function saveShipments(){
   localStorage.setItem(STORAGE_SHIPMENTS, JSON.stringify(shipments));
 }
+function genSaleId(){ return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function loadSales(){
-  try { return JSON.parse(localStorage.getItem(STORAGE_SALES) || '[]'); }
-  catch { return []; }
+  let arr;
+  try { arr = JSON.parse(localStorage.getItem(STORAGE_SALES) || '[]'); } catch { arr = []; }
+  let changed = false;
+  arr.forEach(s => { if (!s.id) { s.id = genSaleId(); changed = true; } });
+  if (changed) { try { localStorage.setItem(STORAGE_SALES, JSON.stringify(arr)); } catch {} }
+  return arr;
 }
 function saveSales(){
   localStorage.setItem(STORAGE_SALES, JSON.stringify(saleRanges));
@@ -1232,6 +1258,17 @@ function init(){
   // セール日設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
   document.getElementById('sale-add').addEventListener('click', addSaleRange);
+  document.getElementById('sale-edit-cancel').addEventListener('click', cancelSaleEdit);
+  // SALEバーをクリックで編集・削除ポップアップ
+  document.addEventListener('click', (e) => {
+    const band = e.target.closest('table.ship th.sale-band');
+    if (band && band.dataset.saleId) {
+      e.stopPropagation();
+      showSalePopup(band.dataset.saleId, band);
+      return;
+    }
+    if (!e.target.closest('#sale-popup')) closeSalePopup();
+  });
   document.getElementById('sale-close').addEventListener('click', closeSaleModal);
   document.getElementById('sale-done').addEventListener('click', closeSaleModal);
   document.getElementById('sale-modal').addEventListener('mousedown', (e) => {
@@ -2026,11 +2063,12 @@ function renderDailyTable(){
     let d = 1;
     while (d <= days) {
       if (saleInfo[d]) {
+        const id = saleInfo[d].id;
         let run = 0;
-        while (d + run <= days && saleInfo[d + run]) run++;
+        while (d + run <= days && saleInfo[d + run] && saleInfo[d + run].id === id) run++;
         const lbl = saleInfo[d].label;
         const txt = '<svg class="icn"><use href="#i-tag"/></svg> SALE' + (lbl ? ' ' + escapeHtml(lbl) : '');
-        html += '<th colspan="' + run + '" class="sale-band" title="セール期間">' + txt + '</th>';
+        html += '<th colspan="' + run + '" class="sale-band" data-sale-id="' + id + '" title="クリックで編集・削除">' + txt + '</th>';
         d += run;
       } else {
         html += '<th class="sale-gap"></th>';
@@ -3304,70 +3342,161 @@ function adjustHiddenTableHeight(){
 // ============================================
 // セール日設定
 // ============================================
+let editingSaleId = null;
 function openSaleModal(){
+  cancelSaleEdit();
   renderSaleList();
-  document.getElementById('sale-start').value = '';
-  document.getElementById('sale-end').value = '';
-  document.getElementById('sale-label').value = '';
   document.getElementById('sale-modal').hidden = false;
 }
 function closeSaleModal(){
   document.getElementById('sale-modal').hidden = true;
+  cancelSaleEdit();
 }
+function setSaleInputs(start, end, label){
+  document.getElementById('sale-start').value = start || '';
+  document.getElementById('sale-end').value = end || '';
+  document.getElementById('sale-label').value = label || '';
+}
+function cancelSaleEdit(){
+  editingSaleId = null;
+  setSaleInputs('', '', '');
+  const btn = document.getElementById('sale-add');
+  btn.innerHTML = '<svg class="icn"><use href="#i-plus"/></svg> 追加';
+  const cancel = document.getElementById('sale-edit-cancel');
+  if (cancel) cancel.hidden = true;
+}
+function todayISO(){ return todayStr(); }
+
 function renderSaleList(){
   const wrap = document.getElementById('sale-list');
   if (!saleRanges.length) {
     wrap.innerHTML = '<div class="sale-empty">登録されたセール期間はありません</div>';
     return;
   }
-  // 開始日でソートして表示
-  const sorted = saleRanges.slice().sort((a, b) => a.start.localeCompare(b.start));
-  let html = '';
-  sorted.forEach(s => {
-    const idx = saleRanges.indexOf(s);
+  const today = todayISO();
+  const sorted = saleRanges.slice().sort((a, b) => b.start.localeCompare(a.start)); // 新しい順
+  const ongoing = sorted.filter(s => s.end >= today);   // 開催中・今後
+  const ended = sorted.filter(s => s.end < today);       // 終了
+
+  function itemHtml(s){
     const lbl = s.label ? '<span class="lbl">' + escapeHtml(s.label) + '</span>' : '';
-    html += '<div class="sale-item">'
+    return '<div class="sale-item">'
       + '<div class="bar"></div>'
       + '<span class="dates">' + s.start + ' 〜 ' + s.end + '</span>'
       + lbl
       + '<span class="spacer"></span>'
-      + '<button class="ghost" title="削除" onclick="deleteSaleRange(' + idx + ')"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button>'
+      + '<button class="ghost" title="編集" onclick="editSale(\'' + s.id + '\')"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg></button>'
+      + '<button class="ghost" title="削除" onclick="deleteSaleById(\'' + s.id + '\')"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button>'
       + '</div>';
-  });
+  }
+
+  let html = '<div class="sale-scroll">';
+  html += ongoing.map(itemHtml).join('');
+  if (ended.length) {
+    html += '<button type="button" class="sale-ended-toggle" onclick="toggleEndedSales(this)">'
+      + '<svg class="icn"><use href="#i-chevron-down"/></svg> 終了したセール (' + ended.length + ')</button>';
+    html += '<div class="sale-ended" hidden>' + ended.map(itemHtml).join('') + '</div>';
+  }
+  html += '</div>';
   wrap.innerHTML = html;
 }
+function toggleEndedSales(btn){
+  const sec = btn.nextElementSibling;
+  if (!sec) return;
+  sec.hidden = !sec.hidden;
+  const icn = btn.querySelector('use');
+  if (icn) icn.setAttribute('href', sec.hidden ? '#i-chevron-down' : '#i-chevron-up');
+}
+window.toggleEndedSales = toggleEndedSales;
+
 function addSaleRange(){
   const start = document.getElementById('sale-start').value;
   const end = document.getElementById('sale-end').value;
   const label = document.getElementById('sale-label').value.trim();
   if (!start || !end) { toast('開始日と終了日を選択してください'); return; }
   let s = start, e = end;
-  if (s > e) { const t = s; s = e; e = t; } // 逆順なら入れ替え
-  saleRanges.push({ start: s, end: e, label: label });
+  if (s > e) { const t = s; s = e; e = t; }
+  if (editingSaleId) {
+    const sale = saleRanges.find(x => x.id === editingSaleId);
+    if (sale) { sale.start = s; sale.end = e; sale.label = label; }
+    toast('セール期間を更新しました');
+  } else {
+    saleRanges.push({ id: genSaleId(), start: s, end: e, label: label });
+    toast('セール期間を追加しました');
+  }
   saveSales();
-  document.getElementById('sale-start').value = '';
-  document.getElementById('sale-end').value = '';
-  document.getElementById('sale-label').value = '';
+  cancelSaleEdit();
   renderSaleList();
   if (currentPeriod === 'daily') renderShipmentTable();
-  toast('セール期間を追加しました');
 }
-function deleteSaleRange(idx){
+function editSale(id){
+  const s = saleRanges.find(x => x.id === id);
+  if (!s) return;
+  editingSaleId = id;
+  setSaleInputs(s.start, s.end, s.label);
+  const btn = document.getElementById('sale-add');
+  btn.innerHTML = '<svg class="icn"><use href="#i-check"/></svg> 更新';
+  const cancel = document.getElementById('sale-edit-cancel');
+  if (cancel) cancel.hidden = false;
+  // モーダルが閉じていれば開く（SALEバーからの編集用）
+  if (document.getElementById('sale-modal').hidden) {
+    renderSaleList();
+    document.getElementById('sale-modal').hidden = false;
+  }
+  document.getElementById('sale-start').focus();
+}
+function deleteSaleById(id){
+  const idx = saleRanges.findIndex(x => x.id === id);
+  if (idx < 0) return;
   saleRanges.splice(idx, 1);
+  if (editingSaleId === id) cancelSaleEdit();
   saveSales();
   renderSaleList();
   if (currentPeriod === 'daily') renderShipmentTable();
 }
-window.deleteSaleRange = deleteSaleRange;
+window.editSale = editSale;
+window.deleteSaleById = deleteSaleById;
 
-// 指定月(YYYY-MM)の各日がセール期間に含まれるか {day: {label}}
+// SALEバーのポップアップ（編集・削除）
+function closeSalePopup(){
+  const pop = document.getElementById('sale-popup');
+  if (pop) pop.remove();
+}
+function showSalePopup(id, anchorEl){
+  closeSalePopup();
+  const s = saleRanges.find(x => x.id === id);
+  if (!s) return;
+  const rect = anchorEl.getBoundingClientRect();
+  const pop = document.createElement('div');
+  pop.id = 'sale-popup';
+  pop.className = 'sale-popup';
+  const title = (s.label ? escapeHtml(s.label) + ' ' : '') + s.start + '〜' + s.end;
+  pop.innerHTML = '<div class="sp-title">' + title + '</div>'
+    + '<div class="sp-actions">'
+    + '<button class="ghost" id="sp-edit"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg> 編集</button>'
+    + '<button class="ghost" id="sp-del"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg> 削除</button>'
+    + '</div>';
+  document.body.appendChild(pop);
+  // 位置（バーの下、画面内に収める）
+  let left = rect.left;
+  const top = rect.bottom + 4;
+  const pw = pop.offsetWidth;
+  if (left + pw > window.innerWidth - 8) left = window.innerWidth - pw - 8;
+  if (left < 8) left = 8;
+  pop.style.left = left + 'px';
+  pop.style.top = top + 'px';
+  document.getElementById('sp-edit').onclick = () => { closeSalePopup(); editSale(id); };
+  document.getElementById('sp-del').onclick = () => { closeSalePopup(); deleteSaleById(id); };
+}
+
+// 指定月(YYYY-MM)の各日がセール期間に含まれるか {day: {id, label}}
 function saleDaysForMonth(ym, days){
   const info = {};
   if (!saleRanges.length) return info;
   for (let d = 1; d <= days; d++) {
     const dayStr = ym + '-' + String(d).padStart(2, '0');
     const hit = saleRanges.find(s => dayStr >= s.start && dayStr <= s.end);
-    if (hit) info[d] = { label: hit.label || '' };
+    if (hit) info[d] = { id: hit.id, label: hit.label || '' };
   }
   return info;
 }
