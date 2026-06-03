@@ -663,6 +663,30 @@
   .sale-item .lbl { font-size: 12px; color: var(--sale); background: var(--sale-light); padding: 2px 8px; border-radius: 10px; }
   .sale-item .spacer { flex: 1; }
   .sale-empty { color: var(--text-tertiary); font-size: 13px; padding: 10px 0; text-align: center; }
+  /* ステータス列 */
+  table.master td.status-cell { white-space: nowrap; padding: 4px 8px; text-align: center; }
+  .status-select {
+    font-size: 12px; padding: 5px 6px;
+    border: 1px solid var(--border-strong); border-radius: 6px;
+    background: #fff; cursor: pointer;
+  }
+  .status-select.st-planned { color: var(--amber); font-weight: 600; }
+  .status-select.st-withdrawn { color: var(--danger); font-weight: 600; }
+  .withdraw-date {
+    display: block; margin-top: 4px;
+    font-size: 11px; padding: 3px 4px;
+    border: 1px solid var(--border-strong); border-radius: 6px;
+  }
+  /* 撤退済み一覧 */
+  .with-item {
+    display: flex; align-items: center; gap: 12px;
+    padding: 8px 10px; border: 1px solid var(--border);
+    border-radius: 8px; margin-bottom: 8px;
+  }
+  .with-item .with-img { flex-shrink: 0; width: 44px; height: 44px; }
+  .with-item .with-name { font-weight: 600; font-size: 14px; }
+  .with-item .with-meta { font-size: 12px; color: var(--text-secondary); margin-top: 2px; }
+  .with-item .spacer { flex: 1; }
   /* ヘッダー非表示モード（表を広く使う） */
   body.header-hidden .page-header,
   body.header-hidden .tabs {
@@ -801,7 +825,7 @@
     gap: 12px;
     margin-left: auto;
   }
-  .header-tools .version {
+  .version {
     color: var(--text-secondary);
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
     font-size: 13px;
@@ -874,8 +898,8 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
+  <span class="version">v0.52</span>
   <div class="header-tools">
-    <span class="version">v0.50</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -947,6 +971,7 @@
       <select id="month-select"></select>
       <select id="year-select" hidden></select>
       <div class="spacer"></div>
+      <button class="ghost" id="open-withdrawn" title="撤退済みの商品を表示" style="font-size:12px;"><svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品 <span class="wd-count" style="color:var(--text-tertiary);"></span></button>
       <button class="primary" id="open-input"><svg class="icn"><use href="#i-plus"/></svg> 出荷数入力</button>
       <button class="utility" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
@@ -1002,6 +1027,23 @@
     <div id="sale-list" style="margin-top:18px;"></div>
     <div class="modal-actions">
       <button id="sale-done" class="primary"><svg class="icn"><use href="#i-check"/></svg> 完了</button>
+    </div>
+  </div>
+</div>
+
+<!-- 撤退済み商品モーダル -->
+<div class="modal-bg" id="withdrawn-modal" hidden>
+  <div class="modal" style="max-width:560px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+      <div>
+        <h3><svg class="icn" style="color:var(--text-secondary);vertical-align:-3px;"><use href="#i-database-off"/></svg> 撤退済み商品</h3>
+        <div class="sub" style="margin-bottom:0;">撤退済みにした商品の一覧です。商品マスタからは非表示になり、設定した撤退日の翌月から出荷数データの表にも表示されなくなります。「現役に戻す」で復帰できます。</div>
+      </div>
+      <button id="withdrawn-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
+    </div>
+    <div id="withdrawn-list" style="margin-top:18px;"></div>
+    <div class="modal-actions">
+      <button id="withdrawn-done" class="primary"><svg class="icn"><use href="#i-check"/></svg> 完了</button>
     </div>
   </div>
 </div>
@@ -1198,6 +1240,16 @@ function init(){
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !document.getElementById('sale-modal').hidden) closeSaleModal();
   });
+  // 撤退済み商品
+  document.getElementById('open-withdrawn').addEventListener('click', openWithdrawnModal);
+  document.getElementById('withdrawn-close').addEventListener('click', closeWithdrawnModal);
+  document.getElementById('withdrawn-done').addEventListener('click', closeWithdrawnModal);
+  document.getElementById('withdrawn-modal').addEventListener('mousedown', (e) => {
+    if (e.target.id === 'withdrawn-modal') closeWithdrawnModal();
+  });
+  document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && !document.getElementById('withdrawn-modal').hidden) closeWithdrawnModal();
+  });
   document.getElementById('cancel').addEventListener('click', closeModal);
   document.getElementById('apply').addEventListener('click', applyShipment);
   document.getElementById('add-page').addEventListener('click', () => addPage());
@@ -1300,7 +1352,8 @@ function updateActiveTab(view){
 
 function updateTabCounts(){
   const el = document.getElementById('tab-master-count');
-  if (el) el.textContent = products.length ? '(' + products.length + ')' : '';
+  const n = visibleMasterProducts().length;
+  if (el) el.textContent = n ? '(' + n + ')' : '';
 }
 
 function updateHomeStatus(){
@@ -1604,19 +1657,22 @@ function deleteProduct(fnsku){
 }
 
 function renderMasterList(){
+  const visibleCount = visibleMasterProducts().length;
   const pcEl = document.getElementById('product-count');
-  if (pcEl) pcEl.textContent = products.length ? '登録商品: ' + products.length + ' 件' : '';
+  if (pcEl) pcEl.textContent = visibleCount ? '登録商品: ' + visibleCount + ' 件' : '';
   updateTabCounts();
+  updateWithdrawnButton();
   const wrap = document.getElementById('master-list-wrap');
   // スクロール位置を保存
   const oldScroll = wrap ? wrap.querySelector('.master-scroll') : null;
   const savedScrollTop = oldScroll ? oldScroll.scrollTop : 0;
   const savedScrollLeft = oldScroll ? oldScroll.scrollLeft : 0;
-  if (!products.length) {
+  if (!visibleCount) {
+    const allWithdrawn = products.length > 0;
     wrap.innerHTML = '<div class="empty-state">'
       + '<svg class="icn" style="font-size:28px;color:var(--text-tertiary);"><use href="#i-database-off"/></svg>'
-      + '<div style="margin-top:8px;">登録された商品はまだありません</div>'
-      + '<div style="margin-top:6px;font-size:12px;color:var(--text-tertiary);">右上の「+ 商品情報追加」から登録してください</div>'
+      + '<div style="margin-top:8px;">' + (allWithdrawn ? '表示できる商品がありません（すべて撤退済み）' : '登録された商品はまだありません') + '</div>'
+      + '<div style="margin-top:6px;font-size:12px;color:var(--text-tertiary);">' + (allWithdrawn ? '「撤退済み商品」から確認・復帰できます' : '右上の「+ 商品情報追加」から登録してください') + '</div>'
       + '</div>';
     updateBulkControls();
     return;
@@ -1636,8 +1692,10 @@ function renderMasterList(){
     + '<th class="price">利益額</th>'
     + '<th class="price">利益率</th>'
     + '<th class="edit-cell">編集</th>'
+    + '<th class="status-cell">ステータス</th>'
     + '</tr></thead><tbody>';
-  products.forEach((p, idx) => {
+  const visible = visibleMasterProducts();
+  visible.forEach((p, idx) => {
     html += '<tr data-fnsku="'+escapeHtml(p.fnsku)+'" data-row="'+idx+'">'
       + '<td class="drag-cell"><span class="drag-handle" title="ドラッグして並び替え"><svg class="icn"><use href="#i-grip"/></svg></span></td>'
       + '<td class="check-cell"><input type="checkbox" class="product-checkbox" data-fnsku="'+escapeHtml(p.fnsku)+'"></td>'
@@ -1653,6 +1711,7 @@ function renderMasterList(){
       + priceCellHtml(p, 'profit', 4)
       + priceCellHtml(p, 'margin', 5)
       + '<td class="edit-cell"><button class="ghost" onclick="openEditModal(\''+p.fnsku+'\')" title="編集"><svg class="icn" style="color:var(--purple)"><use href="#i-pencil"/></svg></button></td>'
+      + '<td class="status-cell">' + statusCellHtml(p) + '</td>'
       + '</tr>';
   });
   html += '</tbody></table></div>';
@@ -1828,17 +1887,20 @@ function startRowDrag(downEvent, sourceRow, table, scroll, line){
   document.addEventListener('pointerup', onUp);
 }
 
-// DOM上の挿入位置（行インデックス）をproducts配列に反映
+// DOM上の挿入位置をfnsku基準でproducts配列に反映（撤退済み非表示でも正しく動作）
 function commitRowReorder(sourceFnsku, domInsertIndex){
+  const rows = document.querySelectorAll('table.master tbody tr');
+  const targetFnsku = (domInsertIndex < rows.length) ? rows[domInsertIndex].dataset.fnsku : null;
+  if (targetFnsku === sourceFnsku) return; // 同じ位置
   const sourceIdx = products.findIndex(p => p.fnsku === sourceFnsku);
   if (sourceIdx < 0) return;
-  // 現在のDOM行順 = products順なので、挿入位置はそのままproductsインデックスに対応
-  let insertIdx = domInsertIndex;
-  // 元の行を取り除くと、それより後ろの挿入位置は1つ前にずれる
-  if (insertIdx > sourceIdx) insertIdx--;
-  if (insertIdx === sourceIdx) return; // 位置変化なし
   const [moved] = products.splice(sourceIdx, 1);
-  products.splice(insertIdx, 0, moved);
+  if (targetFnsku === null) {
+    products.push(moved);
+  } else {
+    const targetIdx = products.findIndex(p => p.fnsku === targetFnsku);
+    products.splice(targetIdx < 0 ? products.length : targetIdx, 0, moved);
+  }
   saveProducts();
   renderMasterList();
 }
@@ -1921,6 +1983,7 @@ function deleteSelected(){
 // 出荷数表のレンダリング（日別/月別を切り替え）
 // ============================================
 function renderShipmentTable(){
+  updateWithdrawnButton();
   const body = document.getElementById('shipment-body');
   if (!products.length) {
     body.innerHTML = '<div class="master-card"><div class="empty-state">'
@@ -1986,7 +2049,8 @@ function renderDailyTable(){
   html += '<th class="total">合計</th></tr></thead><tbody>';
 
   const monthData = shipments[currentMonth] || {};
-  products.forEach((p, idx) => {
+  const shipProducts = products.filter(isProductVisibleInShip);
+  shipProducts.forEach((p, idx) => {
     const fnskuData = monthData[p.fnsku] || {};
     // その月の全日が埋まったら、上位5日=赤・下位5日=青の数字色
     const filledDays = [];
@@ -2118,7 +2182,7 @@ function renderMonthlyTable(){
   }
   html += '<th class="total">年計</th></tr></thead><tbody>';
 
-  products.forEach(p => {
+  products.filter(isProductVisibleInShip).forEach(p => {
     let yearTotal = 0;
     const monthlyTotals = [];
     for (let m = 1; m <= 12; m++) {
@@ -3308,6 +3372,109 @@ function saleDaysForMonth(ym, days){
   return info;
 }
 
+// ============================================
+// ステータス（現役商品 / 撤退予定 / 撤退済み）
+// ============================================
+const STATUS_LABELS = { active: '現役商品', planned: '撤退予定', withdrawn: '撤退済み' };
+function productStatus(p){ return p.status || 'active'; }
+function visibleMasterProducts(){ return products.filter(p => productStatus(p) !== 'withdrawn'); }
+function withdrawnProducts(){ return products.filter(p => productStatus(p) === 'withdrawn'); }
+
+function statusCellHtml(p){
+  const st = productStatus(p);
+  const cls = st === 'withdrawn' ? ' st-withdrawn' : (st === 'planned' ? ' st-planned' : '');
+  let h = '<select class="status-select' + cls + '" data-fnsku="' + escapeHtml(p.fnsku) + '" onchange="onStatusChange(this)">';
+  ['active', 'planned', 'withdrawn'].forEach(v => {
+    h += '<option value="' + v + '"' + (st === v ? ' selected' : '') + '>' + STATUS_LABELS[v] + '</option>';
+  });
+  h += '</select>';
+  if (st === 'withdrawn') {
+    h += '<input type="date" class="withdraw-date" data-fnsku="' + escapeHtml(p.fnsku) + '" value="' + (p.withdrawnDate || '') + '" onchange="onWithdrawDateChange(this)" title="撤退日">';
+  }
+  return h;
+}
+function onStatusChange(sel){
+  const p = products.find(x => x.fnsku === sel.dataset.fnsku);
+  if (!p) return;
+  p.status = sel.value;
+  if (sel.value === 'withdrawn') {
+    if (!p.withdrawnDate) p.withdrawnDate = todayStr();
+  }
+  saveProducts();
+  // セルだけ再描画（行はページ移動・更新まで残す）
+  const cell = sel.closest('td');
+  if (cell) cell.innerHTML = statusCellHtml(p);
+  updateTabCounts();
+  updateWithdrawnButton();
+}
+function onWithdrawDateChange(input){
+  const p = products.find(x => x.fnsku === input.dataset.fnsku);
+  if (!p) return;
+  p.withdrawnDate = input.value;
+  saveProducts();
+}
+window.onStatusChange = onStatusChange;
+window.onWithdrawDateChange = onWithdrawDateChange;
+
+// 出荷数データの表に表示してよいか（撤退済みは撤退日の翌月以降は非表示）
+function isProductVisibleInShip(p){
+  if (productStatus(p) !== 'withdrawn' || !p.withdrawnDate) return true;
+  if (currentPeriod === 'monthly') {
+    const wYear = p.withdrawnDate.slice(0, 4);
+    return String(currentYear) <= wYear; // 撤退年までは表示、翌年から非表示
+  }
+  const wMonth = p.withdrawnDate.slice(0, 7);
+  return currentMonth <= wMonth; // 撤退月までは表示、翌月から非表示
+}
+
+function updateWithdrawnButton(){
+  const btn = document.getElementById('open-withdrawn');
+  if (!btn) return;
+  const n = withdrawnProducts().length;
+  const cnt = btn.querySelector('.wd-count');
+  if (cnt) cnt.textContent = n ? '(' + n + ')' : '';
+}
+
+function openWithdrawnModal(){
+  renderWithdrawnList();
+  document.getElementById('withdrawn-modal').hidden = false;
+}
+function closeWithdrawnModal(){ document.getElementById('withdrawn-modal').hidden = true; }
+function renderWithdrawnList(){
+  const wrap = document.getElementById('withdrawn-list');
+  const list = withdrawnProducts();
+  if (!list.length) {
+    wrap.innerHTML = '<div class="sale-empty">撤退済みの商品はありません</div>';
+    return;
+  }
+  let html = '';
+  list.forEach(p => {
+    html += '<div class="with-item">'
+      + '<div class="with-img">' + productImageHtml(p, 44) + '</div>'
+      + '<div class="with-info"><div class="with-name">' + escapeHtml(p.name || '-') + '</div>'
+      + '<div class="with-meta">' + escapeHtml(p.fnsku) + (p.withdrawnDate ? ' ・ 撤退日 ' + p.withdrawnDate : '') + '</div></div>'
+      + '<span class="spacer"></span>'
+      + '<button class="ghost" onclick="restoreProduct(\'' + p.fnsku + '\')">現役に戻す</button>'
+      + '</div>';
+  });
+  wrap.innerHTML = html;
+}
+function restoreProduct(fnsku){
+  const p = products.find(x => x.fnsku === fnsku);
+  if (!p) return;
+  p.status = 'active';
+  delete p.withdrawnDate;
+  saveProducts();
+  renderWithdrawnList();
+  updateTabCounts();
+  updateWithdrawnButton();
+  renderMasterList();
+  if (!document.getElementById('shipment-view').hidden) renderShipmentTable();
+  toast('「' + (p.name || p.fnsku) + '」を現役商品に戻しました');
+}
+window.restoreProduct = restoreProduct;
+
+
 let editingFnsku = null;
 let editDirty = false; // 未保存の変更があるか
 
@@ -3349,13 +3516,14 @@ function loadProductIntoEditModal(fnsku){
   updateEditPreview();
   updateImageActions();
   updateProfitDisplay();
-  // 位置インジケータ・矢印有効/無効
-  const idx = products.findIndex(x => x.fnsku === fnsku);
-  document.getElementById('edit-position').textContent = (idx + 1) + ' / ' + products.length;
+  // 位置インジケータ・矢印有効/無効（撤退済みを除いた表示中の商品で）
+  const navList = visibleMasterProducts();
+  const idx = navList.findIndex(x => x.fnsku === fnsku);
+  document.getElementById('edit-position').textContent = (idx + 1) + ' / ' + navList.length;
   document.getElementById('edit-prev').disabled = (idx <= 0);
-  document.getElementById('edit-next').disabled = (idx >= products.length - 1);
+  document.getElementById('edit-next').disabled = (idx >= navList.length - 1);
   document.getElementById('edit-save-prev').disabled = (idx <= 0);
-  document.getElementById('edit-save-next').disabled = (idx >= products.length - 1);
+  document.getElementById('edit-save-next').disabled = (idx >= navList.length - 1);
   resetDirty();
 }
 
@@ -3422,10 +3590,11 @@ function navigateEdit(dir){
   if (editDirty) {
     if (!confirm('未保存の変更があります。破棄して移動しますか？')) return;
   }
-  const idx = products.findIndex(x => x.fnsku === editingFnsku);
+  const navList = visibleMasterProducts();
+  const idx = navList.findIndex(x => x.fnsku === editingFnsku);
   const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= products.length) return;
-  loadProductIntoEditModal(products[newIdx].fnsku);
+  if (newIdx < 0 || newIdx >= navList.length) return;
+  loadProductIntoEditModal(navList[newIdx].fnsku);
 }
 
 // 保存して移動：「保存して次へ／前へ」用
@@ -3435,14 +3604,15 @@ function saveAndNavigate(dir){
   saveProducts();
   renderMasterList();
   resetDirty();
-  const idx = products.findIndex(x => x.fnsku === editingFnsku);
+  const navList = visibleMasterProducts();
+  const idx = navList.findIndex(x => x.fnsku === editingFnsku);
   const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= products.length) {
+  if (newIdx < 0 || newIdx >= navList.length) {
     loadProductIntoEditModal(editingFnsku);
     toast('保存しました（最' + (dir > 0 ? '後' : '初') + 'の商品です）');
     return;
   }
-  loadProductIntoEditModal(products[newIdx].fnsku);
+  loadProductIntoEditModal(navList[newIdx].fnsku);
   toast('保存して' + (dir > 0 ? '次' : '前') + 'の商品へ');
 }
 
