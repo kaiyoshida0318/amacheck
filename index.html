@@ -203,6 +203,8 @@
   /* 上位/下位ランクの数字色（日別: 上位5日=赤 / 下位5日=青） */
   table.ship td.day.rank-hi { color: #d32f2f; font-weight: 700; }
   table.ship td.day.rank-lo { color: #2563eb; font-weight: 700; }
+  /* セール対象商品×セール期間のセル：セール帯の色で細い枠 */
+  table.ship td.day.sale-target { box-shadow: inset 0 0 0 2px var(--sale); }
   table.ship th.day.today { background: #f2e3d0; color: var(--amber); }
   /* クリック可能な日付ヘッダー（出荷数入力へ） */
   table.ship th.day-clickable {
@@ -363,6 +365,8 @@
   table.ad-table thead th { position: sticky; top: 0; z-index: 5; text-align: center; font-weight: 700; }
   table.ad-table thead tr:nth-child(2) th { top: 30px; }
   table.ad-table .ad-daycol { text-align: center; background: var(--bg-secondary); font-weight: 700; min-width: 40px; }
+  table.ad-table .ad-daycol.ad-sale { background: rgba(194,24,91,0.12); box-shadow: inset 3px 0 0 var(--sale); color: var(--sale); }
+  table.ad-table tbody tr.ad-sale-row td { background-image: linear-gradient(rgba(194,24,91,0.04), rgba(194,24,91,0.04)); }
   /* グループ見出し */
   .adg { color: #fff; font-size: 13px; }
   .adg-sales { background: #16a34a; }
@@ -999,7 +1003,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.65</span>
+  <span class="version">v0.66</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -2334,6 +2338,8 @@ function renderDailyTable(){
       total += q;
       let cls = 'day' + (q ? ' has' : ' zero');
       if (q) { if (dHi.has(d)) cls += ' rank-hi'; else if (dLo.has(d)) cls += ' rank-lo'; }
+      const dateStr = currentMonth + '-' + String(d).padStart(2, '0');
+      if (salePriceForProductOnDate(p, dateStr) != null) cls += ' sale-target';
       html += '<td class="' + cls + '" data-day="' + d + '">' + (q || '') + '</td>';
     }
     html += '<td class="total">' + total + '</td></tr>';
@@ -4050,6 +4056,14 @@ function priceForProductOnDate(product, dateStr){
   if (sp != null) return sp;
   return Number(product.sellingPrice) || 0;
 }
+// その日がいずれかのセール期間に含まれるか
+function dateInAnySale(dateStr){
+  return saleRanges.some(s => dateStr >= s.start && dateStr <= s.end);
+}
+// その月（YYYY-MM）がいずれかのセール期間と重なるか
+function monthOverlapsSale(ym){
+  return saleRanges.some(s => s.start <= ym + '-31' && s.end >= ym + '-01');
+}
 // 総売上 = Σ(出荷数 × 価格)。productFilterが商品名なら名称一致する商品のみ。
 function totalSalesForDate(dateStr, productFilter){
   const ym = dateStr.slice(0, 7);
@@ -4115,7 +4129,7 @@ function renderAdTable(){
     const days = daysInMonth(adMonth);
     for (let d = 1; d <= days; d++) {
       const dateStr = adMonth + '-' + String(d).padStart(2, '0');
-      rows.push({ label: d, m: adMetricsForDate(dateStr, adProduct), total: totalSalesForDate(dateStr, adProduct) });
+      rows.push({ label: d, m: adMetricsForDate(dateStr, adProduct), total: totalSalesForDate(dateStr, adProduct), sale: dateInAnySale(dateStr) });
     }
   } else {
     for (let mo = 1; mo <= 12; mo++) {
@@ -4131,7 +4145,7 @@ function renderAdTable(){
           ['douga', 'shokore'].forEach(k => { agg.sales.sb[k] += mm.sales.sb[k]; agg.cost.sb[k] += mm.cost.sb[k]; });
         }
       });
-      rows.push({ label: mo + '月', m: agg, total: totalSalesForMonth(prefix, adProduct) });
+      rows.push({ label: mo + '月', m: agg, total: totalSalesForMonth(prefix, adProduct), sale: monthOverlapsSale(prefix) });
     }
   }
 
@@ -4173,8 +4187,8 @@ function renderAdTable(){
     const seo = total - adSales;            // SEO売上 = 総売上 − 広告売上
     const cell = (v, cls) => '<td class="' + cls + '">' + (has ? yen(v) : '') + '</td>';
     const tcell = (v, cls) => '<td class="' + cls + '">' + (total > 0 ? yen(v) : '') + '</td>';
-    html += '<tr>'
-      + '<td class="ad-daycol">' + r.label + '</td>'
+    html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + '">'
+      + '<td class="ad-daycol' + (r.sale ? ' ad-sale' : '') + '" title="' + (r.sale ? 'セール期間' : '') + '">' + r.label + '</td>'
       + tcell(total, 'adc-sales')
       + tcell(seo, 'adc-sales')
       + cell(adSales, 'adc-sales')
