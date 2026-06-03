@@ -842,7 +842,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <div class="header-tools">
-    <span class="version">v0.47</span>
+    <span class="version">v0.48</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1879,7 +1879,7 @@ function renderDailyTable(){
     const filledDays = [];
     for (let d = 1; d <= days; d++) { if (fnskuData[d]) filledDays.push({ d: d, q: fnskuData[d] }); }
     const dHi = new Set(), dLo = new Set();
-    if (filledDays.length === days && days >= 10) {
+    if (filledDays.length >= 10) {
       const sorted = filledDays.slice().sort((a, b) => b.q - a.q);
       sorted.slice(0, 5).forEach(o => dHi.add(o.d));
       sorted.slice(-5).forEach(o => dLo.add(o.d));
@@ -2016,7 +2016,7 @@ function renderMonthlyTable(){
     const filledMonths = [];
     for (let m = 0; m < 12; m++) { if (monthlyTotals[m]) filledMonths.push({ m: m, q: monthlyTotals[m] }); }
     const mHi = new Set(), mLo = new Set();
-    if (filledMonths.length === 12) {
+    if (filledMonths.length >= 6) {
       const sorted = filledMonths.slice().sort((a, b) => b.q - a.q);
       sorted.slice(0, 3).forEach(o => mHi.add(o.m));
       sorted.slice(-3).forEach(o => mLo.add(o.m));
