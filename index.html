@@ -357,6 +357,9 @@
   .camp-asin-wrap { display: flex; gap: 4px; align-items: center; }
   .camp-asin-input { flex: 1; min-width: 0; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 6px; font-family: ui-monospace, Menlo, monospace; }
   .camp-asin-copy { flex-shrink: 0; padding: 6px 7px; }
+  .asin-chip { flex: 1; min-width: 0; text-align: left; font-size: 13px; padding: 6px 10px; border: 1px solid var(--border-strong); border-radius: 6px; background: #fff; cursor: pointer; color: var(--text-tertiary); }
+  .asin-chip.has { color: var(--sale); font-weight: 600; border-color: rgba(194,24,91,0.4); background: rgba(194,24,91,0.06); }
+  .asin-chip:hover { border-color: var(--sale); }
   .camp-status { font-size: 13px; font-weight: 700; }
   .camp-status.on { color: var(--accent); }
   .camp-status.off { color: var(--amber); }
@@ -1015,7 +1018,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.72</span>
+  <span class="version">v0.73</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1238,6 +1241,25 @@
     <div class="modal-actions">
       <button id="sale-edit-cancel" class="ghost" hidden>取消</button>
       <button id="sale-done" class="primary"><svg class="icn"><use href="#i-check"/></svg> 登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- 対象ASIN編集モーダル -->
+<div class="modal-bg" id="asin-modal" hidden>
+  <div class="modal" style="max-width:480px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+      <div>
+        <h3><svg class="icn" style="color:var(--sale);vertical-align:-3px;"><use href="#i-tag"/></svg> 対象ASIN</h3>
+        <div class="sub" id="asin-modal-camp" style="margin-bottom:0;"></div>
+      </div>
+      <button id="asin-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
+    </div>
+    <textarea id="asin-textarea" placeholder="ASINを貼り付け（改行・カンマ・スペース区切り。複数可）" style="width:100%;box-sizing:border-box;height:200px;margin-top:14px;font-family:ui-monospace,Menlo,monospace;font-size:13px;padding:10px;border:1px solid var(--border-strong);border-radius:8px;resize:vertical;"></textarea>
+    <div id="asin-count" style="margin-top:6px;font-size:12px;color:var(--text-secondary);"></div>
+    <div class="modal-actions">
+      <button id="asin-copy" class="ghost"><svg class="icn"><use href="#i-copy"/></svg> コピー</button>
+      <button id="asin-save" class="primary"><svg class="icn"><use href="#i-check"/></svg> 保存</button>
     </div>
   </div>
 </div>
@@ -1482,6 +1504,12 @@ function init(){
   // 広告データ
   document.getElementById('open-ad-add').addEventListener('click', openAdAddModal);
   document.getElementById('add-campaign-row').addEventListener('click', addCampaignDraftRow);
+  document.getElementById('asin-close').addEventListener('click', closeAsinModal);
+  document.getElementById('asin-save').addEventListener('click', saveAsinEditor);
+  document.getElementById('asin-copy').addEventListener('click', copyAsinEditor);
+  document.getElementById('asin-textarea').addEventListener('input', updateAsinCount);
+  document.getElementById('asin-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'asin-modal') closeAsinModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('asin-modal').hidden) closeAsinModal(); });
   document.getElementById('ad-add-close').addEventListener('click', closeAdAddModal);
   document.getElementById('ad-add-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'ad-add-modal') closeAdAddModal(); });
   document.getElementById('ad-file-input').addEventListener('change', handleAdFile);
@@ -4338,7 +4366,7 @@ function renderCampaignList(){
         + '<option value="sb"' + (c.type === 'sb' ? ' selected' : '') + '>SB広告</option>'
       + '</select></td>'
       + '<td class="col-asin"><div class="camp-asin-wrap">'
-        + '<input type="text" class="camp-asin-input" placeholder="ASINを貼り付け" value="' + escapeHtml(c.asin || '') + '" oninput="setCampaignAsin(\'' + c.id + '\', this.value)">'
+        + '<button class="asin-chip' + (asinTokens(c.asin).length ? ' has' : '') + '" title="クリックで対象ASINを編集" onclick="openAsinEditor(\'' + c.id + '\')">' + asinChipLabel(c.asin) + '</button>'
         + '<button class="utility camp-asin-copy" title="対象ASINをコピー" onclick="copyCampaignAsin(\'' + c.id + '\')"><svg class="icn"><use href="#i-copy"/></svg></button>'
       + '</div></td>'
       + '<td class="col-del"><button class="ghost" title="削除" onclick="deleteCampaign(\'' + c.id + '\')"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button></td>'
@@ -4366,7 +4394,7 @@ function renderCampaignDraft(){
         + '<option value="sp"' + (d.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
         + '<option value="sb"' + (d.type === 'sb' ? ' selected' : '') + '>SB広告</option>'
       + '</select></td>'
-      + '<td class="col-asin"><input type="text" class="camp-asin-input" placeholder="ASINを貼り付け" value="' + escapeHtml(d.asin || '') + '" oninput="updateDraft(' + i + ',\'asin\',this.value)"></td>'
+      + '<td class="col-asin"><button class="asin-chip' + (asinTokens(d.asin).length ? ' has' : '') + '" title="クリックで対象ASINを入力" onclick="openAsinEditorDraft(' + i + ')">' + asinChipLabel(d.asin) + '</button></td>'
       + '<td class="col-del"><button class="ghost" title="この行を削除" onclick="removeDraft(' + i + ')"><svg class="icn" style="color:var(--danger)"><use href="#i-x"/></svg></button></td>'
       + '<td class="col-spacer"></td>'
       + '</tr>';
@@ -4468,6 +4496,68 @@ function setCampaignAsin(id, val){
   c.asin = val;
   saveCampaigns();
 }
+// ASIN文字列をトークン配列に（改行・カンマ・スペース区切り）
+function asinTokens(str){
+  return String(str || '').split(/[\s,、，]+/).map(s => s.trim()).filter(Boolean);
+}
+function asinChipLabel(str){
+  const n = asinTokens(str).length;
+  if (!n) return '＋ ASIN設定';
+  if (n === 1) return escapeHtml(asinTokens(str)[0]);
+  return 'ASIN ' + n + '件';
+}
+// ASIN編集モーダル（キャンペーン or 下書き行を対象に）
+let asinEditTarget = null; // {kind:'camp', id} | {kind:'draft', index}
+function openAsinEditor(id){
+  const c = adCampaigns.find(x => x.id === id);
+  if (!c) return;
+  asinEditTarget = { kind: 'camp', id: id };
+  openAsinModalWith(c.name || '', c.asin || '');
+}
+function openAsinEditorDraft(i){
+  const d = campaignDrafts[i];
+  if (!d) return;
+  asinEditTarget = { kind: 'draft', index: i };
+  openAsinModalWith(d.name || '（新規キャンペーン）', d.asin || '');
+}
+function openAsinModalWith(campName, asinStr){
+  document.getElementById('asin-modal-camp').textContent = campName;
+  const ta = document.getElementById('asin-textarea');
+  ta.value = asinTokens(asinStr).join('\n'); // 1行1ASINで見やすく
+  updateAsinCount();
+  document.getElementById('asin-modal').hidden = false;
+  setTimeout(() => ta.focus(), 30);
+}
+function updateAsinCount(){
+  const n = asinTokens(document.getElementById('asin-textarea').value).length;
+  document.getElementById('asin-count').textContent = n ? (n + ' 件のASIN') : 'ASIN未設定';
+}
+function closeAsinModal(){ document.getElementById('asin-modal').hidden = true; asinEditTarget = null; }
+function saveAsinEditor(){
+  const normalized = asinTokens(document.getElementById('asin-textarea').value).join(', ');
+  if (!asinEditTarget) { closeAsinModal(); return; }
+  if (asinEditTarget.kind === 'camp') {
+    const c = adCampaigns.find(x => x.id === asinEditTarget.id);
+    if (c) { c.asin = normalized; saveCampaigns(); renderCampaignList(); }
+  } else {
+    const d = campaignDrafts[asinEditTarget.index];
+    if (d) { d.asin = normalized; renderCampaignDraft(); }
+  }
+  closeAsinModal();
+  toast('対象ASINを保存しました');
+}
+function copyAsinEditor(){
+  const txt = asinTokens(document.getElementById('asin-textarea').value).join(', ');
+  if (!txt) { toast('コピーするASINがありません'); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => toast('ASINをコピーしました')).catch(() => toast('コピーできませんでした'));
+  } else {
+    const ta = document.getElementById('asin-textarea'); ta.select();
+    try { document.execCommand('copy'); toast('ASINをコピーしました'); } catch { toast('コピーできませんでした'); }
+  }
+}
+window.openAsinEditor = openAsinEditor;
+window.openAsinEditorDraft = openAsinEditorDraft;
 function copyCampaignAsin(id){
   const c = adCampaigns.find(x => x.id === id);
   if (!c) return;
