@@ -919,7 +919,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.55</span>
+  <span class="version">v0.56</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -999,6 +999,19 @@
     <div id="shipment-body"></div>
   </div>
 
+  <!-- 撤退済み商品画面 -->
+  <div id="withdrawn-view" hidden>
+    <div class="toolbar">
+      <button class="ghost" onclick="switchView('master')"><svg class="icn"><use href="#i-arrow-left"/></svg> 商品マスタへ戻る</button>
+      <h2 style="font-size:16px;margin:0 0 0 4px;"><svg class="icn" style="color:var(--text-secondary);vertical-align:-3px;"><use href="#i-database-off"/></svg> 撤退済み商品</h2>
+      <div class="spacer"></div>
+    </div>
+    <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;">撤退済みにした商品の一覧です。商品マスタからは非表示になり、設定した撤退日の翌月から出荷数データの表にも表示されなくなります。ステータスを「現役商品」に戻すと復帰します。</p>
+    <div class="master-card">
+      <div id="withdrawn-list"></div>
+    </div>
+  </div>
+
 </div>
 
 <!-- 貼付モーダル -->
@@ -1049,23 +1062,6 @@
     <div id="sale-list" style="margin-top:18px;"></div>
     <div class="modal-actions">
       <button id="sale-done" class="primary"><svg class="icn"><use href="#i-check"/></svg> 完了</button>
-    </div>
-  </div>
-</div>
-
-<!-- 撤退済み商品モーダル -->
-<div class="modal-bg" id="withdrawn-modal" hidden>
-  <div class="modal" style="max-width:min(1200px, 95vw);">
-    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
-      <div>
-        <h3><svg class="icn" style="color:var(--text-secondary);vertical-align:-3px;"><use href="#i-database-off"/></svg> 撤退済み商品</h3>
-        <div class="sub" style="margin-bottom:0;">撤退済みにした商品の一覧です。商品マスタからは非表示になり、設定した撤退日の翌月から出荷数データの表にも表示されなくなります。「現役に戻す」で復帰できます。</div>
-      </div>
-      <button id="withdrawn-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
-    </div>
-    <div id="withdrawn-list" style="margin-top:18px;"></div>
-    <div class="modal-actions">
-      <button id="withdrawn-done" class="primary"><svg class="icn"><use href="#i-check"/></svg> 完了</button>
     </div>
   </div>
 </div>
@@ -1278,16 +1274,8 @@ function init(){
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !document.getElementById('sale-modal').hidden) closeSaleModal();
   });
-  // 撤退済み商品
-  document.getElementById('open-withdrawn').addEventListener('click', openWithdrawnModal);
-  document.getElementById('withdrawn-close').addEventListener('click', closeWithdrawnModal);
-  document.getElementById('withdrawn-done').addEventListener('click', closeWithdrawnModal);
-  document.getElementById('withdrawn-modal').addEventListener('mousedown', (e) => {
-    if (e.target.id === 'withdrawn-modal') closeWithdrawnModal();
-  });
-  document.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape' && !document.getElementById('withdrawn-modal').hidden) closeWithdrawnModal();
-  });
+  // 撤退済み商品（専用ページへ遷移）
+  document.getElementById('open-withdrawn').addEventListener('click', () => switchView('withdrawn'));
   document.getElementById('cancel').addEventListener('click', closeModal);
   document.getElementById('apply').addEventListener('click', applyShipment);
   document.getElementById('add-page').addEventListener('click', () => addPage());
@@ -1372,8 +1360,10 @@ function switchView(name, fromPop){
   document.getElementById('add-view').hidden = (name !== 'add');
   document.getElementById('master-view').hidden = (name !== 'master');
   document.getElementById('shipment-view').hidden = (name !== 'shipment');
+  document.getElementById('withdrawn-view').hidden = (name !== 'withdrawn');
   if (name === 'shipment') renderShipmentTable();
   if (name === 'master') renderMasterList();
+  if (name === 'withdrawn') renderWithdrawnList();
   updateActiveTab(name);
   // ブラウザ履歴に積む（popstateからの呼び出しは積まない）
   if (!fromPop) {
@@ -2311,7 +2301,7 @@ function setupMasterCellInteraction(){
   masterCellWired = true;
 
   document.addEventListener('mousedown', (e) => {
-    if (e.target.closest('#withdrawn-modal')) return; // 撤退済みモーダル内の表は対象外
+    if (e.target.closest('#withdrawn-view')) return; // 撤退済みモーダル内の表は対象外
     const masterView = document.getElementById('master-view');
     if (!masterView || masterView.hidden) return;
     // 編集中inputがあれば先に確定
@@ -2343,7 +2333,7 @@ function setupMasterCellInteraction(){
 
   document.addEventListener('mousemove', (e) => {
     if (masterDragMode !== 'select') return;
-    if (e.target.closest('#withdrawn-modal')) return;
+    if (e.target.closest('#withdrawn-view')) return;
     const cell = e.target.closest('table.master td.price[data-field]');
     if (!cell) return;
     const col = parseInt(cell.dataset.col, 10);
@@ -3567,17 +3557,9 @@ function updateWithdrawnButton(){
   if (cnt) cnt.textContent = n ? '(' + n + ')' : '';
 }
 
-function openWithdrawnModal(){
-  masterSelection = null; // マスタ選択をクリア（モーダルと混ざらないように）
-  renderWithdrawnList();
-  document.getElementById('withdrawn-modal').hidden = false;
-}
-function closeWithdrawnModal(){
-  document.getElementById('withdrawn-modal').hidden = true;
-  renderMasterList(); // ステータス変更（現役化など）をマスタへ反映
-}
 function renderWithdrawnList(){
   const wrap = document.getElementById('withdrawn-list');
+  if (!wrap) return;
   const list = withdrawnProducts();
   if (!list.length) {
     wrap.innerHTML = '<div class="sale-empty">撤退済みの商品はありません</div>';
