@@ -203,8 +203,11 @@
   /* 上位/下位ランクの数字色（日別: 上位5日=赤 / 下位5日=青） */
   table.ship td.day.rank-hi { color: #d32f2f; font-weight: 700; }
   table.ship td.day.rank-lo { color: #2563eb; font-weight: 700; }
-  /* セール対象商品×セール期間のセル：セール帯の色で細い枠 */
-  table.ship td.day.sale-target { box-shadow: inset 0 0 0 2px var(--sale); }
+  /* セール対象商品×セール期間：薄いセール色で連続した細い枠（上下は全セル、左右は範囲の端のみ） */
+  table.ship td.day.sale-target { box-shadow: inset 0 1px 0 rgba(194,24,91,0.45), inset 0 -1px 0 rgba(194,24,91,0.45); }
+  table.ship td.day.sale-target.sale-start { box-shadow: inset 0 1px 0 rgba(194,24,91,0.45), inset 0 -1px 0 rgba(194,24,91,0.45), inset 1px 0 0 rgba(194,24,91,0.45); }
+  table.ship td.day.sale-target.sale-end { box-shadow: inset 0 1px 0 rgba(194,24,91,0.45), inset 0 -1px 0 rgba(194,24,91,0.45), inset -1px 0 0 rgba(194,24,91,0.45); }
+  table.ship td.day.sale-target.sale-start.sale-end { box-shadow: inset 0 1px 0 rgba(194,24,91,0.45), inset 0 -1px 0 rgba(194,24,91,0.45), inset 1px 0 0 rgba(194,24,91,0.45), inset -1px 0 0 rgba(194,24,91,0.45); }
   table.ship th.day.today { background: #f2e3d0; color: var(--amber); }
   /* クリック可能な日付ヘッダー（出荷数入力へ） */
   table.ship th.day-clickable {
@@ -1005,7 +1008,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.68</span>
+  <span class="version">v0.69</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -2335,13 +2338,22 @@ function renderDailyTable(){
     html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
     html += '<td class="img">' + productImageHtml(p, 52) + '</td>';
     html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
+    // セール対象日のフラグ（連続範囲の端を判定するため先に計算）
+    const saleFlag = [];
+    for (let d = 1; d <= days; d++) {
+      const ds = currentMonth + '-' + String(d).padStart(2, '0');
+      saleFlag[d] = salePriceForProductOnDate(p, ds) != null;
+    }
     for (let d = 1; d <= days; d++) {
       const q = fnskuData[d] || 0;
       total += q;
       let cls = 'day' + (q ? ' has' : ' zero');
       if (q) { if (dHi.has(d)) cls += ' rank-hi'; else if (dLo.has(d)) cls += ' rank-lo'; }
-      const dateStr = currentMonth + '-' + String(d).padStart(2, '0');
-      if (salePriceForProductOnDate(p, dateStr) != null) cls += ' sale-target';
+      if (saleFlag[d]) {
+        cls += ' sale-target';
+        if (!saleFlag[d - 1]) cls += ' sale-start';
+        if (!saleFlag[d + 1]) cls += ' sale-end';
+      }
       html += '<td class="' + cls + '" data-day="' + d + '">' + (q || '') + '</td>';
     }
     html += '<td class="total">' + total + '</td></tr>';
