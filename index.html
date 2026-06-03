@@ -345,12 +345,15 @@
   table.camp th, table.camp td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
   table.camp th { font-size: 12px; color: var(--text-secondary); font-weight: 700; }
   table.camp th.col-sw, table.camp td.col-sw { width: 64px; text-align: center; }
-  table.camp th.col-name, table.camp td.col-name { width: 240px; }
-  table.camp th.col-type, table.camp td.col-type { width: 130px; }
-  table.camp th.col-status, table.camp td.col-status { width: 96px; }
-  table.camp th.col-asin, table.camp td.col-asin { width: 240px; }
+  table.camp th.col-name, table.camp td.col-name { width: 200px; }
+  table.camp th.col-product, table.camp td.col-product { width: 150px; }
+  table.camp th.col-type, table.camp td.col-type { width: 120px; }
+  table.camp th.col-status, table.camp td.col-status { width: 92px; }
+  table.camp th.col-asin, table.camp td.col-asin { width: 200px; }
   table.camp th.col-del, table.camp td.col-del { width: 44px; text-align: center; }
   table.camp th.col-spacer, table.camp td.col-spacer { width: auto; }
+  .camp-product-cell .camp-name-edit { color: var(--purple); font-weight: 600; }
+  .camp-name-input.camp-product-input { font-family: inherit; }
   .camp-asin-wrap { display: flex; gap: 4px; align-items: center; }
   .camp-asin-input { flex: 1; min-width: 0; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 6px; font-family: ui-monospace, Menlo, monospace; }
   .camp-asin-copy { flex-shrink: 0; padding: 6px 7px; }
@@ -1012,7 +1015,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.71</span>
+  <span class="version">v0.72</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4119,11 +4122,19 @@ function populateAdProductSelect(){
   if (!sel) return;
   // 表示中の月（日別=その月／月別=その年の年末）を基準に、実施中・当月までのオフを表示
   const refYm = (adPeriod === 'monthly') ? (adYear + '-12') : adMonth;
-  const visible = adCampaigns.filter(c => campaignVisibleForMonth(c, refYm));
+  // 商品単位に集約：その商品のいずれかのキャンペーンが当月可視なら表示
+  const visMap = new Map();
+  adCampaigns.forEach(c => {
+    const prod = campProduct(c);
+    if (!prod) return;
+    if (!visMap.has(prod)) visMap.set(prod, false);
+    if (campaignVisibleForMonth(c, refYm)) visMap.set(prod, true);
+  });
+  const products = [...visMap.entries()].filter(e => e[1]).map(e => e[0]).sort();
   let html = '<option value="all">全体</option>';
-  visible.forEach(c => { html += '<option value="' + escapeHtml(c.name) + '">' + escapeHtml(c.name) + '</option>'; });
+  products.forEach(p => { html += '<option value="' + escapeHtml(p) + '">' + escapeHtml(p) + '</option>'; });
   sel.innerHTML = html;
-  if (adProduct !== 'all' && !visible.some(c => c.name === adProduct)) adProduct = 'all';
+  if (adProduct !== 'all' && products.indexOf(adProduct) < 0) adProduct = 'all';
   sel.value = adProduct;
 }
 function yen(n){ return n ? '¥' + Math.round(n).toLocaleString() : ''; }
@@ -4280,6 +4291,13 @@ function handleAdFile(e){
 function saveCampaigns(){ localStorage.setItem(STORAGE_CAMPAIGNS, JSON.stringify(adCampaigns)); }
 function genCampId(){ return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 const CAMP_TYPE_LABELS = { sp: 'SP広告', sb: 'SB広告' };
+// キャンペーンの「商品」（広告データの絞り込み単位）。未設定ならキャンペーン名から自動推定
+function campProduct(c){
+  const p = (c.product || '').trim();
+  return p || extractAdProduct(c.name || '');
+}
+// 既存データに商品が無ければ補完
+adCampaigns.forEach(c => { if (c.product === undefined || c.product === null) c.product = extractAdProduct(c.name || ''); });
 
 // 指定月に選択タブへ出すか（オフは「オフにした月」までは表示、翌月から非表示）
 function campaignVisibleForMonth(c, ym){
@@ -4302,6 +4320,7 @@ function renderCampaignList(){
   let html = '<table class="camp"><thead><tr>'
     + '<th class="col-sw">実施中</th>'
     + '<th class="col-name">キャンペーン名</th>'
+    + '<th class="col-product">商品</th>'
     + '<th class="col-status">ステータス</th>'
     + '<th class="col-type">タイプ</th>'
     + '<th class="col-asin">対象ASIN</th>'
@@ -4312,6 +4331,7 @@ function renderCampaignList(){
     html += '<tr data-id="' + c.id + '">'
       + '<td class="col-sw"><label class="switch"><input type="checkbox" ' + (c.active ? 'checked' : '') + ' onchange="toggleCampaign(\'' + c.id + '\', this.checked)"><span class="slider"></span></label></td>'
       + '<td class="col-name"><span class="camp-name-edit" title="クリックで編集" onclick="startEditCampaignName(\'' + c.id + '\', this)">' + escapeHtml(c.name || '(無題)') + '</span></td>'
+      + '<td class="col-product camp-product-cell"><span class="camp-name-edit" title="クリックで編集（広告データの絞り込み単位）" onclick="startEditCampaignProduct(\'' + c.id + '\', this)">' + escapeHtml(campProduct(c) || '(未設定)') + '</span></td>'
       + '<td class="col-status"><span class="camp-status ' + (c.active ? 'on' : 'off') + '">' + (c.active ? '配信中' : '一時停止') + '</span></td>'
       + '<td class="col-type"><select class="camp-type-select" onchange="setCampaignType(\'' + c.id + '\', this.value)">'
         + '<option value="sp"' + (c.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
@@ -4334,12 +4354,13 @@ function renderCampaignDraft(){
   if (!campaignDrafts.length) { wrap.innerHTML = ''; return; }
   let html = '<div class="camp-draft-box"><div class="draft-title">新規キャンペーン（記入して「登録」）</div>'
     + '<table class="camp"><thead><tr>'
-    + '<th class="col-sw">実施中</th><th class="col-name">キャンペーン名</th><th class="col-status">ステータス</th><th class="col-type">タイプ</th><th class="col-asin">対象ASIN</th><th class="col-del"></th><th class="col-spacer"></th>'
+    + '<th class="col-sw">実施中</th><th class="col-name">キャンペーン名</th><th class="col-product">商品</th><th class="col-status">ステータス</th><th class="col-type">タイプ</th><th class="col-asin">対象ASIN</th><th class="col-del"></th><th class="col-spacer"></th>'
     + '</tr></thead><tbody>';
   campaignDrafts.forEach((d, i) => {
     html += '<tr>'
       + '<td class="col-sw"><label class="switch"><input type="checkbox" ' + (d.active ? 'checked' : '') + ' onchange="updateDraft(' + i + ',\'active\',this.checked)"><span class="slider"></span></label></td>'
-      + '<td class="col-name"><input type="text" class="camp-name-input" placeholder="キャンペーン名" value="' + escapeHtml(d.name) + '" oninput="updateDraft(' + i + ',\'name\',this.value)"></td>'
+      + '<td class="col-name"><input type="text" class="camp-name-input" placeholder="キャンペーン名" value="' + escapeHtml(d.name) + '" oninput="updateDraft(' + i + ',\'name\',this.value)" onchange="autoFillDraftProduct(' + i + ')"></td>'
+      + '<td class="col-product"><input type="text" class="camp-name-input camp-product-input" placeholder="商品（自動）" value="' + escapeHtml(d.product || '') + '" oninput="updateDraft(' + i + ',\'product\',this.value)"></td>'
       + '<td class="col-status"><span class="camp-status ' + (d.active ? 'on' : 'off') + '">' + (d.active ? '配信中' : '一時停止') + '</span></td>'
       + '<td class="col-type"><select class="camp-type-select" onchange="updateDraft(' + i + ',\'type\',this.value)">'
         + '<option value="sp"' + (d.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
@@ -4359,21 +4380,29 @@ function renderCampaignDraft(){
   wrap.innerHTML = html;
 }
 function addCampaignDraftRow(){
-  campaignDrafts.push({ name: '', type: 'sp', active: true, asin: '' });
+  campaignDrafts.push({ name: '', type: 'sp', active: true, asin: '', product: '', productEdited: false });
   renderCampaignDraft();
 }
 function updateDraft(i, field, val){
   if (!campaignDrafts[i]) return;
   campaignDrafts[i][field] = val;
+  if (field === 'product') campaignDrafts[i].productEdited = true;
   if (field === 'active') renderCampaignDraft(); // ステータス表示を更新
 }
+function autoFillDraftProduct(i){
+  const d = campaignDrafts[i];
+  if (!d) return;
+  if (!d.productEdited) { d.product = extractAdProduct(d.name || ''); renderCampaignDraft(); }
+}
+window.autoFillDraftProduct = autoFillDraftProduct;
 function removeDraft(i){ campaignDrafts.splice(i, 1); renderCampaignDraft(); }
 function cancelDrafts(){ campaignDrafts = []; renderCampaignDraft(); }
 function registerCampaigns(){
   const valid = campaignDrafts.filter(d => (d.name || '').trim());
   if (!valid.length) { toast('キャンペーン名を入力してください'); return; }
   valid.forEach(d => {
-    adCampaigns.push({ id: genCampId(), name: d.name.trim(), type: d.type || 'sp', active: !!d.active, offMonth: null, asin: (d.asin || '').trim() });
+    const prod = (d.product || '').trim() || extractAdProduct(d.name);
+    adCampaigns.push({ id: genCampId(), name: d.name.trim(), product: prod, type: d.type || 'sp', active: !!d.active, offMonth: null, asin: (d.asin || '').trim() });
   });
   campaignDrafts = [];
   saveCampaigns();
@@ -4413,6 +4442,26 @@ function setCampaignType(id, type){
   c.type = type;
   saveCampaigns();
 }
+function startEditCampaignProduct(id, span){
+  const c = adCampaigns.find(x => x.id === id);
+  if (!c) return;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'camp-name-input';
+  input.value = c.product || '';
+  input.placeholder = '商品名';
+  const commit = () => {
+    c.product = input.value.trim();
+    saveCampaigns();
+    renderCampaignList();
+    if (!document.getElementById('ad-view').hidden) populateAdProductSelect();
+  };
+  input.addEventListener('blur', commit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') renderCampaignList(); });
+  span.replaceWith(input);
+  input.focus(); input.select();
+}
+window.startEditCampaignProduct = startEditCampaignProduct;
 function setCampaignAsin(id, val){
   const c = adCampaigns.find(x => x.id === id);
   if (!c) return;
