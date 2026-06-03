@@ -342,9 +342,11 @@
   table.camp th, table.camp td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
   table.camp th { font-size: 12px; color: var(--text-secondary); font-weight: 700; }
   table.camp th.col-sw, table.camp td.col-sw { width: 64px; text-align: center; }
+  table.camp th.col-name, table.camp td.col-name { width: 300px; }
   table.camp th.col-type, table.camp td.col-type { width: 150px; }
-  table.camp th.col-status, table.camp td.col-status { width: 110px; }
+  table.camp th.col-status, table.camp td.col-status { width: 100px; }
   table.camp th.col-del, table.camp td.col-del { width: 44px; text-align: center; }
+  table.camp th.col-spacer, table.camp td.col-spacer { width: auto; }
   .camp-status { font-size: 13px; font-weight: 700; }
   .camp-status.on { color: var(--accent); }
   .camp-status.off { color: var(--amber); }
@@ -1003,7 +1005,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.67</span>
+  <span class="version">v0.68</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4283,21 +4285,23 @@ function renderCampaignList(){
   }
   let html = '<table class="camp"><thead><tr>'
     + '<th class="col-sw">実施中</th>'
-    + '<th>キャンペーン名</th>'
+    + '<th class="col-name">キャンペーン名</th>'
     + '<th class="col-status">ステータス</th>'
     + '<th class="col-type">タイプ</th>'
     + '<th class="col-del"></th>'
+    + '<th class="col-spacer"></th>'
     + '</tr></thead><tbody>';
   adCampaigns.forEach(c => {
     html += '<tr data-id="' + c.id + '">'
       + '<td class="col-sw"><label class="switch"><input type="checkbox" ' + (c.active ? 'checked' : '') + ' onchange="toggleCampaign(\'' + c.id + '\', this.checked)"><span class="slider"></span></label></td>'
-      + '<td><span class="camp-name-edit" title="クリックで編集" onclick="startEditCampaignName(\'' + c.id + '\', this)">' + escapeHtml(c.name || '(無題)') + '</span></td>'
+      + '<td class="col-name"><span class="camp-name-edit" title="クリックで編集" onclick="startEditCampaignName(\'' + c.id + '\', this)">' + escapeHtml(c.name || '(無題)') + '</span></td>'
       + '<td class="col-status"><span class="camp-status ' + (c.active ? 'on' : 'off') + '">' + (c.active ? '配信中' : '一時停止') + '</span></td>'
       + '<td class="col-type"><select class="camp-type-select" onchange="setCampaignType(\'' + c.id + '\', this.value)">'
         + '<option value="sp"' + (c.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
         + '<option value="sb"' + (c.type === 'sb' ? ' selected' : '') + '>SB広告</option>'
       + '</select></td>'
       + '<td class="col-del"><button class="ghost" title="削除" onclick="deleteCampaign(\'' + c.id + '\')"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button></td>'
+      + '<td class="col-spacer"></td>'
       + '</tr>';
   });
   html += '</tbody></table>';
@@ -4309,18 +4313,19 @@ function renderCampaignDraft(){
   if (!campaignDrafts.length) { wrap.innerHTML = ''; return; }
   let html = '<div class="camp-draft-box"><div class="draft-title">新規キャンペーン（記入して「登録」）</div>'
     + '<table class="camp"><thead><tr>'
-    + '<th class="col-sw">実施中</th><th>キャンペーン名</th><th class="col-status">ステータス</th><th class="col-type">タイプ</th><th class="col-del"></th>'
+    + '<th class="col-sw">実施中</th><th class="col-name">キャンペーン名</th><th class="col-status">ステータス</th><th class="col-type">タイプ</th><th class="col-del"></th><th class="col-spacer"></th>'
     + '</tr></thead><tbody>';
   campaignDrafts.forEach((d, i) => {
     html += '<tr>'
       + '<td class="col-sw"><label class="switch"><input type="checkbox" ' + (d.active ? 'checked' : '') + ' onchange="updateDraft(' + i + ',\'active\',this.checked)"><span class="slider"></span></label></td>'
-      + '<td><input type="text" class="camp-name-input" placeholder="キャンペーン名" value="' + escapeHtml(d.name) + '" oninput="updateDraft(' + i + ',\'name\',this.value)"></td>'
+      + '<td class="col-name"><input type="text" class="camp-name-input" placeholder="キャンペーン名" value="' + escapeHtml(d.name) + '" oninput="updateDraft(' + i + ',\'name\',this.value)"></td>'
       + '<td class="col-status"><span class="camp-status ' + (d.active ? 'on' : 'off') + '">' + (d.active ? '配信中' : '一時停止') + '</span></td>'
       + '<td class="col-type"><select class="camp-type-select" onchange="updateDraft(' + i + ',\'type\',this.value)">'
         + '<option value="sp"' + (d.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
         + '<option value="sb"' + (d.type === 'sb' ? ' selected' : '') + '>SB広告</option>'
       + '</select></td>'
       + '<td class="col-del"><button class="ghost" title="この行を削除" onclick="removeDraft(' + i + ')"><svg class="icn" style="color:var(--danger)"><use href="#i-x"/></svg></button></td>'
+      + '<td class="col-spacer"></td>'
       + '</tr>';
   });
   html += '</tbody></table>'
