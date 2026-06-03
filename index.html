@@ -345,11 +345,15 @@
   table.camp th, table.camp td { padding: 10px 12px; border-bottom: 1px solid var(--border); text-align: left; vertical-align: middle; }
   table.camp th { font-size: 12px; color: var(--text-secondary); font-weight: 700; }
   table.camp th.col-sw, table.camp td.col-sw { width: 64px; text-align: center; }
-  table.camp th.col-name, table.camp td.col-name { width: 300px; }
-  table.camp th.col-type, table.camp td.col-type { width: 150px; }
-  table.camp th.col-status, table.camp td.col-status { width: 100px; }
+  table.camp th.col-name, table.camp td.col-name { width: 240px; }
+  table.camp th.col-type, table.camp td.col-type { width: 130px; }
+  table.camp th.col-status, table.camp td.col-status { width: 96px; }
+  table.camp th.col-asin, table.camp td.col-asin { width: 240px; }
   table.camp th.col-del, table.camp td.col-del { width: 44px; text-align: center; }
   table.camp th.col-spacer, table.camp td.col-spacer { width: auto; }
+  .camp-asin-wrap { display: flex; gap: 4px; align-items: center; }
+  .camp-asin-input { flex: 1; min-width: 0; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 6px; font-family: ui-monospace, Menlo, monospace; }
+  .camp-asin-copy { flex-shrink: 0; padding: 6px 7px; }
   .camp-status { font-size: 13px; font-weight: 700; }
   .camp-status.on { color: var(--accent); }
   .camp-status.off { color: var(--amber); }
@@ -998,6 +1002,7 @@
     <symbol id="i-tag" viewBox="0 0 24 24"><path d="M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3z"/></symbol>
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></symbol>
     <symbol id="i-chart-bar" viewBox="0 0 24 24"><path d="M3 13a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v6a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/><path d="M15 9a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v10a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/><path d="M9 5a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v14a1 1 0 0 1 -1 1h-4a1 1 0 0 1 -1 -1z"/><path d="M4 20h14"/></symbol>
+    <symbol id="i-copy" viewBox="0 0 24 24"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"/><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"/></symbol>
   </defs>
 </svg>
 <!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
@@ -1007,7 +1012,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.70</span>
+  <span class="version">v0.71</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4299,6 +4304,7 @@ function renderCampaignList(){
     + '<th class="col-name">キャンペーン名</th>'
     + '<th class="col-status">ステータス</th>'
     + '<th class="col-type">タイプ</th>'
+    + '<th class="col-asin">対象ASIN</th>'
     + '<th class="col-del"></th>'
     + '<th class="col-spacer"></th>'
     + '</tr></thead><tbody>';
@@ -4311,6 +4317,10 @@ function renderCampaignList(){
         + '<option value="sp"' + (c.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
         + '<option value="sb"' + (c.type === 'sb' ? ' selected' : '') + '>SB広告</option>'
       + '</select></td>'
+      + '<td class="col-asin"><div class="camp-asin-wrap">'
+        + '<input type="text" class="camp-asin-input" placeholder="ASINを貼り付け" value="' + escapeHtml(c.asin || '') + '" oninput="setCampaignAsin(\'' + c.id + '\', this.value)">'
+        + '<button class="utility camp-asin-copy" title="対象ASINをコピー" onclick="copyCampaignAsin(\'' + c.id + '\')"><svg class="icn"><use href="#i-copy"/></svg></button>'
+      + '</div></td>'
       + '<td class="col-del"><button class="ghost" title="削除" onclick="deleteCampaign(\'' + c.id + '\')"><svg class="icn" style="color:var(--danger)"><use href="#i-trash"/></svg></button></td>'
       + '<td class="col-spacer"></td>'
       + '</tr>';
@@ -4324,7 +4334,7 @@ function renderCampaignDraft(){
   if (!campaignDrafts.length) { wrap.innerHTML = ''; return; }
   let html = '<div class="camp-draft-box"><div class="draft-title">新規キャンペーン（記入して「登録」）</div>'
     + '<table class="camp"><thead><tr>'
-    + '<th class="col-sw">実施中</th><th class="col-name">キャンペーン名</th><th class="col-status">ステータス</th><th class="col-type">タイプ</th><th class="col-del"></th><th class="col-spacer"></th>'
+    + '<th class="col-sw">実施中</th><th class="col-name">キャンペーン名</th><th class="col-status">ステータス</th><th class="col-type">タイプ</th><th class="col-asin">対象ASIN</th><th class="col-del"></th><th class="col-spacer"></th>'
     + '</tr></thead><tbody>';
   campaignDrafts.forEach((d, i) => {
     html += '<tr>'
@@ -4335,6 +4345,7 @@ function renderCampaignDraft(){
         + '<option value="sp"' + (d.type === 'sp' ? ' selected' : '') + '>SP広告</option>'
         + '<option value="sb"' + (d.type === 'sb' ? ' selected' : '') + '>SB広告</option>'
       + '</select></td>'
+      + '<td class="col-asin"><input type="text" class="camp-asin-input" placeholder="ASINを貼り付け" value="' + escapeHtml(d.asin || '') + '" oninput="updateDraft(' + i + ',\'asin\',this.value)"></td>'
       + '<td class="col-del"><button class="ghost" title="この行を削除" onclick="removeDraft(' + i + ')"><svg class="icn" style="color:var(--danger)"><use href="#i-x"/></svg></button></td>'
       + '<td class="col-spacer"></td>'
       + '</tr>';
@@ -4348,7 +4359,7 @@ function renderCampaignDraft(){
   wrap.innerHTML = html;
 }
 function addCampaignDraftRow(){
-  campaignDrafts.push({ name: '', type: 'sp', active: true });
+  campaignDrafts.push({ name: '', type: 'sp', active: true, asin: '' });
   renderCampaignDraft();
 }
 function updateDraft(i, field, val){
@@ -4362,7 +4373,7 @@ function registerCampaigns(){
   const valid = campaignDrafts.filter(d => (d.name || '').trim());
   if (!valid.length) { toast('キャンペーン名を入力してください'); return; }
   valid.forEach(d => {
-    adCampaigns.push({ id: genCampId(), name: d.name.trim(), type: d.type || 'sp', active: !!d.active, offMonth: null });
+    adCampaigns.push({ id: genCampId(), name: d.name.trim(), type: d.type || 'sp', active: !!d.active, offMonth: null, asin: (d.asin || '').trim() });
   });
   campaignDrafts = [];
   saveCampaigns();
@@ -4402,6 +4413,26 @@ function setCampaignType(id, type){
   c.type = type;
   saveCampaigns();
 }
+function setCampaignAsin(id, val){
+  const c = adCampaigns.find(x => x.id === id);
+  if (!c) return;
+  c.asin = val;
+  saveCampaigns();
+}
+function copyCampaignAsin(id){
+  const c = adCampaigns.find(x => x.id === id);
+  if (!c) return;
+  const txt = (c.asin || '').trim();
+  if (!txt) { toast('コピーする対象ASINがありません'); return; }
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(txt).then(() => toast('対象ASINをコピーしました')).catch(() => toast('コピーできませんでした'));
+  } else {
+    const ta = document.createElement('textarea');
+    ta.value = txt; document.body.appendChild(ta); ta.select();
+    try { document.execCommand('copy'); toast('対象ASINをコピーしました'); } catch { toast('コピーできませんでした'); }
+    ta.remove();
+  }
+}
 function deleteCampaign(id){
   const i = adCampaigns.findIndex(x => x.id === id);
   if (i < 0) return;
@@ -4413,6 +4444,8 @@ window.toggleCampaign = toggleCampaign;
 window.addCampaignDraftRow = addCampaignDraftRow;
 window.startEditCampaignName = startEditCampaignName;
 window.setCampaignType = setCampaignType;
+window.setCampaignAsin = setCampaignAsin;
+window.copyCampaignAsin = copyCampaignAsin;
 window.deleteCampaign = deleteCampaign;
 window.updateDraft = updateDraft;
 window.removeDraft = removeDraft;
