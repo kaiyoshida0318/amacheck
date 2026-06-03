@@ -667,6 +667,17 @@
   }
   table.master td.price .price-empty { color: var(--text-tertiary); }
 
+  /* ASIN列：クリック選択・ドラッグで範囲指定・一括コピー */
+  table.master td.asin-cell { cursor: cell; user-select: none; }
+  table.master td.asin-cell.cell-selected { background: rgba(37, 99, 235, 0.22) !important; }
+  table.master td.asin-cell.cell-active {
+    outline: 3px solid var(--blue);
+    outline-offset: -3px;
+    z-index: 3;
+    background: rgba(37, 99, 235, 0.22) !important;
+    box-shadow: 0 0 0 1px var(--blue);
+  }
+
   /* チェックボックス */
   table.master th.check-cell, table.master td.check-cell {
     width: 36px;
@@ -1013,12 +1024,12 @@
 </svg>
 <!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
 <header class="page-header">
-  <div class="logo" id="logo-home" title="ホームに戻る">
+  <div class="logo" id="logo-home" title="クリック：ホームに戻る ／ Ctrl(⌘)+クリック：新しいタブで開く">
     <svg class="icn"><use href="#i-shopping-cart"/></svg>
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.73</span>
+  <span class="version">v0.75</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1458,7 +1469,14 @@ function init(){
   document.getElementById('paste-date').value = todayStr();
 
   document.getElementById('open-add').addEventListener('click', () => switchView('add'));
-  document.getElementById('logo-home').addEventListener('click', () => switchView('master'));
+  document.getElementById('logo-home').addEventListener('click', (e) => {
+    // Ctrl/⌘+クリックで新規タブにもう1ページ（商品マスタ画面で起動）
+    if (e.ctrlKey || e.metaKey) {
+      window.open(window.location.href, '_blank');
+      return;
+    }
+    switchView('master');
+  });
   // タブクリック
   document.querySelectorAll('.tab').forEach(t => {
     t.addEventListener('click', () => switchView(t.dataset.tab));
@@ -1999,7 +2017,7 @@ function renderMasterList(){
       + '<td class="drag-cell"><span class="drag-handle" title="ドラッグして並び替え"><svg class="icn"><use href="#i-grip"/></svg></span></td>'
       + '<td class="check-cell"><input type="checkbox" class="product-checkbox" data-fnsku="'+escapeHtml(p.fnsku)+'"></td>'
       + '<td class="img-cell">' + productImageHtml(p, 72) + '</td>'
-      + '<td class="mono">'+escapeHtml(p.asin||'-')+'</td>'
+      + '<td class="mono asin-cell" data-asin="'+escapeHtml(p.asin||'')+'">'+escapeHtml(p.asin||'-')+'</td>'
       + '<td class="mono">'+escapeHtml(p.sku||'-')+'</td>'
       + '<td class="mono">'+escapeHtml(p.fnsku)+'</td>'
       + '<td class="name-cell">'+escapeHtml(p.name)+'</td>'
@@ -2067,6 +2085,7 @@ function renderMasterList(){
   // Excel風セル操作
   setupMasterCellInteraction();
   applyMasterSelectionUI();
+  applyAsinSelectionUI();
   // 価格セルのダブルクリック編集
   document.querySelectorAll('table.master td.price.editable').forEach(cell => {
     cell.addEventListener('dblclick', () => editMasterPriceCell(cell));
@@ -2557,6 +2576,7 @@ let masterSelection = null;
 let masterDragMode = null;
 let masterClipboard2D = null;
 let masterCellWired = false;
+let asinSelection = null; // {anchorRow, focusRow} ASIN列専用の縦選択
 
 function getMasterSelectionRect(){
   if (!masterSelection) return null;
@@ -2590,6 +2610,47 @@ function applyMasterSelectionUI(){
   }
 }
 
+// ASIN列の縦選択UI
+function applyAsinSelectionUI(){
+  document.querySelectorAll('table.master td.asin-cell.cell-selected, table.master td.asin-cell.cell-active').forEach(c => {
+    c.classList.remove('cell-selected', 'cell-active');
+  });
+  if (!asinSelection) return;
+  const minRow = Math.min(asinSelection.anchorRow, asinSelection.focusRow);
+  const maxRow = Math.max(asinSelection.anchorRow, asinSelection.focusRow);
+  const rows = document.querySelectorAll('table.master tbody tr');
+  for (let r = minRow; r <= maxRow; r++) {
+    const row = rows[r];
+    if (!row) continue;
+    const cell = row.querySelector('td.asin-cell');
+    if (cell) cell.classList.add('cell-selected');
+  }
+  const anchorRow = rows[asinSelection.anchorRow];
+  if (anchorRow) {
+    const anchorCell = anchorRow.querySelector('td.asin-cell');
+    if (anchorCell) anchorCell.classList.add('cell-active');
+  }
+}
+
+function copyAsinSelection(){
+  if (!asinSelection) return;
+  const minRow = Math.min(asinSelection.anchorRow, asinSelection.focusRow);
+  const maxRow = Math.max(asinSelection.anchorRow, asinSelection.focusRow);
+  const visible = visibleMasterProducts();
+  const lines = [];
+  for (let r = minRow; r <= maxRow; r++) {
+    const p = visible[r];
+    if (!p) continue;
+    lines.push(p.asin || '');
+  }
+  if (!lines.length) return;
+  const text = lines.join('\n');
+  if (navigator.clipboard && navigator.clipboard.writeText) {
+    navigator.clipboard.writeText(text).catch(() => {});
+  }
+  toast(lines.length + '件のASINをコピー');
+}
+
 function setupMasterCellInteraction(){
   if (masterCellWired) return;
   masterCellWired = true;
@@ -2603,17 +2664,37 @@ function setupMasterCellInteraction(){
     if (activeInput && !activeInput.contains(e.target)) {
       activeInput.blur();
     }
+    // ASIN列の縦選択（クリック→ドラッグで範囲指定）
+    const asinCell = e.target.closest('table.master td.asin-cell');
+    if (asinCell) {
+      masterSelection = null;
+      applyMasterSelectionUI();
+      const arow = parseInt(asinCell.closest('tr').dataset.row, 10);
+      if (e.shiftKey && asinSelection) {
+        asinSelection.focusRow = arow;
+      } else {
+        asinSelection = { anchorRow: arow, focusRow: arow };
+      }
+      masterDragMode = 'asin-select';
+      applyAsinSelectionUI();
+      e.preventDefault();
+      return;
+    }
     const cell = e.target.closest('table.master td.price[data-field]');
     if (!cell) {
       // インタラクティブ要素（ボタン・チェックボックス・編集中input）は触らない
       if (e.target.closest('button') || e.target.tagName === 'INPUT') return;
       // それ以外（表外、または表内の他セル）は選択解除
       masterSelection = null;
+      asinSelection = null;
       applyMasterSelectionUI();
+      applyAsinSelectionUI();
       return;
     }
     const col = parseInt(cell.dataset.col, 10);
     const row = parseInt(cell.closest('tr').dataset.row, 10);
+    asinSelection = null;
+    applyAsinSelectionUI();
     if (e.shiftKey && masterSelection) {
       masterSelection.focusRow = row;
       masterSelection.focusCol = col;
@@ -2626,6 +2707,14 @@ function setupMasterCellInteraction(){
   });
 
   document.addEventListener('mousemove', (e) => {
+    if (masterDragMode === 'asin-select') {
+      if (e.target.closest('#withdrawn-view')) return;
+      const acell = e.target.closest('table.master td.asin-cell');
+      if (!acell) return;
+      asinSelection.focusRow = parseInt(acell.closest('tr').dataset.row, 10);
+      applyAsinSelectionUI();
+      return;
+    }
     if (masterDragMode !== 'select') return;
     if (e.target.closest('#withdrawn-view')) return;
     const cell = e.target.closest('table.master td.price[data-field]');
@@ -2644,8 +2733,31 @@ function setupMasterCellInteraction(){
   document.addEventListener('keydown', (e) => {
     const masterView = document.getElementById('master-view');
     if (!masterView || masterView.hidden) return;
-    if (!masterSelection) return;
     if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    // ASIN列の選択がアクティブな場合
+    if (asinSelection) {
+      const maxIdx = visibleMasterProducts().length - 1;
+      if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+        e.preventDefault(); copyAsinSelection(); return;
+      } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
+        e.preventDefault();
+        const d = e.key === 'ArrowDown' ? 1 : -1;
+        if (e.shiftKey) {
+          asinSelection.focusRow = Math.max(0, Math.min(maxIdx, asinSelection.focusRow + d));
+        } else {
+          const nr = Math.max(0, Math.min(maxIdx, asinSelection.anchorRow + d));
+          asinSelection = { anchorRow: nr, focusRow: nr };
+        }
+        applyAsinSelectionUI();
+        const ac = document.querySelector('table.master td.asin-cell.cell-active');
+        if (ac && ac.scrollIntoView) ac.scrollIntoView({ block: 'nearest', inline: 'nearest' });
+        return;
+      } else if (e.key === 'Escape') {
+        e.preventDefault(); asinSelection = null; applyAsinSelectionUI(); return;
+      }
+      return;
+    }
+    if (!masterSelection) return;
     if (e.ctrlKey || e.metaKey) {
       if (e.key === 'c' || e.key === 'C') { e.preventDefault(); copyMasterCells(); }
       else if (e.key === 'v' || e.key === 'V') { e.preventDefault(); pasteMasterCells(); }
