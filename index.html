@@ -470,6 +470,8 @@
   #ad-close-toggle.is-closed { background: var(--amber); color: #fff; border-color: var(--amber); }
   /* ===== 月別グラフ ===== */
   #graph-view { width: 80vw; margin-left: calc(50% - 40vw); }
+  #graph-chart { position: relative; }
+  .graph-tip { position: absolute; display: none; pointer-events: none; background: rgba(17,24,39,0.92); color: #fff; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 7px; white-space: nowrap; z-index: 20; transform: translateY(-115%); box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
   .graph-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
   .graph-seg { display: inline-flex; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 9px; padding: 3px; }
   .graph-seg button { border: none; background: transparent; padding: 8px 16px; font-size: 15px; font-weight: 600; color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-family: inherit; }
@@ -491,6 +493,10 @@
   .graph-table .yr-sub { text-align: left; color: var(--text-tertiary); font-weight: 600; }
   .graph-table thead th { background: var(--bg-secondary); font-weight: 700; position: sticky; top: 0; font-size: 15px; }
   .graph-table tbody tr:nth-child(even) { background: rgba(37,99,235,0.03); }
+  .graph-table tbody tr.grp-recent { background: rgba(37,99,235,0.08); }
+  .graph-table tbody tr.grp-recent-end td { border-bottom: 2px solid var(--blue); }
+  .graph-table tbody tr.grp-a { background: rgba(37,99,235,0.08); }
+  .graph-table tbody tr.grp-b { background: rgba(234,88,12,0.08); }
   .graph-table .grp-label { font-weight: 700; color: var(--black); }
   .graph-table .grp-start td { border-top: 2px solid var(--border-strong); }
   /* 数字の4色分け（列ごとの順位）：上位10%=濃青 / 上位20%=青 / 下位20%=橙 / 下位10%=赤。中間は通常色 */
@@ -1171,7 +1177,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.14</span>
+  <span class="version">v1.17</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -5544,6 +5550,7 @@ let graphPeriodStart = 'jan';   // 'jan' | 'may'
 let graphCategory = 'sales';
 let graphHiddenItems = new Set();
 let graphTableMode = 'normal';  // 'normal' | 'yoy'
+let graphTableGroup = 'recent1y'; // 'recent1y' | 'fiscal' | 'calendar' | 'none'
 let graphCurYear = null;
 let graphPrevYear = null;
 let graphStartYM = null;        // 'YYYY-MM'（比較の前年側）
@@ -5641,12 +5648,11 @@ function renderGraphView(){
   h += '<div class="graph-seg" id="graph-period">'
     + '<button data-v="jan" class="' + (graphPeriodStart === 'jan' ? 'active' : '') + '">1月始まり</button>'
     + '<button data-v="may" class="' + (graphPeriodStart === 'may' ? 'active' : '') + '">5月始まり</button></div>';
-  h += '<select class="graph-select" id="graph-cat">';
+  h += '<select class="graph-select" id="graph-cat" style="font-weight:700;">';
   Object.keys(GRAPH_CATEGORIES).forEach(k => {
     h += '<option value="' + k + '"' + (k === graphCategory ? ' selected' : '') + '>' + GRAPH_CATEGORIES[k].label + '</option>';
   });
   h += '</select>';
-  h += '<div style="flex:1"></div>';
   h += '<span class="graph-range">'
     + '<select class="graph-select" id="graph-start">' + ymOpts(graphStartYM) + '</select>'
     + ' ～ '
@@ -5667,14 +5673,22 @@ function renderGraphView(){
     + '<span><span class="ln"></span>' + graphCurYear + '年</span></div>';
 
   // チャート
-  h += '<div id="graph-chart">' + buildGraphChart() + '</div>';
+  h += '<div id="graph-chart">' + buildGraphChart() + '<div id="graph-tip" class="graph-tip"></div></div>';
 
-  // 表モード切り替え
+  // 表モード切り替え＋区切り（色分け）ボタン
   h += '<div class="graph-toolbar" style="margin-top:18px;">'
     + '<div class="graph-seg blue" id="graph-tmode">'
     + '<button data-v="normal" class="' + (graphTableMode === 'normal' ? 'active' : '') + '">通常</button>'
     + '<button data-v="yoy" class="' + (graphTableMode === 'yoy' ? 'active' : '') + '">前年同月比</button>'
-    + '</div></div>';
+    + '</div>';
+  if (graphTableMode === 'normal') {
+    const gbtn = (v, l) => '<button data-v="' + v + '" class="' + (graphTableGroup === v ? 'active' : '') + '">' + l + '</button>';
+    h += '<div style="flex:1"></div>'
+      + '<div class="graph-seg blue" id="graph-group">'
+      + gbtn('recent1y', '直近1年') + gbtn('fiscal', '年度区切り') + gbtn('calendar', '年区切り') + gbtn('none', 'なし')
+      + '</div>';
+  }
+  h += '</div>';
   // 表
   h += '<div style="overflow:auto;max-height:520px;">' + buildGraphTable() + '</div>';
 
@@ -5691,6 +5705,30 @@ function renderGraphView(){
     renderGraphView();
   }));
   body.querySelectorAll('#graph-tmode button').forEach(b => b.addEventListener('click', () => { graphTableMode = b.dataset.v; renderGraphView(); }));
+  const grpEl = body.querySelector('#graph-group');
+  if (grpEl) grpEl.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { graphTableGroup = b.dataset.v; renderGraphView(); }));
+
+  // グラフの点ホバーで金額ツールチップ
+  const chartEl = body.querySelector('#graph-chart');
+  const tip = body.querySelector('#graph-tip');
+  const svgEl = chartEl ? chartEl.querySelector('svg') : null;
+  if (svgEl && tip) {
+    svgEl.addEventListener('mousemove', (e) => {
+      const t = e.target;
+      if (t && t.classList && t.classList.contains('gpt')) {
+        tip.textContent = t.getAttribute('data-tip');
+        const r = chartEl.getBoundingClientRect();
+        let x = e.clientX - r.left + 12;
+        if (x + 180 > r.width) x = e.clientX - r.left - 12 - tip.offsetWidth;
+        tip.style.left = x + 'px';
+        tip.style.top = (e.clientY - r.top - 6) + 'px';
+        tip.style.display = 'block';
+      } else {
+        tip.style.display = 'none';
+      }
+    });
+    svgEl.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  }
 }
 
 function buildGraphChart(){
@@ -5702,7 +5740,7 @@ function buildGraphChart(){
   items.forEach(it => {
     const cur = months.map(m => graphMonthMetrics(ymOf(graphCurYear, m))[it.key]);
     const prev = months.map(m => graphMonthMetrics(ymOf(graphPrevYear, m))[it.key]);
-    series.push({ color: it.color, cur, prev });
+    series.push({ color: it.color, cur, prev, label: it.label });
   });
   // 最大値
   let maxV = 0;
@@ -5745,11 +5783,21 @@ function buildGraphChart(){
       s += '<circle cx="' + xOf(i) + '" cy="' + yOf(v) + '" r="4" fill="' + (filled ? color : '#fff') + '" stroke="' + color + '" stroke-width="2.2"/>'; });
     return s;
   };
+  const hits = (arr, label, year) => {
+    let s = '';
+    arr.forEach((v, i) => { if (v == null || isNaN(v)) return;
+      const txt = label + ' ' + year + '年' + months[i] + '月  ' + fmtGraphVal(v, cat.yen);
+      s += '<circle class="gpt" cx="' + xOf(i) + '" cy="' + yOf(v) + '" r="12" fill="transparent" style="cursor:pointer" data-tip="' + txt + '"/>';
+    });
+    return s;
+  };
   series.forEach(s => {
     svg += '<path d="' + pathFor(s.prev) + '" fill="none" stroke="' + s.color + '" stroke-width="2.2" stroke-dasharray="7 5" opacity="0.85"/>';
     svg += ptsFor(s.prev, s.color, false);
     svg += '<path d="' + pathFor(s.cur) + '" fill="none" stroke="' + s.color + '" stroke-width="3"/>';
     svg += ptsFor(s.cur, s.color, true);
+    svg += hits(s.prev, s.label, graphPrevYear);
+    svg += hits(s.cur, s.label, graphCurYear);
   });
   svg += '</svg>';
   return svg;
@@ -5796,10 +5844,23 @@ function buildGraphTable(){
       const mm = graphMonthMetrics(ymOf(latest, m));
       if (mm.total > 0 || mm.totalQty > 0) { endM = m; break; }
     }
+    const latestIdx = latest * 12 + endM;
+    const rowCls = (y, mo) => {
+      if (graphTableGroup === 'none') return '';
+      if (graphTableGroup === 'recent1y') {
+        const back = latestIdx - (y * 12 + mo);
+        if (back < 0 || back >= 12) return '';
+        return back === 11 ? 'grp-recent grp-recent-end' : 'grp-recent';
+      }
+      if (graphTableGroup === 'calendar') return (y % 2 === 0) ? 'grp-a' : 'grp-b';
+      if (graphTableGroup === 'fiscal') { const fy = (mo >= 5) ? y : y - 1; return (fy % 2 === 0) ? 'grp-a' : 'grp-b'; }
+      return '';
+    };
     let y = latest, mo = endM, rows = 0;
     while (rows < 24) {
       const met = graphMonthMetrics(ymOf(y, mo));
-      h += '<tr><td class="grp-label">' + y + '/' + String(mo).padStart(2, '0') + '</td>';
+      const cls = rowCls(y, mo);
+      h += '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="grp-label">' + y + '/' + String(mo).padStart(2, '0') + '</td>';
       items.forEach(it => h += '<td>' + fmtGraphVal(met[it.key], cat.yen) + '</td>');
       h += '</tr>';
       mo--; if (mo < 1) { mo = 12; y--; }
