@@ -1144,7 +1144,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.03</span>
+  <span class="version">v1.04</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4328,22 +4328,31 @@ function extractAdProduct(name){
 }
 
 // CSVテキストを集計するだけの純関数。{ok, agg, count, prods} または {ok:false, msg}
+// 日本語版（状態/キャンペーン名/合計費用/売上）と英語版（state/campaignName/spend/sales）の両方に対応
 function parseAdCsv(text){
   const res = Papa.parse(text, { header: true, skipEmptyLines: true });
   if (!res.data.length) return { ok: false, msg: 'データなし' };
   const cols = Object.keys(res.data[0]);
   const find = (kw) => cols.find(c => c.indexOf(kw) > -1);
-  const stateCol = find('状態');
-  const nameCol = find('キャンペーン名');
-  const salesCol = cols.find(c => c.trim() === '売上') || find('売上');
-  const costCol = cols.find(c => c.trim() === '合計費用') || find('費用');
+  const exact = (...names) => cols.find(c => names.indexOf(c.trim()) > -1);
+  const nameCol = find('キャンペーン名') || exact('campaignName');
+  const stateCol = find('状態') || exact('state');
+  const typeCol = find('タイプ') || exact('campaignType', 'programType');
+  const tgtCol = find('ターゲティング') || exact('campaignTargetingType');
+  const salesCol = exact('売上', 'sales') || find('売上');
+  const costCol = exact('合計費用', 'spend') || find('費用');
   if (!nameCol) return { ok: false, msg: 'キャンペーン名の列なし' };
+  const isActive = (v) => { v = (v || '').trim(); return v === '有効' || /ENABLED/i.test(v); };
 
   const agg = {};
   let count = 0;
   res.data.forEach(row => {
-    if (stateCol && (row[stateCol] || '').trim() !== '有効') return; // 有効のみ
-    const c = classifyCampaign(row);
+    if (stateCol && !isActive(row[stateCol])) return; // 有効/ENABLED のみ
+    const c = classifyCampaign({
+      'キャンペーン名': row[nameCol] || '',
+      'タイプ': typeCol ? (row[typeCol] || '') : '',
+      'ターゲティング': tgtCol ? (row[tgtCol] || '') : ''
+    });
     const sales = adParsePrice(salesCol ? row[salesCol] : 0);
     const cost = adParsePrice(costCol ? row[costCol] : 0);
     if (!agg[c.product]) agg[c.product] = {};
