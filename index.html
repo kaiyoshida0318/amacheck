@@ -1171,7 +1171,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.13</span>
+  <span class="version">v1.14</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -5516,7 +5516,7 @@ const GRAPH_CATEGORIES = {
     { key: 'seo', label: 'SEO売上', color: '#9333ea' },
     { key: 'adSales', label: '広告売上', color: '#ea580c' },
     { key: 'jisseki', label: '実績額', color: '#dc2626' },
-    { key: 'grossProfit', label: '粗利益額', color: '#16a34a' },
+    { key: 'grossProfit', label: '粗利益', color: '#16a34a' },
   ] },
   fees: { label: '諸費用', yen: true, items: [
     { key: 'storage', label: '保管費', color: '#0891b2' },
@@ -5552,16 +5552,14 @@ let _graphMetricCache = {};
 
 function graphMonthMetrics(ym){
   if (_graphMetricCache[ym]) return _graphMetricCache[ym];
-  // データの有無を判定（出荷も広告も無ければ「データ無し」＝null）
-  const sh = shipments[ym] || {};
-  const hasShip = Object.values(sh).some(days => Object.values(days).some(q => (Number(q) || 0) > 0));
-  let hasAd = false;
-  const dim = daysInMonth(ym);
-  for (let d = 1; d <= dim; d++) { if (adData[ym + '-' + String(d).padStart(2, '0')]) { hasAd = true; break; } }
-  if (!hasShip && !hasAd) {
+  // 広告・出荷が揃った月だけを対象に（未完の月は null＝グラフ・表に出さない）
+  const complete = isAdMonthClosed(ym) || adMonthDataComplete(ym);
+  if (!complete) {
     const z = { total: null, seo: null, adSales: null, jisseki: null, grossProfit: null, totalQty: null, adQty: null, seoQty: null, fbaFee: null, storage: null };
     _graphMetricCache[ym] = z; return z;
   }
+  const sh = shipments[ym] || {};
+  const dim = daysInMonth(ym);
   const total = totalSalesForMonth(ym, 'all');
   let adSales = 0, adCost = 0;
   for (let d = 1; d <= dim; d++) {
