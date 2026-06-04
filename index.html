@@ -710,6 +710,15 @@
     z-index: 2;
     box-shadow: 0 1px 0 var(--border-strong);
   }
+  /* 商品名・価格のヘッダーは th.name-header/th.price 側で position:relative が当たり、
+     固定が外れてスクロール時に崩れていた。thead側を優先して固定を維持する */
+  table.master thead th.name-header,
+  table.master thead th.price {
+    position: sticky;
+    top: 0;
+    background: var(--bg-secondary);
+    z-index: 2;
+  }
   table.master th.price { font-size: 12px; }
   /* 値なしセル：出荷数表の0セルと同様の灰色 */
   table.master td.price.zero { background: #ededed; color: #999; }
@@ -1098,7 +1107,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.89</span>
+  <span class="version">v0.90</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1169,10 +1178,11 @@
   <div id="master-view" hidden>
     <div class="toolbar">
       <span id="product-count" style="color:var(--text-tertiary);font-size:13px;"></span>
+      <button class="ghost" id="open-withdrawn" title="撤退済みの商品を表示" style="font-size:13px;"><svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品 <span class="wd-count" style="color:var(--text-tertiary);"></span></button>
       <div class="spacer"></div>
       <button class="danger" id="delete-selected" disabled><svg class="icn"><use href="#i-trash"/></svg> 選択を削除 <span id="selected-count"></span></button>
       <button class="primary" id="open-add"><svg class="icn"><use href="#i-plus"/></svg> 商品情報追加</button>
-      <button class="ghost" id="open-withdrawn" title="撤退済みの商品を表示" style="font-size:13px;"><svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品 <span class="wd-count" style="color:var(--text-tertiary);"></span></button>
+      <button class="utility toggle-header-btn" id="toggle-header-master" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div class="master-card">
       <div id="master-list-wrap"></div>
@@ -1565,6 +1575,7 @@ function init(){
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('master')));
   document.getElementById('open-input').addEventListener('click', () => openModal());
   document.getElementById('toggle-header').addEventListener('click', toggleHeader);
+  document.getElementById('toggle-header-master').addEventListener('click', toggleHeader);
   document.getElementById('toggle-header-ad').addEventListener('click', toggleHeader);
   window.addEventListener('resize', adjustHiddenTableHeight);
   // セール設定
