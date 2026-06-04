@@ -372,19 +372,20 @@
   .camp-empty { color: var(--text-tertiary); font-size: 13px; padding: 16px 0; text-align: center; }
 
   /* 広告データテーブル */
-  table.ad-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 12px; table-layout: fixed; }
+  table.ad-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; table-layout: fixed; }
   table.ad-table th, table.ad-table td {
     padding: 5px 2px; border-bottom: 1px solid rgba(0,0,0,0.15); border-right: 1px solid rgba(0,0,0,0.15);
     text-align: right; white-space: nowrap; overflow: hidden; text-overflow: clip;
   }
   table.ad-table thead th { position: sticky; top: 0; z-index: 5; text-align: center; font-weight: 700; }
-  table.ad-table thead tr:nth-child(1) th { font-size: 12px; }
-  table.ad-table thead tr:nth-child(2) th { top: 28px; font-size: 11px; }
-  table.ad-table thead tr:nth-child(3) th { top: 53px; font-size: 10px; }
+  table.ad-table thead tr:nth-child(1) th { font-size: 13px; }
+  table.ad-table thead tr:nth-child(2) th { top: 30px; font-size: 12px; }
+  table.ad-table thead tr:nth-child(3) th { top: 60px; font-size: 12px; }
   table.ad-table .ad-daycol { text-align: center; background: var(--bg-secondary); font-weight: 700; width: 32px; }
   table.ad-table col.col-day { width: 32px; }
-  table.ad-table col.col-yen { width: 4.35%; }
-  table.ad-table col.col-roas { width: 2.85%; }
+  table.ad-table col.col-yen-lg { width: 5%; }
+  table.ad-table col.col-yen { width: 4%; }
+  table.ad-table col.col-roas { width: 3.25%; }
   table.ad-table .ad-daycol.ad-sale { background: rgba(194,24,91,0.12); box-shadow: inset 3px 0 0 var(--sale); color: var(--sale); }
   /* 広告表は画面幅いっぱいに全幅表示（横スクロールを出さない） */
   #ad-view .table-wrap {
@@ -392,6 +393,12 @@
     margin-left: calc(50% - 50vw + 12px);
     margin-right: calc(50% - 50vw + 12px);
     overflow-x: hidden;
+  }
+  /* ツールバーも全幅にして、左ブロックを左端・右ブロックを右端へ */
+  #ad-view .toolbar {
+    width: calc(100vw - 24px);
+    margin-left: calc(50% - 50vw + 12px);
+    margin-right: calc(50% - 50vw + 12px);
   }
   /* クリック可能な日付セル（広告データ追加へ） */
   table.ad-table td.ad-day-clickable {
@@ -438,7 +445,7 @@
   table.ad-table .adc-gstart { border-left: 2px solid rgba(0,0,0,0.22); }
   /* 広告費/ROAS 2分割：境界線は通常の罫線と同じ濃さで（薄すぎて白く見えるのを解消） */
   table.ad-table .ad-roas { color: var(--black); }
-  table.ad-table tbody td { color: var(--black); font-size: 12px; }
+  table.ad-table tbody td { color: var(--black); font-size: 13px; }
   table.ad-table tbody tr:hover td:not(.ad-daycol) { filter: brightness(0.97); }
   /* 確定（締め）UI */
   .ad-closed-banner {
@@ -1107,7 +1114,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.90</span>
+  <span class="version">v0.92</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4570,7 +4577,7 @@ function renderAdTable(){
   }
   function adColgroup(){
     let cg = '<colgroup><col class="col-day">';
-    cg += '<col class="col-yen"><col class="col-yen"><col class="col-yen"><col class="col-yen"><col class="col-roas">'; // 全体
+    cg += '<col class="col-yen-lg"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-roas">'; // 全体
     for (let i = 0; i < 4; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SP 4ブロック
     for (let i = 0; i < 3; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SB 3ブロック
     return cg + '</colgroup>';
