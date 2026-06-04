@@ -1171,7 +1171,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.11</span>
+  <span class="version">v1.12</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -5518,16 +5518,28 @@ const GRAPH_CATEGORIES = {
     { key: 'jisseki', label: '実績額', color: '#dc2626' },
     { key: 'grossProfit', label: '粗利益額', color: '#16a34a' },
   ] },
+  fees: { label: '諸費用', yen: true, items: [
+    { key: 'storage', label: '保管費', color: '#0891b2' },
+    { key: 'fbaFee', label: 'FBA手数料(送料)', color: '#a16207' },
+  ] },
   shipment: { label: '出荷数', yen: false, items: [
     { key: 'totalQty', label: '総出荷数', color: '#2563eb' },
     { key: 'seoQty', label: 'SEO出荷数', color: '#9333ea' },
     { key: 'adQty', label: '広告出荷数', color: '#ea580c' },
   ] },
-  fees: { label: '諸費用', yen: true, items: [
-    { key: 'storage', label: '保管費', color: '#2563eb' },
-    { key: 'fbaFee', label: 'FBA手数料(送料)', color: '#ea580c' },
-  ] },
 };
+// 表示項目ボタンに出す項目：売上・諸費用は相互に全項目、出荷数は単独
+function graphAllItems(){
+  if (graphCategory === 'shipment') return GRAPH_CATEGORIES.shipment.items;
+  return GRAPH_CATEGORIES.sales.items.concat(GRAPH_CATEGORIES.fees.items);
+}
+// そのカテゴリで初期OFF（グレー）にする項目＝相手側カテゴリの項目
+function graphDefaultHidden(cat){
+  const hidden = new Set();
+  if (cat === 'sales') GRAPH_CATEGORIES.fees.items.forEach(i => hidden.add(i.key));
+  else if (cat === 'fees') GRAPH_CATEGORIES.sales.items.forEach(i => hidden.add(i.key));
+  return hidden;
+}
 let graphPeriodStart = 'jan';   // 'jan' | 'may'
 let graphCategory = 'sales';
 let graphHiddenItems = new Set();
@@ -5605,6 +5617,7 @@ function renderGraphView(){
   if (graphEndYM == null) {
     graphEndYM = graphLatestYM();
     graphStartYM = (parseInt(graphEndYM.slice(0, 4), 10) - 1) + '-01';
+    graphHiddenItems = graphDefaultHidden(graphCategory);
   }
   graphCurYear = parseInt(graphEndYM.slice(0, 4), 10);
   graphPrevYear = parseInt(graphStartYM.slice(0, 4), 10);
@@ -5642,9 +5655,9 @@ function renderGraphView(){
     + '<select class="graph-select" id="graph-end">' + ymOpts(graphEndYM) + '</select></span>';
   h += '</div>';
 
-  // 表示項目ボタン（2段目）
+  // 表示項目ボタン（2段目）：売上・諸費用は相互に全項目を表示（相手側は初期グレー）
   h += '<div class="graph-items" id="graph-items">';
-  cat.items.forEach(it => {
+  graphAllItems().forEach(it => {
     const off = graphHiddenItems.has(it.key);
     h += '<button class="graph-item-btn' + (off ? ' off' : '') + '" data-k="' + it.key + '" style="' + (off ? '' : 'background:' + it.color) + '">'
       + '<span class="dot"></span>' + it.label + '</button>';
@@ -5671,7 +5684,7 @@ function renderGraphView(){
 
   // イベント
   body.querySelectorAll('#graph-period button').forEach(b => b.addEventListener('click', () => { graphPeriodStart = b.dataset.v; renderGraphView(); }));
-  body.querySelector('#graph-cat').addEventListener('change', (e) => { graphCategory = e.target.value; graphHiddenItems = new Set(); renderGraphView(); });
+  body.querySelector('#graph-cat').addEventListener('change', (e) => { graphCategory = e.target.value; graphHiddenItems = graphDefaultHidden(graphCategory); renderGraphView(); });
   body.querySelector('#graph-start').addEventListener('change', (e) => { graphStartYM = e.target.value; renderGraphView(); });
   body.querySelector('#graph-end').addEventListener('change', (e) => { graphEndYM = e.target.value; renderGraphView(); });
   body.querySelectorAll('#graph-items button').forEach(b => b.addEventListener('click', () => {
@@ -5685,7 +5698,7 @@ function renderGraphView(){
 function buildGraphChart(){
   const cat = GRAPH_CATEGORIES[graphCategory];
   const months = graphMonthOrder();
-  const items = cat.items.filter(it => !graphHiddenItems.has(it.key));
+  const items = graphAllItems().filter(it => !graphHiddenItems.has(it.key));
   // 値を集める（今年=実線 / 前年=破線）
   const series = [];
   items.forEach(it => {
@@ -5760,7 +5773,7 @@ function fmtGraphVal(v, yen){
 
 function buildGraphTable(){
   const cat = GRAPH_CATEGORIES[graphCategory];
-  const items = cat.items;
+  const items = graphAllItems().filter(it => !graphHiddenItems.has(it.key));
   const yoy = (graphTableMode === 'yoy');
   let h = '<table class="graph-table"><thead><tr><th>月</th>' + (yoy ? '<th></th>' : '');
   items.forEach(it => h += '<th style="color:' + it.color + '">' + it.label + '</th>');
