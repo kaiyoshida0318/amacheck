@@ -1122,7 +1122,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.95</span>
+  <span class="version">v0.96</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1540,7 +1540,7 @@ function init(){
   const now = new Date();
   const ms = document.getElementById('month-select');
   const options = [];
-  for (let i = -12; i <= 1; i++) {
+  for (let i = 1; i >= -12; i--) {
     const d = new Date(now.getFullYear(), now.getMonth() + i, 1);
     const key = ymKey(d);
     options.push('<option value="'+key+'">'+d.getFullYear()+'年'+(d.getMonth()+1)+'月</option>');
@@ -1553,7 +1553,7 @@ function init(){
   // 年度セレクタ
   const ys = document.getElementById('year-select');
   const yearOptions = [];
-  for (let y = now.getFullYear() - 3; y <= now.getFullYear() + 1; y++) {
+  for (let y = now.getFullYear() + 1; y >= now.getFullYear() - 3; y--) {
     yearOptions.push('<option value="'+y+'">'+y+'年</option>');
   }
   ys.innerHTML = yearOptions.join('');
