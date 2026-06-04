@@ -468,6 +468,29 @@
     padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;
   }
   #ad-close-toggle.is-closed { background: var(--amber); color: #fff; border-color: var(--amber); }
+  /* ===== 月別グラフ ===== */
+  .graph-toolbar { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 10px; }
+  .graph-seg { display: inline-flex; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 8px; padding: 2px; }
+  .graph-seg button { border: none; background: transparent; padding: 6px 12px; font-size: 13px; font-weight: 600; color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-family: inherit; }
+  .graph-seg button.active { background: var(--accent); color: #fff; }
+  .graph-seg.blue button.active { background: var(--blue); }
+  .graph-select { font-size: 13px; padding: 7px 10px; border: 1px solid var(--border); border-radius: 8px; background: var(--bg-card); font-family: inherit; }
+  .graph-items { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .graph-item-btn { display: inline-flex; align-items: center; gap: 7px; border: none; border-radius: 8px; padding: 7px 14px; font-size: 13px; font-weight: 700; color: #fff; cursor: pointer; font-family: inherit; }
+  .graph-item-btn .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.9); }
+  .graph-item-btn.off { background: #e2e2e2 !important; color: var(--text-tertiary); }
+  .graph-item-btn.off .dot { background: var(--text-tertiary); }
+  .graph-legend { display: flex; align-items: center; gap: 16px; margin: 4px 0 10px; font-size: 12px; color: var(--text-secondary); }
+  .graph-legend .ln { display: inline-block; width: 26px; height: 0; border-top: 3px solid var(--text-tertiary); margin-right: 6px; vertical-align: middle; }
+  .graph-legend .ln.dash { border-top-style: dashed; }
+  .graph-table { width: 100%; border-collapse: collapse; font-size: 13px; margin-top: 4px; }
+  .graph-table th, .graph-table td { padding: 9px 14px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .graph-table th:first-child, .graph-table td:first-child { text-align: left; }
+  .graph-table thead th { background: var(--bg-secondary); font-weight: 700; position: sticky; top: 0; }
+  .graph-table tbody tr:nth-child(even) { background: rgba(37,99,235,0.03); }
+  .graph-table .grp-label { font-weight: 700; color: var(--black); }
+  .graph-table .yr-sub { color: var(--text-tertiary); font-weight: 600; }
+  .graph-table .grp-start td { border-top: 2px solid var(--border-strong); }
   /* 数字の4色分け（列ごとの順位）：上位10%=濃青 / 上位20%=青 / 下位20%=橙 / 下位10%=赤。中間は通常色 */
   table.ad-table tbody td.t-hi10, .ad-legend .lg-hi10 { color: #1d4ed8; font-weight: 700; }
   table.ad-table tbody td.t-hi20, .ad-legend .lg-hi20 { color: #16a34a; font-weight: 700; }
@@ -1146,7 +1169,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.09</span>
+  <span class="version">v1.10</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1302,11 +1325,7 @@
 
   <!-- 準備中（今後追加予定のカテゴリ） -->
   <div id="graph-view" hidden>
-    <div class="master-card"><div class="empty-state">
-      <svg class="icn" style="font-size:32px;color:var(--teal)"><use href="#i-chart-line"/></svg>
-      <div style="margin-top:8px;font-weight:600;">月別グラフ</div>
-      <div style="margin-top:6px;font-size:13px;color:var(--text-tertiary);">準備中です。出荷数・広告などの月別推移をグラフで表示する予定です。</div>
-    </div></div>
+    <div id="graph-body"></div>
   </div>
   <div id="pl-view" hidden>
     <div class="master-card"><div class="empty-state">
@@ -1824,6 +1843,7 @@ function switchView(name, fromPop){
   document.getElementById('graph-view').hidden = (name !== 'graph');
   document.getElementById('pl-view').hidden = (name !== 'pl');
   document.getElementById('returns-view').hidden = (name !== 'returns');
+  if (name === 'graph') renderGraphView();
   if (name === 'shipment') renderShipmentTable();
   if (name === 'master') renderMasterList();
   if (name === 'withdrawn') renderWithdrawnList();
@@ -5485,9 +5505,272 @@ function toast(msg, action){
   toastTimer = setTimeout(() => el.classList.remove('show'), action ? 10000 : 3500);
 }
 
-// グローバルに公開（onclick用）
-window.deleteProduct = deleteProduct;
-window.switchView = switchView;
+// ============================================
+// 月別グラフ
+// ============================================
+const GRAPH_CATEGORIES = {
+  sales: { label: '売上・実績額', yen: true, items: [
+    { key: 'total', label: '総売上', color: '#2563eb' },
+    { key: 'seo', label: 'SEO売上', color: '#9333ea' },
+    { key: 'adSales', label: '広告売上', color: '#ea580c' },
+    { key: 'jisseki', label: '実績額', color: '#dc2626' },
+    { key: 'grossProfit', label: '粗利益額', color: '#16a34a' },
+  ] },
+  shipment: { label: '出荷数', yen: false, items: [
+    { key: 'totalQty', label: '総出荷数', color: '#2563eb' },
+    { key: 'seoQty', label: 'SEO出荷数', color: '#9333ea' },
+    { key: 'adQty', label: '広告出荷数', color: '#ea580c' },
+  ] },
+  fees: { label: '諸費用', yen: true, items: [
+    { key: 'storage', label: '保管費', color: '#2563eb' },
+    { key: 'fbaFee', label: 'FBA手数料(送料)', color: '#ea580c' },
+  ] },
+};
+let graphPeriodStart = 'jan';   // 'jan' | 'may'
+let graphCategory = 'sales';
+let graphHiddenItems = new Set();
+let graphTableMode = 'normal';  // 'normal' | 'yoy'
+let graphCurYear = null;
+let _graphMetricCache = {};
+
+function graphMonthMetrics(ym){
+  if (_graphMetricCache[ym]) return _graphMetricCache[ym];
+  // データの有無を判定（出荷も広告も無ければ「データ無し」＝null）
+  const sh = shipments[ym] || {};
+  const hasShip = Object.values(sh).some(days => Object.values(days).some(q => (Number(q) || 0) > 0));
+  let hasAd = false;
+  const dim = daysInMonth(ym);
+  for (let d = 1; d <= dim; d++) { if (adData[ym + '-' + String(d).padStart(2, '0')]) { hasAd = true; break; } }
+  if (!hasShip && !hasAd) {
+    const z = { total: null, seo: null, adSales: null, jisseki: null, grossProfit: null, totalQty: null, adQty: null, seoQty: null, fbaFee: null, storage: null };
+    _graphMetricCache[ym] = z; return z;
+  }
+  const total = totalSalesForMonth(ym, 'all');
+  let adSales = 0, adCost = 0;
+  for (let d = 1; d <= dim; d++) {
+    const m = adMetricsForDate(ym + '-' + String(d).padStart(2, '0'), 'all');
+    const s = m.sales, c = m.cost;
+    adSales += s.sp.kw + s.sp.shohin + s.sp.auto + s.sb.douga + s.sb.shokore;
+    adCost  += c.sp.kw + c.sp.shohin + c.sp.auto + c.sb.douga + c.sb.shokore;
+  }
+  const seo = total - adSales;
+  let totalQty = 0, grossProfit = 0, fbaFee = 0;
+  for (const fnsku in sh) {
+    let q = 0; const days = sh[fnsku];
+    for (const d in days) q += Number(days[d]) || 0;
+    totalQty += q;
+    const p = products.find(x => x.fnsku === fnsku);
+    if (p) {
+      const pr = calcProfit(p); if (pr != null) grossProfit += pr * q;
+      fbaFee += (Number(p.fbaFee) || 0) * q;
+    }
+  }
+  const jisseki = grossProfit - adCost;                                  // 実績額＝粗利益額−広告費（想定）
+  const adQty = total > 0 ? Math.round(totalQty * (adSales / total)) : 0; // 広告出荷数＝総出荷×広告売上比（想定）
+  const seoQty = totalQty - adQty;
+  const storage = 0;                                                     // 保管費はデータ未登録
+  const r = { total, seo, adSales, jisseki, grossProfit, totalQty, adQty, seoQty, fbaFee, storage };
+  _graphMetricCache[ym] = r;
+  return r;
+}
+
+// データのある最新年（出荷・広告）を返す
+function graphLatestYear(){
+  let maxY = new Date().getFullYear();
+  const keys = Object.keys(shipments).concat(Object.keys(adData).map(k => k.slice(0, 7)));
+  keys.forEach(k => { const y = parseInt(k.slice(0, 4), 10); if (y && y > maxY) maxY = y; });
+  return maxY;
+}
+// 期間に応じた月並び（1始まり=1..12 / 5始まり=5..4）
+function graphMonthOrder(){
+  if (graphPeriodStart === 'may') return [5,6,7,8,9,10,11,12,1,2,3,4];
+  return [1,2,3,4,5,6,7,8,9,10,11,12];
+}
+function ymOf(year, month){ return year + '-' + String(month).padStart(2, '0'); }
+
+function renderGraphView(){
+  _graphMetricCache = {};
+  if (graphCurYear == null) graphCurYear = graphLatestYear();
+  const cat = GRAPH_CATEGORIES[graphCategory];
+  const body = document.getElementById('graph-body');
+
+  // ツールバー（1段目）
+  let h = '<div class="graph-toolbar">';
+  h += '<div class="graph-seg" id="graph-period">'
+    + '<button data-v="jan" class="' + (graphPeriodStart === 'jan' ? 'active' : '') + '">1月始まり</button>'
+    + '<button data-v="may" class="' + (graphPeriodStart === 'may' ? 'active' : '') + '">5月始まり</button></div>';
+  h += '<select class="graph-select" id="graph-cat">';
+  Object.keys(GRAPH_CATEGORIES).forEach(k => {
+    h += '<option value="' + k + '"' + (k === graphCategory ? ' selected' : '') + '>' + GRAPH_CATEGORIES[k].label + '</option>';
+  });
+  h += '</select>';
+  h += '<div style="flex:1"></div>';
+  h += '<select class="graph-select" id="graph-year">';
+  for (let y = graphLatestYear() + 1; y >= graphLatestYear() - 4; y--) {
+    h += '<option value="' + y + '"' + (y === graphCurYear ? ' selected' : '') + '>' + (y - 1) + '年 / ' + y + '年</option>';
+  }
+  h += '</select>';
+  h += '</div>';
+
+  // 表示項目ボタン（2段目）
+  h += '<div class="graph-items" id="graph-items">';
+  cat.items.forEach(it => {
+    const off = graphHiddenItems.has(it.key);
+    h += '<button class="graph-item-btn' + (off ? ' off' : '') + '" data-k="' + it.key + '" style="' + (off ? '' : 'background:' + it.color) + '">'
+      + '<span class="dot"></span>' + it.label + '</button>';
+  });
+  h += '</div>';
+  // 凡例（実線=今年 / 破線=前年）
+  h += '<div class="graph-legend">'
+    + '<span><span class="ln dash"></span>' + (graphCurYear - 1) + '年</span>'
+    + '<span><span class="ln"></span>' + graphCurYear + '年</span></div>';
+
+  // チャート
+  h += '<div id="graph-chart">' + buildGraphChart() + '</div>';
+
+  // 表モード切り替え（2段目相当）
+  h += '<div class="graph-toolbar" style="margin-top:18px;">'
+    + '<div class="graph-seg blue" id="graph-tmode">'
+    + '<button data-v="normal" class="' + (graphTableMode === 'normal' ? 'active' : '') + '">通常</button>'
+    + '<button data-v="yoy" class="' + (graphTableMode === 'yoy' ? 'active' : '') + '">前年同月比</button>'
+    + '</div></div>';
+  // 表
+  h += '<div style="overflow:auto;max-height:460px;">' + buildGraphTable() + '</div>';
+
+  body.innerHTML = h;
+
+  // イベント
+  body.querySelectorAll('#graph-period button').forEach(b => b.addEventListener('click', () => { graphPeriodStart = b.dataset.v; renderGraphView(); }));
+  body.querySelector('#graph-cat').addEventListener('change', (e) => { graphCategory = e.target.value; graphHiddenItems = new Set(); renderGraphView(); });
+  body.querySelector('#graph-year').addEventListener('change', (e) => { graphCurYear = parseInt(e.target.value, 10); renderGraphView(); });
+  body.querySelectorAll('#graph-items button').forEach(b => b.addEventListener('click', () => {
+    const k = b.dataset.k;
+    if (graphHiddenItems.has(k)) graphHiddenItems.delete(k); else graphHiddenItems.add(k);
+    renderGraphView();
+  }));
+  body.querySelectorAll('#graph-tmode button').forEach(b => b.addEventListener('click', () => { graphTableMode = b.dataset.v; renderGraphView(); }));
+}
+
+function buildGraphChart(){
+  const cat = GRAPH_CATEGORIES[graphCategory];
+  const months = graphMonthOrder();
+  const items = cat.items.filter(it => !graphHiddenItems.has(it.key));
+  // 値を集める（今年=実線 / 前年=破線）
+  const series = [];
+  items.forEach(it => {
+    const cur = months.map(m => graphMonthMetrics(ymOf(graphCurYear, m))[it.key]);
+    const prev = months.map(m => graphMonthMetrics(ymOf(graphCurYear - 1, m))[it.key]);
+    series.push({ color: it.color, cur, prev });
+  });
+  // 最大値
+  let maxV = 0;
+  series.forEach(s => { s.cur.concat(s.prev).forEach(v => { if (v > maxV) maxV = v; }); });
+  if (maxV <= 0) maxV = 1;
+  // 軸の最大を綺麗な値に
+  const niceMax = niceCeil(maxV);
+  // SVG寸法
+  const W = 1480, H = 460, padL = 96, padR = 24, padT = 16, padB = 36;
+  const plotW = W - padL - padR, plotH = H - padT - padB;
+  const n = months.length;
+  const xOf = (i) => padL + (n === 1 ? plotW / 2 : (plotW * i / (n - 1)));
+  const yOf = (v) => padT + plotH * (1 - v / niceMax);
+  let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;" preserveAspectRatio="xMidYMid meet" font-family="inherit">';
+  // 横グリッド＋Y軸ラベル
+  const ticks = 5;
+  for (let t = 0; t <= ticks; t++) {
+    const v = niceMax * t / ticks;
+    const y = yOf(v);
+    svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(0,0,0,0.08)"/>';
+    const lab = cat.yen ? ('¥' + Math.round(v).toLocaleString()) : Math.round(v).toLocaleString();
+    svg += '<text x="' + (padL - 8) + '" y="' + (y + 4) + '" text-anchor="end" font-size="12" fill="#888">' + lab + '</text>';
+  }
+  // X軸ラベル
+  months.forEach((m, i) => {
+    svg += '<text x="' + xOf(i) + '" y="' + (H - 12) + '" text-anchor="middle" font-size="12" fill="#666">' + m + '月</text>';
+  });
+  // 各系列：前年（破線）→今年（実線）
+  const pathFor = (arr) => {
+    let d = '', started = false;
+    arr.forEach((v, i) => {
+      if (v == null || isNaN(v)) return;
+      d += (started ? ' L' : 'M') + xOf(i) + ' ' + yOf(v); started = true;
+    });
+    return d;
+  };
+  const ptsFor = (arr, color, filled) => {
+    let s = '';
+    arr.forEach((v, i) => { if (v == null || isNaN(v)) return;
+      s += '<circle cx="' + xOf(i) + '" cy="' + yOf(v) + '" r="3.5" fill="' + (filled ? color : '#fff') + '" stroke="' + color + '" stroke-width="2"/>'; });
+    return s;
+  };
+  series.forEach(s => {
+    // 今年のデータがある月だけ（末尾の0が続く＝未入力はnull扱い）→ ここでは値0も表示。未来月はデータ無いので0になる点に留意
+    svg += '<path d="' + pathFor(s.prev) + '" fill="none" stroke="' + s.color + '" stroke-width="2" stroke-dasharray="6 5" opacity="0.85"/>';
+    svg += ptsFor(s.prev, s.color, false);
+    svg += '<path d="' + pathFor(s.cur) + '" fill="none" stroke="' + s.color + '" stroke-width="2.5"/>';
+    svg += ptsFor(s.cur, s.color, true);
+  });
+  svg += '</svg>';
+  return svg;
+}
+
+function niceCeil(v){
+  if (v <= 0) return 1;
+  const mag = Math.pow(10, Math.floor(Math.log10(v)));
+  const f = v / mag;
+  let nf;
+  if (f <= 1) nf = 1; else if (f <= 2) nf = 2; else if (f <= 2.5) nf = 2.5; else if (f <= 5) nf = 5; else nf = 10;
+  return nf * mag;
+}
+
+function fmtGraphVal(v, yen){
+  if (v == null || isNaN(v)) return '';
+  return (yen ? '¥' : '') + Math.round(v).toLocaleString();
+}
+
+function buildGraphTable(){
+  const cat = GRAPH_CATEGORIES[graphCategory];
+  const items = cat.items;
+  const yoy = (graphTableMode === 'yoy');
+  let h = '<table class="graph-table"><thead><tr><th>月</th>' + (yoy ? '<th></th>' : '');
+  items.forEach(it => h += '<th style="color:' + it.color + '">' + it.label + '</th>');
+  h += '</tr></thead><tbody>';
+
+  if (yoy) {
+    const months = graphMonthOrder();
+    months.forEach(m => {
+      const cur = graphMonthMetrics(ymOf(graphCurYear, m));
+      const prev = graphMonthMetrics(ymOf(graphCurYear - 1, m));
+      h += '<tr class="grp-start"><td class="grp-label" rowspan="2">' + m + '月</td>'
+        + '<td class="yr-sub">' + graphCurYear + '年</td>';
+      items.forEach(it => h += '<td>' + fmtGraphVal(cur[it.key], cat.yen) + '</td>');
+      h += '</tr><tr><td class="yr-sub">' + (graphCurYear - 1) + '年</td>';
+      items.forEach(it => h += '<td>' + fmtGraphVal(prev[it.key], cat.yen) + '</td>');
+      h += '</tr>';
+    });
+  } else {
+    const latest = graphLatestYear();
+    let endM = 12;
+    for (let m = 12; m >= 1; m--) {
+      const mm = graphMonthMetrics(ymOf(latest, m));
+      if (mm.total > 0 || mm.totalQty > 0) { endM = m; break; }
+    }
+    let y = latest, mo = endM, rows = 0;
+    while (rows < 24) {
+      const met = graphMonthMetrics(ymOf(y, mo));
+      h += '<tr><td class="grp-label">' + y + '/' + String(mo).padStart(2, '0') + '</td>';
+      items.forEach(it => h += '<td>' + fmtGraphVal(met[it.key], cat.yen) + '</td>');
+      h += '</tr>';
+      mo--; if (mo < 1) { mo = 12; y--; }
+      rows++;
+    }
+  }
+  h += '</tbody></table>';
+  return h;
+}
+window.renderGraphView = renderGraphView;
+
+
 window.openEditModal = openEditModal;
 
 init();
