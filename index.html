@@ -81,6 +81,9 @@
   button.confirm:hover { background: var(--blue-hover); color: #fff; border-color: var(--blue-hover); }
   button.utility { background: var(--teal); color: #fff; border-color: var(--teal); }
   button.utility:hover { background: var(--teal-hover); color: #fff; border-color: var(--teal-hover); }
+  /* 「この月を確定」は未確定時グレー（確定済み時はアンバーのまま） */
+  #ad-close-toggle:not(.is-closed) { background: #6b7280; color: #fff; border-color: #6b7280; }
+  #ad-close-toggle:not(.is-closed):hover { background: #4b5563; color: #fff; border-color: #4b5563; }
   button.danger { background: #fff; color: var(--danger); border-color: var(--danger); }
   button.danger:hover { background: var(--danger); color: #fff; }
   button.ghost { border: none; background: transparent; padding: 8px 10px; }
@@ -200,9 +203,9 @@
   table.ship th.sale-band .icn { font-size: 12px; vertical-align: -2px; }
   table.ship th.sale-corner, table.ship th.sale-gap { background: var(--bg-secondary); border-bottom: 2px solid var(--bg-secondary); }
   table.ship th.day.sale-day { box-shadow: inset 0 3px 0 var(--sale); }
-  /* 上位/下位ランクの数字色（日別: 上位5日=赤 / 下位5日=青） */
-  table.ship td.day.rank-hi { color: #d32f2f; font-weight: 700; }
-  table.ship td.day.rank-lo { color: #2563eb; font-weight: 700; }
+  /* 上位/下位ランクの数字色（日別: 上位5日=青 / 下位5日=赤） */
+  table.ship td.day.rank-hi { color: #2563eb; font-weight: 700; }
+  table.ship td.day.rank-lo { color: #d32f2f; font-weight: 700; }
   /* セール対象商品×セール期間：薄いセール色で連続した細い枠（上下は全セル、左右は範囲の端のみ） */
   table.ship td.day.sale-target { box-shadow: inset 0 1px 0 rgba(194,24,91,0.45), inset 0 -1px 0 rgba(194,24,91,0.45); }
   table.ship td.day.sale-target.sale-start { box-shadow: inset 0 1px 0 rgba(194,24,91,0.45), inset 0 -1px 0 rgba(194,24,91,0.45), inset 1px 0 0 rgba(194,24,91,0.45); }
@@ -330,9 +333,9 @@
   table.ship td.month.current { background: var(--amber-light); }
   table.ship td.month.zero.current { background: var(--amber-light); color: var(--amber); }
   table.ship th.month.current { background: #f2e3d0; color: var(--amber); }
-  /* 上位/下位ランクの数字色（月別: 上位3月=赤 / 下位3月=青） */
-  table.ship td.month.rank-hi { color: #d32f2f; font-weight: 700; }
-  table.ship td.month.rank-lo { color: #2563eb; font-weight: 700; }
+  /* 上位/下位ランクの数字色（月別: 上位3月=青 / 下位3月=赤） */
+  table.ship td.month.rank-hi { color: #2563eb; font-weight: 700; }
+  table.ship td.month.rank-lo { color: #d32f2f; font-weight: 700; }
 
   /* 広告キャンペーン管理 */
   .switch { position: relative; display: inline-block; width: 42px; height: 22px; vertical-align: middle; }
@@ -372,20 +375,20 @@
   .camp-empty { color: var(--text-tertiary); font-size: 13px; padding: 16px 0; text-align: center; }
 
   /* 広告データテーブル */
-  table.ad-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; table-layout: fixed; }
+  table.ad-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 14px; table-layout: fixed; }
   table.ad-table th, table.ad-table td {
-    padding: 5px 2px; border-bottom: 1px solid rgba(0,0,0,0.15); border-right: 1px solid rgba(0,0,0,0.15);
+    padding: 6px 2px; border-bottom: 1px solid rgba(0,0,0,0.15); border-right: 1px solid rgba(0,0,0,0.15);
     text-align: right; white-space: nowrap; overflow: hidden; text-overflow: clip;
   }
   table.ad-table thead th { position: sticky; top: 0; z-index: 5; text-align: center; font-weight: 700; }
-  table.ad-table thead tr:nth-child(1) th { font-size: 13px; }
-  table.ad-table thead tr:nth-child(2) th { top: 30px; font-size: 12px; }
-  table.ad-table thead tr:nth-child(3) th { top: 60px; font-size: 12px; }
-  table.ad-table .ad-daycol { text-align: center; background: var(--bg-secondary); font-weight: 700; width: 32px; }
-  table.ad-table col.col-day { width: 32px; }
-  table.ad-table col.col-yen-lg { width: 5%; }
-  table.ad-table col.col-yen { width: 4%; }
-  table.ad-table col.col-roas { width: 3.25%; }
+  table.ad-table thead tr:nth-child(1) th { font-size: 14px; }
+  table.ad-table thead tr:nth-child(2) th { top: 33px; font-size: 13px; }
+  table.ad-table thead tr:nth-child(3) th { top: 66px; font-size: 13px; }
+  table.ad-table .ad-daycol { text-align: center; background: var(--bg-secondary); font-weight: 700; width: 34px; }
+  table.ad-table col.col-day { width: 34px; }
+  table.ad-table col.col-yen-lg { width: 4.9%; }
+  table.ad-table col.col-yen { width: 4.35%; }
+  table.ad-table col.col-roas { width: 3.6%; }
   table.ad-table .ad-daycol.ad-sale { background: rgba(194,24,91,0.12); box-shadow: inset 3px 0 0 var(--sale); color: var(--sale); }
   /* 広告表は画面幅いっぱいに全幅表示（横スクロールを出さない） */
   #ad-view .table-wrap {
@@ -453,7 +456,7 @@
   table.ad-table .adc-bstart { border-left: 2px solid rgba(0,0,0,0.28); }
   /* 広告費/ROAS 2分割：境界線は通常の罫線と同じ濃さで（薄すぎて白く見えるのを解消） */
   table.ad-table .ad-roas { color: var(--black); }
-  table.ad-table tbody td { color: var(--black); font-size: 13px; }
+  table.ad-table tbody td { color: var(--black); font-size: 14px; }
   table.ad-table tbody tr:hover td:not(.ad-daycol) { filter: brightness(0.97); }
   /* 確定（締め）UI */
   .ad-closed-banner {
@@ -463,6 +466,13 @@
     padding: 8px 12px; border-radius: 8px; margin-bottom: 10px;
   }
   #ad-close-toggle.is-closed { background: var(--amber); color: #fff; border-color: var(--amber); }
+  /* 数字の4色分け（列ごとの順位）：上位10%=濃青 / 上位20%=青 / 下位20%=橙 / 下位10%=赤。中間は通常色 */
+  table.ad-table tbody td.t-hi10, .ad-legend .lg-hi10 { color: #1d4ed8; font-weight: 700; }
+  table.ad-table tbody td.t-hi20, .ad-legend .lg-hi20 { color: #3b82f6; font-weight: 700; }
+  table.ad-table tbody td.t-lo20, .ad-legend .lg-lo20 { color: #d97706; font-weight: 700; }
+  table.ad-table tbody td.t-lo10, .ad-legend .lg-lo10 { color: #c0392b; font-weight: 700; }
+  .ad-legend { display: inline-flex; align-items: center; gap: 7px; font-size: 11px; color: var(--text-tertiary); white-space: nowrap; }
+  .ad-legend .lg-mid { color: var(--text-secondary); }
   /* 確定をうながす目立つ確認バナー */
   .ad-confirm-banner {
     display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
@@ -1122,7 +1132,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.97</span>
+  <span class="version">v1.00</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1234,6 +1244,13 @@
         キャンペーン
         <select id="ad-product-select" style="font-size:13px;padding:6px 8px;"></select>
       </label>
+      <span class="ad-legend">配色:
+        <span class="lg-hi10">上位10%</span>
+        <span class="lg-hi20">上位20%</span>
+        <span class="lg-mid">中間</span>
+        <span class="lg-lo20">下位20%</span>
+        <span class="lg-lo10">下位10%</span>
+      </span>
       <div class="spacer"></div>
       <button class="primary" id="open-ad-add"><svg class="icn"><use href="#i-plus"/></svg> 広告データ追加</button>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
@@ -4560,7 +4577,7 @@ function renderAdTable(){
     + '<tr>'
     + '<th rowspan="3" class="ad-daycol">' + (adPeriod === 'daily' ? '日' : '月') + '</th>'
     + '<th colspan="5" class="adg adg-sales">全体</th>'
-    + '<th colspan="12" class="adg adg-sp">スポンサープロダクト広告</th>'
+    + '<th colspan="9" class="adg adg-sp">スポンサープロダクト広告</th>'
     + '<th colspan="9" class="adg adg-sb">スポンサーブランド広告</th>'
     + '</tr>'
     + '<tr>'
@@ -4572,13 +4589,12 @@ function renderAdTable(){
     + '<th colspan="3" class="adh adc-sp adc-gstart">広告全体</th>'
     + '<th colspan="3" class="adh adc-sp-b1 adc-bstart">KW</th>'
     + '<th colspan="3" class="adh adc-sp-b2 adc-bstart">商品</th>'
-    + '<th colspan="3" class="adh adc-sp-b3 adc-bstart">オート</th>'
     + '<th colspan="3" class="adh adc-sb adc-gstart">広告全体</th>'
     + '<th colspan="3" class="adh adc-sb-b1 adc-bstart">KW-動画</th>'
     + '<th colspan="3" class="adh adc-sb-b2 adc-bstart">KW-商品コレ</th>'
     + '</tr>'
     + '<tr>'
-    + tripHead('adc-sp', 'g') + tripHead('adc-sp-b1', 'b') + tripHead('adc-sp-b2', 'b') + tripHead('adc-sp-b3', 'b')
+    + tripHead('adc-sp', 'g') + tripHead('adc-sp-b1', 'b') + tripHead('adc-sp-b2', 'b')
     + tripHead('adc-sb', 'g') + tripHead('adc-sb-b1', 'b') + tripHead('adc-sb-b2', 'b')
     + '</tr></thead><tbody>';
 
@@ -4591,10 +4607,47 @@ function renderAdTable(){
   function adColgroup(){
     let cg = '<colgroup><col class="col-day">';
     cg += '<col class="col-yen-lg"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-roas">'; // 全体
-    for (let i = 0; i < 4; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SP 4ブロック
+    for (let i = 0; i < 3; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SP 3ブロック（広告全体・KW・商品）
     for (let i = 0; i < 3; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SB 3ブロック
     return cg + '</colgroup>';
   }
+
+  // 列ごとの数値で4分位の色分けしきい値を作成（データのある行のみ／行が少ない・差が無い列は無効＝通常色）
+  const MIN_TIER = 10;
+  const colData = {};
+  const pushVal = (id, v) => { (colData[id] || (colData[id] = [])).push(v); };
+  rows.forEach(r => {
+    const s = r.m.sales, c = r.m.cost;
+    const spS = s.sp.kw + s.sp.shohin + s.sp.auto, sbS = s.sb.douga + s.sb.shokore, adS = spS + sbS;
+    const spC = c.sp.kw + c.sp.shohin + c.sp.auto, sbC = c.sb.douga + c.sb.shokore, adC = spC + sbC;
+    const has = adRowHasData(r.m), total = r.total || 0;
+    if (total > 0) { pushVal('total', total); pushVal('seo', total - adS); }
+    if (has) {
+      pushVal('adS', adS); pushVal('adC', adC); if (adC > 0) pushVal('adR', adS / adC);
+      pushVal('spS', spS); pushVal('spC', spC); if (spC > 0) pushVal('spR', spS / spC);
+      pushVal('kwS', s.sp.kw); pushVal('kwC', c.sp.kw); if (c.sp.kw > 0) pushVal('kwR', s.sp.kw / c.sp.kw);
+      pushVal('shS', s.sp.shohin); pushVal('shC', c.sp.shohin); if (c.sp.shohin > 0) pushVal('shR', s.sp.shohin / c.sp.shohin);
+      pushVal('sbS', sbS); pushVal('sbC', sbC); if (sbC > 0) pushVal('sbR', sbS / sbC);
+      pushVal('dgS', s.sb.douga); pushVal('dgC', c.sb.douga); if (c.sb.douga > 0) pushVal('dgR', s.sb.douga / c.sb.douga);
+      pushVal('skS', s.sb.shokore); pushVal('skC', c.sb.shokore); if (c.sb.shokore > 0) pushVal('skR', s.sb.shokore / c.sb.shokore);
+    }
+  });
+  const colTier = {};
+  Object.keys(colData).forEach(id => {
+    const arr = colData[id].slice().sort((a, b) => a - b);
+    const n = arr.length;
+    if (n < MIN_TIER || arr[0] === arr[n - 1]) { colTier[id] = null; return; }
+    const q = (p) => arr[Math.max(0, Math.min(n - 1, Math.floor(p * (n - 1))))];
+    colTier[id] = { p90: q(0.9), p80: q(0.8), p20: q(0.2), p10: q(0.1) };
+  });
+  const tierClass = (id, v) => {
+    const t = colTier[id]; if (!t) return '';
+    if (v >= t.p90) return ' t-hi10';
+    if (v >= t.p80) return ' t-hi20';
+    if (v <= t.p10) return ' t-lo10';
+    if (v <= t.p20) return ' t-lo20';
+    return '';
+  };
 
   rows.forEach(r => {
     const s = r.m.sales, c = r.m.cost;
@@ -4608,15 +4661,15 @@ function renderAdTable(){
     const total = r.total || 0;                 // 総売上 = Σ(出荷数×価格、対象商品はセール価格)
     const seo = total - adSales;                // SEO売上 = 総売上 − 広告売上
     const fmtRoas = (v) => v.toFixed(2) + '%';
-    const tcell = (v, cls) => '<td class="' + cls + '">' + (total > 0 ? yen(v) : '') + '</td>';
-    const dcell = (v, cls) => '<td class="' + cls + '">' + (has ? yen(v) : '') + '</td>';
-    const rcell = (sales, cost, cls) => '<td class="' + cls + ' ad-roas">' + (has && cost > 0 ? fmtRoas(sales / cost) : '') + '</td>';
+    const tcell = (v, cls, id) => '<td class="' + cls + (total > 0 ? tierClass(id, v) : '') + '">' + (total > 0 ? yen(v) : '') + '</td>';
+    const dcell = (v, cls, id) => '<td class="' + cls + (has ? tierClass(id, v) : '') + '">' + (has ? yen(v) : '') + '</td>';
+    const rcell = (sales, cost, cls, id) => '<td class="' + cls + ' ad-roas' + ((has && cost > 0) ? tierClass(id, sales / cost) : '') + '">' + (has && cost > 0 ? fmtRoas(sales / cost) : '') + '</td>';
     // 広告売上 / 広告費 / ROAS の3列セット（sep: 'g'=グループ境界 'b'=ブロック境界）
-    const trip = (sales, cost, cls, sep) => {
+    const trip = (sales, cost, cls, sep, idS, idC, idR) => {
       const s = sep === 'g' ? ' adc-gstart' : sep === 'b' ? ' adc-bstart' : '';
-      return '<td class="' + cls + s + '">' + (has ? yen(sales) : '') + '</td>'
-        + '<td class="' + cls + '">' + (has ? yen(cost) : '') + '</td>'
-        + rcell(sales, cost, cls);
+      return '<td class="' + cls + s + (has ? tierClass(idS, sales) : '') + '">' + (has ? yen(sales) : '') + '</td>'
+        + '<td class="' + cls + (has ? tierClass(idC, cost) : '') + '">' + (has ? yen(cost) : '') + '</td>'
+        + rcell(sales, cost, cls, idR);
     };
     const dayClickable = (adPeriod === 'daily') && !isAdMonthClosed(adMonth);
     const dayCls = 'ad-daycol' + (r.sale ? ' ad-sale' : '') + (dayClickable ? ' ad-day-clickable' : '');
@@ -4627,20 +4680,19 @@ function renderAdTable(){
     html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + '">'
       + '<td class="' + dayCls + '" title="' + dayTitle + '"' + dayClick + '>' + r.label + '</td>'
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
-      + tcell(total, 'adc-sales adc-gstart')
-      + tcell(seo, 'adc-sales-l1')
-      + dcell(adSales, 'adc-sales-l2')
-      + dcell(adCost, 'adc-sales-l3')
-      + rcell(adSales, adCost, 'adc-sales-l4')
+      + tcell(total, 'adc-sales adc-gstart', 'total')
+      + tcell(seo, 'adc-sales-l1', 'seo')
+      + dcell(adSales, 'adc-sales-l2', 'adS')
+      + dcell(adCost, 'adc-sales-l3', 'adC')
+      + rcell(adSales, adCost, 'adc-sales-l4', 'adR')
       // スポンサープロダクト広告：全体・KW・商品・オート
-      + trip(spSales, spCost, 'adc-sp', 'g')
-      + trip(s.sp.kw, c.sp.kw, 'adc-sp-b1', 'b')
-      + trip(s.sp.shohin, c.sp.shohin, 'adc-sp-b2', 'b')
-      + trip(s.sp.auto, c.sp.auto, 'adc-sp-b3', 'b')
+      + trip(spSales, spCost, 'adc-sp', 'g', 'spS', 'spC', 'spR')
+      + trip(s.sp.kw, c.sp.kw, 'adc-sp-b1', 'b', 'kwS', 'kwC', 'kwR')
+      + trip(s.sp.shohin, c.sp.shohin, 'adc-sp-b2', 'b', 'shS', 'shC', 'shR')
       // スポンサーブランド広告：全体・KW-動画・KW-商品コレ
-      + trip(sbSales, sbCost, 'adc-sb', 'g')
-      + trip(s.sb.douga, c.sb.douga, 'adc-sb-b1', 'b')
-      + trip(s.sb.shokore, c.sb.shokore, 'adc-sb-b2', 'b')
+      + trip(sbSales, sbCost, 'adc-sb', 'g', 'sbS', 'sbC', 'sbR')
+      + trip(s.sb.douga, c.sb.douga, 'adc-sb-b1', 'b', 'dgS', 'dgC', 'dgR')
+      + trip(s.sb.shokore, c.sb.shokore, 'adc-sb-b2', 'b', 'skS', 'skC', 'skR')
       + '</tr>';
   });
   html += '</tbody></table></div>';
