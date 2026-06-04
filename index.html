@@ -1002,23 +1002,29 @@
     margin-top: 12px;
     padding: 0 24px;
     display: flex;
-    gap: 2px;
+    flex-direction: column;
+    gap: 4px;
     border-bottom: 1px solid var(--border);
   }
+  .tab-row { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
+  .tab-group {
+    color: var(--text-tertiary); font-size: 13px; font-weight: 700;
+    padding: 0 4px; white-space: nowrap; user-select: none;
+  }
+  .tab-group-gap { margin-left: 20px; }
   .tab {
-    padding: 12px 20px 14px;
+    padding: 8px 14px 10px;
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
     color: var(--text-secondary);
     font-family: inherit;
-    font-size: 16px;
+    font-size: 15px;
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 8px;
-    margin-bottom: -1px;
+    gap: 7px;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
     border-radius: 6px 6px 0 0;
   }
@@ -1028,11 +1034,14 @@
     border-bottom-color: var(--black);
     background: transparent;
   }
-  .tab svg { font-size: 20px; }
+  .tab svg { font-size: 19px; }
   .tab[data-tab="master"] svg { color: var(--accent); }
   .tab[data-tab="shipment"] svg { color: var(--blue); }
   .tab[data-tab="ad"] svg { color: var(--purple); }
   .tab[data-tab="campaign"] svg { color: var(--sale); }
+  .tab[data-tab="graph"] svg { color: var(--teal); }
+  .tab[data-tab="pl"] svg { color: var(--amber); }
+  .tab[data-tab="returns"] svg { color: var(--danger); }
   .tab .count {
     color: var(--text-tertiary);
     font-weight: 500;
@@ -1103,6 +1112,9 @@
     <symbol id="i-shopping-cart" viewBox="0 0 24 24"><path d="M4 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M15 19a2 2 0 1 0 4 0a2 2 0 0 0 -4 0"/><path d="M17 17h-11v-14h-2"/><path d="M6 5l14 1l-1 7h-13"/></symbol>
     <symbol id="i-check" viewBox="0 0 24 24"><path d="M5 12l5 5l10 -10"/></symbol>
     <symbol id="i-lock" viewBox="0 0 24 24"><path d="M5 11m0 2a2 2 0 0 1 2 -2h10a2 2 0 0 1 2 2v6a2 2 0 0 1 -2 2h-10a2 2 0 0 1 -2 -2z"/><path d="M8 11v-4a4 4 0 1 1 8 0v4"/></symbol>
+    <symbol id="i-chart-line" viewBox="0 0 24 24"><path d="M4 19l16 0"/><path d="M4 15l4 -4l4 4l6 -8"/></symbol>
+    <symbol id="i-coins" viewBox="0 0 24 24"><path d="M9 14c0 1.657 2.686 3 6 3s6 -1.343 6 -3s-2.686 -3 -6 -3s-6 1.343 -6 3z"/><path d="M9 14v4c0 1.656 2.686 3 6 3s6 -1.344 6 -3v-4"/><path d="M3 6c0 1.072 1.144 2.062 3 2.598s4.144 .536 6 0c1.856 -.536 3 -1.526 3 -2.598c0 -1.072 -1.144 -2.062 -3 -2.598s-4.144 -.536 -6 0c-1.856 .536 -3 1.526 -3 2.598z"/><path d="M3 6v10c0 .888 .772 1.45 2 2"/><path d="M3 11c0 .888 .772 1.45 2 2"/></symbol>
+    <symbol id="i-return" viewBox="0 0 24 24"><path d="M9 14l-4 -4l4 -4"/><path d="M5 10h11a4 4 0 1 1 0 8h-1"/></symbol>
     <symbol id="i-plus" viewBox="0 0 24 24"><path d="M12 5l0 14"/><path d="M5 12l14 0"/></symbol>
     <symbol id="i-trash" viewBox="0 0 24 24"><path d="M4 7l16 0"/><path d="M10 11l0 6"/><path d="M14 11l0 6"/><path d="M5 7l1 12a2 2 0 0 0 2 2h8a2 2 0 0 0 2 -2l1 -12"/><path d="M9 7v-3a1 1 0 0 1 1 -1h4a1 1 0 0 1 1 1v3"/></symbol>
     <symbol id="i-pencil" viewBox="0 0 24 24"><path d="M4 20h4l10.5 -10.5a2.828 2.828 0 1 0 -4 -4l-10.5 10.5v4"/><path d="M13.5 6.5l4 4"/></symbol>
@@ -1132,7 +1144,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.01</span>
+  <span class="version">v1.02</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1145,19 +1157,35 @@
 
 <!-- タブナビゲーション -->
 <nav class="tabs">
-  <button class="tab" data-tab="master">
-    <svg class="icn"><use href="#i-list-details"/></svg> 商品マスタ
-    <span class="count" id="tab-master-count"></span>
-  </button>
-  <button class="tab" data-tab="shipment">
-    <svg class="icn"><use href="#i-truck-delivery"/></svg> 出荷数データ
-  </button>
-  <button class="tab" data-tab="campaign">
-    <svg class="icn"><use href="#i-tag"/></svg> 広告キャンペーン
-  </button>
-  <button class="tab" data-tab="ad">
-    <svg class="icn"><use href="#i-chart-bar"/></svg> 広告データ
-  </button>
+  <div class="tab-row">
+    <span class="tab-group">【基本】</span>
+    <button class="tab" data-tab="master">
+      <svg class="icn"><use href="#i-list-details"/></svg> 商品マスタ
+      <span class="count" id="tab-master-count"></span>
+    </button>
+    <button class="tab" data-tab="campaign">
+      <svg class="icn"><use href="#i-tag"/></svg> 広告キャンペーン
+    </button>
+    <span class="tab-group tab-group-gap">【全体】</span>
+    <button class="tab" data-tab="graph">
+      <svg class="icn"><use href="#i-chart-line"/></svg> 月別グラフ
+    </button>
+    <button class="tab" data-tab="pl">
+      <svg class="icn"><use href="#i-coins"/></svg> 全体収支
+    </button>
+  </div>
+  <div class="tab-row">
+    <span class="tab-group">【実績】</span>
+    <button class="tab" data-tab="shipment">
+      <svg class="icn"><use href="#i-truck-delivery"/></svg> 出荷数データ
+    </button>
+    <button class="tab" data-tab="ad">
+      <svg class="icn"><use href="#i-chart-bar"/></svg> 広告データ
+    </button>
+    <button class="tab" data-tab="returns">
+      <svg class="icn"><use href="#i-return"/></svg> 返品率
+    </button>
+  </div>
 </nav>
 
 <div class="container">
@@ -1270,6 +1298,29 @@
       <div id="campaign-draft"></div>
       <div id="campaign-list"></div>
     </div>
+  </div>
+
+  <!-- 準備中（今後追加予定のカテゴリ） -->
+  <div id="graph-view" hidden>
+    <div class="master-card"><div class="empty-state">
+      <svg class="icn" style="font-size:32px;color:var(--teal)"><use href="#i-chart-line"/></svg>
+      <div style="margin-top:8px;font-weight:600;">月別グラフ</div>
+      <div style="margin-top:6px;font-size:13px;color:var(--text-tertiary);">準備中です。出荷数・広告などの月別推移をグラフで表示する予定です。</div>
+    </div></div>
+  </div>
+  <div id="pl-view" hidden>
+    <div class="master-card"><div class="empty-state">
+      <svg class="icn" style="font-size:32px;color:var(--amber)"><use href="#i-coins"/></svg>
+      <div style="margin-top:8px;font-weight:600;">全体収支</div>
+      <div style="margin-top:6px;font-size:13px;color:var(--text-tertiary);">準備中です。全体の売上・費用・利益をまとめて表示する予定です。</div>
+    </div></div>
+  </div>
+  <div id="returns-view" hidden>
+    <div class="master-card"><div class="empty-state">
+      <svg class="icn" style="font-size:32px;color:var(--danger)"><use href="#i-return"/></svg>
+      <div style="margin-top:8px;font-weight:600;">返品率</div>
+      <div style="margin-top:6px;font-size:13px;color:var(--text-tertiary);">準備中です。商品ごと・全体の返品率を表示する予定です。</div>
+    </div></div>
   </div>
 
   <!-- 撤退済み商品画面 -->
@@ -1770,6 +1821,9 @@ function switchView(name, fromPop){
   document.getElementById('withdrawn-view').hidden = (name !== 'withdrawn');
   document.getElementById('ad-view').hidden = (name !== 'ad');
   document.getElementById('campaign-view').hidden = (name !== 'campaign');
+  document.getElementById('graph-view').hidden = (name !== 'graph');
+  document.getElementById('pl-view').hidden = (name !== 'pl');
+  document.getElementById('returns-view').hidden = (name !== 'returns');
   if (name === 'shipment') renderShipmentTable();
   if (name === 'master') renderMasterList();
   if (name === 'withdrawn') renderWithdrawnList();
