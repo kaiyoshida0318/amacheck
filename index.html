@@ -1122,7 +1122,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.96</span>
+  <span class="version">v0.97</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1276,19 +1276,20 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-chart-bar"/></svg> 広告データ追加</h3>
-        <div class="sub" style="margin-bottom:0;">広告キャンペーンレポート（CSV）をアップロードし、対象日を選びます。<strong>状態が「有効」のキャンペーンのみ</strong>取り込みます。前日分の取り込みを想定し、日付は既定で前日になっています。</div>
+        <div class="sub" style="margin-bottom:0;">広告キャンペーンレポート（CSV）をアップロードします。<strong>複数ファイルを同時に取り込めます。</strong>日付はファイル名から自動判別し、取れない場合は下の「既定の日付」を使うので、必要に応じて各ファイルの日付を直してください。<strong>状態が「有効」のキャンペーンのみ</strong>取り込みます。</div>
       </div>
       <button id="ad-add-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
     <div class="row" style="margin-top:16px;">
-      <label for="ad-date" style="font-weight:600;font-size:13px;">対象日</label>
+      <label for="ad-date" style="font-weight:600;font-size:13px;">既定の日付<span style="font-weight:400;color:var(--text-tertiary);">（ファイル名から判別できない場合に使用）</span></label>
       <input type="date" id="ad-date" style="font-size:14px;padding:8px 10px;">
     </div>
     <label class="upload-zone" id="ad-upzone" for="ad-file-input" style="margin-top:14px;">
       <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
-      <div class="main">CSVをクリックまたはドラッグ&ドロップ</div>
+      <div class="main">CSVをクリックまたはドラッグ&ドロップ（複数可）</div>
       <div class="sub">キャンペーンレポート .csv</div>
-      <input type="file" id="ad-file-input" accept=".csv,.txt,text/csv,text/plain">
+      <input type="file" id="ad-file-input" accept=".csv,.txt,text/csv,text/plain" multiple>
+    </label>
     </label>
     <div id="ad-import-preview" style="margin-top:12px;font-size:13px;color:var(--text-secondary);"></div>
     <div class="modal-actions">
@@ -1649,7 +1650,7 @@ function init(){
     adDz.addEventListener('drop', e => {
       e.preventDefault();
       adDz.style.borderColor = ''; adDz.style.background = '';
-      if (e.dataTransfer.files && e.dataTransfer.files[0]) processAdFile(e.dataTransfer.files[0]);
+      if (e.dataTransfer.files && e.dataTransfer.files.length) processAdFiles(e.dataTransfer.files);
     });
   }
   document.getElementById('ad-month-select').addEventListener('change', (e) => { adMonth = e.target.value; renderAdTable(); });
@@ -4257,18 +4258,18 @@ function extractAdProduct(name){
   return out.join('-') || name.trim() || '(不明)';
 }
 
+// CSVテキストを集計するだけの純関数。{ok, agg, count, prods} または {ok:false, msg}
 function parseAdCsv(text){
   const res = Papa.parse(text, { header: true, skipEmptyLines: true });
-  if (!res.data.length) { toast('データが見つかりませんでした'); return; }
+  if (!res.data.length) return { ok: false, msg: 'データなし' };
   const cols = Object.keys(res.data[0]);
   const find = (kw) => cols.find(c => c.indexOf(kw) > -1);
   const stateCol = find('状態');
   const nameCol = find('キャンペーン名');
   const salesCol = cols.find(c => c.trim() === '売上') || find('売上');
   const costCol = cols.find(c => c.trim() === '合計費用') || find('費用');
-  if (!nameCol) { toast('キャンペーン名の列が見つかりませんでした'); return; }
+  if (!nameCol) return { ok: false, msg: 'キャンペーン名の列なし' };
 
-  // 集計：product -> platform -> subtype -> {sales, cost}
   const agg = {};
   let count = 0;
   res.data.forEach(row => {
@@ -4283,14 +4284,17 @@ function parseAdCsv(text){
     agg[c.product][c.platform][c.subtype].cost += cost;
     count++;
   });
-  if (!count) { toast('「有効」のキャンペーンが見つかりませんでした'); return; }
-
-  // ここでは確定せず、プレビューだけ表示。「反映する」で確定。
-  const prods = Object.keys(agg);
-  pendingAdImport = { agg, count, prods };
-  setAdApplyEnabled(true);
-  const previewEl = document.getElementById('ad-import-preview');
-  if (previewEl) previewEl.innerHTML = '<span style="color:var(--success)">✓ ' + count + ' 件（有効）を読み込みました（商品: ' + prods.join('、') + '）。「反映する」で確定します。</span>';
+  if (!count) return { ok: false, msg: '「有効」のキャンペーンなし' };
+  return { ok: true, agg, count, prods: Object.keys(agg) };
+}
+// ファイル名から日付(YYYY-MM-DD)を推測。取れなければ ''
+function detectDateFromName(name){
+  let m = name.match(/(20\d{2})[-_./]?(\d{2})[-_./]?(\d{2})/);
+  if (m) {
+    const mo = +m[2], d = +m[3];
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) return m[1] + '-' + m[2] + '-' + m[3];
+  }
+  return '';
 }
 
 function adMetricsForDate(dateStr, productFilter){
@@ -4668,7 +4672,8 @@ function populateAdMonthYear(){
   if (ys) ys.hidden = (adPeriod !== 'monthly');
 }
 
-let pendingAdImport = null; // {agg, count, prods} 反映ボタンで確定
+let pendingAdImports = []; // [{id, fileName, date, agg, count, prods, error}] 反映で確定
+let adImportSeq = 0;
 
 function setAdApplyEnabled(on){
   const btn = document.getElementById('ad-add-apply');
@@ -4682,9 +4687,8 @@ function openAdAddModal(presetDate){
     val = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
   document.getElementById('ad-date').value = val;
-  document.getElementById('ad-import-preview').innerHTML = '';
-  pendingAdImport = null;
-  setAdApplyEnabled(false);
+  pendingAdImports = [];
+  renderAdImportList();
   document.getElementById('ad-add-modal').hidden = false;
 }
 // 広告データ表の日付クリックから、その日付で広告データ追加を開く
@@ -4695,40 +4699,99 @@ function openAdAddForDay(day){
 window.openAdAddForDay = openAdAddForDay;
 function closeAdAddModal(){
   document.getElementById('ad-add-modal').hidden = true;
-  pendingAdImport = null;
+  pendingAdImports = [];
   setAdApplyEnabled(false);
 }
-function processAdFile(f){
-  if (!f) return;
-  const reader = new FileReader();
-  reader.onload = (ev) => {
-    let text;
-    try { text = new TextDecoder('utf-8', { fatal: true }).decode(ev.target.result); }
-    catch { try { text = new TextDecoder('shift_jis').decode(ev.target.result); } catch { toast('文字コードを判別できませんでした'); return; } }
-    parseAdCsv(text);
-  };
-  reader.readAsArrayBuffer(f);
+// 複数ファイルを読み込み→各ファイルを集計し、ファイル名から日付を推測して一覧に追加
+function processAdFiles(files){
+  const list = Array.from(files || []);
+  if (!list.length) return;
+  const defDate = document.getElementById('ad-date').value || '';
+  let remaining = list.length;
+  list.forEach(f => {
+    const reader = new FileReader();
+    reader.onload = (ev) => {
+      let text, entry;
+      try { text = new TextDecoder('utf-8', { fatal: true }).decode(ev.target.result); }
+      catch { try { text = new TextDecoder('shift_jis').decode(ev.target.result); } catch { text = null; } }
+      if (text == null) {
+        entry = { id: ++adImportSeq, fileName: f.name, date: '', agg: null, count: 0, prods: [], error: '文字コード判別不可' };
+      } else {
+        const r = parseAdCsv(text);
+        if (!r.ok) entry = { id: ++adImportSeq, fileName: f.name, date: '', agg: null, count: 0, prods: [], error: r.msg };
+        else entry = { id: ++adImportSeq, fileName: f.name, date: detectDateFromName(f.name) || defDate, agg: r.agg, count: r.count, prods: r.prods, error: '' };
+      }
+      pendingAdImports.push(entry);
+      remaining--;
+      if (remaining === 0) {
+        // 取り込んだ順＝ファイル名順に近づける
+        pendingAdImports.sort((a, b) => a.fileName.localeCompare(b.fileName, 'ja'));
+        renderAdImportList();
+      }
+    };
+    reader.readAsArrayBuffer(f);
+  });
 }
 function handleAdFile(e){
-  processAdFile(e.target.files[0]);
+  processAdFiles(e.target.files);
   e.target.value = '';
 }
-// 「反映する」：プレビュー済みの内容を対象日に確定保存
+window.updateAdImportDate = function(id, val){
+  const ent = pendingAdImports.find(x => x.id === id);
+  if (ent) ent.date = val;
+  updateAdApplyState();
+};
+window.removeAdImport = function(id){
+  pendingAdImports = pendingAdImports.filter(x => x.id !== id);
+  renderAdImportList();
+};
+function updateAdApplyState(){
+  // 反映可能：有効なエントリが1件以上あり、すべて日付あり＆確定済み月でない
+  const valid = pendingAdImports.filter(e => !e.error && e.agg);
+  const ok = valid.length > 0
+    && valid.every(e => e.date && !isAdMonthClosed(e.date.slice(0, 7)));
+  setAdApplyEnabled(ok);
+}
+function renderAdImportList(){
+  const el = document.getElementById('ad-import-preview');
+  if (!el) { updateAdApplyState(); return; }
+  if (!pendingAdImports.length) { el.innerHTML = ''; setAdApplyEnabled(false); return; }
+  let h = '<div style="font-weight:600;color:var(--black);margin-bottom:6px;">読み込んだファイル（' + pendingAdImports.length + '）</div>';
+  h += '<div style="display:flex;flex-direction:column;gap:6px;max-height:240px;overflow:auto;">';
+  pendingAdImports.forEach(e => {
+    const closed = e.date && isAdMonthClosed(e.date.slice(0, 7));
+    h += '<div style="display:flex;align-items:center;gap:8px;border:1px solid var(--border);border-radius:8px;padding:6px 8px;">';
+    h += '<div style="flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;" title="' + escapeHtml(e.fileName) + '">' + escapeHtml(e.fileName) + '</div>';
+    if (e.error) {
+      h += '<span style="color:var(--danger);font-size:12px;flex-shrink:0;">取込不可：' + escapeHtml(e.error) + '</span>';
+    } else {
+      h += '<input type="date" value="' + e.date + '" onchange="updateAdImportDate(' + e.id + ', this.value)" style="font-size:13px;padding:4px 6px;flex-shrink:0;' + (closed ? 'border-color:var(--danger);' : '') + '">';
+      h += '<span style="color:var(--success);font-size:12px;flex-shrink:0;white-space:nowrap;">' + e.count + '件</span>';
+    }
+    h += '<button onclick="removeAdImport(' + e.id + ')" class="ghost" title="一覧から外す" style="padding:2px 6px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>';
+    h += '</div>';
+    if (closed) h += '<div style="color:var(--danger);font-size:11px;margin:-2px 0 2px 2px;">' + e.date.slice(0, 7) + ' は確定済み。解除するか日付を変えてください</div>';
+  });
+  h += '</div>';
+  const noDate = pendingAdImports.filter(e => !e.error && !e.date).length;
+  if (noDate) h += '<div style="color:var(--amber);font-size:12px;margin-top:6px;">日付が未設定のファイルが ' + noDate + ' 件あります。各行で日付を選んでください。</div>';
+  el.innerHTML = h;
+  updateAdApplyState();
+}
+// 「反映する」：一覧のファイルをそれぞれの日付に確定保存（同一日付は合算ではなく後勝ち＝上書き）
 function applyAdImport(){
-  if (!pendingAdImport) { toast('先にCSVを読み込んでください'); return; }
-  const dateStr = document.getElementById('ad-date').value;
-  if (!dateStr) { toast('対象日を選んでください'); return; }
-  if (isAdMonthClosed(dateStr.slice(0, 7))) {
-    toast(dateStr.slice(0, 7) + ' は確定済みです。解除してから反映してください');
-    return;
-  }
-  adData[dateStr] = pendingAdImport.agg;
+  const valid = pendingAdImports.filter(e => !e.error && e.agg);
+  if (!valid.length) { toast('取り込めるファイルがありません'); return; }
+  if (valid.some(e => !e.date)) { toast('日付が未設定のファイルがあります'); return; }
+  const closedHit = valid.find(e => isAdMonthClosed(e.date.slice(0, 7)));
+  if (closedHit) { toast(closedHit.date.slice(0, 7) + ' は確定済みです。解除してから反映してください'); return; }
+  let applied = 0, lastDate = null;
+  valid.forEach(e => { adData[e.date] = e.agg; applied++; lastDate = e.date; });
   saveAdData();
-  adMonth = dateStr.slice(0, 7);
-  adYear = dateStr.slice(0, 4);
+  if (lastDate) { adMonth = lastDate.slice(0, 7); adYear = lastDate.slice(0, 4); }
   populateAdProductSelect();
   renderAdTable();
-  toast(dateStr + ' の広告データを反映しました（' + pendingAdImport.count + '件）');
+  toast(applied + ' 日分の広告データを反映しました');
   closeAdAddModal();
 }
 
