@@ -457,6 +457,8 @@
   /* 広告費/ROAS 2分割：境界線は通常の罫線と同じ濃さで（薄すぎて白く見えるのを解消） */
   table.ad-table .ad-roas { color: var(--black); }
   table.ad-table tbody td { color: var(--black); font-size: 14px; }
+  /* ヘッダーと最初のデータ行の間の罫線を濃く */
+  table.ad-table tbody tr:first-child td { border-top: 2px solid rgba(0,0,0,0.45); }
   table.ad-table tbody tr:hover td:not(.ad-daycol) { filter: brightness(0.97); }
   /* 確定（締め）UI */
   .ad-closed-banner {
@@ -1144,7 +1146,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.06</span>
+  <span class="version">v1.08</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4730,7 +4732,7 @@ function renderAdTable(){
     const has = adRowHasData(r.m);
     const total = r.total || 0;                 // 総売上 = Σ(出荷数×価格、対象商品はセール価格)
     const seo = total - adSales;                // SEO売上 = 総売上 − 広告売上
-    const fmtRoas = (v) => v.toFixed(2) + '%';
+    const fmtRoas = (v) => Math.round(v * 100) + '%';
     const tcell = (v, cls, id) => '<td class="' + cls + (total > 0 ? tierClass(id, v) : '') + '">' + (total > 0 ? yen(v) : '') + '</td>';
     const dcell = (v, cls, id) => '<td class="' + cls + (has ? tierClass(id, v) : '') + '">' + (has ? yen(v) : '') + '</td>';
     const rcell = (sales, cost, cls, id) => '<td class="' + cls + ' ad-roas' + ((has && cost > 0) ? tierClass(id, sales / cost) : '') + '">' + (has && cost > 0 ? fmtRoas(sales / cost) : '') + '</td>';
