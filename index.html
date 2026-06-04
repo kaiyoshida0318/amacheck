@@ -1144,7 +1144,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.05</span>
+  <span class="version">v1.06</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1652,7 +1652,7 @@ function init(){
   });
   // タブクリック
   document.querySelectorAll('.tab').forEach(t => {
-    t.addEventListener('click', () => switchView(t.dataset.tab));
+    t.addEventListener('click', () => { switchView(t.dataset.tab); t.blur(); });
   });
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('master')));
   document.getElementById('open-input').addEventListener('click', () => openModal());
@@ -3273,6 +3273,8 @@ function setupCellInteraction(){
     }
     dragMode = 'select';
     applySelectionUI();
+    // セル選択は独自管理なので、ボタンにフォーカスが残っていると矢印キーでそのボタンに枠が出る。外す。
+    if (document.activeElement && document.activeElement.tagName === 'BUTTON') document.activeElement.blur();
     // 編集中でなければtext-selection防止のpreventDefault
     if (!activeInput) e.preventDefault();
   });
