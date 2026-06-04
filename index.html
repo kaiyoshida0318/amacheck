@@ -1000,7 +1000,7 @@
   /* タブナビゲーション */
   .tabs {
     margin-top: 12px;
-    padding: 0 24px;
+    padding: 0 16px;
     display: flex;
     flex-direction: column;
     gap: 4px;
@@ -1008,33 +1008,33 @@
   }
   .tab-row { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
   .tab-group {
-    color: var(--text-tertiary); font-size: 13px; font-weight: 700;
-    padding: 0 4px; white-space: nowrap; user-select: none;
+    color: var(--text-tertiary); font-size: 12px; font-weight: 700;
+    padding: 0 2px; white-space: nowrap; user-select: none;
   }
-  .tab-group-gap { margin-left: 20px; }
+  .tab-group-gap { margin-left: 12px; }
   .tab {
-    padding: 8px 14px 10px;
+    padding: 7px 10px 9px;
     background: transparent;
     border: none;
     border-bottom: 2px solid transparent;
     color: var(--text-secondary);
     font-family: inherit;
-    font-size: 15px;
+    font-size: 14px;
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
     align-items: center;
-    gap: 7px;
+    gap: 6px;
     transition: color 0.15s, border-color 0.15s, background 0.15s;
     border-radius: 6px 6px 0 0;
   }
   .tab:hover { color: var(--black); background: var(--bg-secondary); }
   .tab.active {
-    color: var(--black);
-    border-bottom-color: var(--black);
+    color: var(--blue);
+    border-bottom-color: var(--blue);
     background: transparent;
   }
-  .tab svg { font-size: 19px; }
+  .tab svg { font-size: 18px; }
   .tab[data-tab="master"] svg { color: var(--accent); }
   .tab[data-tab="shipment"] svg { color: var(--blue); }
   .tab[data-tab="ad"] svg { color: var(--purple); }
@@ -1144,7 +1144,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.02</span>
+  <span class="version">v1.03</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1173,9 +1173,7 @@
     <button class="tab" data-tab="pl">
       <svg class="icn"><use href="#i-coins"/></svg> 全体収支
     </button>
-  </div>
-  <div class="tab-row">
-    <span class="tab-group">【実績】</span>
+    <span class="tab-group tab-group-gap">【実績】</span>
     <button class="tab" data-tab="shipment">
       <svg class="icn"><use href="#i-truck-delivery"/></svg> 出荷数データ
     </button>
