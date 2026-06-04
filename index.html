@@ -418,16 +418,22 @@
   .adh { font-size: 12px; }
   /* サブ見出し（全体＝濃い／広告売上＝中／内訳＝親色を段階的に薄くしたグラデーション）。
      いずれも白(--bg-card)の上に色を重ねるので常に不透明＝スクロール時に本文が透けて濃く見えない */
-  .adc-sales, .adc-sales-mid, .adc-sales-b1, .adc-sales-b2, .adc-sales-b3 { --hue: 22,163,74; }
+  .adc-sales, .adc-sales-mid, .adc-sales-b1, .adc-sales-b2, .adc-sales-b3,
+  .adc-sales-l1, .adc-sales-l2, .adc-sales-l3, .adc-sales-l4 { --hue: 22,163,74; }
   .adc-sp, .adc-sp-b1, .adc-sp-b2, .adc-sp-b3 { --hue: 37,99,235; }
   .adc-sb, .adc-sb-b1, .adc-sb-b2 { --hue: 126,34,206; }
   .adc-sales, .adc-sales-mid, .adc-sales-b1, .adc-sales-b2, .adc-sales-b3,
+  .adc-sales-l1, .adc-sales-l2, .adc-sales-l3, .adc-sales-l4,
   .adc-sp, .adc-sp-b1, .adc-sp-b2, .adc-sp-b3,
   .adc-sb, .adc-sb-b1, .adc-sb-b2 {
     background-color: var(--bg-card); background-repeat: no-repeat;
   }
-  /* 売上金額：総売上/SEO売上＝濃いめ、広告売上＝中（内訳の親）、内訳KW/商品/オート＝段階的に薄く */
+  /* 全体：全体売上＝濃い（現状維持）、右の4列（SEO売上/広告売上/広告費/ROAS）＝少し薄くして右へグラデーション */
   .adc-sales     { background-image: linear-gradient(rgba(var(--hue),0.17), rgba(var(--hue),0.17)); }
+  .adc-sales-l1  { background-image: linear-gradient(to right, rgba(var(--hue),0.13), rgba(var(--hue),0.115)); }
+  .adc-sales-l2  { background-image: linear-gradient(to right, rgba(var(--hue),0.115), rgba(var(--hue),0.10)); }
+  .adc-sales-l3  { background-image: linear-gradient(to right, rgba(var(--hue),0.10), rgba(var(--hue),0.085)); }
+  .adc-sales-l4  { background-image: linear-gradient(to right, rgba(var(--hue),0.085), rgba(var(--hue),0.07)); }
   .adc-sales-mid { background-image: linear-gradient(rgba(var(--hue),0.10), rgba(var(--hue),0.10)); }
   .adc-sales-b1  { background-image: linear-gradient(to right, rgba(var(--hue),0.085), rgba(var(--hue),0.07)); }
   .adc-sales-b2  { background-image: linear-gradient(to right, rgba(var(--hue),0.07), rgba(var(--hue),0.055)); }
@@ -442,7 +448,9 @@
   .adc-sb-b1  { background-image: linear-gradient(to right, rgba(var(--hue),0.11), rgba(var(--hue),0.085)); }
   .adc-sb-b2  { background-image: linear-gradient(to right, rgba(var(--hue),0.085), rgba(var(--hue),0.05)); }
   /* グループ境界の区切り線（売上金額／SP／SB の左端を少し強調） */
-  table.ad-table .adc-gstart { border-left: 2px solid rgba(0,0,0,0.22); }
+  /* 区切り線の階層：列内(1px/0.15) < ブロック間(2px) < グループ間(3px) */
+  table.ad-table .adc-gstart { border-left: 3px solid rgba(0,0,0,0.42); }
+  table.ad-table .adc-bstart { border-left: 2px solid rgba(0,0,0,0.28); }
   /* 広告費/ROAS 2分割：境界線は通常の罫線と同じ濃さで（薄すぎて白く見えるのを解消） */
   table.ad-table .ad-roas { color: var(--black); }
   table.ad-table tbody td { color: var(--black); font-size: 13px; }
@@ -1114,7 +1122,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v0.92</span>
+  <span class="version">v0.95</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4552,26 +4560,27 @@ function renderAdTable(){
     + '<th colspan="9" class="adg adg-sb">スポンサーブランド広告</th>'
     + '</tr>'
     + '<tr>'
-    + '<th rowspan="2" class="adh adc-sales adc-gstart">総売上</th>'
-    + '<th rowspan="2" class="adh adc-sales">SEO売上</th>'
-    + '<th rowspan="2" class="adh adc-sales">広告売上</th>'
-    + '<th rowspan="2" class="adh adc-sales">広告費</th>'
-    + '<th rowspan="2" class="adh adc-sales ad-roas">ROAS</th>'
+    + '<th rowspan="2" class="adh adc-sales adc-gstart">全体売上</th>'
+    + '<th rowspan="2" class="adh adc-sales-l1">SEO売上</th>'
+    + '<th rowspan="2" class="adh adc-sales-l2">広告売上</th>'
+    + '<th rowspan="2" class="adh adc-sales-l3">広告費</th>'
+    + '<th rowspan="2" class="adh adc-sales-l4 ad-roas">ROAS</th>'
     + '<th colspan="3" class="adh adc-sp adc-gstart">広告全体</th>'
-    + '<th colspan="3" class="adh adc-sp-b1">KW</th>'
-    + '<th colspan="3" class="adh adc-sp-b2">商品</th>'
-    + '<th colspan="3" class="adh adc-sp-b3">オート</th>'
+    + '<th colspan="3" class="adh adc-sp-b1 adc-bstart">KW</th>'
+    + '<th colspan="3" class="adh adc-sp-b2 adc-bstart">商品</th>'
+    + '<th colspan="3" class="adh adc-sp-b3 adc-bstart">オート</th>'
     + '<th colspan="3" class="adh adc-sb adc-gstart">広告全体</th>'
-    + '<th colspan="3" class="adh adc-sb-b1">KW-動画</th>'
-    + '<th colspan="3" class="adh adc-sb-b2">KW-商品コレ</th>'
+    + '<th colspan="3" class="adh adc-sb-b1 adc-bstart">KW-動画</th>'
+    + '<th colspan="3" class="adh adc-sb-b2 adc-bstart">KW-商品コレ</th>'
     + '</tr>'
     + '<tr>'
-    + tripHead('adc-sp', true) + tripHead('adc-sp-b1') + tripHead('adc-sp-b2') + tripHead('adc-sp-b3')
-    + tripHead('adc-sb', true) + tripHead('adc-sb-b1') + tripHead('adc-sb-b2')
+    + tripHead('adc-sp', 'g') + tripHead('adc-sp-b1', 'b') + tripHead('adc-sp-b2', 'b') + tripHead('adc-sp-b3', 'b')
+    + tripHead('adc-sb', 'g') + tripHead('adc-sb-b1', 'b') + tripHead('adc-sb-b2', 'b')
     + '</tr></thead><tbody>';
 
-  function tripHead(cls, gstart){
-    return '<th class="adh ' + cls + (gstart ? ' adc-gstart' : '') + '">広告売上</th>'
+  function tripHead(cls, sep){
+    const s = sep === 'g' ? ' adc-gstart' : sep === 'b' ? ' adc-bstart' : '';
+    return '<th class="adh ' + cls + s + '">広告売上</th>'
       + '<th class="adh ' + cls + '">広告費</th>'
       + '<th class="adh ' + cls + ' ad-roas">ROAS</th>';
   }
@@ -4598,11 +4607,13 @@ function renderAdTable(){
     const tcell = (v, cls) => '<td class="' + cls + '">' + (total > 0 ? yen(v) : '') + '</td>';
     const dcell = (v, cls) => '<td class="' + cls + '">' + (has ? yen(v) : '') + '</td>';
     const rcell = (sales, cost, cls) => '<td class="' + cls + ' ad-roas">' + (has && cost > 0 ? fmtRoas(sales / cost) : '') + '</td>';
-    // 広告売上 / 広告費 / ROAS の3列セット
-    const trip = (sales, cost, cls, gstart) =>
-        '<td class="' + cls + (gstart ? ' adc-gstart' : '') + '">' + (has ? yen(sales) : '') + '</td>'
-      + '<td class="' + cls + '">' + (has ? yen(cost) : '') + '</td>'
-      + rcell(sales, cost, cls);
+    // 広告売上 / 広告費 / ROAS の3列セット（sep: 'g'=グループ境界 'b'=ブロック境界）
+    const trip = (sales, cost, cls, sep) => {
+      const s = sep === 'g' ? ' adc-gstart' : sep === 'b' ? ' adc-bstart' : '';
+      return '<td class="' + cls + s + '">' + (has ? yen(sales) : '') + '</td>'
+        + '<td class="' + cls + '">' + (has ? yen(cost) : '') + '</td>'
+        + rcell(sales, cost, cls);
+    };
     const dayClickable = (adPeriod === 'daily') && !isAdMonthClosed(adMonth);
     const dayCls = 'ad-daycol' + (r.sale ? ' ad-sale' : '') + (dayClickable ? ' ad-day-clickable' : '');
     const dayTitle = dayClickable
@@ -4613,19 +4624,19 @@ function renderAdTable(){
       + '<td class="' + dayCls + '" title="' + dayTitle + '"' + dayClick + '>' + r.label + '</td>'
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
       + tcell(total, 'adc-sales adc-gstart')
-      + tcell(seo, 'adc-sales')
-      + dcell(adSales, 'adc-sales')
-      + dcell(adCost, 'adc-sales')
-      + rcell(adSales, adCost, 'adc-sales')
+      + tcell(seo, 'adc-sales-l1')
+      + dcell(adSales, 'adc-sales-l2')
+      + dcell(adCost, 'adc-sales-l3')
+      + rcell(adSales, adCost, 'adc-sales-l4')
       // スポンサープロダクト広告：全体・KW・商品・オート
-      + trip(spSales, spCost, 'adc-sp', true)
-      + trip(s.sp.kw, c.sp.kw, 'adc-sp-b1')
-      + trip(s.sp.shohin, c.sp.shohin, 'adc-sp-b2')
-      + trip(s.sp.auto, c.sp.auto, 'adc-sp-b3')
+      + trip(spSales, spCost, 'adc-sp', 'g')
+      + trip(s.sp.kw, c.sp.kw, 'adc-sp-b1', 'b')
+      + trip(s.sp.shohin, c.sp.shohin, 'adc-sp-b2', 'b')
+      + trip(s.sp.auto, c.sp.auto, 'adc-sp-b3', 'b')
       // スポンサーブランド広告：全体・KW-動画・KW-商品コレ
-      + trip(sbSales, sbCost, 'adc-sb', true)
-      + trip(s.sb.douga, c.sb.douga, 'adc-sb-b1')
-      + trip(s.sb.shokore, c.sb.shokore, 'adc-sb-b2')
+      + trip(sbSales, sbCost, 'adc-sb', 'g')
+      + trip(s.sb.douga, c.sb.douga, 'adc-sb-b1', 'b')
+      + trip(s.sb.shokore, c.sb.shokore, 'adc-sb-b2', 'b')
       + '</tr>';
   });
   html += '</tbody></table></div>';
