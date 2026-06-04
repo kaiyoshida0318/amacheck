@@ -1177,7 +1177,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.17</span>
+  <span class="version">v1.18</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -5524,6 +5524,9 @@ const GRAPH_CATEGORIES = {
     { key: 'jisseki', label: '実績額', color: '#dc2626' },
     { key: 'grossProfit', label: '粗利益', color: '#16a34a' },
   ] },
+  roas: { label: 'ROAS', yen: false, pct: true, items: [
+    { key: 'roas', label: '全体ROAS', color: '#2563eb' },
+  ] },
   fees: { label: '諸費用', yen: true, items: [
     { key: 'storage', label: '保管費', color: '#0891b2' },
     { key: 'fbaFee', label: 'FBA手数料(送料)', color: '#a16207' },
@@ -5534,9 +5537,10 @@ const GRAPH_CATEGORIES = {
     { key: 'adQty', label: '広告出荷数', color: '#ea580c' },
   ] },
 };
-// 表示項目ボタンに出す項目：売上・諸費用は相互に全項目、出荷数は単独
+// 表示項目ボタンに出す項目：売上・諸費用は相互に全項目、ROAS・出荷数は単独
 function graphAllItems(){
   if (graphCategory === 'shipment') return GRAPH_CATEGORIES.shipment.items;
+  if (graphCategory === 'roas') return GRAPH_CATEGORIES.roas.items;
   return GRAPH_CATEGORIES.sales.items.concat(GRAPH_CATEGORIES.fees.items);
 }
 // そのカテゴリで初期OFF（グレー）にする項目＝相手側カテゴリの項目
@@ -5562,7 +5566,7 @@ function graphMonthMetrics(ym){
   // 広告・出荷が揃った月だけを対象に（未完の月は null＝グラフ・表に出さない）
   const complete = isAdMonthClosed(ym) || adMonthDataComplete(ym);
   if (!complete) {
-    const z = { total: null, seo: null, adSales: null, jisseki: null, grossProfit: null, totalQty: null, adQty: null, seoQty: null, fbaFee: null, storage: null };
+    const z = { total: null, seo: null, adSales: null, jisseki: null, grossProfit: null, roas: null, totalQty: null, adQty: null, seoQty: null, fbaFee: null, storage: null };
     _graphMetricCache[ym] = z; return z;
   }
   const sh = shipments[ym] || {};
@@ -5588,10 +5592,11 @@ function graphMonthMetrics(ym){
     }
   }
   const jisseki = grossProfit - adCost;                                  // 実績額＝粗利益額−広告費（想定）
+  const roas = adCost > 0 ? (adSales / adCost) * 100 : null;             // 全体ROAS（広告売上÷広告費 ×100）
   const adQty = total > 0 ? Math.round(totalQty * (adSales / total)) : 0; // 広告出荷数＝総出荷×広告売上比（想定）
   const seoQty = totalQty - adQty;
   const storage = 0;                                                     // 保管費はデータ未登録
-  const r = { total, seo, adSales, jisseki, grossProfit, totalQty, adQty, seoQty, fbaFee, storage };
+  const r = { total, seo, adSales, jisseki, grossProfit, roas, totalQty, adQty, seoQty, fbaFee, storage };
   _graphMetricCache[ym] = r;
   return r;
 }
@@ -5761,7 +5766,7 @@ function buildGraphChart(){
     const v = niceMax * t / ticks;
     const y = yOf(v);
     svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(0,0,0,0.08)"/>';
-    const lab = cat.yen ? ('¥' + Math.round(v).toLocaleString()) : Math.round(v).toLocaleString();
+    const lab = cat.pct ? (Math.round(v) + '%') : cat.yen ? ('¥' + Math.round(v).toLocaleString()) : Math.round(v).toLocaleString();
     svg += '<text x="' + (padL - 10) + '" y="' + (y + 6) + '" text-anchor="end" font-size="17" fill="#888">' + lab + '</text>';
   }
   // X軸ラベル
@@ -5786,7 +5791,7 @@ function buildGraphChart(){
   const hits = (arr, label, year) => {
     let s = '';
     arr.forEach((v, i) => { if (v == null || isNaN(v)) return;
-      const txt = label + ' ' + year + '年' + months[i] + '月  ' + fmtGraphVal(v, cat.yen);
+      const txt = label + ' ' + year + '年' + months[i] + '月  ' + fmtGraphVal(v, cat);
       s += '<circle class="gpt" cx="' + xOf(i) + '" cy="' + yOf(v) + '" r="12" fill="transparent" style="cursor:pointer" data-tip="' + txt + '"/>';
     });
     return s;
@@ -5812,9 +5817,10 @@ function niceCeil(v){
   return nf * mag;
 }
 
-function fmtGraphVal(v, yen){
+function fmtGraphVal(v, cat){
   if (v == null || isNaN(v)) return '';
-  return (yen ? '¥' : '') + Math.round(v).toLocaleString();
+  if (cat && cat.pct) return Math.round(v) + '%';
+  return (cat && cat.yen ? '¥' : '') + Math.round(v).toLocaleString();
 }
 
 function buildGraphTable(){
@@ -5832,9 +5838,9 @@ function buildGraphTable(){
       const prev = graphMonthMetrics(ymOf(graphPrevYear, m));
       h += '<tr class="grp-start"><td class="grp-label" rowspan="2">' + m + '月</td>'
         + '<td class="yr-sub">' + graphCurYear + '年</td>';
-      items.forEach(it => h += '<td>' + fmtGraphVal(cur[it.key], cat.yen) + '</td>');
+      items.forEach(it => h += '<td>' + fmtGraphVal(cur[it.key], cat) + '</td>');
       h += '</tr><tr><td class="yr-sub">' + graphPrevYear + '年</td>';
-      items.forEach(it => h += '<td>' + fmtGraphVal(prev[it.key], cat.yen) + '</td>');
+      items.forEach(it => h += '<td>' + fmtGraphVal(prev[it.key], cat) + '</td>');
       h += '</tr>';
     });
   } else {
@@ -5861,7 +5867,7 @@ function buildGraphTable(){
       const met = graphMonthMetrics(ymOf(y, mo));
       const cls = rowCls(y, mo);
       h += '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="grp-label">' + y + '/' + String(mo).padStart(2, '0') + '</td>';
-      items.forEach(it => h += '<td>' + fmtGraphVal(met[it.key], cat.yen) + '</td>');
+      items.forEach(it => h += '<td>' + fmtGraphVal(met[it.key], cat) + '</td>');
       h += '</tr>';
       mo--; if (mo < 1) { mo = 12; y--; }
       rows++;
