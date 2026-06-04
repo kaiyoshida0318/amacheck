@@ -1144,7 +1144,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.04</span>
+  <span class="version">v1.05</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -2690,6 +2690,13 @@ function editDayCell(cell, initialChar){
     if (e.key === 'Enter') { e.preventDefault(); commit(); moveShipSelection(1, 0); }
     else if (e.key === 'Tab') { e.preventDefault(); commit(); moveShipSelection(0, e.shiftKey ? -1 : 1); }
     else if (e.key === 'Escape') { e.preventDefault(); input.removeEventListener('blur', commit); cancel(); }
+    else if (e.key.indexOf('Arrow') === 0) {
+      // 数字を打った後に矢印で移動＝その時点で保存して上下左右へ
+      e.preventDefault();
+      commit();
+      const d = arrowDelta(e.key);
+      moveShipSelection(d[0], d[1]);
+    }
   });
 }
 
