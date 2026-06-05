@@ -1218,7 +1218,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.33</span>
+  <span class="version">v1.35</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -5640,7 +5640,13 @@ const GRAPH_CATEGORIES = {
     { key: 'adcSbShokoreShare', label: 'SB広告-KW-商品コレ 割合', color: '#db2777' },
   ] },
   roas: { label: 'ROAS', yen: false, pct: true, items: [
-    { key: 'roas', label: '全体ROAS', color: '#2563eb' },
+    { key: 'roas',          label: '全体ROAS',        color: '#dc2626', g: 0 },
+    { key: 'roasSpTotal',   label: 'SP広告全体',      color: '#2563eb', g: 1 },
+    { key: 'roasSpKw',      label: 'SP広告-KW',       color: '#0891b2', g: 1, soft: true },
+    { key: 'roasSpShohin',  label: 'SP広告-商品',     color: '#7c3aed', g: 1, soft: true },
+    { key: 'roasSbTotal',   label: 'SB広告全体',      color: '#ea580c', g: 2 },
+    { key: 'roasSbDouga',   label: 'SB広告-KW-動画',  color: '#d97706', g: 2, soft: true },
+    { key: 'roasSbShokore', label: 'SB広告-KW-商品コレ', color: '#db2777', g: 2, soft: true },
   ] },
   fees: { label: '諸費用', yen: true, items: [
     { key: 'storage', label: '保管費', color: '#0891b2' },
@@ -5675,6 +5681,7 @@ function graphDefaultHidden(cat){
   if (cat === 'sales') { GRAPH_CATEGORIES.fees.items.forEach(i => hidden.add(i.key)); hidden.add('jisseki'); }
   else if (cat === 'fees') GRAPH_CATEGORIES.sales.items.forEach(i => hidden.add(i.key));
   else if (cat === 'adcost') ['adcSpKw', 'adcSpShohin', 'adcSbDouga', 'adcSbShokore'].forEach(k => hidden.add(k));
+  else if (cat === 'roas') ['roasSpKw', 'roasSpShohin', 'roasSbDouga', 'roasSbShokore'].forEach(k => hidden.add(k));
   return hidden;
 }
 let graphPeriodStart = 'jan';   // 'jan' | 'may'
@@ -5695,7 +5702,8 @@ function graphMonthMetrics(ym){
   if (!complete) {
     const z = { total: null, seo: null, adSales: null, jisseki: null, grossProfit: null, roas: null, totalQty: null, adQty: null, seoQty: null, fbaFee: null, storage: null,
       adcSpTotal: null, adcSpKw: null, adcSpShohin: null, adcSbTotal: null, adcSbDouga: null, adcSbShokore: null,
-      adcSpShare: null, adcSbShare: null, adcSpKwShare: null, adcSpShohinShare: null, adcSbDougaShare: null, adcSbShokoreShare: null };
+      adcSpShare: null, adcSbShare: null, adcSpKwShare: null, adcSpShohinShare: null, adcSbDougaShare: null, adcSbShokoreShare: null,
+      roasSpTotal: null, roasSpKw: null, roasSpShohin: null, roasSbTotal: null, roasSbDouga: null, roasSbShokore: null };
     _graphMetricCache[ym] = z; return z;
   }
   const sh = shipments[ym] || {};
@@ -5703,6 +5711,7 @@ function graphMonthMetrics(ym){
   const total = totalSalesForMonth(ym, 'all');
   let adSales = 0, adCost = 0;
   let cSpKw = 0, cSpShohin = 0, cSpAuto = 0, cSbDouga = 0, cSbShokore = 0;
+  let sSpKw = 0, sSpShohin = 0, sSpAuto = 0, sSbDouga = 0, sSbShokore = 0;
   for (let d = 1; d <= dim; d++) {
     const m = adMetricsForDate(ym + '-' + String(d).padStart(2, '0'), 'all');
     const s = m.sales, c = m.cost;
@@ -5710,6 +5719,8 @@ function graphMonthMetrics(ym){
     adCost  += c.sp.kw + c.sp.shohin + c.sp.auto + c.sb.douga + c.sb.shokore;
     cSpKw += c.sp.kw; cSpShohin += c.sp.shohin; cSpAuto += c.sp.auto;
     cSbDouga += c.sb.douga; cSbShokore += c.sb.shokore;
+    sSpKw += s.sp.kw; sSpShohin += s.sp.shohin; sSpAuto += s.sp.auto;
+    sSbDouga += s.sb.douga; sSbShokore += s.sb.shokore;
   }
   const adcSpTotal = cSpKw + cSpShohin + cSpAuto;   // SP広告合計（KW＋商品＋オート）
   const adcSbTotal = cSbDouga + cSbShokore;         // SB広告全体
@@ -5737,12 +5748,20 @@ function graphMonthMetrics(ym){
   }
   const jisseki = adCost;                                                // 広告費（jisstekiキーはそのまま、表示名は広告費）
   const roas = adCost > 0 ? (adSales / adCost) * 100 : null;             // 全体ROAS（広告売上÷広告費 ×100）
+  const spSales = sSpKw + sSpShohin + sSpAuto, sbSales = sSbDouga + sSbShokore;
+  const roasSpTotal   = adcSpTotal > 0 ? spSales / adcSpTotal * 100 : null;   // SP全体ROAS
+  const roasSpKw      = cSpKw      > 0 ? sSpKw / cSpKw * 100 : null;
+  const roasSpShohin  = cSpShohin  > 0 ? sSpShohin / cSpShohin * 100 : null;
+  const roasSbTotal   = adcSbTotal > 0 ? sbSales / adcSbTotal * 100 : null;   // SB全体ROAS
+  const roasSbDouga   = cSbDouga   > 0 ? sSbDouga / cSbDouga * 100 : null;
+  const roasSbShokore = cSbShokore > 0 ? sSbShokore / cSbShokore * 100 : null;
   const adQty = total > 0 ? Math.round(totalQty * (adSales / total)) : 0; // 広告出荷数＝総出荷×広告売上比（想定）
   const seoQty = totalQty - adQty;
   const storage = 0;                                                     // 保管費はデータ未登録
   const r = { total, seo, adSales, jisseki, grossProfit, roas, totalQty, adQty, seoQty, fbaFee, storage,
     adcSpTotal, adcSpKw: cSpKw, adcSpShohin: cSpShohin, adcSbTotal, adcSbDouga: cSbDouga, adcSbShokore: cSbShokore,
-    adcSpShare, adcSbShare, adcSpKwShare, adcSpShohinShare, adcSbDougaShare, adcSbShokoreShare };
+    adcSpShare, adcSbShare, adcSpKwShare, adcSpShohinShare, adcSbDougaShare, adcSbShokoreShare,
+    roasSpTotal, roasSpKw, roasSpShohin, roasSbTotal, roasSbDouga, roasSbShokore };
   _graphMetricCache[ym] = r;
   return r;
 }
