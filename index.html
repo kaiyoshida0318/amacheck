@@ -1218,7 +1218,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.35</span>
+  <span class="version">v1.37</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1352,7 +1352,7 @@
         <span class="lg-lo10">下位10%</span>
       </span>
       <span class="adg-tip" data-tip="説明を見る">
-        <button class="utility" id="open-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類</button>
+        <button class="utility" id="open-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button>
       </span>
       <div class="spacer"></div>
       <button class="primary" id="open-ad-add"><svg class="icn"><use href="#i-plus"/></svg> 広告データ追加</button>
@@ -4474,6 +4474,8 @@ function parseAdCsv(text){
   const tgtCol = find('ターゲティング') || exact('campaignTargetingType');
   const salesCol = exact('売上', 'sales') || find('売上');
   const costCol = exact('合計費用', 'spend') || find('費用');
+  const clicksCol = exact('クリック数', 'clicks') || find('クリック数');
+  const ordersCol = exact('購入', 'orders', 'purchases') || find('購入');
   if (!nameCol) return { ok: false, msg: 'キャンペーン名の列なし' };
   const isActive = (v) => { v = (v || '').trim(); return v === '有効' || /ENABLED/i.test(v); };
 
@@ -4488,11 +4490,15 @@ function parseAdCsv(text){
     });
     const sales = adParsePrice(salesCol ? row[salesCol] : 0);
     const cost = adParsePrice(costCol ? row[costCol] : 0);
+    const clicks = adParsePrice(clicksCol ? row[clicksCol] : 0);
+    const orders = adParsePrice(ordersCol ? row[ordersCol] : 0);
     if (!agg[c.product]) agg[c.product] = {};
     if (!agg[c.product][c.platform]) agg[c.product][c.platform] = {};
-    if (!agg[c.product][c.platform][c.subtype]) agg[c.product][c.platform][c.subtype] = { sales: 0, cost: 0 };
+    if (!agg[c.product][c.platform][c.subtype]) agg[c.product][c.platform][c.subtype] = { sales: 0, cost: 0, clicks: 0, orders: 0 };
     agg[c.product][c.platform][c.subtype].sales += sales;
     agg[c.product][c.platform][c.subtype].cost += cost;
+    agg[c.product][c.platform][c.subtype].clicks += clicks;
+    agg[c.product][c.platform][c.subtype].orders += orders;
     count++;
   });
   if (!count) return { ok: false, msg: '「有効」のキャンペーンなし' };
@@ -4512,7 +4518,9 @@ function adMetricsForDate(dateStr, productFilter){
   const day = adData[dateStr];
   const z = {
     sales: { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } },
-    cost:  { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } }
+    cost:  { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } },
+    clicks:{ sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } },
+    orders:{ sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } }
   };
   if (!day) return z;
   const prods = productFilter === 'all'
@@ -4521,8 +4529,8 @@ function adMetricsForDate(dateStr, productFilter){
   prods.forEach(pr => {
     const pd = day[pr];
     if (!pd) return;
-    if (pd.sp) { ['kw', 'shohin', 'auto'].forEach(k => { if (pd.sp[k]) { z.sales.sp[k] += pd.sp[k].sales; z.cost.sp[k] += pd.sp[k].cost; } }); }
-    if (pd.sb) { ['douga', 'shokore'].forEach(k => { if (pd.sb[k]) { z.sales.sb[k] += pd.sb[k].sales; z.cost.sb[k] += pd.sb[k].cost; } }); }
+    if (pd.sp) { ['kw', 'shohin', 'auto'].forEach(k => { if (pd.sp[k]) { z.sales.sp[k] += pd.sp[k].sales; z.cost.sp[k] += pd.sp[k].cost; z.clicks.sp[k] += pd.sp[k].clicks || 0; z.orders.sp[k] += pd.sp[k].orders || 0; } }); }
+    if (pd.sb) { ['douga', 'shokore'].forEach(k => { if (pd.sb[k]) { z.sales.sb[k] += pd.sb[k].sales; z.cost.sb[k] += pd.sb[k].cost; z.clicks.sb[k] += pd.sb[k].clicks || 0; z.orders.sb[k] += pd.sb[k].orders || 0; } }); }
   });
   return z;
 }
@@ -4615,7 +4623,9 @@ function totalSalesResolved(dateStr, filter){
 }
 function zeroAdMetrics(){
   return { sales: { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } },
-           cost:  { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } } };
+           cost:  { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } },
+           clicks:{ sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } },
+           orders:{ sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } } };
 }
 // 月を確定：全体＋各キャンペーン商品について、その月の全日の数値を保存して固定する
 function closeAdMonth(ym){
@@ -5648,6 +5658,15 @@ const GRAPH_CATEGORIES = {
     { key: 'roasSbDouga',   label: 'SB広告-KW-動画',  color: '#d97706', g: 2, soft: true },
     { key: 'roasSbShokore', label: 'SB広告-KW-商品コレ', color: '#db2777', g: 2, soft: true },
   ] },
+  cvr: { label: 'CVR', yen: false, pct: true, items: [
+    { key: 'cvr',          label: '全体CVR',         color: '#dc2626', g: 0 },
+    { key: 'cvrSpTotal',   label: 'SP広告全体',      color: '#2563eb', g: 1 },
+    { key: 'cvrSpKw',      label: 'SP広告-KW',       color: '#0891b2', g: 1, soft: true },
+    { key: 'cvrSpShohin',  label: 'SP広告-商品',     color: '#7c3aed', g: 1, soft: true },
+    { key: 'cvrSbTotal',   label: 'SB広告全体',      color: '#ea580c', g: 2 },
+    { key: 'cvrSbDouga',   label: 'SB広告-KW-動画',  color: '#d97706', g: 2, soft: true },
+    { key: 'cvrSbShokore', label: 'SB広告-KW-商品コレ', color: '#db2777', g: 2, soft: true },
+  ] },
   fees: { label: '諸費用', yen: true, items: [
     { key: 'storage', label: '保管費', color: '#0891b2' },
     { key: 'fbaFee', label: 'FBA手数料(送料)', color: '#a16207' },
@@ -5669,6 +5688,7 @@ function softColor(hex){
 function graphAllItems(){
   if (graphCategory === 'shipment') return GRAPH_CATEGORIES.shipment.items;
   if (graphCategory === 'roas') return GRAPH_CATEGORIES.roas.items;
+  if (graphCategory === 'cvr') return GRAPH_CATEGORIES.cvr.items;
   if (graphCategory === 'adcost') return GRAPH_CATEGORIES.adcost.items;
   if (graphCategory === 'adshareSpSb') return GRAPH_CATEGORIES.adshareSpSb.items;
   if (graphCategory === 'adshareSpKwSh') return GRAPH_CATEGORIES.adshareSpKwSh.items;
@@ -5682,6 +5702,7 @@ function graphDefaultHidden(cat){
   else if (cat === 'fees') GRAPH_CATEGORIES.sales.items.forEach(i => hidden.add(i.key));
   else if (cat === 'adcost') ['adcSpKw', 'adcSpShohin', 'adcSbDouga', 'adcSbShokore'].forEach(k => hidden.add(k));
   else if (cat === 'roas') ['roasSpKw', 'roasSpShohin', 'roasSbDouga', 'roasSbShokore'].forEach(k => hidden.add(k));
+  else if (cat === 'cvr') ['cvrSpKw', 'cvrSpShohin', 'cvrSbDouga', 'cvrSbShokore'].forEach(k => hidden.add(k));
   return hidden;
 }
 let graphPeriodStart = 'jan';   // 'jan' | 'may'
@@ -5703,7 +5724,8 @@ function graphMonthMetrics(ym){
     const z = { total: null, seo: null, adSales: null, jisseki: null, grossProfit: null, roas: null, totalQty: null, adQty: null, seoQty: null, fbaFee: null, storage: null,
       adcSpTotal: null, adcSpKw: null, adcSpShohin: null, adcSbTotal: null, adcSbDouga: null, adcSbShokore: null,
       adcSpShare: null, adcSbShare: null, adcSpKwShare: null, adcSpShohinShare: null, adcSbDougaShare: null, adcSbShokoreShare: null,
-      roasSpTotal: null, roasSpKw: null, roasSpShohin: null, roasSbTotal: null, roasSbDouga: null, roasSbShokore: null };
+      roasSpTotal: null, roasSpKw: null, roasSpShohin: null, roasSbTotal: null, roasSbDouga: null, roasSbShokore: null,
+      cvr: null, cvrSpTotal: null, cvrSpKw: null, cvrSpShohin: null, cvrSbTotal: null, cvrSbDouga: null, cvrSbShokore: null };
     _graphMetricCache[ym] = z; return z;
   }
   const sh = shipments[ym] || {};
@@ -5712,15 +5734,21 @@ function graphMonthMetrics(ym){
   let adSales = 0, adCost = 0;
   let cSpKw = 0, cSpShohin = 0, cSpAuto = 0, cSbDouga = 0, cSbShokore = 0;
   let sSpKw = 0, sSpShohin = 0, sSpAuto = 0, sSbDouga = 0, sSbShokore = 0;
+  let klSpKw = 0, klSpShohin = 0, klSpAuto = 0, klSbDouga = 0, klSbShokore = 0;
+  let orSpKw = 0, orSpShohin = 0, orSpAuto = 0, orSbDouga = 0, orSbShokore = 0;
   for (let d = 1; d <= dim; d++) {
     const m = adMetricsForDate(ym + '-' + String(d).padStart(2, '0'), 'all');
-    const s = m.sales, c = m.cost;
+    const s = m.sales, c = m.cost, k = m.clicks, o = m.orders;
     adSales += s.sp.kw + s.sp.shohin + s.sp.auto + s.sb.douga + s.sb.shokore;
     adCost  += c.sp.kw + c.sp.shohin + c.sp.auto + c.sb.douga + c.sb.shokore;
     cSpKw += c.sp.kw; cSpShohin += c.sp.shohin; cSpAuto += c.sp.auto;
     cSbDouga += c.sb.douga; cSbShokore += c.sb.shokore;
     sSpKw += s.sp.kw; sSpShohin += s.sp.shohin; sSpAuto += s.sp.auto;
     sSbDouga += s.sb.douga; sSbShokore += s.sb.shokore;
+    klSpKw += k.sp.kw; klSpShohin += k.sp.shohin; klSpAuto += k.sp.auto;
+    klSbDouga += k.sb.douga; klSbShokore += k.sb.shokore;
+    orSpKw += o.sp.kw; orSpShohin += o.sp.shohin; orSpAuto += o.sp.auto;
+    orSbDouga += o.sb.douga; orSbShokore += o.sb.shokore;
   }
   const adcSpTotal = cSpKw + cSpShohin + cSpAuto;   // SP広告合計（KW＋商品＋オート）
   const adcSbTotal = cSbDouga + cSbShokore;         // SB広告全体
@@ -5755,13 +5783,25 @@ function graphMonthMetrics(ym){
   const roasSbTotal   = adcSbTotal > 0 ? sbSales / adcSbTotal * 100 : null;   // SB全体ROAS
   const roasSbDouga   = cSbDouga   > 0 ? sSbDouga / cSbDouga * 100 : null;
   const roasSbShokore = cSbShokore > 0 ? sSbShokore / cSbShokore * 100 : null;
+  // CVR（注文数÷クリック数 ×100、クリック0はnull）
+  const klSpTotal = klSpKw + klSpShohin + klSpAuto, orSpTotal = orSpKw + orSpShohin + orSpAuto;
+  const klSbTotal = klSbDouga + klSbShokore, orSbTotal = orSbDouga + orSbShokore;
+  const klAll = klSpTotal + klSbTotal, orAll = orSpTotal + orSbTotal;
+  const cvr           = klAll > 0 ? orAll / klAll * 100 : null;             // 全体CVR
+  const cvrSpTotal    = klSpTotal  > 0 ? orSpTotal / klSpTotal * 100 : null;
+  const cvrSpKw       = klSpKw     > 0 ? orSpKw / klSpKw * 100 : null;
+  const cvrSpShohin   = klSpShohin > 0 ? orSpShohin / klSpShohin * 100 : null;
+  const cvrSbTotal    = klSbTotal  > 0 ? orSbTotal / klSbTotal * 100 : null;
+  const cvrSbDouga    = klSbDouga  > 0 ? orSbDouga / klSbDouga * 100 : null;
+  const cvrSbShokore  = klSbShokore> 0 ? orSbShokore / klSbShokore * 100 : null;
   const adQty = total > 0 ? Math.round(totalQty * (adSales / total)) : 0; // 広告出荷数＝総出荷×広告売上比（想定）
   const seoQty = totalQty - adQty;
   const storage = 0;                                                     // 保管費はデータ未登録
   const r = { total, seo, adSales, jisseki, grossProfit, roas, totalQty, adQty, seoQty, fbaFee, storage,
     adcSpTotal, adcSpKw: cSpKw, adcSpShohin: cSpShohin, adcSbTotal, adcSbDouga: cSbDouga, adcSbShokore: cSbShokore,
     adcSpShare, adcSbShare, adcSpKwShare, adcSpShohinShare, adcSbDougaShare, adcSbShokoreShare,
-    roasSpTotal, roasSpKw, roasSpShohin, roasSbTotal, roasSbDouga, roasSbShokore };
+    roasSpTotal, roasSpKw, roasSpShohin, roasSbTotal, roasSbDouga, roasSbShokore,
+    cvr, cvrSpTotal, cvrSpKw, cvrSpShohin, cvrSbTotal, cvrSbDouga, cvrSbShokore };
   _graphMetricCache[ym] = r;
   return r;
 }
@@ -5828,7 +5868,7 @@ function renderGraphView(){
     + ' ～ '
     + '<select class="graph-select" id="graph-end">' + ymOpts(graphEndYM) + '</select></span>';
   h += '<span class="adg-tip" data-tip="説明を見る">'
-    + '<button class="utility" id="graph-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類</button>'
+    + '<button class="utility" id="graph-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button>'
     + '</span>';
   h += '</div>';
 
