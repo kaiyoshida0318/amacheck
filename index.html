@@ -1218,7 +1218,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.37</span>
+  <span class="version">v1.38</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1425,9 +1425,9 @@
     </div>
     <label class="upload-zone" id="ad-upzone" for="ad-file-input" style="margin-top:14px;">
       <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
-      <div class="main">CSVをクリックまたはドラッグ&ドロップ（複数可）</div>
+      <div class="main">CSV / ZIP をクリックまたはドラッグ&ドロップ（複数可）</div>
       <div class="sub">キャンペーンレポート .csv</div>
-      <input type="file" id="ad-file-input" accept=".csv,.txt,text/csv,text/plain" multiple>
+      <input type="file" id="ad-file-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple>
     </label>
     </label>
     <div id="ad-import-preview" style="margin-top:12px;font-size:13px;color:var(--text-secondary);"></div>
@@ -4958,35 +4958,91 @@ function closeAdAddModal(){
   pendingAdImports = [];
   setAdApplyEnabled(false);
 }
-// 複数ファイルを読み込み→各ファイルを集計し、ファイル名から日付を推測して一覧に追加
-function processAdFiles(files){
+// raw deflate を展開（ブラウザ標準）
+async function inflateRawBytes(bytes){
+  const stream = new Blob([bytes]).stream().pipeThrough(new DecompressionStream('deflate-raw'));
+  const ab = await new Response(stream).arrayBuffer();
+  return new Uint8Array(ab);
+}
+// ZIP(ArrayBuffer)内の .csv/.txt エントリを取り出す → [{name, bytes}]
+async function unzipCsvEntries(buf){
+  const u8 = new Uint8Array(buf), dv = new DataView(buf);
+  // End of Central Directory を末尾から探す
+  let eocd = -1;
+  for (let i = u8.length - 22; i >= 0; i--) { if (dv.getUint32(i, true) === 0x06054b50) { eocd = i; break; } }
+  if (eocd < 0) throw new Error('ZIP形式が読めません');
+  const total = dv.getUint16(eocd + 10, true);
+  let off = dv.getUint32(eocd + 16, true);
+  const out = [];
+  for (let n = 0; n < total; n++) {
+    if (dv.getUint32(off, true) !== 0x02014b50) break;
+    const method = dv.getUint16(off + 10, true);
+    const compSize = dv.getUint32(off + 20, true);
+    const nameLen = dv.getUint16(off + 28, true);
+    const extraLen = dv.getUint16(off + 30, true);
+    const commentLen = dv.getUint16(off + 32, true);
+    const localOff = dv.getUint32(off + 42, true);
+    const name = new TextDecoder('utf-8').decode(u8.subarray(off + 46, off + 46 + nameLen));
+    off += 46 + nameLen + extraLen + commentLen;
+    if (name.endsWith('/')) continue;                       // ディレクトリ
+    const base = name.split('/').pop();
+    if (!/\.(csv|txt)$/i.test(base)) continue;              // CSV/TXTのみ
+    // ローカルヘッダからデータ開始位置を算出
+    const lNameLen = dv.getUint16(localOff + 26, true);
+    const lExtraLen = dv.getUint16(localOff + 28, true);
+    const dataStart = localOff + 30 + lNameLen + lExtraLen;
+    const comp = u8.subarray(dataStart, dataStart + compSize);
+    let bytes;
+    if (method === 0) bytes = comp;                          // 無圧縮
+    else if (method === 8) bytes = await inflateRawBytes(comp); // deflate
+    else throw new Error('未対応の圧縮形式');
+    out.push({ name: base, bytes });
+  }
+  return out;
+}
+function decodeAdBytes(buf){
+  try { return new TextDecoder('utf-8', { fatal: true }).decode(buf); }
+  catch { try { return new TextDecoder('shift_jis').decode(buf); } catch { return null; } }
+}
+function readFileBytes(f){
+  return new Promise((res, rej) => { const r = new FileReader(); r.onload = e => res(e.target.result); r.onerror = rej; r.readAsArrayBuffer(f); });
+}
+// 複数ファイル(CSV/ZIP)を読み込み→各CSVを集計し、ファイル名から日付を推測して一覧に追加
+async function processAdFiles(files){
   const list = Array.from(files || []);
   if (!list.length) return;
   const defDate = document.getElementById('ad-date').value || '';
-  let remaining = list.length;
-  list.forEach(f => {
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      let text, entry;
-      try { text = new TextDecoder('utf-8', { fatal: true }).decode(ev.target.result); }
-      catch { try { text = new TextDecoder('shift_jis').decode(ev.target.result); } catch { text = null; } }
-      if (text == null) {
-        entry = { id: ++adImportSeq, fileName: f.name, date: '', agg: null, count: 0, prods: [], error: '文字コード判別不可' };
+  // CSV/ZIP を展開して「取込単位（name, bytes）」の配列に正規化
+  const units = [];
+  for (const f of list) {
+    try {
+      const buf = await readFileBytes(f);
+      if (/\.zip$/i.test(f.name)) {
+        const entries = await unzipCsvEntries(buf);
+        if (!entries.length) pendingAdImports.push({ id: ++adImportSeq, fileName: f.name, date: '', agg: null, count: 0, prods: [], error: 'ZIP内にCSVなし' });
+        entries.forEach(en => units.push({ name: en.name, bytes: en.bytes }));
       } else {
-        const r = parseAdCsv(text);
-        if (!r.ok) entry = { id: ++adImportSeq, fileName: f.name, date: '', agg: null, count: 0, prods: [], error: r.msg };
-        else entry = { id: ++adImportSeq, fileName: f.name, date: detectDateFromName(f.name) || defDate, agg: r.agg, count: r.count, prods: r.prods, error: '' };
+        units.push({ name: f.name, bytes: buf });
       }
-      pendingAdImports.push(entry);
-      remaining--;
-      if (remaining === 0) {
-        // 取り込んだ順＝ファイル名順に近づける
-        pendingAdImports.sort((a, b) => a.fileName.localeCompare(b.fileName, 'ja'));
-        renderAdImportList();
-      }
-    };
-    reader.readAsArrayBuffer(f);
+    } catch (err) {
+      pendingAdImports.push({ id: ++adImportSeq, fileName: f.name, date: '', agg: null, count: 0, prods: [], error: 'ZIP展開エラー：' + (err && err.message ? err.message : err) });
+    }
+  }
+  // 各CSVを集計
+  units.forEach(u => {
+    const text = decodeAdBytes(u.bytes);
+    let entry;
+    if (text == null) {
+      entry = { id: ++adImportSeq, fileName: u.name, date: '', agg: null, count: 0, prods: [], error: '文字コード判別不可' };
+    } else {
+      const r = parseAdCsv(text);
+      if (!r.ok) entry = { id: ++adImportSeq, fileName: u.name, date: '', agg: null, count: 0, prods: [], error: r.msg };
+      else entry = { id: ++adImportSeq, fileName: u.name, date: detectDateFromName(u.name) || defDate, agg: r.agg, count: r.count, prods: r.prods, error: '' };
+    }
+    pendingAdImports.push(entry);
   });
+  pendingAdImports.sort((a, b) => a.fileName.localeCompare(b.fileName, 'ja'));
+  renderAdImportList();
 }
 function handleAdFile(e){
   processAdFiles(e.target.files);
