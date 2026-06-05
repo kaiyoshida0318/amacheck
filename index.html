@@ -1214,7 +1214,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.31</span>
+  <span class="version">v1.32</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -5627,11 +5627,11 @@ const GRAPH_CATEGORIES = {
     { key: 'adcSpShare', label: 'SP広告 割合', color: '#2563eb' },
     { key: 'adcSbShare', label: 'SB広告 割合', color: '#ea580c' },
   ] },
-  adshareSpKwSh: { label: '広告費-割合(SP-KW/SP-商品)', yen: false, pct: true, fixed100: true, items: [
+  adshareSpKwSh: { label: 'SP広告費-割合', yen: false, pct: true, fixed100: true, items: [
     { key: 'adcSpKwShare',     label: 'SP広告-KW 割合',   color: '#0891b2' },
     { key: 'adcSpShohinShare', label: 'SP広告-商品 割合', color: '#7c3aed' },
   ] },
-  adshareSbDgSk: { label: '広告費-割合(SB-KW-動画/SB-KW-商品コレ)', yen: false, pct: true, fixed100: true, items: [
+  adshareSbDgSk: { label: 'SB広告費-割合', yen: false, pct: true, fixed100: true, items: [
     { key: 'adcSbDougaShare',   label: 'SB広告-KW-動画 割合',   color: '#d97706' },
     { key: 'adcSbShokoreShare', label: 'SB広告-KW-商品コレ 割合', color: '#db2777' },
   ] },
@@ -5670,6 +5670,7 @@ function graphDefaultHidden(cat){
   const hidden = new Set();
   if (cat === 'sales') { GRAPH_CATEGORIES.fees.items.forEach(i => hidden.add(i.key)); hidden.add('jisseki'); }
   else if (cat === 'fees') GRAPH_CATEGORIES.sales.items.forEach(i => hidden.add(i.key));
+  else if (cat === 'adcost') ['adcSpKw', 'adcSpShohin', 'adcSbDouga', 'adcSbShokore'].forEach(k => hidden.add(k));
   return hidden;
 }
 let graphPeriodStart = 'jan';   // 'jan' | 'may'
