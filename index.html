@@ -1213,7 +1213,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.26</span>
+  <span class="version">v1.27</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -5606,7 +5606,7 @@ function toast(msg, action){
 // 月別グラフ
 // ============================================
 const GRAPH_CATEGORIES = {
-  sales: { label: '売上・広告費', yen: true, items: [
+  sales: { label: '売上', yen: true, items: [
     { key: 'total', label: '総売上', color: '#2563eb' },
     { key: 'seo', label: 'SEO売上', color: '#9333ea' },
     { key: 'adSales', label: '広告売上', color: '#ea580c' },
@@ -5635,7 +5635,7 @@ function graphAllItems(){
 // そのカテゴリで初期OFF（グレー）にする項目＝相手側カテゴリの項目
 function graphDefaultHidden(cat){
   const hidden = new Set();
-  if (cat === 'sales') GRAPH_CATEGORIES.fees.items.forEach(i => hidden.add(i.key));
+  if (cat === 'sales') { GRAPH_CATEGORIES.fees.items.forEach(i => hidden.add(i.key)); hidden.add('jisseki'); }
   else if (cat === 'fees') GRAPH_CATEGORIES.sales.items.forEach(i => hidden.add(i.key));
   return hidden;
 }
