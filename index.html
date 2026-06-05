@@ -483,6 +483,19 @@
   .graph-item-btn { display: inline-flex; align-items: center; gap: 8px; border: none; border-radius: 9px; padding: 9px 18px; font-size: 15px; font-weight: 700; color: #fff; cursor: pointer; font-family: inherit; }
   .graph-item-btn .dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.9); }
   .graph-item-gap { width: 24px; flex: 0 0 auto; }
+  /* 全体収支 */
+  .pl-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 14px; }
+  .pl-table th, .pl-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+  .pl-table th { background: var(--bg-secondary); color: var(--text-secondary); font-weight: 600; font-size: 13px; position: sticky; top: 0; z-index: 1; }
+  .pl-table th:first-child, .pl-table td:first-child { text-align: left; position: sticky; left: 0; background: #fff; font-weight: 600; }
+  .pl-table th:first-child { background: var(--bg-secondary); z-index: 2; }
+  .pl-table tr:hover td { background: var(--bg-secondary); }
+  .pl-table td.pl-profit { font-weight: 700; color: var(--black); }
+  .pl-table td.pl-neg { color: var(--danger); }
+  .pl-table tfoot td { border-top: 2px solid var(--border-strong); border-bottom: none; font-weight: 700; background: var(--bg-secondary); }
+  .pl-input { width: 92px; text-align: right; font-size: 13px; padding: 5px 7px; border: 1px solid var(--border-strong); border-radius: 6px; font-family: inherit; }
+  .pl-input:focus { outline: none; border-color: var(--blue); }
+  .pl-col-edit { background: rgba(37,99,235,0.04); }
   .graph-item-btn.off { background: #e2e2e2 !important; color: var(--text-tertiary); }
   .graph-item-btn.off .dot { background: var(--text-tertiary); }
   .graph-legend { display: flex; align-items: center; gap: 20px; margin: 6px 0 12px; font-size: 14px; color: var(--text-secondary); }
@@ -1218,7 +1231,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.38</span>
+  <span class="version">v1.39</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1380,11 +1393,7 @@
     <div id="graph-body"></div>
   </div>
   <div id="pl-view" hidden>
-    <div class="master-card"><div class="empty-state">
-      <svg class="icn" style="font-size:32px;color:var(--amber)"><use href="#i-coins"/></svg>
-      <div style="margin-top:8px;font-weight:600;">全体収支</div>
-      <div style="margin-top:6px;font-size:13px;color:var(--text-tertiary);">準備中です。全体の売上・費用・利益をまとめて表示する予定です。</div>
-    </div></div>
+    <div id="pl-body"></div>
   </div>
   <div id="returns-view" hidden>
     <div class="master-card"><div class="empty-state">
@@ -1649,6 +1658,7 @@ const STORAGE_SALES = 'amacheck_sales_v1';
 const STORAGE_ADDATA = 'amacheck_addata_v1';
 const STORAGE_CAMPAIGNS = 'amacheck_adcampaigns_v1';
 const STORAGE_ADCLOSE = 'amacheck_adclose_v1';
+const STORAGE_PL = 'amacheck_pl_v1';
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
 let products = loadProducts();
@@ -1707,6 +1717,9 @@ function saveAdData(){
 // 確定（締め）済みの月のスナップショット { 'YYYY-MM': { filter: { day: {total, m} } } }
 let adClose = (function(){ try { return JSON.parse(localStorage.getItem(STORAGE_ADCLOSE) || '{}'); } catch { return {}; } })();
 function saveAdClose(){ localStorage.setItem(STORAGE_ADCLOSE, JSON.stringify(adClose)); }
+// 全体収支の手入力（保管費・FBA手数料）を月単位で保存： { 'YYYY-MM': { storage:数値, fbaFee:数値 } }
+let plData = (function(){ try { return JSON.parse(localStorage.getItem(STORAGE_PL) || '{}'); } catch { return {}; } })();
+function savePlData(){ try { localStorage.setItem(STORAGE_PL, JSON.stringify(plData)); } catch {} }
 function isAdMonthClosed(ym){ return !!adClose[ym]; }
 let adCloseDismissed = new Set(); // このセッション中「あとで」にした月
 
@@ -1946,6 +1959,7 @@ function switchView(name, fromPop){
   document.getElementById('pl-view').hidden = (name !== 'pl');
   document.getElementById('returns-view').hidden = (name !== 'returns');
   if (name === 'graph') renderGraphView();
+  if (name === 'pl') renderPlView();
   if (name === 'shipment') renderShipmentTable();
   if (name === 'master') renderMasterList();
   if (name === 'withdrawn') renderWithdrawnList();
@@ -5881,6 +5895,122 @@ function graphLatestYM(){
   const keys = Object.keys(shipments).concat(Object.keys(adData).map(k => k.slice(0, 7)));
   keys.forEach(k => { if (!ym || k > ym) ym = k; });
   return ym || (graphLatestYear() + '-01');
+}
+
+// ========== 全体収支 ==========
+let plMode = 'month'; // 'month' | 'year'
+// 月の自動計算分（総売上・粗利益・広告費）。完備判定は使わず、データがあれば計算
+function plMonthCalc(ym){
+  const sh = shipments[ym] || {};
+  let grossProfit = 0;
+  for (const fnsku in sh) {
+    let q = 0; const days = sh[fnsku];
+    for (const d in days) q += Number(days[d]) || 0;
+    const p = products.find(x => x.fnsku === fnsku);
+    if (p) { const pr = calcProfit(p); if (pr != null) grossProfit += pr * q; }
+  }
+  const dim = daysInMonth(ym);
+  let adCost = 0;
+  for (let d = 1; d <= dim; d++) {
+    const c = adMetricsForDate(ym + '-' + String(d).padStart(2, '0'), 'all').cost;
+    adCost += c.sp.kw + c.sp.shohin + c.sp.auto + c.sb.douga + c.sb.shokore;
+  }
+  const total = totalSalesForMonth(ym, 'all');
+  return { total, grossProfit, adCost };
+}
+function plManual(ym){
+  const e = plData[ym] || {};
+  return { storage: Number(e.storage) || 0, fbaFee: Number(e.fbaFee) || 0 };
+}
+// 対象の月一覧（出荷・広告・手入力のいずれかがある月）を新しい順で
+function plMonthsList(){
+  const set = new Set();
+  Object.keys(shipments).forEach(k => set.add(k));
+  Object.keys(adData).forEach(k => set.add(k.slice(0, 7)));
+  Object.keys(plData).forEach(k => set.add(k));
+  return Array.from(set).filter(k => /^\d{4}-\d{2}$/.test(k)).sort().reverse();
+}
+const plYen = (v) => '¥' + Math.round(v).toLocaleString();
+function renderPlView(){
+  const body = document.getElementById('pl-body');
+  let h = '<div class="graph-toolbar">';
+  h += '<div class="graph-seg" id="pl-mode">'
+    + '<button data-v="month" class="' + (plMode === 'month' ? 'active' : '') + '">月別</button>'
+    + '<button data-v="year" class="' + (plMode === 'year' ? 'active' : '') + '">年別</button></div>';
+  h += '<div class="spacer" style="flex:1"></div>';
+  h += '<span style="font-size:12px;color:var(--text-tertiary);">実質利益＝粗利益－広告費－保管費／保管費・FBA手数料は手入力（月別画面で編集）</span>';
+  h += '</div>';
+
+  const cols = '<th>期間</th><th>総売上</th><th>粗利益</th><th>広告費</th><th>保管費</th><th>FBA手数料(送料)</th><th>実質利益</th>';
+  h += '<div style="overflow:auto;max-height:560px;"><table class="pl-table"><thead><tr>' + cols + '</tr></thead><tbody>';
+
+  // 合計用
+  let sT = 0, sG = 0, sA = 0, sS = 0, sF = 0, sP = 0;
+  const profCell = (v) => '<td class="pl-profit' + (v < 0 ? ' pl-neg' : '') + '">' + plYen(v) + '</td>';
+
+  if (plMode === 'month') {
+    const months = plMonthsList();
+    if (!months.length) {
+      h += '<tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);padding:24px;">データがありません</td></tr>';
+    }
+    months.forEach(ym => {
+      const c = plMonthCalc(ym), m = plManual(ym);
+      const profit = c.grossProfit - c.adCost - m.storage;
+      sT += c.total; sG += c.grossProfit; sA += c.adCost; sS += m.storage; sF += m.fbaFee; sP += profit;
+      h += '<tr>'
+        + '<td>' + ym.replace('-', '/') + '</td>'
+        + '<td>' + plYen(c.total) + '</td>'
+        + '<td>' + plYen(c.grossProfit) + '</td>'
+        + '<td>' + plYen(c.adCost) + '</td>'
+        + '<td class="pl-col-edit"><input class="pl-input" type="number" step="1" data-ym="' + ym + '" data-f="storage" value="' + (plData[ym] && plData[ym].storage != null ? plData[ym].storage : '') + '" placeholder="0"></td>'
+        + '<td class="pl-col-edit"><input class="pl-input" type="number" step="1" data-ym="' + ym + '" data-f="fbaFee" value="' + (plData[ym] && plData[ym].fbaFee != null ? plData[ym].fbaFee : '') + '" placeholder="0"></td>'
+        + profCell(profit)
+        + '</tr>';
+    });
+  } else {
+    // 年別：月を年で合算（手入力もその年の月合計）
+    const months = plMonthsList();
+    const byYear = {};
+    months.forEach(ym => { const y = ym.slice(0, 4); (byYear[y] = byYear[y] || []).push(ym); });
+    const years = Object.keys(byYear).sort().reverse();
+    if (!years.length) {
+      h += '<tr><td colspan="7" style="text-align:center;color:var(--text-tertiary);padding:24px;">データがありません</td></tr>';
+    }
+    years.forEach(y => {
+      let t = 0, g = 0, a = 0, st = 0, fb = 0;
+      byYear[y].forEach(ym => { const c = plMonthCalc(ym), m = plManual(ym); t += c.total; g += c.grossProfit; a += c.adCost; st += m.storage; fb += m.fbaFee; });
+      const profit = g - a - st;
+      sT += t; sG += g; sA += a; sS += st; sF += fb; sP += profit;
+      h += '<tr>'
+        + '<td>' + y + '年</td>'
+        + '<td>' + plYen(t) + '</td>'
+        + '<td>' + plYen(g) + '</td>'
+        + '<td>' + plYen(a) + '</td>'
+        + '<td>' + plYen(st) + '</td>'
+        + '<td>' + plYen(fb) + '</td>'
+        + profCell(profit)
+        + '</tr>';
+    });
+  }
+  h += '</tbody><tfoot><tr>'
+    + '<td>合計</td><td>' + plYen(sT) + '</td><td>' + plYen(sG) + '</td><td>' + plYen(sA) + '</td>'
+    + '<td>' + plYen(sS) + '</td><td>' + plYen(sF) + '</td>'
+    + '<td class="' + (sP < 0 ? 'pl-neg' : '') + '">' + plYen(sP) + '</td>'
+    + '</tr></tfoot></table></div>';
+
+  body.innerHTML = h;
+  body.querySelectorAll('#pl-mode button').forEach(b => b.addEventListener('click', () => { plMode = b.dataset.v; renderPlView(); }));
+  body.querySelectorAll('.pl-input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const ym = inp.dataset.ym, f = inp.dataset.f;
+      const v = inp.value.trim();
+      if (!plData[ym]) plData[ym] = {};
+      if (v === '') delete plData[ym][f]; else plData[ym][f] = Number(v) || 0;
+      if (!plData[ym].storage && !plData[ym].fbaFee) { /* 空なら残してもよいが整理 */ }
+      savePlData();
+      renderPlView();
+    });
+  });
 }
 
 function renderGraphView(){
