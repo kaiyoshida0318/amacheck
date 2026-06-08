@@ -1237,7 +1237,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.41</span>
+  <span class="version">v1.42</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -4742,6 +4742,7 @@ function populateAdProductSelect(){
   sel.value = adProduct;
 }
 function yen(n){ return n ? '¥' + Math.round(n).toLocaleString() : ''; }
+function yen0(n){ return '¥' + Math.round(n || 0).toLocaleString(); }
 
 function renderAdTable(){
   const body = document.getElementById('ad-body');
@@ -4885,14 +4886,14 @@ function renderAdTable(){
     const total = r.total || 0;                 // 総売上 = Σ(出荷数×価格、対象商品はセール価格)
     const seo = total - adSales;                // SEO売上 = 総売上 − 広告売上
     const fmtRoas = (v) => Math.round(v * 100) + '%';
-    const tcell = (v, cls, id) => '<td class="' + cls + (total > 0 ? tierClass(id, v) : '') + '">' + (total > 0 ? yen(v) : '') + '</td>';
-    const dcell = (v, cls, id) => '<td class="' + cls + (has ? tierClass(id, v) : '') + '">' + (has ? yen(v) : '') + '</td>';
+    const tcell = (v, cls, id) => '<td class="' + cls + (total > 0 ? tierClass(id, v) : '') + '">' + (total > 0 ? yen0(v) : '') + '</td>';
+    const dcell = (v, cls, id) => '<td class="' + cls + (has ? tierClass(id, v) : '') + '">' + (has ? yen0(v) : '') + '</td>';
     const rcell = (sales, cost, cls, id) => '<td class="' + cls + ' ad-roas' + ((has && cost > 0) ? tierClass(id, sales / cost) : '') + '">' + (has && cost > 0 ? fmtRoas(sales / cost) : '') + '</td>';
     // 広告売上 / 広告費 / ROAS の3列セット（sep: 'g'=グループ境界 'b'=ブロック境界）
     const trip = (sales, cost, cls, sep, idS, idC, idR) => {
       const s = sep === 'g' ? ' adc-gstart' : sep === 'b' ? ' adc-bstart' : '';
-      return '<td class="' + cls + s + (has ? tierClass(idS, sales) : '') + '">' + (has ? yen(sales) : '') + '</td>'
-        + '<td class="' + cls + (has ? tierClass(idC, cost) : '') + '">' + (has ? yen(cost) : '') + '</td>'
+      return '<td class="' + cls + s + (has ? tierClass(idS, sales) : '') + '">' + (has ? yen0(sales) : '') + '</td>'
+        + '<td class="' + cls + (has ? tierClass(idC, cost) : '') + '">' + (has ? yen0(cost) : '') + '</td>'
         + rcell(sales, cost, cls, idR);
     };
     const dayClickable = (adPeriod === 'daily') && !isAdMonthClosed(adMonth);
