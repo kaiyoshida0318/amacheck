@@ -509,6 +509,8 @@
   .graph-legend .ln.dash { border-top-style: dashed; }
   .graph-table { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 4px; }
   .graph-table th, .graph-table td { padding: 12px 18px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  .gt-sort { border: 1px solid var(--border-strong); background: #fff; border-radius: 6px; font-size: 11px; line-height: 1; padding: 3px 6px; margin-left: 4px; cursor: pointer; color: var(--text-secondary); font-family: inherit; vertical-align: middle; }
+  .gt-sort:hover { background: var(--bg-secondary); border-color: var(--blue); color: var(--blue); }
   .graph-table th:first-child, .graph-table td:first-child { text-align: left; }
   .graph-table .yr-sub { text-align: left; color: var(--text-tertiary); font-weight: 600; }
   .graph-table thead th { background: var(--bg-secondary); font-weight: 700; position: sticky; top: 0; font-size: 15px; }
@@ -1237,7 +1239,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.42</span>
+  <span class="version">v1.43</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -5786,6 +5788,7 @@ let graphPeriodStart = 'jan';   // 'jan' | 'may'
 let graphCategory = 'sales';
 let graphHiddenItems = new Set();
 let graphTableMode = 'normal';  // 'normal' | 'yoy'
+let graphTableSort = 'desc';     // 'desc'=新しい順(上が新しい) | 'asc'=古い順
 let graphTableGroup = 'recent1y'; // 'recent1y' | 'fiscal' | 'calendar' | 'none'
 let graphCurYear = null;
 let graphPrevYear = null;
@@ -5936,7 +5939,7 @@ function plMonthsList(){
   Object.keys(adData).forEach(k => set.add(k.slice(0, 7)));
   return Array.from(set)
     .filter(k => /^\d{4}-\d{2}$/.test(k) && (isAdMonthClosed(k) || adMonthDataComplete(k)))
-    .sort().reverse();
+    .sort();
 }
 const plYen = (v) => '¥' + Math.round(v).toLocaleString();
 // 実質利益の配色しきい値（上位/下位）。件数が少ない時は配色なし
@@ -5979,7 +5982,7 @@ function renderPlView(){
   } else {
     const byYear = {};
     plMonthsList().forEach(ym => { const y = ym.slice(0, 4); (byYear[y] = byYear[y] || []).push(ym); });
-    Object.keys(byYear).sort().reverse().forEach(y => {
+    Object.keys(byYear).sort().forEach(y => {
       let t = 0, g = 0, a = 0, st = 0, fb = 0;
       byYear[y].forEach(ym => { const c = plMonthCalc(ym), m = plManual(ym); t += c.total; g += c.grossProfit; a += c.adCost; st += m.storage; fb += m.fbaFee; });
       data.push({ key: y, label: y + '年', total: t, gross: g, ad: a, storage: st, fba: fb, profit: g - a - st, editable: false });
@@ -6133,6 +6136,8 @@ function renderGraphView(){
     renderGraphView();
   }));
   body.querySelectorAll('#graph-tmode button').forEach(b => b.addEventListener('click', () => { graphTableMode = b.dataset.v; renderGraphView(); }));
+  const _gtSort = body.querySelector('#gt-sort');
+  if (_gtSort) _gtSort.addEventListener('click', () => { graphTableSort = (graphTableSort === 'desc' ? 'asc' : 'desc'); renderGraphView(); });
   const grpEl = body.querySelector('#graph-group');
   if (grpEl) grpEl.querySelectorAll('button').forEach(b => b.addEventListener('click', () => { graphTableGroup = b.dataset.v; renderGraphView(); }));
 
@@ -6250,12 +6255,13 @@ function buildGraphTable(){
   const cat = GRAPH_CATEGORIES[graphCategory];
   const items = graphAllItems().filter(it => !graphHiddenItems.has(it.key));
   const yoy = (graphTableMode === 'yoy');
-  let h = '<table class="graph-table"><thead><tr><th>月</th>' + (yoy ? '<th></th>' : '');
+  let h = '<table class="graph-table"><thead><tr><th>月 <button class="gt-sort" id="gt-sort" title="月の並び替え（新しい順／古い順）">' + (graphTableSort === 'desc' ? '▼' : '▲') + '</button></th>' + (yoy ? '<th></th>' : '');
   items.forEach(it => h += '<th style="color:' + it.color + '">' + it.label + '</th>');
   h += '</tr></thead><tbody>';
 
   if (yoy) {
-    const months = graphMonthOrder();
+    const months = graphMonthOrder().slice();
+    if (graphTableSort === 'asc') months.reverse();
     months.forEach(m => {
       const cur = graphMonthMetrics(ymOf(graphCurYear, m));
       const prev = graphMonthMetrics(ymOf(graphPrevYear, m));
@@ -6286,15 +6292,16 @@ function buildGraphTable(){
       return '';
     };
     let y = latest, mo = endM, rows = 0;
-    while (rows < 24) {
+    const order = [];
+    while (rows < 24) { order.push({ y, mo }); mo--; if (mo < 1) { mo = 12; y--; } rows++; }
+    if (graphTableSort === 'asc') order.reverse();
+    order.forEach(({ y, mo }) => {
       const met = graphMonthMetrics(ymOf(y, mo));
       const cls = rowCls(y, mo);
       h += '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="grp-label">' + y + '/' + String(mo).padStart(2, '0') + '</td>';
       items.forEach(it => h += '<td>' + fmtGraphVal(met[it.key], cat) + '</td>');
       h += '</tr>';
-      mo--; if (mo < 1) { mo = 12; y--; }
-      rows++;
-    }
+    });
   }
   h += '</tbody></table>';
   return h;
