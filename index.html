@@ -1239,7 +1239,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.44</span>
+  <span class="version">v1.45</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6003,12 +6003,12 @@ function renderPlView(){
     sT += d.total; sG += d.gross; sA += d.ad; sS += d.storage; sF += d.fba; sP += d.profit;
     const tier = plTierClass(tiers, d.profit);
     const profClass = tier ? ('pl-profit' + tier) : ('pl-profit' + (d.profit < 0 ? ' pl-neg' : ''));
-    const storeCell = d.editable
-      ? '<input class="pl-input" type="number" step="1" data-ym="' + d.ym + '" data-f="storage" value="' + (plData[d.ym] && plData[d.ym].storage != null ? plData[d.ym].storage : '') + '" placeholder="0">'
-      : plYen(d.storage);
-    const fbaCell = d.editable
-      ? '<input class="pl-input" type="number" step="1" data-ym="' + d.ym + '" data-f="fbaFee" value="' + (plData[d.ym] && plData[d.ym].fbaFee != null ? plData[d.ym].fbaFee : '') + '" placeholder="0">'
-      : plYen(d.fba);
+    const editCell = (field) => {
+      const has = plData[d.ym] && plData[d.ym][field] != null;
+      return '<input class="pl-input" type="text" inputmode="numeric" data-ym="' + d.ym + '" data-f="' + field + '" value="' + (has ? plYen(plData[d.ym][field]) : '') + '" placeholder="¥0">';
+    };
+    const storeCell = d.editable ? editCell('storage') : plYen(d.storage);
+    const fbaCell = d.editable ? editCell('fbaFee') : plYen(d.fba);
     h += '<tr>'
       + '<td>' + d.label + '</td>'
       + '<td>' + plYen(d.total) + '</td>'
@@ -6028,14 +6028,25 @@ function renderPlView(){
   body.innerHTML = h;
   body.querySelectorAll('#pl-mode button').forEach(b => b.addEventListener('click', () => { plMode = b.dataset.v; renderPlView(); }));
   body.querySelectorAll('.pl-input').forEach(inp => {
-    inp.addEventListener('change', () => {
+    // フォーカス時は数値のみ表示して編集しやすく
+    inp.addEventListener('focus', () => {
       const ym = inp.dataset.ym, f = inp.dataset.f;
-      const v = inp.value.trim();
+      const cur = (plData[ym] && plData[ym][f] != null) ? plData[ym][f] : '';
+      inp.value = cur === '' ? '' : String(cur);
+      inp.select();
+    });
+    // 確定時に数値を取り出して保存し、¥・カンマ付きで再表示
+    inp.addEventListener('blur', () => {
+      const ym = inp.dataset.ym, f = inp.dataset.f;
+      const digits = inp.value.replace(/[^0-9.\-]/g, '').trim();
       if (!plData[ym]) plData[ym] = {};
-      if (v === '') delete plData[ym][f]; else plData[ym][f] = Number(v) || 0;
+      if (digits === '' || isNaN(Number(digits))) delete plData[ym][f];
+      else plData[ym][f] = Number(digits);
       savePlData();
       renderPlView();
     });
+    // Enterで確定（blur）
+    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') inp.blur(); });
   });
 }
 
