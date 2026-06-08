@@ -1239,7 +1239,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.43</span>
+  <span class="version">v1.44</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6291,17 +6291,22 @@ function buildGraphTable(){
       if (graphTableGroup === 'fiscal') { const fy = (mo >= 5) ? y : y - 1; return (fy % 2 === 0) ? 'grp-a' : 'grp-b'; }
       return '';
     };
-    let y = latest, mo = endM, rows = 0;
-    const order = [];
-    while (rows < 24) { order.push({ y, mo }); mo--; if (mo < 1) { mo = 12; y--; } rows++; }
+    // 広告データが1日でもある月のみ（新しい順）。未完備で全空白の月は除外
+    const adMonths = Array.from(new Set(Object.keys(adData).map(k => k.slice(0, 7))))
+      .filter(x => /^\d{4}-\d{2}$/.test(x)).sort().reverse();
+    let order = adMonths.map(ym => ({ y: +ym.slice(0, 4), mo: +ym.slice(5, 7) }));
     if (graphTableSort === 'asc') order.reverse();
+    let rowCount = 0;
     order.forEach(({ y, mo }) => {
       const met = graphMonthMetrics(ymOf(y, mo));
+      if (met.total == null) return;            // 完備でない月（全項目null＝空白）は出さない
       const cls = rowCls(y, mo);
       h += '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="grp-label">' + y + '/' + String(mo).padStart(2, '0') + '</td>';
       items.forEach(it => h += '<td>' + fmtGraphVal(met[it.key], cat) + '</td>');
       h += '</tr>';
+      rowCount++;
     });
+    if (!rowCount) h += '<tr><td colspan="' + (items.length + 1) + '" style="text-align:center;color:var(--text-tertiary);padding:20px;">広告データのある月がありません</td></tr>';
   }
   h += '</tbody></table>';
   return h;
