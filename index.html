@@ -1373,7 +1373,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.70</span>
+  <span class="version">v1.71</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1428,7 +1428,7 @@
 
     <div class="master-card">
       <h3><svg class="icn" style="color:var(--blue)"><use href="#i-upload"/></svg> テンプレートに記入して取り込む</h3>
-      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 16px;">下のCSVテンプレートをダウンロードし、各列に商品情報を記入して保存したファイルをアップロードしてください。<strong>FNSKUは必須</strong>です（同じFNSKUの商品は上書き更新されます）。<strong>利益額・利益率</strong>は販売価格・原価・各手数料から<strong>自動計算</strong>されます。</p>
+      <p style="font-size:13px;color:var(--text-secondary);margin:0 0 16px;">下のCSVテンプレートをダウンロードし、各列に商品情報を記入して保存したファイルをアップロードしてください。<strong>FNSKUは必須</strong>です（同じFNSKUの商品は上書き更新されます）。<strong>想定利益・想定利益率</strong>は販売価格・原価・各手数料から<strong>自動計算</strong>されます。</p>
 
       <div class="step-box">
         <div class="step-no">1</div>
@@ -1838,11 +1838,11 @@
       </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px;padding-top:12px;border-top:1px dashed var(--border);">
         <div>
-          <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">利益額（自動計算）</label>
+          <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">想定利益（自動計算）</label>
           <div id="edit-profit-display" style="font-size:15px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;text-align:right;background:var(--bg-secondary);border-radius:6px;font-weight:700;">-</div>
         </div>
         <div>
-          <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">利益率（自動計算）</label>
+          <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">想定利益率（自動計算）</label>
           <div id="edit-margin-display" style="font-size:15px;padding:8px 10px;font-family:ui-monospace,Menlo,monospace;text-align:right;background:var(--bg-secondary);border-radius:6px;font-weight:700;">-</div>
         </div>
       </div>
@@ -2282,6 +2282,11 @@ function calcProfit(p){
   const fFee = Number(p.fbaFee) || 0;
   return sp - cost - sFee - fFee;
 }
+// 全体収支・月別グラフの「粗利益」用：FBA手数料は引かない（FBAは実額を別列で控除するため）
+function calcGrossProfit(p){
+  if (p.sellingPrice == null || p.sellingPrice === '') return null;
+  return (Number(p.sellingPrice) || 0) - (Number(p.cost) || 0) - (Number(p.sellingFee) || 0);
+}
 
 function calcMargin(p){
   const sp = Number(p.sellingPrice) || 0;
@@ -2595,8 +2600,8 @@ function renderMasterList(){
     + '<th class="price">原価</th>'
     + '<th class="price">販売手数料</th>'
     + '<th class="price">FBA手数料(送料)</th>'
-    + '<th class="price">利益額</th>'
-    + '<th class="price">利益率</th>'
+    + '<th class="price">想定利益</th>'
+    + '<th class="price">想定利益率</th>'
     + '<th class="edit-cell">編集</th>'
     + '<th class="status-cell">ステータス</th>'
     + '</tr></thead><tbody>';
@@ -4654,8 +4659,8 @@ function renderWithdrawnList(){
     + '<th class="price">原価</th>'
     + '<th class="price">販売手数料</th>'
     + '<th class="price">FBA手数料(送料)</th>'
-    + '<th class="price">利益額</th>'
-    + '<th class="price">利益率</th>'
+    + '<th class="price">想定利益</th>'
+    + '<th class="price">想定利益率</th>'
     + '<th class="edit-cell">編集</th>'
     + '<th class="status-cell">ステータス</th>'
     + '</tr></thead><tbody>';
@@ -6095,17 +6100,15 @@ function graphMonthMetrics(ym){
   const adcSbDougaShare   = _sb2 > 0 ? cSbDouga / _sb2 * 100 : null;     // 動画/(動画+商品コレ)
   const adcSbShokoreShare = _sb2 > 0 ? cSbShokore / _sb2 * 100 : null;   // 商品コレ/(動画+商品コレ)
   const seo = total - adSales;
-  let totalQty = 0, grossProfit = 0, fbaFee = 0;
+  let totalQty = 0, grossProfit = 0;
   for (const fnsku in sh) {
     let q = 0; const days = sh[fnsku];
     for (const d in days) q += Number(days[d]) || 0;
     totalQty += q;
     const p = products.find(x => x.fnsku === fnsku);
-    if (p) {
-      const pr = calcProfit(p); if (pr != null) grossProfit += pr * q;
-      fbaFee += (Number(p.fbaFee) || 0) * q;
-    }
+    if (p) { const pr = calcGrossProfit(p); if (pr != null) grossProfit += pr * q; }
   }
+  const fbaFee = (plData[ym] && plData[ym].fbaFee != null) ? Number(plData[ym].fbaFee) : null;  // 全体収支のFBA手数料(送料)実額（未入力月はnull）
   const jisseki = adCost;                                                // 広告費（jisstekiキーはそのまま、表示名は広告費）
   const roas = adCost > 0 ? (adSales / adCost) * 100 : null;             // 全体ROAS（広告売上÷広告費 ×100）
   const spSales = sSpKw + sSpShohin + sSpAuto, sbSales = sSbDouga + sSbShokore;
@@ -6169,7 +6172,7 @@ function plMonthCalc(ym){
     let q = 0; const days = sh[fnsku];
     for (const d in days) q += Number(days[d]) || 0;
     const p = products.find(x => x.fnsku === fnsku);
-    if (p) { const pr = calcProfit(p); if (pr != null) grossProfit += pr * q; }
+    if (p) { const pr = calcGrossProfit(p); if (pr != null) grossProfit += pr * q; }
   }
   const dim = daysInMonth(ym);
   let adCost = 0;
@@ -6325,7 +6328,7 @@ function renderPlView(){
     + '<span class="lg-hi10">上位10%</span><span class="lg-hi20">上位20%</span>'
     + '<span class="lg-mid">中間</span><span class="lg-lo20">下位20%</span><span class="lg-lo10">下位10%</span></span>';
   h += '<div class="spacer" style="flex:1"></div>';
-  h += '<span style="font-size:12px;color:var(--text-tertiary);margin-right:8px;">実質利益＝粗利益－広告費－保管費／保管費・FBA手数料はCSV取込（期間の月クリックでも可）</span>';
+  h += '<span style="font-size:12px;color:var(--text-tertiary);margin-right:8px;">粗利益＝総売上－原価－販売手数料／実質利益＝粗利益－広告費－保管費－FBA手数料(送料)／費用はCSV取込（期間の月クリックでも可）</span>';
   h += '<button class="utility" id="pl-add-storage" style="font-size:12px;"><svg class="icn"><use href="#i-plus"/></svg> 保管費追加</button>';
   h += '<button class="utility" id="pl-add-fba" style="font-size:12px;"><svg class="icn"><use href="#i-plus"/></svg> FBA手数料追加</button>';
   h += '</div>';
@@ -6336,7 +6339,7 @@ function renderPlView(){
     plMonthsList().forEach(ym => {
       const c = plMonthCalc(ym), m = plManual(ym);
       data.push({ key: ym, label: ym.replace('-', '/'), total: c.total, gross: c.grossProfit, ad: c.adCost,
-        storage: m.storage, fba: m.fbaFee, profit: c.grossProfit - c.adCost - m.storage, editable: true, ym });
+        storage: m.storage, fba: m.fbaFee, profit: c.grossProfit - c.adCost - m.storage - m.fbaFee, editable: true, ym });
     });
   } else {
     const byYear = {};
@@ -6344,7 +6347,7 @@ function renderPlView(){
     Object.keys(byYear).sort().forEach(y => {
       let t = 0, g = 0, a = 0, st = 0, fb = 0;
       byYear[y].forEach(ym => { const c = plMonthCalc(ym), m = plManual(ym); t += c.total; g += c.grossProfit; a += c.adCost; st += m.storage; fb += m.fbaFee; });
-      data.push({ key: y, label: y + '年', total: t, gross: g, ad: a, storage: st, fba: fb, profit: g - a - st, editable: false });
+      data.push({ key: y, label: y + '年', total: t, gross: g, ad: a, storage: st, fba: fb, profit: g - a - st - fb, editable: false });
     });
   }
 
