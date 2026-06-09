@@ -509,6 +509,8 @@
   .pl-table td.pl-edit .pl-empty { color: var(--text-tertiary); }
   .pl-table td.pl-period { cursor: pointer; color: var(--blue); }
   .pl-table td.pl-period:hover { text-decoration: underline; }
+  .pl-table th, .pl-table td { border-right: 1px solid var(--border); }
+  .pl-table th:last-child, .pl-table td:last-child { border-right: none; }
   /* 全体収支：手入力2列ヘッダーのリンク＋確認箇所ツールチップ */
   .ret-report-link { color: var(--blue); text-decoration: none; white-space: nowrap; max-width: 100%; }
   .ret-report-link .url { display: inline-block; max-width: 320px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; vertical-align: bottom; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
@@ -594,6 +596,7 @@
   .ret-pivot th.ret-main { background: #e6ecf8; }
   .ret-pivot td.ret-main { background: #f2f6fc; }
   .ret-pivot td.ret-rsum { font-weight: 700; text-align: right; }
+  .ret-pivot th.ret-subcol, .ret-pivot td.ret-subcol { border-right: 1px solid var(--border); }
   .ret-pivot thead th.ret-ma-col + th.ret-mcol { border-left: none; }
   /* 案A ピボット */
   .ret-pivot th.ret-mcol { text-align: center; border-left: 2px solid var(--border-strong); }
@@ -1358,7 +1361,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.66</span>
+  <span class="version">v1.67</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6113,7 +6116,7 @@ function graphMonthMetrics(ym){
   const cvrSbShokore  = klSbShokore> 0 ? orSbShokore / klSbShokore * 100 : null;
   const adQty = total > 0 ? Math.round(totalQty * (adSales / total)) : 0; // 広告出荷数＝総出荷×広告売上比（想定）
   const seoQty = totalQty - adQty;
-  const storage = 0;                                                     // 保管費はデータ未登録
+  const storage = plManual(ym).storage;                                  // 保管費は全体収支の入力値（plData）から取得
   const r = { total, seo, adSales, jisseki, grossProfit, roas, totalQty, adQty, seoQty, fbaFee, storage,
     adcSpTotal, adcSpKw: cSpKw, adcSpShohin: cSpShohin, adcSbTotal, adcSbDouga: cSbDouga, adcSbShokore: cSbShokore,
     adcSpShare, adcSbShare, adcSpKwShare, adcSpShohinShare, adcSbDougaShare, adcSbShokoreShare,
@@ -6545,7 +6548,7 @@ function retLayoutPivot(units, months){
   h += '<th rowspan="2" class="ret-ma-col ret-main ret-sep-r">3ヶ月<br>返品合計</th>';
   months.forEach(ym => h += '<th colspan="3" class="ret-mcol">' + mLink(ym) + '</th>');
   h += '</tr><tr>';
-  months.forEach(() => h += '<th>出荷</th><th>返品</th><th class="ret-sep-l">返品率</th>');
+  months.forEach(() => h += '<th class="ret-subcol">出荷</th><th class="ret-subcol">返品</th><th class="ret-sep-l">返品率</th>');
   h += '</tr></thead><tbody>';
   const lastM = months[months.length - 1];
   const prevM = ymAddMonths(months[0], -1); // 前ブロックの末月
@@ -6573,7 +6576,7 @@ function retLayoutPivot(units, months){
     h += '<td class="ret-rsum ret-main ret-sep-r' + (retUp ? ' ret-ma-up' : '') + '"' + (retUp ? ' title="前ブロック ' + prevRet.toLocaleString() + ' 点 → 増加"' : '') + '>' + curRet.toLocaleString() + '</td>';
     months.forEach(ym => {
       const sh = unitShip(u, ym), rt = unitRet(u, ym);
-      h += '<td>' + sh.toLocaleString() + '</td><td>' + rt.toLocaleString() + '</td><td class="ret-rate ret-sep-l">' + retPct(rt, sh) + '</td>';
+      h += '<td class="ret-subcol">' + sh.toLocaleString() + '</td><td class="ret-subcol">' + rt.toLocaleString() + '</td><td class="ret-rate ret-sep-l">' + retPct(rt, sh) + '</td>';
     });
     h += '</tr>';
   });
