@@ -496,6 +496,15 @@
   .pl-table tbody td.t-hi20 { color: #16a34a; font-weight: 700; }
   .pl-table tbody td.t-lo20 { color: #d97706; font-weight: 700; }
   .pl-table tbody td.t-lo10 { color: #c0392b; font-weight: 700; }
+  /* 列の色分け：ヘッダーは色付き背景＋文字色、本文は淡い背景。実質利益本文は％ティアの文字色を活かすため背景なし */
+  .pl-table thead th.pl-c-sales { background: #dbe9fe; color: #1e40af; }
+  .pl-table thead th.pl-c-gross { background: #d3f1f7; color: #0e7490; }
+  .pl-table thead th.pl-c-warm  { background: #fdebd2; color: #b45309; }
+  .pl-table thead th.pl-c-warm .pl-th-link { color: #b45309; }
+  .pl-table thead th.pl-c-profit { background: #d8f1e0; color: #15803d; }
+  .pl-table tbody td.pl-c-sales, .pl-table tfoot td.pl-c-sales { background: #f3f8ff; }
+  .pl-table tbody td.pl-c-gross, .pl-table tfoot td.pl-c-gross { background: #f1fbfd; }
+  .pl-table tbody td.pl-c-warm,  .pl-table tfoot td.pl-c-warm  { background: #fffaf2; }
   .pl-table tfoot td { border-top: 2px solid var(--border-strong); border-bottom: none; font-weight: 700; background: var(--bg-secondary); }
   .pl-input { width: 100%; text-align: right; font: inherit; font-size: 14px; border: none; background: transparent; padding: 0; margin: 0; color: inherit; }
   .pl-input:focus { outline: none; box-shadow: inset 0 -2px 0 var(--blue); }
@@ -1364,7 +1373,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.69</span>
+  <span class="version">v1.70</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6342,9 +6351,9 @@ function renderPlView(){
   // 実質利益の配色しきい値
   const tiers = plProfitTiers(data.map(d => d.profit));
 
-  const thStore = '<th><a class="pl-th-link" href="https://sellercentral.amazon.co.jp/reportcentral/STORAGE_FEE_CHARGES/1" target="_blank" rel="noopener">保管費<span class="ext">↗</span></a></th>';
-  const thFba = '<th><a class="pl-th-link" href="https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash" target="_blank" rel="noopener">FBA手数料(送料)<span class="ext">↗</span></a></th>';
-  const cols = '<th>期間</th><th>総売上</th><th>粗利益</th><th>広告費</th>' + thStore + thFba + '<th>実質利益</th>';
+  const thStore = '<th class="pl-c-warm"><a class="pl-th-link" href="https://sellercentral.amazon.co.jp/reportcentral/STORAGE_FEE_CHARGES/1" target="_blank" rel="noopener">保管費<span class="ext">↗</span></a></th>';
+  const thFba = '<th class="pl-c-warm"><a class="pl-th-link" href="https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash" target="_blank" rel="noopener">FBA手数料(送料)<span class="ext">↗</span></a></th>';
+  const cols = '<th>期間</th><th class="pl-c-sales">総売上</th><th class="pl-c-gross">粗利益</th><th class="pl-c-warm">広告費</th>' + thStore + thFba + '<th class="pl-c-profit">実質利益</th>';
   h += '<div style="overflow:auto;max-height:560px;"><table class="pl-table"><thead><tr>' + cols + '</tr></thead><tbody>';
 
   let sT = 0, sG = 0, sA = 0, sS = 0, sF = 0, sP = 0;
@@ -6358,26 +6367,26 @@ function renderPlView(){
     const editCell = (field) => {
       const has = plData[d.ym] && plData[d.ym][field] != null;
       const disp = has ? plYen(plData[d.ym][field]) : '<span class="pl-empty">未入力</span>';
-      return '<td class="pl-edit" data-ym="' + d.ym + '" data-f="' + field + '" tabindex="0" title="クリックで入力">' + disp + '</td>';
+      return '<td class="pl-edit pl-c-warm" data-ym="' + d.ym + '" data-f="' + field + '" tabindex="0" title="クリックで入力">' + disp + '</td>';
     };
-    const storeCell = d.editable ? editCell('storage') : '<td>' + plYen(d.storage) + '</td>';
-    const fbaCell = d.editable ? editCell('fbaFee') : '<td>' + plYen(d.fba) + '</td>';
+    const storeCell = d.editable ? editCell('storage') : '<td class="pl-c-warm">' + plYen(d.storage) + '</td>';
+    const fbaCell = d.editable ? editCell('fbaFee') : '<td class="pl-c-warm">' + plYen(d.fba) + '</td>';
     const periodCell = d.editable
       ? '<td class="pl-period" data-ym="' + d.ym + '" tabindex="0" title="クリックでこの月のデータを追加">' + d.label + '</td>'
       : '<td>' + d.label + '</td>';
     h += '<tr>'
       + periodCell
-      + '<td>' + plYen(d.total) + '</td>'
-      + '<td>' + plYen(d.gross) + '</td>'
-      + '<td>' + plYen(d.ad) + '</td>'
+      + '<td class="pl-c-sales">' + plYen(d.total) + '</td>'
+      + '<td class="pl-c-gross">' + plYen(d.gross) + '</td>'
+      + '<td class="pl-c-warm">' + plYen(d.ad) + '</td>'
       + storeCell
       + fbaCell
       + '<td class="' + profClass + '">' + plYen(d.profit) + '</td>'
       + '</tr>';
   });
   h += '</tbody><tfoot><tr>'
-    + '<td>合計</td><td>' + plYen(sT) + '</td><td>' + plYen(sG) + '</td><td>' + plYen(sA) + '</td>'
-    + '<td>' + plYen(sS) + '</td><td>' + plYen(sF) + '</td>'
+    + '<td>合計</td><td class="pl-c-sales">' + plYen(sT) + '</td><td class="pl-c-gross">' + plYen(sG) + '</td><td class="pl-c-warm">' + plYen(sA) + '</td>'
+    + '<td class="pl-c-warm">' + plYen(sS) + '</td><td class="pl-c-warm">' + plYen(sF) + '</td>'
     + '<td class="' + (sP < 0 ? 'pl-neg' : '') + '">' + plYen(sP) + '</td>'
     + '</tr></tfoot></table></div>';
 
@@ -6683,9 +6692,12 @@ function deleteFnskuData(f){
 }
 function renderCatList(){
   const wrap = document.getElementById('cat-list');
-  const fns = allKnownFnskus();
+  const isWithdrawn = f => { const p = products.find(x => x.fnsku === f); return !!(p && productStatus(p) === 'withdrawn'); };
+  const fnsAll = allKnownFnskus();
+  const fns = fnsAll.filter(f => !isWithdrawn(f));
+  const hiddenN = fnsAll.length - fns.length;
   let h = '';
-  if (!fns.length) h = '<div style="color:var(--text-tertiary);padding:12px;">商品データがありません。先に出荷数や返品データを取り込んでください。</div>';
+  if (!fns.length) h = '<div style="color:var(--text-tertiary);padding:12px;">表示できる商品がありません。先に出荷数や返品データを取り込んでください。</div>';
   else {
     const unreg = fns.filter(f => !inMaster(f));
     if (unreg.length) {
@@ -6703,15 +6715,16 @@ function renderCatList(){
         + '</tr>';
     });
     h += '</tbody></table>';
+    if (hiddenN) h += '<div style="margin-top:10px;font-size:12px;color:var(--text-tertiary);">撤退済み商品 ' + hiddenN + ' 件はこの一覧から非表示です（過去の返品率表示のため、カテゴリ設定は保持しています）。商品マスタでステータスを戻すと再表示されます。</div>';
   }
   wrap.innerHTML = h;
-  document.getElementById('cat-suggest').innerHTML = allCatNames().map(c => '<option value="' + retEsc(c) + '">').join('');
+  document.getElementById('cat-suggest').innerHTML = [...new Set(fns.map(f => categories[f]).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')).map(c => '<option value="' + retEsc(c) + '">').join('');
   wrap.querySelectorAll('.cat-input').forEach(inp => {
     inp.addEventListener('change', () => {
       const f = inp.dataset.f, v = inp.value.trim();
       if (v) categories[f] = v; else delete categories[f];
       saveCategories();
-      document.getElementById('cat-suggest').innerHTML = allCatNames().map(c => '<option value="' + retEsc(c) + '">').join('');
+      document.getElementById('cat-suggest').innerHTML = [...new Set(fns.map(x => categories[x]).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'ja')).map(c => '<option value="' + retEsc(c) + '">').join('');
     });
   });
   wrap.querySelectorAll('.cat-del').forEach(btn => {
