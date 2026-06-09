@@ -557,9 +557,15 @@
   .cat-input { width: 160px; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 6px; font-family: inherit; }
   .cat-input:focus { outline: none; border-color: var(--blue); }
   /* カテゴリ設定：商品名／FNSKU／カテゴリを独立列で縦揃え */
-  .cat-pname { color: var(--black); max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cat-pname { color: var(--black); max-width: 230px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .cat-fnsku { color: var(--text-tertiary); font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; white-space: nowrap; }
   .cat-noname { color: var(--text-tertiary); font-style: italic; }
+  .cat-wd { font-size: 12px; padding: 5px 6px; border: 1px solid var(--border-strong); border-radius: 6px; font-family: inherit; width: 130px; color: var(--text-secondary); }
+  .cat-wd:focus { outline: none; border-color: var(--blue); }
+  .cat-delcell { width: 34px; text-align: center; }
+  .cat-del { border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; padding: 4px; border-radius: 6px; line-height: 0; }
+  .cat-del:hover { color: var(--danger); background: rgba(211,47,47,0.08); }
+  .cat-unreg .cat-fnsku, .cat-unreg .cat-pname { opacity: 0.85; }
   /* 返品率 FNSKU別ピボット：カテゴリ／商品名／FNSKUの独立列 */
   .ret-pivot td.ret-ucat-cell { text-align: left; color: var(--text-secondary); font-size: 13px; }
   .ret-pivot td.ret-uname { max-width: 280px; overflow: hidden; text-overflow: ellipsis; text-align: left; }
@@ -1328,7 +1334,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.53</span>
+  <span class="version">v1.54</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1543,11 +1549,11 @@
 <!-- 貼付モーダル -->
 <!-- 商品カテゴリ設定モーダル -->
 <div class="modal-bg" id="cat-modal" hidden>
-  <div class="modal" style="max-width:560px;">
+  <div class="modal" style="max-width:680px;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-tag"/></svg> 商品カテゴリ設定</h3>
-        <div class="sub" style="margin-bottom:0;">各商品（FNSKU）にカテゴリ名を入力してグループ化します。<strong>同じ名前にすると同じカテゴリ</strong>にまとまります（例：耐火バッグ薄型／家計管理ケース）。空欄は「未分類」になります。</div>
+        <div class="sub" style="margin-bottom:0;">各商品（FNSKU）にカテゴリ名を入力してグループ化します。<strong>同じ名前にすると同じカテゴリ</strong>にまとまります。空欄は「未分類」。<strong>撤退月</strong>を設定すると<strong>その翌月以降は返品率表に表示されません</strong>（それ以前はそのまま表示）。マスタ未登録の不要な商品は<svg class="icn" style="vertical-align:-2px;"><use href="#i-trash"/></svg>で削除できます。</div>
       </div>
       <button id="cat-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
@@ -1797,6 +1803,7 @@ const STORAGE_ADCLOSE = 'amacheck_adclose_v1';
 const STORAGE_PL = 'amacheck_pl_v1';
 const STORAGE_RETURNS = 'amacheck_returns_v1';
 const STORAGE_CAT = 'amacheck_categories_v1';
+const STORAGE_WITHDRAWN = 'amacheck_withdrawn_v1';
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
 let products = loadProducts();
@@ -1864,6 +1871,10 @@ function saveReturns(){ try { localStorage.setItem(STORAGE_RETURNS, JSON.stringi
 // 商品カテゴリ： { FNSKU: 'カテゴリ名' }
 let categories = (function(){ try { return JSON.parse(localStorage.getItem(STORAGE_CAT) || '{}'); } catch { return {}; } })();
 function saveCategories(){ try { localStorage.setItem(STORAGE_CAT, JSON.stringify(categories)); } catch {} }
+// 撤退月： { FNSKU: 'YYYY-MM' } … この月までは表示、翌月以降は返品率表に出さない
+let withdrawnAt = (function(){ try { return JSON.parse(localStorage.getItem(STORAGE_WITHDRAWN) || '{}'); } catch { return {}; } })();
+function saveWithdrawn(){ try { localStorage.setItem(STORAGE_WITHDRAWN, JSON.stringify(withdrawnAt)); } catch {} }
+function retActive(f, ym){ const w = withdrawnAt[f]; return !(w && ym > w); }
 function isAdMonthClosed(ym){ return !!adClose[ym]; }
 let adCloseDismissed = new Set(); // このセッション中「あとで」にした月
 
@@ -6233,9 +6244,9 @@ let retYear = null;                  // 表示する年（nullで最新）
 let retCatFilter = null;             // FNSKU別のカテゴリ絞り込み
 function retEsc(s){ return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function ymAddMonths(ym, delta){ let [y, m] = ym.split('-').map(Number); m += delta; while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; } return y + '-' + String(m).padStart(2, '0'); }
-function retShipQty(ym, fnsku){ const sh = shipments[ym] && shipments[ym][fnsku]; if (!sh) return 0; let q = 0; for (const d in sh) q += Number(sh[d]) || 0; return q; }
+function retShipQty(ym, fnsku){ if (!retActive(fnsku, ym)) return 0; const sh = shipments[ym] && shipments[ym][fnsku]; if (!sh) return 0; let q = 0; for (const d in sh) q += Number(sh[d]) || 0; return q; }
 function retMonthShip(ym){ const sh = shipments[ym]; if (!sh) return 0; let q = 0; for (const f in sh) { const days = sh[f]; for (const d in days) q += Number(days[d]) || 0; } return q; }
-function retQty(ym, fnsku){ const r = returnsData[ym] && returnsData[ym][fnsku]; return r ? (Number(r[RET_DISP]) || 0) : 0; }
+function retQty(ym, fnsku){ if (!retActive(fnsku, ym)) return 0; const r = returnsData[ym] && returnsData[ym][fnsku]; return r ? (Number(r[RET_DISP]) || 0) : 0; }
 function retMonthRet(ym){ const m = returnsData[ym]; if (!m) return 0; let q = 0; for (const f in m) q += Number(m[f][RET_DISP]) || 0; return q; }
 function ret3mo(ym, fnsku){ let rs = 0, sh = 0; for (let i = 0; i < 3; i++) { const k = ymAddMonths(ym, -i); rs += fnsku ? retQty(k, fnsku) : retMonthRet(k); sh += fnsku ? retShipQty(k, fnsku) : retMonthShip(k); } return sh > 0 ? rs / sh * 100 : null; }
 function retMonthsList(){ const s = new Set(); Object.keys(shipments).forEach(k => { if (/^\d{4}-\d{2}$/.test(k)) s.add(k); }); Object.keys(returnsData).forEach(k => { if (/^\d{4}-\d{2}$/.test(k)) s.add(k); }); return Array.from(s).sort(); }
@@ -6389,19 +6400,34 @@ function renderReturnsView(){
 }
 
 // 商品カテゴリ設定モーダル
+function inMaster(f){ return products.some(p => p.fnsku === f); }
+function deleteFnskuData(f){
+  Object.keys(shipments).forEach(ym => { if (shipments[ym] && shipments[ym][f] != null) { delete shipments[ym][f]; if (!Object.keys(shipments[ym]).length) delete shipments[ym]; } });
+  Object.keys(returnsData).forEach(ym => { if (returnsData[ym] && returnsData[ym][f] != null) { delete returnsData[ym][f]; if (!Object.keys(returnsData[ym]).length) delete returnsData[ym]; } });
+  delete categories[f]; delete withdrawnAt[f];
+  saveShipments(); saveReturns(); saveCategories(); saveWithdrawn();
+}
 function renderCatList(){
   const wrap = document.getElementById('cat-list');
   const fns = allKnownFnskus();
   let h = '';
   if (!fns.length) h = '<div style="color:var(--text-tertiary);padding:12px;">商品データがありません。先に出荷数や返品データを取り込んでください。</div>';
   else {
-    h += '<table class="cat-table"><thead><tr><th>商品名</th><th>FNSKU</th><th>カテゴリ</th></tr></thead><tbody>';
+    const unreg = fns.filter(f => !inMaster(f));
+    if (unreg.length) {
+      h += '<div style="display:flex;justify-content:flex-end;margin-bottom:8px;">'
+        + '<button class="danger" id="cat-del-unreg" style="font-size:12px;padding:6px 10px;"><svg class="icn"><use href="#i-trash"/></svg> マスタ未登録 ' + unreg.length + '件を削除</button></div>';
+    }
+    h += '<table class="cat-table"><thead><tr><th>商品名</th><th>FNSKU</th><th>カテゴリ</th><th>撤退月</th><th></th></tr></thead><tbody>';
     fns.forEach(f => {
-      const nm = retName(f);
-      h += '<tr>'
+      const nm = retName(f), reg = inMaster(f), wd = withdrawnAt[f] || '';
+      h += '<tr' + (reg ? '' : ' class="cat-unreg"') + '>'
         + '<td class="cat-pname"' + (nm ? ' title="' + retEsc(nm) + '"' : '') + '>' + (nm ? retEsc(nm) : '<span class="cat-noname">（マスタ未登録）</span>') + '</td>'
         + '<td class="cat-fnsku">' + f + '</td>'
-        + '<td><input class="cat-input" list="cat-suggest" data-f="' + f + '" value="' + retEsc(categories[f] || '') + '" placeholder="カテゴリ名"></td></tr>';
+        + '<td><input class="cat-input" list="cat-suggest" data-f="' + f + '" value="' + retEsc(categories[f] || '') + '" placeholder="カテゴリ名"></td>'
+        + '<td><input type="month" class="cat-wd" data-f="' + f + '" value="' + wd + '" title="この月まで表示／翌月から非表示"></td>'
+        + '<td class="cat-delcell">' + (reg ? '' : '<button class="cat-del" data-f="' + f + '" title="この商品を出荷・返品データごと削除"><svg class="icn"><use href="#i-trash"/></svg></button>') + '</td>'
+        + '</tr>';
     });
     h += '</tbody></table>';
   }
@@ -6414,6 +6440,27 @@ function renderCatList(){
       saveCategories();
       document.getElementById('cat-suggest').innerHTML = allCatNames().map(c => '<option value="' + retEsc(c) + '">').join('');
     });
+  });
+  wrap.querySelectorAll('.cat-wd').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const f = inp.dataset.f, v = inp.value;
+      if (v) withdrawnAt[f] = v; else delete withdrawnAt[f];
+      saveWithdrawn();
+    });
+  });
+  wrap.querySelectorAll('.cat-del').forEach(btn => {
+    btn.addEventListener('click', () => {
+      const f = btn.dataset.f;
+      if (!confirm('FNSKU「' + f + '」を出荷・返品データごと削除します。\nこの操作は取り消せません。よろしいですか？')) return;
+      deleteFnskuData(f); renderCatList();
+    });
+  });
+  const bulk = wrap.querySelector('#cat-del-unreg');
+  if (bulk) bulk.addEventListener('click', () => {
+    const unreg = allKnownFnskus().filter(f => !inMaster(f));
+    if (!unreg.length) return;
+    if (!confirm('商品マスタに無いFNSKU ' + unreg.length + '件を、出荷・返品データごとすべて削除します。\nこの操作は取り消せません。よろしいですか？')) return;
+    unreg.forEach(deleteFnskuData); renderCatList();
   });
 }
 function openCatModal(){ renderCatList(); document.getElementById('cat-modal').hidden = false; }
