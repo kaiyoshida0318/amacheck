@@ -502,6 +502,27 @@
   .pl-input::-webkit-outer-spin-button, .pl-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .pl-input { -moz-appearance: textfield; }
   .pl-input::placeholder { color: var(--text-tertiary); }
+  /* 全体収支：手入力2列ヘッダーのリンク＋確認箇所ツールチップ */
+  .pl-th-link { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
+  .pl-th-link:hover { color: var(--blue); border-bottom-color: var(--blue); }
+  .pl-th-link .ext { font-size: 9px; margin-left: 2px; opacity: 0.7; vertical-align: 1px; }
+  .pl-info {
+    display: inline-flex; align-items: center; justify-content: center;
+    width: 15px; height: 15px; margin-left: 5px;
+    color: var(--blue); cursor: help; position: relative; vertical-align: middle;
+    font-size: 13px; outline: none;
+  }
+  .pl-info:focus-visible { box-shadow: 0 0 0 2px var(--blue-light); border-radius: 50%; }
+  .pl-tip {
+    position: absolute; top: 150%; right: -6px;
+    background: var(--black); color: #fff;
+    font-size: 12px; font-weight: 400; line-height: 1.5; text-align: left;
+    padding: 8px 11px; border-radius: 8px; width: 215px; white-space: normal;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 20;
+  }
+  .pl-tip b { display: block; font-weight: 700; color: #7fb4ff; margin-bottom: 2px; }
+  .pl-info:hover .pl-tip, .pl-info:focus .pl-tip, .pl-info.open .pl-tip { opacity: 1; }
   /* 返品率 */
   .ret-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 14px; }
   .ret-table th, .ret-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
@@ -1296,7 +1317,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.51</span>
+  <span class="version">v1.52</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6115,7 +6136,13 @@ function renderPlView(){
   // 実質利益の配色しきい値
   const tiers = plProfitTiers(data.map(d => d.profit));
 
-  const cols = '<th>期間</th><th>総売上</th><th>粗利益</th><th>広告費</th><th>保管費</th><th>FBA手数料(送料)</th><th>実質利益</th>';
+  const thStore = '<th><a class="pl-th-link" href="https://sellercentral.amazon.co.jp/reportcentral/STORAGE_FEE_CHARGES/1" target="_blank" rel="noopener">保管費<span class="ext">↗</span></a>'
+    + '<span class="pl-info" tabindex="0" role="button" aria-label="保管費の確認箇所"><svg class="icn"><use href="#i-info"/></svg>'
+    + '<span class="pl-tip"><b>確認箇所</b>月次保管料レポートの「Monthly storage fee (est.)」の値を入力</span></span></th>';
+  const thFba = '<th><a class="pl-th-link" href="https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash" target="_blank" rel="noopener">FBA手数料(送料)<span class="ext">↗</span></a>'
+    + '<span class="pl-info" tabindex="0" role="button" aria-label="FBA手数料(送料)の確認箇所"><svg class="icn"><use href="#i-info"/></svg>'
+    + '<span class="pl-tip"><b>確認箇所</b>レポートリポジトリ（ペイメント）の送料(FBA手数料)を入力</span></span></th>';
+  const cols = '<th>期間</th><th>総売上</th><th>粗利益</th><th>広告費</th>' + thStore + thFba + '<th>実質利益</th>';
   h += '<div style="overflow:auto;max-height:560px;"><table class="pl-table"><thead><tr>' + cols + '</tr></thead><tbody>';
 
   let sT = 0, sG = 0, sA = 0, sS = 0, sF = 0, sP = 0;
@@ -6171,6 +6198,21 @@ function renderPlView(){
     // Enterで確定（blur）
     inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') inp.blur(); });
   });
+  // 確認箇所ツールチップ：クリック/タップで開閉（ホバーはCSSで対応）
+  body.querySelectorAll('.pl-info').forEach(ic => {
+    ic.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const wasOpen = ic.classList.contains('open');
+      body.querySelectorAll('.pl-info.open').forEach(o => o.classList.remove('open'));
+      if (!wasOpen) ic.classList.add('open');
+    });
+  });
+  if (!window._plTipOutsideBound) {
+    window._plTipOutsideBound = true;
+    document.addEventListener('click', () => {
+      document.querySelectorAll('.pl-info.open').forEach(o => o.classList.remove('open'));
+    });
+  }
 }
 
 // ========== 返品率 ==========
