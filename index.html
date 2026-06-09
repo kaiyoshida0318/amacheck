@@ -591,6 +591,9 @@
   .ret-ma { font-weight: 700; }
   .ret-pivot th.ret-ma-col { text-align: center; }
   .ret-pivot td.ret-ma-up { color: var(--danger); }
+  .ret-pivot th.ret-main { background: #e6ecf8; }
+  .ret-pivot td.ret-main { background: #f2f6fc; }
+  .ret-pivot td.ret-rsum { font-weight: 700; text-align: right; }
   .ret-pivot thead th.ret-ma-col + th.ret-mcol { border-left: none; }
   /* 案A ピボット */
   .ret-pivot th.ret-mcol { text-align: center; border-left: 2px solid var(--border-strong); }
@@ -1355,7 +1358,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.65</span>
+  <span class="version">v1.66</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6538,7 +6541,8 @@ function retLayoutPivot(units, months){
   h += '<tr>' + (retView === 'category'
       ? '<th rowspan="2" class="ret-sep-r">カテゴリ</th>'
       : '<th rowspan="2" class="ret-lbl">カテゴリ</th><th rowspan="2" class="ret-lbl">商品名</th><th rowspan="2" class="ret-lbl ret-sep-r">FNSKU</th>');
-  h += '<th rowspan="2" class="ret-ma-col ret-sep-r">3ヶ月<br>移動平均</th>';
+  h += '<th rowspan="2" class="ret-ma-col ret-main">3ヶ月<br>移動平均</th>';
+  h += '<th rowspan="2" class="ret-ma-col ret-main ret-sep-r">3ヶ月<br>返品合計</th>';
   months.forEach(ym => h += '<th colspan="3" class="ret-mcol">' + mLink(ym) + '</th>');
   h += '</tr><tr>';
   months.forEach(() => h += '<th>出荷</th><th>返品</th><th class="ret-sep-l">返品率</th>');
@@ -6558,9 +6562,15 @@ function retLayoutPivot(units, months){
         + '<td class="ret-fnsku-cell ret-sep-r">' + retEsc(u.fnsku) + '</td>';
       prevCat = u.cat;
     }
+    // 3ヶ月移動平均
     const curMA = unit3mo(u, lastM), prevMA = unit3mo(u, prevM);
-    const up = curMA != null && prevMA != null && curMA > prevMA;
-    h += '<td class="ret-ma ret-sep-r' + (up ? ' ret-ma-up' : '') + '"' + (up ? ' title="前ブロック ' + retMA(prevMA) + ' → 上昇"' : '') + '>' + retMA(curMA) + '</td>';
+    const maUp = curMA != null && prevMA != null && curMA > prevMA;
+    // 3ヶ月返品合計（このブロックの返品数合計）と前ブロック比較
+    let curRet = 0, prevRet = 0, prevShip = 0;
+    months.forEach(ym => { curRet += unitRet(u, ym); const p = ymAddMonths(ym, -3); prevRet += unitRet(u, p); prevShip += unitShip(u, p); });
+    const retUp = (prevShip > 0 || prevRet > 0) && curRet > prevRet;
+    h += '<td class="ret-ma ret-main' + (maUp ? ' ret-ma-up' : '') + '"' + (maUp ? ' title="前ブロック ' + retMA(prevMA) + ' → 上昇"' : '') + '>' + retMA(curMA) + '</td>';
+    h += '<td class="ret-rsum ret-main ret-sep-r' + (retUp ? ' ret-ma-up' : '') + '"' + (retUp ? ' title="前ブロック ' + prevRet.toLocaleString() + ' 点 → 増加"' : '') + '>' + curRet.toLocaleString() + '</td>';
     months.forEach(ym => {
       const sh = unitShip(u, ym), rt = unitRet(u, ym);
       h += '<td>' + sh.toLocaleString() + '</td><td>' + rt.toLocaleString() + '</td><td class="ret-rate ret-sep-l">' + retPct(rt, sh) + '</td>';
