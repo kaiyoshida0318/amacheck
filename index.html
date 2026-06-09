@@ -519,15 +519,17 @@
   }
   .pl-info:focus-visible { box-shadow: 0 0 0 2px var(--blue-light); border-radius: 50%; }
   .pl-tip {
-    position: absolute; top: 150%; right: -6px;
-    background: var(--black); color: #fff;
+    position: absolute; top: 100%; right: -6px;
+    border-top: 7px solid transparent;
+    background: var(--black); background-clip: padding-box; color: #fff;
     font-size: 12px; font-weight: 400; line-height: 1.5; text-align: left;
     padding: 8px 11px; border-radius: 8px; width: 215px; white-space: normal;
     box-shadow: 0 4px 12px rgba(0,0,0,0.18);
+    cursor: text; user-select: text; -webkit-user-select: text;
     opacity: 0; pointer-events: none; transition: opacity 0.15s; z-index: 20;
   }
   .pl-tip b { display: block; font-weight: 700; color: #7fb4ff; margin-bottom: 2px; }
-  .pl-info:hover .pl-tip, .pl-info:focus .pl-tip, .pl-info.open .pl-tip { opacity: 1; }
+  .pl-info:hover .pl-tip, .pl-info:focus .pl-tip, .pl-info.open .pl-tip { opacity: 1; pointer-events: auto; }
   /* 返品率 */
   .ret-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 14px; }
   .ret-table th, .ret-table td { padding: 9px 14px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
@@ -1347,7 +1349,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.60</span>
+  <span class="version">v1.62</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6188,7 +6190,7 @@ function renderPlView(){
     const profClass = tier ? ('pl-profit' + tier) : ('pl-profit' + (d.profit < 0 ? ' pl-neg' : ''));
     const editCell = (field) => {
       const has = plData[d.ym] && plData[d.ym][field] != null;
-      const disp = has ? plYen(plData[d.ym][field]) : '<span class="pl-empty">-</span>';
+      const disp = has ? plYen(plData[d.ym][field]) : '<span class="pl-empty">未入力</span>';
       return '<td class="pl-edit" data-ym="' + d.ym + '" data-f="' + field + '" tabindex="0" title="クリックで入力">' + disp + '</td>';
     };
     const storeCell = d.editable ? editCell('storage') : '<td>' + plYen(d.storage) + '</td>';
@@ -6240,6 +6242,8 @@ function renderPlView(){
   body.querySelectorAll('.pl-info').forEach(ic => {
     ic.addEventListener('click', (e) => {
       e.stopPropagation();
+      // 説明文をクリック／選択しても閉じない
+      if (e.target.closest('.pl-tip')) return;
       const wasOpen = ic.classList.contains('open');
       body.querySelectorAll('.pl-info.open').forEach(o => o.classList.remove('open'));
       if (!wasOpen) ic.classList.add('open');
