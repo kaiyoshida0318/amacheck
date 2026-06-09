@@ -502,6 +502,11 @@
   .pl-input::-webkit-outer-spin-button, .pl-input::-webkit-inner-spin-button { -webkit-appearance: none; margin: 0; }
   .pl-input { -moz-appearance: textfield; }
   .pl-input::placeholder { color: var(--text-tertiary); }
+  /* 全体収支：手入力2列は通常テキスト表示（他列と同じ）、クリックで入力 */
+  .pl-table td.pl-edit { cursor: cell; }
+  .pl-table td.pl-edit:hover { background: var(--blue-light); }
+  .pl-table td.pl-edit:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
+  .pl-table td.pl-edit .pl-empty { color: var(--text-tertiary); }
   /* 全体収支：手入力2列ヘッダーのリンク＋確認箇所ツールチップ */
   .pl-th-link { color: inherit; text-decoration: none; border-bottom: 1px solid transparent; }
   .pl-th-link:hover { color: var(--blue); border-bottom-color: var(--blue); }
@@ -1333,7 +1338,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.57</span>
+  <span class="version">v1.58</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6174,17 +6179,18 @@ function renderPlView(){
     const profClass = tier ? ('pl-profit' + tier) : ('pl-profit' + (d.profit < 0 ? ' pl-neg' : ''));
     const editCell = (field) => {
       const has = plData[d.ym] && plData[d.ym][field] != null;
-      return '<input class="pl-input" type="text" inputmode="numeric" data-ym="' + d.ym + '" data-f="' + field + '" value="' + (has ? plYen(plData[d.ym][field]) : '') + '" placeholder="¥0">';
+      const disp = has ? plYen(plData[d.ym][field]) : '<span class="pl-empty">-</span>';
+      return '<td class="pl-edit" data-ym="' + d.ym + '" data-f="' + field + '" tabindex="0" title="クリックで入力">' + disp + '</td>';
     };
-    const storeCell = d.editable ? editCell('storage') : plYen(d.storage);
-    const fbaCell = d.editable ? editCell('fbaFee') : plYen(d.fba);
+    const storeCell = d.editable ? editCell('storage') : '<td>' + plYen(d.storage) + '</td>';
+    const fbaCell = d.editable ? editCell('fbaFee') : '<td>' + plYen(d.fba) + '</td>';
     h += '<tr>'
       + '<td>' + d.label + '</td>'
       + '<td>' + plYen(d.total) + '</td>'
       + '<td>' + plYen(d.gross) + '</td>'
       + '<td>' + plYen(d.ad) + '</td>'
-      + '<td>' + storeCell + '</td>'
-      + '<td>' + fbaCell + '</td>'
+      + storeCell
+      + fbaCell
       + '<td class="' + profClass + '">' + plYen(d.profit) + '</td>'
       + '</tr>';
   });
@@ -6196,26 +6202,30 @@ function renderPlView(){
 
   body.innerHTML = h;
   body.querySelectorAll('#pl-mode button').forEach(b => b.addEventListener('click', () => { plMode = b.dataset.v; renderPlView(); }));
-  body.querySelectorAll('.pl-input').forEach(inp => {
-    // フォーカス時は数値のみ表示して編集しやすく
-    inp.addEventListener('focus', () => {
-      const ym = inp.dataset.ym, f = inp.dataset.f;
-      const cur = (plData[ym] && plData[ym][f] != null) ? plData[ym][f] : '';
-      inp.value = cur === '' ? '' : String(cur);
-      inp.select();
-    });
-    // 確定時に数値を取り出して保存し、¥・カンマ付きで再表示
-    inp.addEventListener('blur', () => {
-      const ym = inp.dataset.ym, f = inp.dataset.f;
+  const plActivateEdit = (td) => {
+    if (td.querySelector('input')) return;
+    const ym = td.dataset.ym, f = td.dataset.f;
+    const cur = (plData[ym] && plData[ym][f] != null) ? plData[ym][f] : '';
+    td.innerHTML = '<input class="pl-input" type="text" inputmode="numeric" value="' + (cur === '' ? '' : String(cur)) + '" placeholder="¥0">';
+    const inp = td.querySelector('input'); inp.focus(); inp.select();
+    let done = false;
+    const commit = () => {
+      if (done) return; done = true;
       const digits = inp.value.replace(/[^0-9.\-]/g, '').trim();
       if (!plData[ym]) plData[ym] = {};
       if (digits === '' || isNaN(Number(digits))) delete plData[ym][f];
       else plData[ym][f] = Number(digits);
-      savePlData();
-      renderPlView();
+      savePlData(); renderPlView();
+    };
+    inp.addEventListener('blur', commit);
+    inp.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter') { e.preventDefault(); inp.blur(); }
+      else if (e.key === 'Escape') { done = true; renderPlView(); }
     });
-    // Enterで確定（blur）
-    inp.addEventListener('keydown', (e) => { if (e.key === 'Enter') inp.blur(); });
+  };
+  body.querySelectorAll('.pl-edit').forEach(td => {
+    td.addEventListener('click', () => plActivateEdit(td));
+    td.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); plActivateEdit(td); } });
   });
   // 確認箇所ツールチップ：クリック/タップで開閉（ホバーはCSSで対応）
   body.querySelectorAll('.pl-info').forEach(ic => {
