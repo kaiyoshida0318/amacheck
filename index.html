@@ -567,7 +567,8 @@
   .cat-del:hover { color: var(--danger); background: rgba(211,47,47,0.08); }
   .cat-unreg .cat-fnsku, .cat-unreg .cat-pname { opacity: 0.85; }
   /* 返品率 FNSKU別ピボット：カテゴリ／商品名／FNSKUの独立列 */
-  .ret-pivot td.ret-ucat-cell { text-align: left; color: var(--text-secondary); font-size: 13px; }
+  .ret-pivot td.ret-ucat-cell { text-align: left; color: var(--text-secondary); font-size: 13px; font-weight: 600; vertical-align: top; }
+  .ret-pivot tr.ret-grp-start td { border-top: 2px solid var(--border-strong); }
   .ret-pivot td.ret-uname { max-width: 280px; overflow: hidden; text-overflow: ellipsis; text-align: left; }
   .ret-pivot th.ret-lbl { text-align: left; }
   .ret-pivot td.ret-fnsku-cell { text-align: left; color: var(--text-tertiary); font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
@@ -1334,7 +1335,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.54</span>
+  <span class="version">v1.56</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6290,18 +6291,37 @@ const catLink = (u) => retView === 'category'
 const mLink = (ym) => '<a class="ret-month-link" data-ym="' + ym + '" title="この月の返品データを追加">' + ym.slice(0, 4) + '年' + ym.slice(5, 7) + '月</a>';
 
 function chunkLabel(chunk){ const y = chunk[0].slice(0, 4), m1 = +chunk[0].slice(5, 7), m2 = +chunk[chunk.length - 1].slice(5, 7); return y + '年 ' + m1 + '〜' + m2 + '月'; }
+// データを持つカテゴリ所属FNSKU
+function catDataFnskus(cat){
+  const s = new Set();
+  Object.values(shipments).forEach(m => Object.keys(m).forEach(f => { if (catOf(f) === cat) s.add(f); }));
+  Object.values(returnsData).forEach(m => Object.keys(m).forEach(f => { if (catOf(f) === cat) s.add(f); }));
+  return Array.from(s);
+}
+// カテゴリの撤退月：所属商品が「全て」撤退済みのときのみ、最も遅い撤退月を返す（一部でも現役ならnull）
+function catWithdrawnMonth(cat){
+  const mem = catDataFnskus(cat);
+  if (!mem.length) return null;
+  let mx = null;
+  for (const f of mem) { const w = withdrawnAt[f]; if (!w) return null; if (mx === null || w > mx) mx = w; }
+  return mx;
+}
+function unitWithdrawnMonth(u){ return retView === 'category' ? catWithdrawnMonth(u.key) : (withdrawnAt[u.key] || null); }
 function retBuildBody(months){
   const units = retUnits(months);
   if (!units.length) return '<div class="ret-empty">この期間に表示できるデータがありません。</div>';
-  // 3ヶ月ごとのブロックを縦に積む（同じカテゴリ集合で揃える）
+  // 3ヶ月ごとのブロックを縦に積む。ブロック全体が撤退月の翌月以降になるユニットは、そのブロックから除外
   let h = '';
   for (let i = 0; i < months.length; i += 3) {
     const chunk = months.slice(i, i + 3);
+    const chunkUnits = units.filter(u => { const w = unitWithdrawnMonth(u); return !(w && chunk[0] > w); });
+    if (!chunkUnits.length) continue;
     h += '<div class="ret-block">';
     if (months.length > 3) h += '<div class="ret-block-h">' + chunkLabel(chunk) + '</div>';
-    h += retLayoutPivot(units, chunk);
+    h += retLayoutPivot(chunkUnits, chunk);
     h += '</div>';
   }
+  if (!h) return '<div class="ret-empty">この期間に表示できるデータがありません。</div>';
   return h;
 }
 // 案A：月を横に並べる（1カテゴリ＝1行）
@@ -6314,14 +6334,18 @@ function retLayoutPivot(units, months){
   h += '<th rowspan="2">3ヶ月<br>移動平均</th></tr><tr>';
   months.forEach(() => h += '<th>出荷</th><th>返品</th><th class="ret-sep-l">返品率</th>');
   h += '</tr></thead><tbody>';
+  let prevCat = null;
   units.forEach(u => {
-    h += '<tr>';
+    const newGroup = retView === 'fnsku' && u.cat !== prevCat;
+    const divider = newGroup && prevCat !== null;
+    h += '<tr' + (divider ? ' class="ret-grp-start"' : '') + '>';
     if (retView === 'category') {
       h += '<td class="ret-uname">' + catLink(u) + '</td>';
     } else {
-      h += '<td class="ret-ucat-cell">' + retEsc(u.cat) + '</td>'
+      h += '<td class="ret-ucat-cell">' + (newGroup ? retEsc(u.cat) : '') + '</td>'
         + '<td class="ret-uname"' + (u.pname ? ' title="' + retEsc(u.pname) + '"' : '') + '>' + (u.pname ? retEsc(u.pname) : '<span class="ret-noname">（マスタ未登録）</span>') + '</td>'
         + '<td class="ret-fnsku-cell ret-sep-r">' + retEsc(u.fnsku) + '</td>';
+      prevCat = u.cat;
     }
     months.forEach(ym => {
       const sh = unitShip(u, ym), rt = unitRet(u, ym);
