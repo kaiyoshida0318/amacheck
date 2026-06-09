@@ -1373,7 +1373,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.71</span>
+  <span class="version">v1.72</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6100,14 +6100,15 @@ function graphMonthMetrics(ym){
   const adcSbDougaShare   = _sb2 > 0 ? cSbDouga / _sb2 * 100 : null;     // 動画/(動画+商品コレ)
   const adcSbShokoreShare = _sb2 > 0 ? cSbShokore / _sb2 * 100 : null;   // 商品コレ/(動画+商品コレ)
   const seo = total - adSales;
-  let totalQty = 0, grossProfit = 0;
+  let totalQty = 0, costSum = 0;
   for (const fnsku in sh) {
     let q = 0; const days = sh[fnsku];
     for (const d in days) q += Number(days[d]) || 0;
     totalQty += q;
     const p = products.find(x => x.fnsku === fnsku);
-    if (p) { const pr = calcGrossProfit(p); if (pr != null) grossProfit += pr * q; }
+    if (p && p.sellingPrice != null && p.sellingPrice !== '') costSum += q * ((Number(p.cost) || 0) + (Number(p.sellingFee) || 0));
   }
+  const grossProfit = total - costSum; // 粗利益＝総売上(セール価格反映)−原価−販売手数料（全体収支と同一定義）
   const fbaFee = (plData[ym] && plData[ym].fbaFee != null) ? Number(plData[ym].fbaFee) : null;  // 全体収支のFBA手数料(送料)実額（未入力月はnull）
   const jisseki = adCost;                                                // 広告費（jisstekiキーはそのまま、表示名は広告費）
   const roas = adCost > 0 ? (adSales / adCost) * 100 : null;             // 全体ROAS（広告売上÷広告費 ×100）
@@ -6167,12 +6168,12 @@ let plMode = 'month'; // 'month' | 'year'
 // 月の自動計算分（総売上・粗利益・広告費）。完備判定は使わず、データがあれば計算
 function plMonthCalc(ym){
   const sh = shipments[ym] || {};
-  let grossProfit = 0;
+  let costSum = 0; // Σ 出荷数×(原価+販売手数料)：価格設定済み商品のみ
   for (const fnsku in sh) {
     let q = 0; const days = sh[fnsku];
     for (const d in days) q += Number(days[d]) || 0;
     const p = products.find(x => x.fnsku === fnsku);
-    if (p) { const pr = calcGrossProfit(p); if (pr != null) grossProfit += pr * q; }
+    if (p && p.sellingPrice != null && p.sellingPrice !== '') costSum += q * ((Number(p.cost) || 0) + (Number(p.sellingFee) || 0));
   }
   const dim = daysInMonth(ym);
   let adCost = 0;
@@ -6181,6 +6182,7 @@ function plMonthCalc(ym){
     adCost += c.sp.kw + c.sp.shohin + c.sp.auto + c.sb.douga + c.sb.shokore;
   }
   const total = totalSalesForMonth(ym, 'all');
+  const grossProfit = total - costSum; // 粗利益＝総売上(セール価格反映)−原価−販売手数料
   return { total, grossProfit, adCost };
 }
 function plManual(ym){
