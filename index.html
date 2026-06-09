@@ -596,6 +596,8 @@
   .ret-pivot th.ret-main { background: #e6ecf8; }
   .ret-pivot td.ret-main { background: #f2f6fc; }
   .ret-pivot td.ret-rsum { font-weight: 700; text-align: right; }
+  .ret-pivot td.ret-ssum { font-weight: 700; text-align: right; }
+  .ret-pivot th.ret-main-l, .ret-pivot td.ret-main-l { border-right: 1px solid var(--border); }
   .ret-pivot th.ret-subcol, .ret-pivot td.ret-subcol { border-right: 1px solid var(--border); }
   .ret-pivot .ret-na { color: var(--text-tertiary); font-size: 12px; }
   .ret-pivot thead th.ret-ma-col + th.ret-mcol { border-left: none; }
@@ -1362,7 +1364,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.68</span>
+  <span class="version">v1.69</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6117,7 +6119,7 @@ function graphMonthMetrics(ym){
   const cvrSbShokore  = klSbShokore> 0 ? orSbShokore / klSbShokore * 100 : null;
   const adQty = total > 0 ? Math.round(totalQty * (adSales / total)) : 0; // 広告出荷数＝総出荷×広告売上比（想定）
   const seoQty = totalQty - adQty;
-  const storage = plManual(ym).storage;                                  // 保管費は全体収支の入力値（plData）から取得
+  const storage = (plData[ym] && plData[ym].storage != null) ? Number(plData[ym].storage) : null;  // 全体収支の保管費（未入力月はnull＝表示しない）
   const r = { total, seo, adSales, jisseki, grossProfit, roas, totalQty, adQty, seoQty, fbaFee, storage,
     adcSpTotal, adcSpKw: cSpKw, adcSpShohin: cSpShohin, adcSbTotal, adcSbDouga: cSbDouga, adcSbShokore: cSbShokore,
     adcSpShare, adcSbShare, adcSpKwShare, adcSpShohinShare, adcSbDougaShare, adcSbShokoreShare,
@@ -6545,7 +6547,8 @@ function retLayoutPivot(units, months){
   h += '<tr>' + (retView === 'category'
       ? '<th rowspan="2" class="ret-sep-r">カテゴリ</th>'
       : '<th rowspan="2" class="ret-lbl">カテゴリ</th><th rowspan="2" class="ret-lbl">商品名</th><th rowspan="2" class="ret-lbl ret-sep-r">FNSKU</th>');
-  h += '<th rowspan="2" class="ret-ma-col ret-main">3ヶ月<br>移動平均</th>';
+  h += '<th rowspan="2" class="ret-ma-col ret-main ret-main-l">3ヶ月<br>移動平均</th>';
+  h += '<th rowspan="2" class="ret-ma-col ret-main ret-main-l">3ヶ月<br>出荷合計</th>';
   h += '<th rowspan="2" class="ret-ma-col ret-main ret-sep-r">3ヶ月<br>返品合計</th>';
   months.forEach(ym => h += '<th colspan="3" class="ret-mcol">' + mLink(ym) + '</th>');
   h += '</tr><tr>';
@@ -6569,16 +6572,17 @@ function retLayoutPivot(units, months){
     // 3ヶ月移動平均
     const curMA = unit3mo(u, lastM), prevMA = unit3mo(u, prevM);
     const maUp = curMA != null && prevMA != null && curMA > prevMA;
-    // 3ヶ月返品合計（このブロックの返品数合計）と前ブロック比較
-    let curRet = 0, prevRet = 0, prevShip = 0, curRetEntered = false, prevEntered = false;
+    // 3ヶ月 出荷合計・返品合計（前ブロック比較）
+    let curShip = 0, curRet = 0, prevRet = 0, curShipEntered = false, curRetEntered = false, prevEntered = false;
     months.forEach(ym => {
+      curShip += unitShip(u, ym); if (shipments[ym]) curShipEntered = true;
       curRet += unitRet(u, ym); if (returnsData[ym]) curRetEntered = true;
-      const p = ymAddMonths(ym, -3); prevRet += unitRet(u, p); prevShip += unitShip(u, p);
-      if (returnsData[p]) prevEntered = true;
+      const p = ymAddMonths(ym, -3); prevRet += unitRet(u, p); if (returnsData[p]) prevEntered = true;
     });
     const retUp = curRetEntered && prevEntered && curRet > prevRet;
     const NA = '<span class="ret-na">未入力</span>';
-    h += '<td class="ret-ma ret-main' + (maUp ? ' ret-ma-up' : '') + '"' + (maUp ? ' title="前ブロック ' + retMA(prevMA) + ' → 上昇"' : '') + '>' + retMA(curMA) + '</td>';
+    h += '<td class="ret-ma ret-main ret-main-l' + (maUp ? ' ret-ma-up' : '') + '"' + (maUp ? ' title="前ブロック ' + retMA(prevMA) + ' → 上昇"' : '') + '>' + retMA(curMA) + '</td>';
+    h += '<td class="ret-ssum ret-main ret-main-l">' + (curShipEntered ? curShip.toLocaleString() : NA) + '</td>';
     h += '<td class="ret-rsum ret-main ret-sep-r' + (retUp ? ' ret-ma-up' : '') + '"' + (retUp ? ' title="前ブロック ' + prevRet.toLocaleString() + ' 点 → 増加"' : '') + '>' + (curRetEntered ? curRet.toLocaleString() : NA) + '</td>';
     months.forEach(ym => {
       const shEntered = !!shipments[ym], rtEntered = !!returnsData[ym];
