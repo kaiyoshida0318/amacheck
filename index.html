@@ -597,6 +597,7 @@
   .ret-pivot td.ret-main { background: #f2f6fc; }
   .ret-pivot td.ret-rsum { font-weight: 700; text-align: right; }
   .ret-pivot th.ret-subcol, .ret-pivot td.ret-subcol { border-right: 1px solid var(--border); }
+  .ret-pivot .ret-na { color: var(--text-tertiary); font-size: 12px; }
   .ret-pivot thead th.ret-ma-col + th.ret-mcol { border-left: none; }
   /* 案A ピボット */
   .ret-pivot th.ret-mcol { text-align: center; border-left: 2px solid var(--border-strong); }
@@ -1361,7 +1362,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.67</span>
+  <span class="version">v1.68</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6569,14 +6570,23 @@ function retLayoutPivot(units, months){
     const curMA = unit3mo(u, lastM), prevMA = unit3mo(u, prevM);
     const maUp = curMA != null && prevMA != null && curMA > prevMA;
     // 3ヶ月返品合計（このブロックの返品数合計）と前ブロック比較
-    let curRet = 0, prevRet = 0, prevShip = 0;
-    months.forEach(ym => { curRet += unitRet(u, ym); const p = ymAddMonths(ym, -3); prevRet += unitRet(u, p); prevShip += unitShip(u, p); });
-    const retUp = (prevShip > 0 || prevRet > 0) && curRet > prevRet;
-    h += '<td class="ret-ma ret-main' + (maUp ? ' ret-ma-up' : '') + '"' + (maUp ? ' title="前ブロック ' + retMA(prevMA) + ' → 上昇"' : '') + '>' + retMA(curMA) + '</td>';
-    h += '<td class="ret-rsum ret-main ret-sep-r' + (retUp ? ' ret-ma-up' : '') + '"' + (retUp ? ' title="前ブロック ' + prevRet.toLocaleString() + ' 点 → 増加"' : '') + '>' + curRet.toLocaleString() + '</td>';
+    let curRet = 0, prevRet = 0, prevShip = 0, curRetEntered = false, prevEntered = false;
     months.forEach(ym => {
+      curRet += unitRet(u, ym); if (returnsData[ym]) curRetEntered = true;
+      const p = ymAddMonths(ym, -3); prevRet += unitRet(u, p); prevShip += unitShip(u, p);
+      if (returnsData[p]) prevEntered = true;
+    });
+    const retUp = curRetEntered && prevEntered && curRet > prevRet;
+    const NA = '<span class="ret-na">未入力</span>';
+    h += '<td class="ret-ma ret-main' + (maUp ? ' ret-ma-up' : '') + '"' + (maUp ? ' title="前ブロック ' + retMA(prevMA) + ' → 上昇"' : '') + '>' + retMA(curMA) + '</td>';
+    h += '<td class="ret-rsum ret-main ret-sep-r' + (retUp ? ' ret-ma-up' : '') + '"' + (retUp ? ' title="前ブロック ' + prevRet.toLocaleString() + ' 点 → 増加"' : '') + '>' + (curRetEntered ? curRet.toLocaleString() : NA) + '</td>';
+    months.forEach(ym => {
+      const shEntered = !!shipments[ym], rtEntered = !!returnsData[ym];
       const sh = unitShip(u, ym), rt = unitRet(u, ym);
-      h += '<td class="ret-subcol">' + sh.toLocaleString() + '</td><td class="ret-subcol">' + rt.toLocaleString() + '</td><td class="ret-rate ret-sep-l">' + retPct(rt, sh) + '</td>';
+      const shCell = shEntered ? sh.toLocaleString() : NA;
+      const rtCell = rtEntered ? rt.toLocaleString() : NA;
+      const rateCell = (shEntered && rtEntered) ? retPct(rt, sh) : NA;
+      h += '<td class="ret-subcol">' + shCell + '</td><td class="ret-subcol">' + rtCell + '</td><td class="ret-rate ret-sep-l">' + rateCell + '</td>';
     });
     h += '</tr>';
   });
