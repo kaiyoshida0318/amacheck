@@ -581,6 +581,9 @@
   .ret-uname { text-align: left; font-weight: 600; }
   .ret-ucat { color: var(--text-tertiary); font-size: 12px; font-weight: 600; }
   .ret-ma { font-weight: 700; }
+  .ret-pivot th.ret-ma-col { text-align: center; }
+  .ret-pivot td.ret-ma-up { color: var(--danger); }
+  .ret-pivot thead th.ret-ma-col + th.ret-mcol { border-left: none; }
   /* 案A ピボット */
   .ret-pivot th.ret-mcol { text-align: center; border-left: 2px solid var(--border-strong); }
   .ret-pivot td.ret-sep-l, .ret-pivot th.ret-sep-l { border-right: 2px solid var(--border-strong); }
@@ -590,6 +593,11 @@
   .ret-block:last-child { margin-bottom: 4px; }
   .ret-block-h { font-weight: 700; font-size: 14px; color: var(--text); margin: 0 0 6px; padding: 8px 4px 8px 10px; border-left: 4px solid var(--blue); background: var(--bg-secondary); border-radius: 6px; }
   .ret-yearsel { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+  .ret-search { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-strong); border-radius: 9px; background: var(--bg-card); padding: 0 10px; height: 38px; }
+  .ret-search .icn { color: var(--text-tertiary); font-size: 16px; flex-shrink: 0; }
+  .ret-search input { border: none; outline: none; background: transparent; font: inherit; font-size: 14px; width: 190px; padding: 6px 0; color: var(--black); }
+  .ret-search input::placeholder { color: var(--text-tertiary); }
+  .ret-search:focus-within { border-color: var(--blue); box-shadow: 0 0 0 3px var(--blue-light); }
   .ret-yearsel select { font-size: 14px; padding: 7px 10px; border: 1px solid var(--border-strong); border-radius: 8px; font-family: inherit; background: #fff; cursor: pointer; }
   /* 案C カード */
   .ret-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; padding: 4px 0; }
@@ -1324,6 +1332,7 @@
     <symbol id="i-x" viewBox="0 0 24 24"><path d="M18 6l-12 12"/><path d="M6 6l12 12"/></symbol>
     <symbol id="i-grip" viewBox="0 0 24 24"><path d="M5 9h2v2h-2z"/><path d="M5 13h2v2h-2z"/><path d="M9 9h2v2h-2z"/><path d="M9 13h2v2h-2z"/><path d="M13 9h2v2h-2z"/><path d="M13 13h2v2h-2z"/><path d="M17 9h2v2h-2z"/><path d="M17 13h2v2h-2z"/></symbol>
     <symbol id="i-info" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M12 8h.01"/><path d="M11 12h1v4h1"/></symbol>
+    <symbol id="i-search" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="M21 21l-4.35-4.35"/></symbol>
     <symbol id="i-calendar" viewBox="0 0 24 24"><path d="M4 5m0 2a2 2 0 0 1 2 -2h12a2 2 0 0 1 2 2v12a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2z"/><path d="M16 3v4"/><path d="M8 3v4"/><path d="M4 11h16"/><path d="M8 15h2v2h-2z"/></symbol>
     <symbol id="i-tag" viewBox="0 0 24 24"><path d="M7.5 7.5m-1 0a1 1 0 1 0 2 0a1 1 0 1 0 -2 0"/><path d="M3 6v5.172a2 2 0 0 0 .586 1.414l7.71 7.71a2.41 2.41 0 0 0 3.408 0l5.592 -5.592a2.41 2.41 0 0 0 0 -3.408l-7.71 -7.71a2 2 0 0 0 -1.414 -.586h-5.172a3 3 0 0 0 -3 3z"/></symbol>
     <symbol id="i-download" viewBox="0 0 24 24"><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2 -2v-2"/><path d="M7 11l5 5l5 -5"/><path d="M12 4l0 12"/></symbol>
@@ -1338,7 +1347,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.58</span>
+  <span class="version">v1.60</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6249,6 +6258,7 @@ const RET_DISP = '欠陥品・不良品';   // 返品率に使う商品の状態
 let retView = 'category';            // 'category' | 'fnsku'
 let retYear = null;                  // 表示する年（nullで最新）
 let retCatFilter = null;             // FNSKU別のカテゴリ絞り込み
+let retSearch = '';                  // 検索語（カテゴリ別＝カテゴリ名／FNSKU別＝FNSKU・商品名）
 function retEsc(s){ return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function ymAddMonths(ym, delta){ let [y, m] = ym.split('-').map(Number); m += delta; while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; } return y + '-' + String(m).padStart(2, '0'); }
 function retShipQty(ym, fnsku){ if (!retActive(fnsku, ym)) return 0; const sh = shipments[ym] && shipments[ym][fnsku]; if (!sh) return 0; let q = 0; for (const d in sh) q += Number(sh[d]) || 0; return q; }
@@ -6282,12 +6292,16 @@ function unitShip(u, ym){ return retView === 'category' ? catShip(ym, u.key) : r
 function unitRet(u, ym){ return retView === 'category' ? catRet(ym, u.key) : retQty(ym, u.key); }
 function unit3mo(u, ym){ return retView === 'category' ? cat3mo(ym, u.key) : ret3mo(ym, u.key); }
 function retUnits(months){
+  const q = retSearch.toLowerCase();
   if (retView === 'category') {
     const set = new Set(); months.forEach(ym => categoriesInMonth(ym).forEach(c => set.add(c)));
-    return Array.from(set).sort((a, b) => (a === '未分類') - (b === '未分類') || a.localeCompare(b, 'ja')).map(c => ({ key: c, cat: c, name: c }));
+    let cats = Array.from(set).sort((a, b) => (a === '未分類') - (b === '未分類') || a.localeCompare(b, 'ja'));
+    if (q) cats = cats.filter(c => c.toLowerCase().includes(q));
+    return cats.map(c => ({ key: c, cat: c, name: c }));
   }
   const set = new Set(); months.forEach(ym => retFnskus(ym).forEach(f => { if (retShipQty(ym, f) > 0 || retQty(ym, f) > 0) set.add(f); }));
   let arr = Array.from(set); if (retCatFilter) arr = arr.filter(f => catOf(f) === retCatFilter);
+  if (q) arr = arr.filter(f => f.toLowerCase().includes(q) || (retName(f) || '').toLowerCase().includes(q));
   arr.sort((a, b) => catOf(a).localeCompare(catOf(b), 'ja') || (retName(a) || a).localeCompare(retName(b) || b, 'ja'));
   return arr.map(f => ({ key: f, cat: catOf(f), name: (retName(f) ? retName(f) + ' ' : '') + f, pname: retName(f), fnsku: f }));
 }
@@ -6315,7 +6329,7 @@ function catWithdrawnMonth(cat){
 function unitWithdrawnMonth(u){ return retView === 'category' ? catWithdrawnMonth(u.key) : fnskuWithdrawnMonth(u.key); }
 function retBuildBody(months){
   const units = retUnits(months);
-  if (!units.length) return '<div class="ret-empty">この期間に表示できるデータがありません。</div>';
+  if (!units.length) return '<div class="ret-empty">' + (retSearch ? '「' + retEsc(retSearch) + '」に一致する' + (retView === 'category' ? 'カテゴリ' : '商品') + 'がありません。' : 'この期間に表示できるデータがありません。') + '</div>';
   // 3ヶ月ごとのブロックを縦に積む。ブロック全体が撤退月の翌月以降になるユニットは、そのブロックから除外
   let h = '';
   for (let i = 0; i < months.length; i += 3) {
@@ -6334,30 +6348,36 @@ function retBuildBody(months){
 function retLayoutPivot(units, months){
   let h = '<div style="overflow-x:auto;"><table class="ret-table ret-pivot"><thead>';
   h += '<tr>' + (retView === 'category'
-      ? '<th rowspan="2">カテゴリ</th>'
+      ? '<th rowspan="2" class="ret-sep-r">カテゴリ</th>'
       : '<th rowspan="2" class="ret-lbl">カテゴリ</th><th rowspan="2" class="ret-lbl">商品名</th><th rowspan="2" class="ret-lbl ret-sep-r">FNSKU</th>');
+  h += '<th rowspan="2" class="ret-ma-col ret-sep-r">3ヶ月<br>移動平均</th>';
   months.forEach(ym => h += '<th colspan="3" class="ret-mcol">' + mLink(ym) + '</th>');
-  h += '<th rowspan="2">3ヶ月<br>移動平均</th></tr><tr>';
+  h += '</tr><tr>';
   months.forEach(() => h += '<th>出荷</th><th>返品</th><th class="ret-sep-l">返品率</th>');
   h += '</tr></thead><tbody>';
+  const lastM = months[months.length - 1];
+  const prevM = ymAddMonths(months[0], -1); // 前ブロックの末月
   let prevCat = null;
   units.forEach(u => {
     const newGroup = retView === 'fnsku' && u.cat !== prevCat;
     const divider = newGroup && prevCat !== null;
     h += '<tr' + (divider ? ' class="ret-grp-start"' : '') + '>';
     if (retView === 'category') {
-      h += '<td class="ret-uname">' + catLink(u) + '</td>';
+      h += '<td class="ret-uname ret-sep-r">' + catLink(u) + '</td>';
     } else {
       h += '<td class="ret-ucat-cell">' + (newGroup ? retEsc(u.cat) : '') + '</td>'
         + '<td class="ret-uname"' + (u.pname ? ' title="' + retEsc(u.pname) + '"' : '') + '>' + (u.pname ? retEsc(u.pname) : '<span class="ret-noname">（マスタ未登録）</span>') + '</td>'
         + '<td class="ret-fnsku-cell ret-sep-r">' + retEsc(u.fnsku) + '</td>';
       prevCat = u.cat;
     }
+    const curMA = unit3mo(u, lastM), prevMA = unit3mo(u, prevM);
+    const up = curMA != null && prevMA != null && curMA > prevMA;
+    h += '<td class="ret-ma ret-sep-r' + (up ? ' ret-ma-up' : '') + '"' + (up ? ' title="前ブロック ' + retMA(prevMA) + ' → 上昇"' : '') + '>' + retMA(curMA) + '</td>';
     months.forEach(ym => {
       const sh = unitShip(u, ym), rt = unitRet(u, ym);
       h += '<td>' + sh.toLocaleString() + '</td><td>' + rt.toLocaleString() + '</td><td class="ret-rate ret-sep-l">' + retPct(rt, sh) + '</td>';
     });
-    h += '<td class="ret-ma">' + retMA(unit3mo(u, months[months.length - 1])) + '</td></tr>';
+    h += '</tr>';
   });
   h += '</tbody></table></div>';
   return h;
@@ -6406,6 +6426,9 @@ function renderReturnsView(){
   let h = '<div class="graph-toolbar">';
   h += '<label class="ret-yearsel">年 <select id="ret-year">' + (years.length ? years.map(y => '<option value="' + y + '"' + (y === yr ? ' selected' : '') + '>' + y + '年</option>').join('') : '<option>—</option>') + '</select></label>';
   h += '<div class="graph-seg" id="ret-view"><button data-v="category" class="' + (retView === 'category' ? 'active' : '') + '">カテゴリ別</button><button data-v="fnsku" class="' + (retView === 'fnsku' ? 'active' : '') + '">FNSKU別</button></div>';
+  h += '<div class="ret-search"><svg class="icn"><use href="#i-search"/></svg>'
+    + '<input id="ret-search-input" type="search" placeholder="' + (retView === 'category' ? 'カテゴリ名で検索' : 'FNSKU・商品名で検索') + '" value="' + retEsc(retSearch) + '" autocomplete="off">'
+    + '</div>';
   if (retView === 'fnsku' && retCatFilter) h += '<span class="ret-chip">カテゴリ: ' + retEsc(retCatFilter) + ' <a id="ret-clearfilter">✕</a></span>';
   h += '<div class="spacer" style="flex:1"></div>';
   h += '<span style="font-size:11px;color:var(--text-tertiary);margin-right:8px;">返品率＝返品÷出荷／対象「欠陥品・不良品」</span>';
@@ -6413,20 +6436,24 @@ function renderReturnsView(){
   h += '<button class="primary" id="ret-add-open"><svg class="icn"><use href="#i-plus"/></svg> 返品データ追加</button>';
   h += '</div>';
 
-  if (!years.length) {
-    h += '<div class="ret-empty">データがありません。「返品データ追加」から取り込んでください。</div>';
-  } else {
-    h += retBuildBody(months);
-  }
+  h += '<div id="ret-table-area"></div>';
   body.innerHTML = h;
+  renderRetTableArea(months, years.length);
 
   const ySel = body.querySelector('#ret-year'); if (ySel) ySel.addEventListener('change', () => { retYear = ySel.value; renderReturnsView(); });
-  body.querySelectorAll('#ret-view button').forEach(b => b.addEventListener('click', () => { retView = b.dataset.v; if (retView === 'category') retCatFilter = null; renderReturnsView(); }));
+  body.querySelectorAll('#ret-view button').forEach(b => b.addEventListener('click', () => { retView = b.dataset.v; if (retView === 'category') retCatFilter = null; retSearch = ''; renderReturnsView(); }));
   const clr = body.querySelector('#ret-clearfilter'); if (clr) clr.addEventListener('click', () => { retCatFilter = null; renderReturnsView(); });
   const addBtn = body.querySelector('#ret-add-open'); if (addBtn) addBtn.addEventListener('click', () => openRetAddModal());
   const catBtn = body.querySelector('#ret-cat-open'); if (catBtn) catBtn.addEventListener('click', openCatModal);
-  body.querySelectorAll('.ret-month-link').forEach(a => a.addEventListener('click', () => openRetAddModal(a.dataset.ym)));
-  body.querySelectorAll('.ret-cat-link').forEach(a => a.addEventListener('click', () => { retView = 'fnsku'; retCatFilter = a.dataset.cat; renderReturnsView(); }));
+  const srch = body.querySelector('#ret-search-input');
+  if (srch) srch.addEventListener('input', () => { retSearch = srch.value.trim(); renderRetTableArea(months, years.length); });
+}
+function renderRetTableArea(months, hasYears){
+  const area = document.getElementById('ret-table-area');
+  if (!area) return;
+  area.innerHTML = hasYears ? retBuildBody(months) : '<div class="ret-empty">データがありません。「返品データ追加」から取り込んでください。</div>';
+  area.querySelectorAll('.ret-month-link').forEach(a => a.addEventListener('click', () => openRetAddModal(a.dataset.ym)));
+  area.querySelectorAll('.ret-cat-link').forEach(a => a.addEventListener('click', () => { retView = 'fnsku'; retCatFilter = a.dataset.cat; retSearch = ''; renderReturnsView(); }));
 }
 
 // 商品カテゴリ設定モーダル
