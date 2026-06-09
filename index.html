@@ -515,6 +515,50 @@
   .ret-table tr:hover td { background: rgba(0,0,0,0.015); }
   .ret-month-link { color: var(--blue); cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--blue); }
   .ret-month-link:hover { opacity: 0.75; }
+  .ret-pager { display: inline-flex; align-items: center; gap: 8px; }
+  .ret-pager button { border: 1px solid var(--border-strong); background: #fff; border-radius: 7px; padding: 6px 10px; cursor: pointer; font-size: 13px; }
+  .ret-pager button:disabled { opacity: 0.35; cursor: default; }
+  .ret-qlabel { font-weight: 700; font-size: 14px; min-width: 168px; text-align: center; }
+  .ret-table tr.ret-mrow td { border-top: 2px solid var(--border-strong); }
+  .ret-table td.ret-period { font-weight: 700; vertical-align: top; background: var(--bg-secondary); }
+  .ret-table td.ret-cat { color: var(--text); }
+  .ret-table td.ret-name { color: var(--text-secondary); }
+  .ret-table td.ret-rate { font-weight: 700; color: var(--black); }
+  .ret-cat-link { color: var(--blue); cursor: pointer; text-decoration: none; border-bottom: 1px dashed var(--blue); }
+  .ret-cat-link:hover { opacity: 0.75; }
+  .ret-chip { display: inline-flex; align-items: center; gap: 6px; background: var(--amber-light); color: var(--text); border-radius: 999px; padding: 4px 12px; font-size: 12px; font-weight: 600; }
+  .ret-chip a { cursor: pointer; color: var(--danger); }
+  .cat-table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .cat-table th, .cat-table td { padding: 8px 10px; border-bottom: 1px solid var(--border); text-align: left; }
+  .cat-table th { color: var(--text-secondary); font-weight: 600; }
+  .cat-prod { color: var(--text); }
+  .cat-fnsku { color: var(--text-tertiary); font-size: 12px; }
+  .cat-input { width: 160px; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 6px; font-family: inherit; }
+  .cat-input:focus { outline: none; border-color: var(--blue); }
+  .ret-empty { text-align: center; color: var(--text-tertiary); padding: 40px 0; }
+  .ret-uname { text-align: left; font-weight: 600; }
+  .ret-ucat { color: var(--text-tertiary); font-size: 12px; font-weight: 600; }
+  .ret-ma { font-weight: 700; }
+  /* 案A ピボット */
+  .ret-pivot th.ret-mcol { text-align: center; border-left: 2px solid var(--border-strong); }
+  .ret-pivot td.ret-sep-l, .ret-pivot th.ret-sep-l { border-right: 2px solid var(--border-strong); }
+  .ret-pivot th:first-child, .ret-pivot td:first-child { position: sticky; left: 0; background: #fff; z-index: 1; }
+  .ret-pivot thead th:first-child { background: var(--bg-secondary); z-index: 2; }
+  .ret-block { margin-bottom: 22px; border: 1px solid var(--border); border-radius: 12px; padding: 6px 12px 12px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
+  .ret-block:last-child { margin-bottom: 4px; }
+  .ret-block-h { font-weight: 700; font-size: 14px; color: var(--text); margin: 0 0 6px; padding: 8px 4px 8px 10px; border-left: 4px solid var(--blue); background: var(--bg-secondary); border-radius: 6px; }
+  .ret-yearsel { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
+  .ret-yearsel select { font-size: 14px; padding: 7px 10px; border: 1px solid var(--border-strong); border-radius: 8px; font-family: inherit; background: #fff; cursor: pointer; }
+  /* 案C カード */
+  .ret-cards { display: grid; grid-template-columns: repeat(auto-fill, minmax(320px, 1fr)); gap: 14px; padding: 4px 0; }
+  .ret-card { border: 1px solid var(--border); border-radius: 12px; overflow: hidden; background: #fff; }
+  .ret-card-h { padding: 10px 14px; background: var(--bg-secondary); font-weight: 700; border-bottom: 1px solid var(--border); }
+  .ret-card-t { width: 100%; border-collapse: collapse; font-size: 13px; }
+  .ret-card-t th, .ret-card-t td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--border); }
+  .ret-card-t th:first-child, .ret-card-t td:first-child { text-align: left; }
+  .ret-card-t th { color: var(--text-secondary); font-weight: 600; font-size: 12px; }
+  .ret-card-t tr:last-child td { border-bottom: none; }
+  .ret-card-t td.ret-rate { font-weight: 700; color: var(--black); }
   .graph-item-btn.off { background: #e2e2e2 !important; color: var(--text-tertiary); }
   .graph-item-btn.off .dot { background: var(--text-tertiary); }
   .graph-legend { display: flex; align-items: center; gap: 20px; margin: 6px 0 12px; font-size: 14px; color: var(--text-secondary); }
@@ -1252,7 +1296,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.46</span>
+  <span class="version">v1.51</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1465,6 +1509,24 @@
 </div>
 
 <!-- 貼付モーダル -->
+<!-- 商品カテゴリ設定モーダル -->
+<div class="modal-bg" id="cat-modal" hidden>
+  <div class="modal" style="max-width:560px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+      <div>
+        <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-tag"/></svg> 商品カテゴリ設定</h3>
+        <div class="sub" style="margin-bottom:0;">各商品（FNSKU）にカテゴリ名を入力してグループ化します。<strong>同じ名前にすると同じカテゴリ</strong>にまとまります（例：耐火バッグ薄型／家計管理ケース）。空欄は「未分類」になります。</div>
+      </div>
+      <button id="cat-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
+    </div>
+    <div id="cat-list" style="margin-top:14px;max-height:440px;overflow:auto;"></div>
+    <datalist id="cat-suggest"></datalist>
+    <div class="modal-actions">
+      <button class="confirm" id="cat-done"><svg class="icn"><use href="#i-check"/></svg> 完了</button>
+    </div>
+  </div>
+</div>
+
 <!-- 返品データ追加モーダル -->
 <div class="modal-bg" id="ret-add-modal" hidden>
   <div class="modal" style="max-width:520px;">
@@ -1702,6 +1764,7 @@ const STORAGE_CAMPAIGNS = 'amacheck_adcampaigns_v1';
 const STORAGE_ADCLOSE = 'amacheck_adclose_v1';
 const STORAGE_PL = 'amacheck_pl_v1';
 const STORAGE_RETURNS = 'amacheck_returns_v1';
+const STORAGE_CAT = 'amacheck_categories_v1';
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
 let products = loadProducts();
@@ -1766,6 +1829,9 @@ function savePlData(){ try { localStorage.setItem(STORAGE_PL, JSON.stringify(plD
 // 返品データ： { 'YYYY-MM': { FNSKU: { 商品の状態: 点数 } } }
 let returnsData = (function(){ try { return JSON.parse(localStorage.getItem(STORAGE_RETURNS) || '{}'); } catch { return {}; } })();
 function saveReturns(){ try { localStorage.setItem(STORAGE_RETURNS, JSON.stringify(returnsData)); } catch {} }
+// 商品カテゴリ： { FNSKU: 'カテゴリ名' }
+let categories = (function(){ try { return JSON.parse(localStorage.getItem(STORAGE_CAT) || '{}'); } catch { return {}; } })();
+function saveCategories(){ try { localStorage.setItem(STORAGE_CAT, JSON.stringify(categories)); } catch {} }
 function isAdMonthClosed(ym){ return !!adClose[ym]; }
 let adCloseDismissed = new Set(); // このセッション中「あとで」にした月
 
@@ -1874,6 +1940,10 @@ function init(){
   document.getElementById('ret-add-apply').addEventListener('click', applyReturnImport);
   document.getElementById('ret-add-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'ret-add-modal') closeRetAddModal(); });
   document.getElementById('ret-file-input').addEventListener('change', (e) => { processReturnFiles(e.target.files); e.target.value = ''; });
+  // 商品カテゴリ設定モーダル
+  document.getElementById('cat-close').addEventListener('click', closeCatModal);
+  document.getElementById('cat-done').addEventListener('click', closeCatModal);
+  document.getElementById('cat-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'cat-modal') closeCatModal(); });
   (function(){
     const z = document.getElementById('ret-upzone'); if (!z) return;
     ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('dragover'); }));
@@ -1881,6 +1951,7 @@ function init(){
     z.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) processReturnFiles(e.dataTransfer.files); });
   })();
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('ret-add-modal').hidden) closeRetAddModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('cat-modal').hidden) closeCatModal(); });
   // 広告の種類 説明モーダル
   (function(){
     const gm = document.getElementById('ad-guide-modal');
@@ -6104,7 +6175,9 @@ function renderPlView(){
 
 // ========== 返品率 ==========
 const RET_DISP = '欠陥品・不良品';   // 返品率に使う商品の状態
-let retMode = 'month';               // 'month' | 'year'
+let retView = 'category';            // 'category' | 'fnsku'
+let retYear = null;                  // 表示する年（nullで最新）
+let retCatFilter = null;             // FNSKU別のカテゴリ絞り込み
 function retEsc(s){ return String(s).replace(/[&<>"]/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c])); }
 function ymAddMonths(ym, delta){ let [y, m] = ym.split('-').map(Number); m += delta; while (m < 1) { m += 12; y--; } while (m > 12) { m -= 12; y++; } return y + '-' + String(m).padStart(2, '0'); }
 function retShipQty(ym, fnsku){ const sh = shipments[ym] && shipments[ym][fnsku]; if (!sh) return 0; let q = 0; for (const d in sh) q += Number(sh[d]) || 0; return q; }
@@ -6117,65 +6190,171 @@ function retFnskus(ym){ const s = new Set(); if (shipments[ym]) Object.keys(ship
 const retPct = (ret, ship) => ship > 0 ? (ret / ship * 100).toFixed(1) + '%' : '—';
 const retMA = (v) => v == null ? '—' : v.toFixed(1) + '%';
 function retName(f){ const p = products.find(x => x.fnsku === f); return p && p.name ? p.name : ''; }
+// カテゴリ
+function catOf(f){ const c = categories[f]; return (c && c.trim()) ? c.trim() : '未分類'; }
+function catShip(ym, cat){ let q = 0; retFnskus(ym).forEach(f => { if (catOf(f) === cat) q += retShipQty(ym, f); }); return q; }
+function catRet(ym, cat){ let q = 0; retFnskus(ym).forEach(f => { if (catOf(f) === cat) q += retQty(ym, f); }); return q; }
+function cat3mo(ym, cat){ let rs = 0, sh = 0; for (let i = 0; i < 3; i++) { const k = ymAddMonths(ym, -i); rs += catRet(k, cat); sh += catShip(k, cat); } return sh > 0 ? rs / sh * 100 : null; }
+function categoriesInMonth(ym){ const s = new Set(); retFnskus(ym).forEach(f => { if (retShipQty(ym, f) > 0 || retQty(ym, f) > 0) s.add(catOf(f)); }); return Array.from(s).sort((a, b) => (a === '未分類') - (b === '未分類') || a.localeCompare(b, 'ja')); }
+function allKnownFnskus(){ const s = new Set(); products.forEach(p => { if (p.fnsku) s.add(p.fnsku); }); Object.values(shipments).forEach(m => Object.keys(m).forEach(f => s.add(f))); Object.values(returnsData).forEach(m => Object.keys(m).forEach(f => s.add(f))); return Array.from(s).sort(); }
+function allCatNames(){ const s = new Set(); Object.values(categories).forEach(c => { if (c && c.trim()) s.add(c.trim()); }); return Array.from(s).sort((a, b) => a.localeCompare(b, 'ja')); }
+// 四半期
+let retSpan = 12;   // 1ページの月数（3ヶ月=1ブロック / 12ヶ月=4ブロック縦積み）
+function quarterOf(ym){ const y = +ym.slice(0, 4), mo = +ym.slice(5, 7); return y + '-Q' + (Math.floor((mo - 1) / retSpan) + 1); }
+function quarterMonths(qk){ const [y, q] = qk.split('-Q'); const base = (+q - 1) * retSpan; const arr = []; for (let i = 0; i < retSpan; i++) { const mo = base + i + 1; if (mo <= 12) arr.push(y + '-' + String(mo).padStart(2, '0')); } return arr; }
+function quarterLabel(qk){ const [y, q] = qk.split('-Q'); const base = (+q - 1) * retSpan; const last = Math.min(12, base + retSpan); return retSpan >= 12 ? (y + '年（1〜12月）') : (y + '年 ' + (base + 1) + '〜' + last + '月'); }
+function retQuarters(){ const s = new Set(); retMonthsList().forEach(ym => s.add(quarterOf(ym))); return Array.from(s).sort(); }
+
+// レイアウト（pivot=月横持ち / group=カテゴリまとめ / card=カード）
+let retLayout = 'pivot';
+function unitShip(u, ym){ return retView === 'category' ? catShip(ym, u.key) : retShipQty(ym, u.key); }
+function unitRet(u, ym){ return retView === 'category' ? catRet(ym, u.key) : retQty(ym, u.key); }
+function unit3mo(u, ym){ return retView === 'category' ? cat3mo(ym, u.key) : ret3mo(ym, u.key); }
+function retUnits(months){
+  if (retView === 'category') {
+    const set = new Set(); months.forEach(ym => categoriesInMonth(ym).forEach(c => set.add(c)));
+    return Array.from(set).sort((a, b) => (a === '未分類') - (b === '未分類') || a.localeCompare(b, 'ja')).map(c => ({ key: c, cat: c, name: c }));
+  }
+  const set = new Set(); months.forEach(ym => retFnskus(ym).forEach(f => { if (retShipQty(ym, f) > 0 || retQty(ym, f) > 0) set.add(f); }));
+  let arr = Array.from(set); if (retCatFilter) arr = arr.filter(f => catOf(f) === retCatFilter);
+  arr.sort((a, b) => catOf(a).localeCompare(catOf(b), 'ja') || (retName(a) || a).localeCompare(retName(b) || b, 'ja'));
+  return arr.map(f => ({ key: f, cat: catOf(f), name: (retName(f) ? retName(f) + ' ' : '') + f }));
+}
+const catLink = (u) => retView === 'category'
+  ? '<a class="ret-cat-link" data-cat="' + retEsc(u.cat) + '" title="このカテゴリをFNSKU別で見る">' + retEsc(u.cat) + '</a>'
+  : retEsc(u.cat);
+const mLink = (ym) => '<a class="ret-month-link" data-ym="' + ym + '" title="この月の返品データを追加">' + ym.slice(0, 4) + '年' + ym.slice(5, 7) + '月</a>';
+
+function chunkLabel(chunk){ const y = chunk[0].slice(0, 4), m1 = +chunk[0].slice(5, 7), m2 = +chunk[chunk.length - 1].slice(5, 7); return y + '年 ' + m1 + '〜' + m2 + '月'; }
+function retBuildBody(months){
+  const units = retUnits(months);
+  if (!units.length) return '<div class="ret-empty">この期間に表示できるデータがありません。</div>';
+  // 3ヶ月ごとのブロックを縦に積む（同じカテゴリ集合で揃える）
+  let h = '';
+  for (let i = 0; i < months.length; i += 3) {
+    const chunk = months.slice(i, i + 3);
+    h += '<div class="ret-block">';
+    if (months.length > 3) h += '<div class="ret-block-h">' + chunkLabel(chunk) + '</div>';
+    h += retLayoutPivot(units, chunk);
+    h += '</div>';
+  }
+  return h;
+}
+// 案A：月を横に並べる（1カテゴリ＝1行）
+function retLayoutPivot(units, months){
+  let h = '<div style="overflow-x:auto;"><table class="ret-table ret-pivot"><thead>';
+  h += '<tr><th rowspan="2">' + (retView === 'category' ? 'カテゴリ' : 'カテゴリ / 商品') + '</th>';
+  months.forEach(ym => h += '<th colspan="3" class="ret-mcol">' + mLink(ym) + '</th>');
+  h += '<th rowspan="2">3ヶ月<br>移動平均</th></tr><tr>';
+  months.forEach(() => h += '<th>出荷</th><th>返品</th><th class="ret-sep-l">返品率</th>');
+  h += '</tr></thead><tbody>';
+  units.forEach(u => {
+    h += '<tr>';
+    h += '<td class="ret-uname">' + (retView === 'category' ? catLink(u) : '<span class="ret-ucat">' + retEsc(u.cat) + '</span> ' + retEsc(u.name)) + '</td>';
+    months.forEach(ym => {
+      const sh = unitShip(u, ym), rt = unitRet(u, ym);
+      h += '<td>' + sh.toLocaleString() + '</td><td>' + rt.toLocaleString() + '</td><td class="ret-rate ret-sep-l">' + retPct(rt, sh) + '</td>';
+    });
+    h += '<td class="ret-ma">' + retMA(unit3mo(u, months[months.length - 1])) + '</td></tr>';
+  });
+  h += '</tbody></table></div>';
+  return h;
+}
+// 案B：カテゴリでまとめ、その中に月3行
+function retLayoutGroup(units, months){
+  let h = '<div style="overflow:auto;max-height:600px;"><table class="ret-table"><thead><tr>'
+    + '<th>' + (retView === 'category' ? 'カテゴリ' : 'カテゴリ / 商品') + '</th><th>月</th><th>出荷点数</th><th>返品点数</th><th>返品率</th><th>3ヶ月移動平均</th>'
+    + '</tr></thead><tbody>';
+  units.forEach(u => {
+    months.forEach((ym, i) => {
+      const sh = unitShip(u, ym), rt = unitRet(u, ym);
+      h += '<tr class="' + (i === 0 ? 'ret-mrow' : '') + '">';
+      if (i === 0) h += '<td class="ret-period" rowspan="' + months.length + '">' + (retView === 'category' ? catLink(u) : '<span class="ret-ucat">' + retEsc(u.cat) + '</span><br>' + retEsc(u.name)) + '</td>';
+      h += '<td>' + mLink(ym) + '</td><td>' + sh.toLocaleString() + '</td><td>' + rt.toLocaleString() + '</td>'
+        + '<td class="ret-rate">' + retPct(rt, sh) + '</td><td>' + retMA(unit3mo(u, ym)) + '</td></tr>';
+    });
+  });
+  h += '</tbody></table></div>';
+  return h;
+}
+// 案C：カテゴリごとのカード
+function retLayoutCard(units, months){
+  let h = '<div class="ret-cards">';
+  units.forEach(u => {
+    h += '<div class="ret-card"><div class="ret-card-h">' + (retView === 'category' ? catLink(u) : '<span class="ret-ucat">' + retEsc(u.cat) + '</span> ' + retEsc(u.name)) + '</div>';
+    h += '<table class="ret-card-t"><thead><tr><th>月</th><th>出荷</th><th>返品</th><th>返品率</th><th>3ヶ月</th></tr></thead><tbody>';
+    months.forEach(ym => {
+      const sh = unitShip(u, ym), rt = unitRet(u, ym);
+      h += '<tr><td>' + mLink(ym) + '</td><td>' + sh.toLocaleString() + '</td><td>' + rt.toLocaleString() + '</td><td class="ret-rate">' + retPct(rt, sh) + '</td><td>' + retMA(unit3mo(u, ym)) + '</td></tr>';
+    });
+    h += '</tbody></table></div>';
+  });
+  h += '</div>';
+  return h;
+}
 
 function renderReturnsView(){
   const body = document.getElementById('returns-body');
   if (!body) return;
-  const maCol = (retMode === 'month');
+  const years = Array.from(new Set(retMonthsList().map(ym => ym.slice(0, 4)))).sort();
+  let yr = retYear && years.includes(retYear) ? retYear : (years.length ? years[years.length - 1] : null);
+  retYear = yr;
+  const months = yr ? Array.from({ length: 12 }, (_, i) => yr + '-' + String(i + 1).padStart(2, '0')) : [];
+
   let h = '<div class="graph-toolbar">';
-  h += '<div class="graph-seg" id="ret-mode"><button data-v="month" class="' + (retMode === 'month' ? 'active' : '') + '">月別</button><button data-v="year" class="' + (retMode === 'year' ? 'active' : '') + '">年別</button></div>';
-  h += '<span style="font-size:12px;color:var(--text-tertiary);margin-left:4px;">返品率＝返品点数÷出荷点数／対象は商品の状態「欠陥品・不良品」</span>';
+  h += '<label class="ret-yearsel">年 <select id="ret-year">' + (years.length ? years.map(y => '<option value="' + y + '"' + (y === yr ? ' selected' : '') + '>' + y + '年</option>').join('') : '<option>—</option>') + '</select></label>';
+  h += '<div class="graph-seg" id="ret-view"><button data-v="category" class="' + (retView === 'category' ? 'active' : '') + '">カテゴリ別</button><button data-v="fnsku" class="' + (retView === 'fnsku' ? 'active' : '') + '">FNSKU別</button></div>';
+  if (retView === 'fnsku' && retCatFilter) h += '<span class="ret-chip">カテゴリ: ' + retEsc(retCatFilter) + ' <a id="ret-clearfilter">✕</a></span>';
   h += '<div class="spacer" style="flex:1"></div>';
+  h += '<span style="font-size:11px;color:var(--text-tertiary);margin-right:8px;">返品率＝返品÷出荷／対象「欠陥品・不良品」</span>';
+  h += '<button class="utility" id="ret-cat-open" style="font-size:12px;"><svg class="icn"><use href="#i-tag"/></svg> カテゴリ設定</button>';
   h += '<button class="primary" id="ret-add-open"><svg class="icn"><use href="#i-plus"/></svg> 返品データ追加</button>';
   h += '</div>';
 
-  const colN = maCol ? 5 : 4;
-  h += '<div style="overflow:auto;max-height:600px;"><table class="ret-table"><thead><tr>'
-    + '<th>' + (maCol ? '月 / FNSKU' : '年 / FNSKU') + '</th><th>出荷点数</th><th>返品点数</th><th>返品率</th>' + (maCol ? '<th>3か月移動平均</th>' : '') + '</tr></thead><tbody>';
-  const empty = '<tr><td colspan="' + colN + '" style="text-align:center;color:var(--text-tertiary);padding:24px;">データがありません</td></tr>';
-
-  if (maCol) {
-    const months = retMonthsList();
-    if (!months.length) h += empty;
-    months.forEach(ym => {
-      const ship = retMonthShip(ym), ret = retMonthRet(ym);
-      h += '<tr class="ret-grp"><td class="ret-period"><a class="ret-month-link" data-ym="' + ym + '" title="この月の返品データを追加">' + ym.replace('-', '/') + '</a></td>'
-        + '<td>' + ship.toLocaleString() + '</td><td>' + ret.toLocaleString() + '</td>'
-        + '<td class="ret-rate">' + retPct(ret, ship) + '</td><td>' + retMA(ret3mo(ym, null)) + '</td></tr>';
-      retFnskus(ym).forEach(f => {
-        const s = retShipQty(ym, f), r = retQty(ym, f);
-        if (s === 0 && r === 0) return;
-        const nm = retName(f);
-        h += '<tr class="ret-sub"><td class="ret-fnsku">' + f + (nm ? ' <span class="ret-nm">' + retEsc(nm) + '</span>' : '') + '</td>'
-          + '<td>' + s.toLocaleString() + '</td><td>' + r.toLocaleString() + '</td>'
-          + '<td>' + retPct(r, s) + '</td><td>' + retMA(ret3mo(ym, f)) + '</td></tr>';
-      });
-    });
+  if (!years.length) {
+    h += '<div class="ret-empty">データがありません。「返品データ追加」から取り込んでください。</div>';
   } else {
-    const byYear = {};
-    retMonthsList().forEach(ym => { const y = ym.slice(0, 4); (byYear[y] = byYear[y] || []).push(ym); });
-    const years = Object.keys(byYear).sort();
-    if (!years.length) h += empty;
-    years.forEach(y => {
-      let ship = 0, ret = 0; byYear[y].forEach(ym => { ship += retMonthShip(ym); ret += retMonthRet(ym); });
-      h += '<tr class="ret-grp"><td class="ret-period">' + y + '年</td><td>' + ship.toLocaleString() + '</td><td>' + ret.toLocaleString() + '</td><td class="ret-rate">' + retPct(ret, ship) + '</td></tr>';
-      const fset = new Set(); byYear[y].forEach(ym => retFnskus(ym).forEach(f => fset.add(f)));
-      Array.from(fset).sort().forEach(f => {
-        let s = 0, r = 0; byYear[y].forEach(ym => { s += retShipQty(ym, f); r += retQty(ym, f); });
-        if (s === 0 && r === 0) return;
-        const nm = retName(f);
-        h += '<tr class="ret-sub"><td class="ret-fnsku">' + f + (nm ? ' <span class="ret-nm">' + retEsc(nm) + '</span>' : '') + '</td>'
-          + '<td>' + s.toLocaleString() + '</td><td>' + r.toLocaleString() + '</td><td>' + retPct(r, s) + '</td></tr>';
-      });
-    });
+    h += retBuildBody(months);
   }
-  h += '</tbody></table></div>';
   body.innerHTML = h;
-  body.querySelectorAll('#ret-mode button').forEach(b => b.addEventListener('click', () => { retMode = b.dataset.v; renderReturnsView(); }));
-  const addBtn = body.querySelector('#ret-add-open');
-  if (addBtn) addBtn.addEventListener('click', () => openRetAddModal());
+
+  const ySel = body.querySelector('#ret-year'); if (ySel) ySel.addEventListener('change', () => { retYear = ySel.value; renderReturnsView(); });
+  body.querySelectorAll('#ret-view button').forEach(b => b.addEventListener('click', () => { retView = b.dataset.v; if (retView === 'category') retCatFilter = null; renderReturnsView(); }));
+  const clr = body.querySelector('#ret-clearfilter'); if (clr) clr.addEventListener('click', () => { retCatFilter = null; renderReturnsView(); });
+  const addBtn = body.querySelector('#ret-add-open'); if (addBtn) addBtn.addEventListener('click', () => openRetAddModal());
+  const catBtn = body.querySelector('#ret-cat-open'); if (catBtn) catBtn.addEventListener('click', openCatModal);
   body.querySelectorAll('.ret-month-link').forEach(a => a.addEventListener('click', () => openRetAddModal(a.dataset.ym)));
+  body.querySelectorAll('.ret-cat-link').forEach(a => a.addEventListener('click', () => { retView = 'fnsku'; retCatFilter = a.dataset.cat; renderReturnsView(); }));
 }
+
+// 商品カテゴリ設定モーダル
+function renderCatList(){
+  const wrap = document.getElementById('cat-list');
+  const fns = allKnownFnskus();
+  let h = '';
+  if (!fns.length) h = '<div style="color:var(--text-tertiary);padding:12px;">商品データがありません。先に出荷数や返品データを取り込んでください。</div>';
+  else {
+    h += '<table class="cat-table"><thead><tr><th>商品名 / FNSKU</th><th>カテゴリ</th></tr></thead><tbody>';
+    fns.forEach(f => {
+      const nm = retName(f);
+      h += '<tr><td class="cat-prod">' + (nm ? retEsc(nm) + ' ' : '') + '<span class="cat-fnsku">' + f + '</span></td>'
+        + '<td><input class="cat-input" list="cat-suggest" data-f="' + f + '" value="' + retEsc(categories[f] || '') + '" placeholder="カテゴリ名"></td></tr>';
+    });
+    h += '</tbody></table>';
+  }
+  wrap.innerHTML = h;
+  document.getElementById('cat-suggest').innerHTML = allCatNames().map(c => '<option value="' + retEsc(c) + '">').join('');
+  wrap.querySelectorAll('.cat-input').forEach(inp => {
+    inp.addEventListener('change', () => {
+      const f = inp.dataset.f, v = inp.value.trim();
+      if (v) categories[f] = v; else delete categories[f];
+      saveCategories();
+      document.getElementById('cat-suggest').innerHTML = allCatNames().map(c => '<option value="' + retEsc(c) + '">').join('');
+    });
+  });
+}
+function openCatModal(){ renderCatList(); document.getElementById('cat-modal').hidden = false; }
+function closeCatModal(){ document.getElementById('cat-modal').hidden = true; renderReturnsView(); }
 
 // 返品レポート（CSV）解析： 返品日/FNSKU/数量/商品の状態
 function parseReturnCsv(text){
