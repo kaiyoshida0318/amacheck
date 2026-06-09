@@ -556,6 +556,17 @@
   .cat-fnsku { color: var(--text-tertiary); font-size: 12px; }
   .cat-input { width: 160px; font-size: 13px; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 6px; font-family: inherit; }
   .cat-input:focus { outline: none; border-color: var(--blue); }
+  /* カテゴリ設定：商品名／FNSKU／カテゴリを独立列で縦揃え */
+  .cat-pname { color: var(--black); max-width: 340px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .cat-fnsku { color: var(--text-tertiary); font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; white-space: nowrap; }
+  .cat-noname { color: var(--text-tertiary); font-style: italic; }
+  /* 返品率 FNSKU別ピボット：カテゴリ／商品名／FNSKUの独立列 */
+  .ret-pivot td.ret-ucat-cell { text-align: left; color: var(--text-secondary); font-size: 13px; }
+  .ret-pivot td.ret-uname { max-width: 280px; overflow: hidden; text-overflow: ellipsis; text-align: left; }
+  .ret-pivot th.ret-lbl { text-align: left; }
+  .ret-pivot td.ret-fnsku-cell { text-align: left; color: var(--text-tertiary); font-size: 12px; font-family: ui-monospace, "SF Mono", Menlo, monospace; }
+  .ret-pivot th.ret-sep-r, .ret-pivot td.ret-sep-r { border-right: 2px solid var(--border-strong); }
+  .ret-noname { color: var(--text-tertiary); font-style: italic; }
   .ret-empty { text-align: center; color: var(--text-tertiary); padding: 40px 0; }
   .ret-uname { text-align: left; font-weight: 600; }
   .ret-ucat { color: var(--text-tertiary); font-size: 12px; font-weight: 600; }
@@ -1317,7 +1328,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.52</span>
+  <span class="version">v1.53</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6260,7 +6271,7 @@ function retUnits(months){
   const set = new Set(); months.forEach(ym => retFnskus(ym).forEach(f => { if (retShipQty(ym, f) > 0 || retQty(ym, f) > 0) set.add(f); }));
   let arr = Array.from(set); if (retCatFilter) arr = arr.filter(f => catOf(f) === retCatFilter);
   arr.sort((a, b) => catOf(a).localeCompare(catOf(b), 'ja') || (retName(a) || a).localeCompare(retName(b) || b, 'ja'));
-  return arr.map(f => ({ key: f, cat: catOf(f), name: (retName(f) ? retName(f) + ' ' : '') + f }));
+  return arr.map(f => ({ key: f, cat: catOf(f), name: (retName(f) ? retName(f) + ' ' : '') + f, pname: retName(f), fnsku: f }));
 }
 const catLink = (u) => retView === 'category'
   ? '<a class="ret-cat-link" data-cat="' + retEsc(u.cat) + '" title="このカテゴリをFNSKU別で見る">' + retEsc(u.cat) + '</a>'
@@ -6285,14 +6296,22 @@ function retBuildBody(months){
 // 案A：月を横に並べる（1カテゴリ＝1行）
 function retLayoutPivot(units, months){
   let h = '<div style="overflow-x:auto;"><table class="ret-table ret-pivot"><thead>';
-  h += '<tr><th rowspan="2">' + (retView === 'category' ? 'カテゴリ' : 'カテゴリ / 商品') + '</th>';
+  h += '<tr>' + (retView === 'category'
+      ? '<th rowspan="2">カテゴリ</th>'
+      : '<th rowspan="2" class="ret-lbl">カテゴリ</th><th rowspan="2" class="ret-lbl">商品名</th><th rowspan="2" class="ret-lbl ret-sep-r">FNSKU</th>');
   months.forEach(ym => h += '<th colspan="3" class="ret-mcol">' + mLink(ym) + '</th>');
   h += '<th rowspan="2">3ヶ月<br>移動平均</th></tr><tr>';
   months.forEach(() => h += '<th>出荷</th><th>返品</th><th class="ret-sep-l">返品率</th>');
   h += '</tr></thead><tbody>';
   units.forEach(u => {
     h += '<tr>';
-    h += '<td class="ret-uname">' + (retView === 'category' ? catLink(u) : '<span class="ret-ucat">' + retEsc(u.cat) + '</span> ' + retEsc(u.name)) + '</td>';
+    if (retView === 'category') {
+      h += '<td class="ret-uname">' + catLink(u) + '</td>';
+    } else {
+      h += '<td class="ret-ucat-cell">' + retEsc(u.cat) + '</td>'
+        + '<td class="ret-uname"' + (u.pname ? ' title="' + retEsc(u.pname) + '"' : '') + '>' + (u.pname ? retEsc(u.pname) : '<span class="ret-noname">（マスタ未登録）</span>') + '</td>'
+        + '<td class="ret-fnsku-cell ret-sep-r">' + retEsc(u.fnsku) + '</td>';
+    }
     months.forEach(ym => {
       const sh = unitShip(u, ym), rt = unitRet(u, ym);
       h += '<td>' + sh.toLocaleString() + '</td><td>' + rt.toLocaleString() + '</td><td class="ret-rate ret-sep-l">' + retPct(rt, sh) + '</td>';
@@ -6376,10 +6395,12 @@ function renderCatList(){
   let h = '';
   if (!fns.length) h = '<div style="color:var(--text-tertiary);padding:12px;">商品データがありません。先に出荷数や返品データを取り込んでください。</div>';
   else {
-    h += '<table class="cat-table"><thead><tr><th>商品名 / FNSKU</th><th>カテゴリ</th></tr></thead><tbody>';
+    h += '<table class="cat-table"><thead><tr><th>商品名</th><th>FNSKU</th><th>カテゴリ</th></tr></thead><tbody>';
     fns.forEach(f => {
       const nm = retName(f);
-      h += '<tr><td class="cat-prod">' + (nm ? retEsc(nm) + ' ' : '') + '<span class="cat-fnsku">' + f + '</span></td>'
+      h += '<tr>'
+        + '<td class="cat-pname"' + (nm ? ' title="' + retEsc(nm) + '"' : '') + '>' + (nm ? retEsc(nm) : '<span class="cat-noname">（マスタ未登録）</span>') + '</td>'
+        + '<td class="cat-fnsku">' + f + '</td>'
         + '<td><input class="cat-input" list="cat-suggest" data-f="' + f + '" value="' + retEsc(categories[f] || '') + '" placeholder="カテゴリ名"></td></tr>';
     });
     h += '</tbody></table>';
