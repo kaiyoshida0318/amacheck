@@ -1426,7 +1426,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.97</span>
+  <span class="version">v1.99</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6306,9 +6306,9 @@ function plTierClass(t, v){
   return '';
 }
 // ===== 全体収支：月末データ CSV取込 =====
-const PL_IMP_ORDER = ['sales', 'ad', 'storage', 'fbaFee'];
+const PL_IMP_ORDER = ['fbaFee', 'ad', 'storage', 'sales'];
 const PL_IMP = {
-  sales: { label: '総売上', letter: 'A', col: '注文商品の売上額', manual: true,
+  sales: { label: '総売上', letter: 'D', col: '注文商品の売上額', manual: true,
     url: 'https://sellercentral.amazon.co.jp/gp/site-metrics/report.html?mons_sel_mkid=amzn1.mp.o.A1VC38T7YXB528&mons_sel_mcid=amzn1.merchant.o.A3UZ9NEVYAB78B&mons_sel_persist=true#/dashboard',
     desc: '売上ダッシュボードのCSV。「注文商品の売上額」を総売上に設定。', abs: false },
   ad: { label: '広告費・広告売上', letter: 'B', col: '合計費用 / 売上', manual: true, combo: true,
@@ -6317,7 +6317,7 @@ const PL_IMP = {
   storage: { label: '保管費', letter: 'C', col: 'Monthly storage fee (est.)', manual: false,
     url: 'https://sellercentral.amazon.co.jp/reportcentral/STORAGE_FEE_CHARGES/1',
     desc: '月次保管料レポートのCSV。「Monthly storage fee (est.)」の合計を保管費に設定。', abs: false },
-  fbaFee: { label: 'FBA手数料(送料)・販売手数料・出荷数', letter: 'D', col: 'FBA 手数料 / 手数料 / 数量', manual: false, txn: true,
+  fbaFee: { label: 'FBA手数料(送料)・販売手数料・出荷数', letter: 'A', col: 'FBA 手数料 / 手数料 / 数量', manual: false, txn: true,
     url: 'https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash',
     desc: 'トランザクション（支払い）レポートのCSV。「FBA 手数料」=FBA手数料(送料)、「手数料」=販売手数料、「注文」行の数量を商品マスタのSKU→FNSKUで出荷数に変換。販売手数料は粗利益を実額化。', abs: true }
 };
@@ -6538,7 +6538,7 @@ function renderPlImportModal(){
   const list = plImpMonthsList();
   sel.innerHTML = '<option value=""' + (plImpMonth == null ? ' selected' : '') + '>対象月を選択…</option>'
     + (list.length ? list.slice().reverse().map(m => '<option value="' + m + '"' + (m === plImpMonth ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') : '');
-  const fmtRoasV = r => (r == null) ? '—' : (Math.round(r * 100) / 100).toFixed(2);
+  const fmtRoasV = r => (r == null) ? '—' : (Math.round(r * 100) + '%');
   const monthShipQty = () => { const sh = shipments[plImpMonth]; let q = 0; if (sh) for (const fn in sh) for (const d in sh[fn]) q += Number(sh[fn][d]) || 0; return q; };
   const muted = '<span style="color:var(--text-tertiary)">未入力</span>';
   const cur = (f) => {
@@ -6675,14 +6675,14 @@ async function processPlDrop(files){
     } catch { errs.push(f.name + '：展開エラー'); }
   }
   const hit = [];
-  if (A.rows > 0) { const val = Math.round(A.sum); plSetPending('sales', '総売上 ' + plYen(val), () => { if (!plData[ym]) plData[ym] = {}; plData[ym].sales = val; }); hit.push('A 総売上'); }
+  if (A.rows > 0) { const val = Math.round(A.sum); plSetPending('sales', '総売上 ' + plYen(val), () => { if (!plData[ym]) plData[ym] = {}; plData[ym].sales = val; }); hit.push(PL_IMP.sales.letter + ' 総売上'); }
   if (B.rows > 0) {
     if (B.haveType) ['sp', 'sb'].forEach(pf => Object.keys(B.bt[pf]).forEach(st => { B.bt[pf][st].cost = Math.round(B.bt[pf][st].cost); B.bt[pf][st].sales = Math.round(B.bt[pf][st].sales); }));
-    const cost = Math.round(B.cost), sales = Math.round(B.sales), roas = cost > 0 ? (Math.round(sales / cost * 100) / 100).toFixed(2) : '—', bt = B.bt, haveType = B.haveType;
+    const cost = Math.round(B.cost), sales = Math.round(B.sales), roas = cost > 0 ? (Math.round(sales / cost * 100) + '%') : '—', bt = B.bt, haveType = B.haveType;
     plSetPending('ad', '広告費 ' + plYen(cost) + ' / 広告売上 ' + plYen(sales) + ' / ROAS ' + roas + (haveType ? '（SP/SB内訳）' : ''), () => { if (!plData[ym]) plData[ym] = {}; plData[ym].adCost = cost; plData[ym].adSales = sales; if (haveType) plData[ym].adByType = bt; });
-    hit.push('B 広告');
+    hit.push(PL_IMP.ad.letter + ' 広告');
   }
-  if (C.rows > 0) { const val = Math.abs(Math.round(C.sum)); plSetPending('storage', '保管費 ' + plYen(val), () => { if (!plData[ym]) plData[ym] = {}; plData[ym].storage = val; }); hit.push('C 保管費'); }
+  if (C.rows > 0) { const val = Math.abs(Math.round(C.sum)); plSetPending('storage', '保管費 ' + plYen(val), () => { if (!plData[ym]) plData[ym] = {}; plData[ym].storage = val; }); hit.push(PL_IMP.storage.letter + ' 保管費'); }
   if (D.rows > 0 || D.shipRows > 0) {
     const fba = Math.abs(Math.round(D.fbaSigned)), fee = D.anyFee ? Math.abs(Math.round(D.feeSigned)) : null;
     const ship = D.ship, hasShip = D.shipRows > 0, shipQty = D.shipQty, shipN = Object.keys(D.ship).length, unmatchedN = D.unmatched.size;
@@ -6694,10 +6694,10 @@ async function processPlDrop(files){
       plData[ym].fbaFee = fba; if (fee != null) plData[ym].sellingFee = fee;
       if (hasShip) shipments[ym] = ship;
     });
-    hit.push('D FBA手数料・販売手数料・出荷数');
+    hit.push(PL_IMP.fbaFee.letter + ' FBA手数料・販売手数料・出荷数');
   }
   let msg = '';
-  if (hit.length) msg += '<span style="color:var(--teal)">✓ 判別：' + hit.map(retEsc).join(' / ') + '（' + ym.replace('-', '/') + '）</span>';
+  if (hit.length) msg += '<span style="color:var(--teal)">✓ 判別：' + hit.sort().map(retEsc).join(' / ') + '（' + ym.replace('-', '/') + '）</span>';
   if (unrec.length) msg += (msg ? '<br>' : '') + '<span style="color:var(--danger)">判別できないファイル：' + unrec.map(retEsc).join(', ') + '</span>';
   if (errs.length) msg += (msg ? '<br>' : '') + '<span style="color:var(--danger)">' + retEsc(errs[0]) + '</span>';
   if (!hit.length && !unrec.length && !errs.length) msg = '<span style="color:var(--danger)">取込できる内容がありませんでした。</span>';
@@ -6752,7 +6752,7 @@ async function processPlSlot(field, files){
     }
     if (rows > 0) {
       if (haveType) ['sp', 'sb'].forEach(pf => Object.keys(bt[pf]).forEach(st => { bt[pf][st].cost = Math.round(bt[pf][st].cost); bt[pf][st].sales = Math.round(bt[pf][st].sales); }));
-      const roas = (cost > 0) ? (Math.round(sales / cost * 100) / 100).toFixed(2) : '—';
+      const roas = (cost > 0) ? (Math.round(sales / cost * 100) + '%') : '—';
       plSetPending(field, '広告費 ' + plYen(cost) + ' / 広告売上 ' + plYen(sales) + ' / ROAS ' + roas + (haveType ? '（SP/SB内訳）' : ''), () => {
         if (!plData[ym]) plData[ym] = {};
         plData[ym].adCost = cost; plData[ym].adSales = sales;
@@ -6874,7 +6874,7 @@ function renderPlView(){
   // 粗利益・実質利益は自動計算列。実売上が未入力で計算できない時は「未入力」ではなく自動計算待ちを示す
   const AUTO = '<span class="pl-empty" title="総売上を入力すると自動計算されます">自動計算</span>';
   const yenOrAuto = v => (v == null) ? AUTO : plYen(v);
-  const roasStr = r => (r == null) ? '<span class="pl-empty">—</span>' : (Math.round(r * 100) / 100).toFixed(2);
+  const roasStr = r => (r == null) ? '<span class="pl-empty">—</span>' : (Math.round(r * 100) + '%');
   data.forEach(d => {
     if (d.total != null) { sT += d.total; sTany = true; }
     if (d.gross != null) { sG += d.gross; sGany = true; }
@@ -6914,7 +6914,7 @@ function renderPlView(){
       + roasCell
       + '</tr>';
   });
-  const footRoas = (sA > 0) ? (Math.round(sAS / sA * 100) / 100).toFixed(2) : '<span class="pl-empty">—</span>';
+  const footRoas = (sA > 0) ? (Math.round(sAS / sA * 100) + '%') : '<span class="pl-empty">—</span>';
   const seoFoot = sTany ? (sT - sAS) : null;
   h += '</tbody><tfoot><tr>'
     + '<td>合計</td><td class="pl-c-sales">' + (sTany ? plYen(sT) : NA) + '</td><td class="pl-c-sales">' + yenOrAuto(seoFoot) + '</td>'
