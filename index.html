@@ -508,19 +508,20 @@
   .pl-table tbody td.pl-c-warm,  .pl-table tfoot td.pl-c-warm  { background: #fffaf2; }
   .pl-table thead th.pl-c-roas { background: #ede9fe; color: #6d28d9; }
   .pl-table tbody td.pl-c-roas, .pl-table tfoot td.pl-c-roas { background: #f7f5ff; font-weight: 600; }
-  .pl-slot { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--bg-secondary); display: flex; flex-direction: column; }
-  #pl-imp-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+  .pl-slot { border: 1px solid var(--border); border-radius: 10px; padding: 16px 18px; background: var(--bg-secondary); display: flex; flex-direction: column; }
+  #pl-imp-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 14px; align-items: stretch; }
   #pl-imp-slots .pl-slot-zone { margin-top: auto; }
-  @media (max-width: 680px) { #pl-imp-slots { grid-template-columns: 1fr; } }
+  .pl-slot-wide { grid-column: 1 / -1; }
+  @media (max-width: 760px) { #pl-imp-slots { grid-template-columns: 1fr; } .pl-slot-wide { grid-column: auto; } }
   .pl-slot-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
-  .pl-slot-head strong { font-size: 14px; }
-  .pl-slot-cur { font-size: 12px; color: var(--text-secondary); }
-  .pl-slot-desc { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
-  .pl-slot-link { font-size: 11px; margin-top: 4px; }
-  .pl-slot-zone { margin-top: 8px; padding: 12px; min-height: 0; }
-  .pl-slot-zone .main { font-size: 13px; }
-  .pl-slot-zone .sub { font-size: 11px; }
-  .pl-slot-status { font-size: 12px; margin-top: 6px; min-height: 0; }
+  .pl-slot-head strong { font-size: 17px; }
+  .pl-slot-cur { font-size: 13px; color: var(--text-secondary); }
+  .pl-slot-desc { font-size: 13px; color: var(--text-secondary); margin-top: 6px; line-height: 1.6; }
+  .pl-slot-link { font-size: 12.5px; margin-top: 6px; }
+  .pl-slot-zone { margin-top: 10px; padding: 18px; min-height: 0; }
+  .pl-slot-zone .main { font-size: 15px; }
+  .pl-slot-zone .sub { font-size: 12.5px; }
+  .pl-slot-status { font-size: 13px; margin-top: 8px; min-height: 0; }
   .pl-pending { color: #b45309; font-weight: 600; }
   .pl-table tfoot td { border-top: 2px solid var(--border-strong); border-bottom: none; font-weight: 700; background: var(--bg-secondary); }
   .pl-input { width: 100%; text-align: right; font: inherit; font-size: 14px; border: none; background: transparent; padding: 0; margin: 0; color: inherit; }
@@ -533,6 +534,7 @@
   .pl-table td.pl-edit:hover { background: var(--blue-light); }
   .pl-table td.pl-edit:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
   .pl-table td.pl-edit .pl-empty { color: var(--text-tertiary); }
+  .pl-table .pl-empty { color: var(--text-tertiary); font-weight: 400; }
   .pl-table td.pl-period { cursor: pointer; color: var(--blue); }
   .pl-table td.pl-period:hover { text-decoration: underline; }
   .pl-table th, .pl-table td { border-right: 1px solid var(--border); }
@@ -1400,7 +1402,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.88</span>
+  <span class="version">v1.90</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1659,17 +1661,17 @@
 
 <!-- 全体収支：月末データ取込モーダル（実売上・広告費・保管費・FBA手数料） -->
 <div class="modal-bg" id="pl-import-modal" hidden>
-  <div class="modal" style="max-width:860px;">
+  <div class="modal" style="max-width:1040px;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
-        <h3><svg class="icn" style="color:var(--teal);vertical-align:-3px;"><use href="#i-coins"/></svg> 月末データの追加</h3>
-        <div class="sub" style="margin-bottom:0;">月が終わったら確定値を取り込みます。<strong>実売上・広告費はセルに直接手入力も可能</strong>です。同じ月は取り込み直すと上書きされます。</div>
+        <h3 style="font-size:20px;"><svg class="icn" style="color:var(--teal);vertical-align:-3px;"><use href="#i-coins"/></svg> 月末データの追加</h3>
+        <div class="sub" style="margin-bottom:0;font-size:14px;">月が終わったら確定値を取り込みます。<strong>実売上・広告費はセルに直接手入力も可能</strong>です。同じ月は取り込み直すと上書きされます。</div>
       </div>
       <button id="pl-imp-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-top:12px;">
-      <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);font-weight:600;">対象月
-        <select id="pl-imp-month" class="graph-select" style="font-size:14px;padding:7px 10px;"></select>
+    <div style="display:flex;align-items:center;gap:10px;margin-top:14px;">
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:15px;color:var(--text-secondary);font-weight:600;">対象月
+        <select id="pl-imp-month" class="graph-select" style="font-size:16px;padding:9px 12px;"></select>
       </label>
     </div>
     <div id="pl-imp-slots" style="margin-top:8px;"></div>
@@ -6282,7 +6284,7 @@ function plTierClass(t, v){
   return '';
 }
 // ===== 全体収支：月末データ CSV取込 =====
-const PL_IMP_ORDER = ['shipment', 'sales', 'ad', 'storage', 'fbaFee'];
+const PL_IMP_ORDER = ['sales', 'ad', 'storage', 'fbaFee', 'shipment'];
 const PL_IMP = {
   shipment: { label: '出荷数', col: '出荷日 / FNSKU / 数量', manual: false, ship: true,
     url: 'https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash',
@@ -6472,7 +6474,7 @@ function renderPlImportModal(){
   let h = '';
   PL_IMP_ORDER.forEach(f => {
     const cfg = PL_IMP[f];
-    h += '<div class="pl-slot">'
+    h += '<div class="pl-slot' + (f === 'shipment' ? ' pl-slot-wide' : '') + '">'
       + '<div class="pl-slot-head"><strong>' + cfg.label + '</strong>'
       + '<span class="pl-slot-cur">現在: ' + cur(f) + '</span></div>'
       + '<div class="pl-slot-desc">' + cfg.desc + (cfg.manual ? '' : '<br>※手入力は不可。CSVのみ。') + '</div>'
@@ -6896,11 +6898,13 @@ function retBuildBody(months){
   return h;
 }
 // 案A：月を横に並べる（1カテゴリ＝1行）
-function retLayoutPivot(units, months){
+function retLayoutPivot(units, months, periodLabel){
+  const pl = periodLabel != null;
   let h = '<div style="overflow-x:auto;"><table class="ret-table ret-pivot"><thead>';
   h += '<tr>' + (retView === 'category'
-      ? '<th rowspan="2" class="ret-sep-r">カテゴリ</th>'
-      : '<th rowspan="2" class="ret-lbl">カテゴリ</th><th rowspan="2" class="ret-lbl">商品名</th><th rowspan="2" class="ret-lbl ret-sep-r">FNSKU</th>');
+      ? ('<th rowspan="2"' + (pl ? '' : ' class="ret-sep-r"') + '>カテゴリ</th>')
+      : ('<th rowspan="2" class="ret-lbl">カテゴリ</th><th rowspan="2" class="ret-lbl">商品名</th><th rowspan="2" class="ret-lbl' + (pl ? '' : ' ret-sep-r') + '">FNSKU</th>'));
+  if (pl) h += '<th rowspan="2" class="ret-sep-r">期間</th>';
   h += '<th rowspan="2" class="ret-ma-col ret-main ret-main-l">3ヶ月<br>移動平均</th>';
   h += '<th rowspan="2" class="ret-ma-col ret-main ret-main-l">3ヶ月<br>出荷合計</th>';
   h += '<th rowspan="2" class="ret-ma-col ret-main ret-sep-r">3ヶ月<br>返品合計</th>';
@@ -6916,13 +6920,14 @@ function retLayoutPivot(units, months){
     const divider = newGroup && prevCat !== null;
     h += '<tr' + (divider ? ' class="ret-grp-start"' : '') + '>';
     if (retView === 'category') {
-      h += '<td class="ret-uname ret-sep-r">' + catLink(u) + '</td>';
+      h += '<td class="ret-uname' + (pl ? '' : ' ret-sep-r') + '">' + catLink(u) + '</td>';
     } else {
       h += '<td class="ret-ucat-cell">' + (newGroup ? retEsc(u.cat) : '') + '</td>'
         + '<td class="ret-uname"' + (u.pname ? ' title="' + retEsc(u.pname) + '"' : '') + '>' + (u.pname ? retEsc(u.pname) : '<span class="ret-noname">（マスタ未登録）</span>') + '</td>'
-        + '<td class="ret-fnsku-cell ret-sep-r">' + retEsc(u.fnsku) + '</td>';
+        + '<td class="ret-fnsku-cell' + (pl ? '' : ' ret-sep-r') + '">' + retEsc(u.fnsku) + '</td>';
       prevCat = u.cat;
     }
+    if (pl) h += '<td class="ret-uname ret-sep-r">' + retEsc(periodLabel) + '</td>';
     // 3ヶ月移動平均
     const curMA = unit3mo(u, lastM), prevMA = unit3mo(u, prevM);
     const maUp = curMA != null && prevMA != null && curMA > prevMA;
@@ -6992,35 +6997,18 @@ function retUnitLabel(u){
 function retBuildUnitGrouped(units, months){
   const quarters = [];
   for (let i = 0; i < months.length; i += 3) quarters.push(months.slice(i, i + 3));
-  const NA = '<span class="ret-na">未入力</span>';
-  let body = '', any = false;
-  units.forEach((u, ui) => {
+  let h = '', any = false;
+  units.forEach(u => {
     const w = unitWithdrawnMonth(u);
-    let first = true;
     quarters.forEach(chunk => {
       if (w && chunk[0] > w) return; // 撤退月より後の四半期は表示しない
-      let ship = 0, ret = 0, shEntered = false, rtEntered = false;
-      chunk.forEach(ym => {
-        ship += unitShip(u, ym); ret += unitRet(u, ym);
-        if (shipments[ym]) shEntered = true;
-        if (returnsData[ym]) rtEntered = true;
-      });
       const m1 = +chunk[0].slice(5, 7), m2 = +chunk[chunk.length - 1].slice(5, 7);
-      const label = retEsc(retUnitLabel(u)) + '　' + m1 + '-' + m2 + '月';
-      body += '<tr' + (first && ui > 0 ? ' class="ret-grp-start"' : '') + '>'
-        + '<td class="ret-uname ret-sep-r">' + label + '</td>'
-        + '<td>' + (shEntered ? ship.toLocaleString() : NA) + '</td>'
-        + '<td>' + (rtEntered ? ret.toLocaleString() : NA) + '</td>'
-        + '<td class="ret-rate">' + ((shEntered && rtEntered) ? retPct(ret, ship) : NA) + '</td>'
-        + '</tr>';
-      first = false; any = true;
+      h += '<div class="ret-block">' + retLayoutPivot([u], chunk, m1 + '〜' + m2 + '月') + '</div>';
+      any = true;
     });
   });
   if (!any) return '<div class="ret-empty">この期間に表示できるデータがありません。</div>';
-  return '<div class="ret-grouped-wrap"><table class="ret-table ret-grouped"><thead><tr>'
-    + '<th class="ret-sep-r">' + (retView === 'category' ? 'カテゴリ' : '商品') + '（四半期）</th>'
-    + '<th>出荷点数</th><th>返品点数</th><th>返品率</th>'
-    + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+  return h;
 }
 function renderReturnsView(){
   const body = document.getElementById('returns-body');
