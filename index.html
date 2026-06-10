@@ -630,6 +630,16 @@
   .ret-block { margin-bottom: 22px; border: 1px solid var(--border); border-radius: 12px; padding: 6px 12px 12px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
   .ret-block:last-child { margin-bottom: 4px; }
   .ret-block-h { font-weight: 700; font-size: 14px; color: var(--text); margin: 0 0 6px; padding: 8px 4px 8px 10px; border-left: 4px solid var(--blue); background: var(--bg-secondary); border-radius: 6px; }
+  /* くくり表示（ユニット×四半期を縦に並べる） */
+  .ret-grouped { width: 100%; border-collapse: collapse; background: #fff; }
+  .ret-grouped th, .ret-grouped td { padding: 8px 14px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; font-size: 14px; }
+  .ret-grouped thead th { position: sticky; top: 0; background: var(--bg-secondary); font-weight: 700; color: var(--text-secondary); z-index: 1; }
+  .ret-grouped td.ret-uname { text-align: left; font-weight: 600; }
+  .ret-grouped td.ret-rate { font-weight: 700; color: var(--black); }
+  .ret-grouped tr.ret-grp-start td { border-top: 2px solid var(--border-strong); }
+  .ret-grouped th.ret-sep-r, .ret-grouped td.ret-sep-r { border-right: 2px solid var(--border-strong); }
+  .ret-grouped .ret-na { color: var(--text-tertiary); font-size: 12px; }
+  .ret-grouped-wrap { overflow: auto; max-height: 640px; border: 1px solid var(--border); border-radius: 12px; }
   .ret-yearsel { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; color: var(--text-secondary); font-weight: 600; }
   .ret-search { display: inline-flex; align-items: center; gap: 6px; border: 1px solid var(--border-strong); border-radius: 9px; background: var(--bg-card); padding: 0 10px; height: 38px; }
   .ret-search .icn { color: var(--text-tertiary); font-size: 16px; flex-shrink: 0; }
@@ -1385,7 +1395,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.79</span>
+  <span class="version">v1.80</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6685,6 +6695,7 @@ function retQuarters(){ const s = new Set(); retMonthsList().forEach(ym => s.add
 
 // レイアウト（pivot=月横持ち / group=カテゴリまとめ / card=カード）
 let retLayout = 'pivot';
+let retGroupBy = 'normal';   // 'normal'＝四半期ブロック優先 / 'unit'＝ユニット（カテゴリ/商品）ごとに四半期を縦並び
 function unitShip(u, ym){ return retView === 'category' ? catShip(ym, u.key) : retShipQty(ym, u.key); }
 function unitRet(u, ym){ return retView === 'category' ? catRet(ym, u.key) : retQty(ym, u.key); }
 function unit3mo(u, ym){ return retView === 'category' ? cat3mo(ym, u.key) : ret3mo(ym, u.key); }
@@ -6744,6 +6755,7 @@ function unitWithdrawnMonth(u){ return retView === 'category' ? catWithdrawnMont
 function retBuildBody(months){
   const units = retUnits(months);
   if (!units.length) return '<div class="ret-empty">' + (retSearch ? '「' + retEsc(retSearch) + '」に一致する' + (retView === 'category' ? 'カテゴリ' : '商品') + 'がありません。' : 'この期間に表示できるデータがありません。') + '</div>';
+  if (retGroupBy === 'unit') return retBuildUnitGrouped(units, months);
   // 3ヶ月ごとのブロックを縦に積む。ブロック全体が撤退月の翌月以降になるユニットは、そのブロックから除外
   let h = '';
   for (let i = 0; i < months.length; i += 3) {
@@ -6847,6 +6859,44 @@ function retLayoutCard(units, months){
   return h;
 }
 
+// くくり表示：ユニット（カテゴリ/商品）ごとに、その年の四半期(1-3/4-6/7-9/10-12月)を縦に並べる
+function retUnitLabel(u){
+  if (retView === 'category') return u.cat;
+  return u.pname ? u.pname : u.fnsku;
+}
+function retBuildUnitGrouped(units, months){
+  const quarters = [];
+  for (let i = 0; i < months.length; i += 3) quarters.push(months.slice(i, i + 3));
+  const NA = '<span class="ret-na">未入力</span>';
+  let body = '', any = false;
+  units.forEach((u, ui) => {
+    const w = unitWithdrawnMonth(u);
+    let first = true;
+    quarters.forEach(chunk => {
+      if (w && chunk[0] > w) return; // 撤退月より後の四半期は表示しない
+      let ship = 0, ret = 0, shEntered = false, rtEntered = false;
+      chunk.forEach(ym => {
+        ship += unitShip(u, ym); ret += unitRet(u, ym);
+        if (shipments[ym]) shEntered = true;
+        if (returnsData[ym]) rtEntered = true;
+      });
+      const m1 = +chunk[0].slice(5, 7), m2 = +chunk[chunk.length - 1].slice(5, 7);
+      const label = retEsc(retUnitLabel(u)) + '　' + m1 + '-' + m2 + '月';
+      body += '<tr' + (first && ui > 0 ? ' class="ret-grp-start"' : '') + '>'
+        + '<td class="ret-uname ret-sep-r">' + label + '</td>'
+        + '<td>' + (shEntered ? ship.toLocaleString() : NA) + '</td>'
+        + '<td>' + (rtEntered ? ret.toLocaleString() : NA) + '</td>'
+        + '<td class="ret-rate">' + ((shEntered && rtEntered) ? retPct(ret, ship) : NA) + '</td>'
+        + '</tr>';
+      first = false; any = true;
+    });
+  });
+  if (!any) return '<div class="ret-empty">この期間に表示できるデータがありません。</div>';
+  return '<div class="ret-grouped-wrap"><table class="ret-table ret-grouped"><thead><tr>'
+    + '<th class="ret-sep-r">' + (retView === 'category' ? 'カテゴリ' : '商品') + '（四半期）</th>'
+    + '<th>出荷点数</th><th>返品点数</th><th>返品率</th>'
+    + '</tr></thead><tbody>' + body + '</tbody></table></div>';
+}
 function renderReturnsView(){
   const body = document.getElementById('returns-body');
   if (!body) return;
@@ -6858,10 +6908,13 @@ function renderReturnsView(){
   let h = '<div class="graph-toolbar">';
   h += '<label class="ret-yearsel">年 <select id="ret-year">' + (years.length ? years.map(y => '<option value="' + y + '"' + (y === yr ? ' selected' : '') + '>' + y + '年</option>').join('') : '<option>—</option>') + '</select></label>';
   h += '<div class="graph-seg" id="ret-view"><button data-v="category" class="' + (retView === 'category' ? 'active' : '') + '">カテゴリ別</button><button data-v="fnsku" class="' + (retView === 'fnsku' ? 'active' : '') + '">FNSKU別</button></div>';
-  h += '<div class="ret-search"><svg class="icn"><use href="#i-search"/></svg>'
-    + '<input id="ret-search-input" type="search" list="ret-search-list" placeholder="' + (retView === 'category' ? 'カテゴリ名で検索' : 'FNSKU・商品名で検索') + '" value="' + retEsc(retSearch) + '" autocomplete="off">'
-    + '<datalist id="ret-search-list"></datalist>'
-    + '</div>';
+  h += '<div class="graph-seg" id="ret-group"><button data-g="normal" class="' + (retGroupBy === 'normal' ? 'active' : '') + '">通常</button><button data-g="unit" class="' + (retGroupBy === 'unit' ? 'active' : '') + '">' + (retView === 'category' ? 'カテゴリ' : '商品') + 'くくり</button></div>';
+  if (retView === 'fnsku') {
+    h += '<div class="ret-search"><svg class="icn"><use href="#i-search"/></svg>'
+      + '<input id="ret-search-input" type="search" list="ret-search-list" placeholder="FNSKU・商品名で検索" value="' + retEsc(retSearch) + '" autocomplete="off">'
+      + '<datalist id="ret-search-list"></datalist>'
+      + '</div>';
+  }
   if (retView === 'fnsku' && retCatFilter) h += '<span class="ret-chip">カテゴリ: ' + retEsc(retCatFilter) + ' <a id="ret-clearfilter">✕</a></span>';
   h += '<div class="spacer" style="flex:1"></div>';
   h += '<span style="font-size:11px;color:var(--text-tertiary);margin-right:8px;">返品率＝返品÷出荷／対象「欠陥品・不良品」</span>';
@@ -6876,6 +6929,7 @@ function renderReturnsView(){
 
   const ySel = body.querySelector('#ret-year'); if (ySel) ySel.addEventListener('change', () => { retYear = ySel.value; renderReturnsView(); });
   body.querySelectorAll('#ret-view button').forEach(b => b.addEventListener('click', () => { retView = b.dataset.v; if (retView === 'category') retCatFilter = null; retSearch = ''; renderReturnsView(); }));
+  body.querySelectorAll('#ret-group button').forEach(b => b.addEventListener('click', () => { retGroupBy = b.dataset.g; renderReturnsView(); }));
   const clr = body.querySelector('#ret-clearfilter'); if (clr) clr.addEventListener('click', () => { retCatFilter = null; renderReturnsView(); });
   const addBtn = body.querySelector('#ret-add-open'); if (addBtn) addBtn.addEventListener('click', () => openRetAddModal());
   const catBtn = body.querySelector('#ret-cat-open'); if (catBtn) catBtn.addEventListener('click', openCatModal);
