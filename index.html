@@ -505,6 +505,16 @@
   .pl-table tbody td.pl-c-sales, .pl-table tfoot td.pl-c-sales { background: #f3f8ff; }
   .pl-table tbody td.pl-c-gross, .pl-table tfoot td.pl-c-gross { background: #f1fbfd; }
   .pl-table tbody td.pl-c-warm,  .pl-table tfoot td.pl-c-warm  { background: #fffaf2; }
+  .pl-slot { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-top: 10px; background: var(--bg-secondary); }
+  .pl-slot-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
+  .pl-slot-head strong { font-size: 14px; }
+  .pl-slot-cur { font-size: 12px; color: var(--text-secondary); }
+  .pl-slot-desc { font-size: 12px; color: var(--text-secondary); margin-top: 4px; line-height: 1.5; }
+  .pl-slot-link { font-size: 11px; margin-top: 4px; }
+  .pl-slot-zone { margin-top: 8px; padding: 12px; min-height: 0; }
+  .pl-slot-zone .main { font-size: 13px; }
+  .pl-slot-zone .sub { font-size: 11px; }
+  .pl-slot-status { font-size: 12px; margin-top: 6px; min-height: 0; }
   .pl-table tfoot td { border-top: 2px solid var(--border-strong); border-bottom: none; font-weight: 700; background: var(--bg-secondary); }
   .pl-input { width: 100%; text-align: right; font: inherit; font-size: 14px; border: none; background: transparent; padding: 0; margin: 0; color: inherit; }
   .pl-input:focus { outline: none; box-shadow: inset 0 -2px 0 var(--blue); }
@@ -1373,7 +1383,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.73</span>
+  <span class="version">v1.75</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1630,35 +1640,24 @@
   </div>
 </div>
 
-<!-- 全体収支：保管費／FBA手数料 取込モーダル -->
+<!-- 全体収支：月末データ取込モーダル（実売上・広告費・保管費・FBA手数料） -->
 <div class="modal-bg" id="pl-import-modal" hidden>
-  <div class="modal" style="max-width:520px;">
+  <div class="modal" style="max-width:560px;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
-        <h3><svg class="icn" style="color:var(--teal);vertical-align:-3px;"><use href="#i-coins"/></svg> <span id="pl-imp-title">保管費の追加</span></h3>
-        <div class="sub" id="pl-imp-desc" style="margin-bottom:0;"></div>
+        <h3><svg class="icn" style="color:var(--teal);vertical-align:-3px;"><use href="#i-coins"/></svg> 月末データの追加</h3>
+        <div class="sub" style="margin-bottom:0;">月が終わったら確定値を取り込みます。<strong>実売上・広告費はセルに直接手入力も可能</strong>です。同じ月は取り込み直すと上書きされます。</div>
       </div>
       <button id="pl-imp-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
-    <div class="graph-seg" id="pl-imp-type" style="margin-top:12px;">
-      <button data-f="sales">実売上(総売上)</button><button data-f="storage">保管費</button><button data-f="fbaFee">FBA手数料(送料)</button>
-    </div>
-    <div style="display:flex;align-items:center;gap:10px;margin-top:12px;flex-wrap:wrap;">
+    <div style="display:flex;align-items:center;gap:10px;margin-top:12px;">
       <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);font-weight:600;">対象月
         <select id="pl-imp-month" class="graph-select" style="font-size:14px;padding:7px 10px;"></select>
       </label>
     </div>
-    <div style="margin-top:10px;font-size:12px;color:var(--text-secondary);">レポートの入手先：<a class="ret-report-link" id="pl-imp-link" href="#" target="_blank" rel="noopener"><span class="url"></span><span class="ext">↗</span></a></div>
-    <label class="upload-zone" id="pl-imp-upzone" for="pl-imp-file" style="margin-top:14px;">
-      <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
-      <div class="main">CSV / ZIP をクリックまたはドラッグ&ドロップ</div>
-      <div class="sub" id="pl-imp-upsub"></div>
-      <input type="file" id="pl-imp-file" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple>
-    </label>
-    <div id="pl-imp-preview" style="margin-top:12px;font-size:13px;color:var(--text-secondary);"></div>
+    <div id="pl-imp-slots" style="margin-top:8px;"></div>
     <div class="modal-actions">
-      <button id="pl-imp-cancel">キャンセル</button>
-      <button class="confirm" id="pl-imp-apply" disabled><svg class="icn"><use href="#i-check"/></svg> 反映する</button>
+      <button id="pl-imp-cancel">閉じる</button>
     </div>
   </div>
 </div>
@@ -1726,7 +1725,7 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-tag"/></svg> セール設定</h3>
-        <div class="sub" style="margin-bottom:0;">セール期間（開始日〜終了日）を登録すると、出荷数データ（日別）の日付の上にセール期間が表示されます。セール申請が通った商品リスト（タイムセール推奨商品リスト）を読み込むと、対象商品はセール期間中、総売上の計算にセール価格が使われます。</div>
+        <div class="sub" style="margin-bottom:0;">セール期間（開始日〜終了日）を登録すると、出荷数データ（日別）の日付の上にセール期間が表示されます。セール申請が通った商品リスト（タイムセール推奨商品リスト）を読み込むと、対象商品はセール期間中、推計総売上の計算にセール価格が使われます。</div>
       </div>
       <button id="sale-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
@@ -2066,20 +2065,11 @@ function init(){
   })();
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('ret-add-modal').hidden) closeRetAddModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('cat-modal').hidden) closeCatModal(); });
-  // 全体収支 取込モーダル
+  // 全体収支 月末データ取込モーダル
   document.getElementById('pl-imp-close').addEventListener('click', closePlImport);
   document.getElementById('pl-imp-cancel').addEventListener('click', closePlImport);
-  document.getElementById('pl-imp-apply').addEventListener('click', applyPlImport);
   document.getElementById('pl-import-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'pl-import-modal') closePlImport(); });
-  document.getElementById('pl-imp-file').addEventListener('change', (e) => { processPlFiles(e.target.files); e.target.value = ''; });
-  document.getElementById('pl-imp-month').addEventListener('change', (e) => { plImpMonth = e.target.value; });
-  document.querySelectorAll('#pl-imp-type button').forEach(b => b.addEventListener('click', () => { plImpField = b.dataset.f; renderPlImportModal(); }));
-  (function(){
-    const z = document.getElementById('pl-imp-upzone'); if (!z) return;
-    ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('dragover'); }));
-    ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('dragover'); }));
-    z.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) processPlFiles(e.dataTransfer.files); });
-  })();
+  document.getElementById('pl-imp-month').addEventListener('change', (e) => { plImpMonth = e.target.value; renderPlImportModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('pl-import-modal').hidden) closePlImport(); });
   // 広告の種類 説明モーダル
   (function(){
@@ -5065,7 +5055,7 @@ function renderAdTable(){
     + '<th colspan="9" class="adg adg-sb">スポンサーブランド広告</th>'
     + '</tr>'
     + '<tr>'
-    + '<th rowspan="2" class="adh adc-sales adc-gstart">総売上</th>'
+    + '<th rowspan="2" class="adh adc-sales adc-gstart">推計総売上</th>'
     + '<th rowspan="2" class="adh adc-sales-l1">SEO売上</th>'
     + '<th rowspan="2" class="adh adc-sales-l2">広告売上</th>'
     + '<th rowspan="2" class="adh adc-sales-l3">広告費</th>'
@@ -5958,12 +5948,12 @@ function toast(msg, action){
 // ============================================
 const GRAPH_CATEGORIES = {
   sales: { label: '売上', yen: true, items: [
-    { key: 'total', label: '総売上(推計)', color: '#2563eb' },
+    { key: 'total', label: '推計総売上', color: '#2563eb' },
     { key: 'salesActual', label: '実売上(実績)', color: '#1e40af' },
     { key: 'seo', label: 'SEO売上', color: '#9333ea' },
     { key: 'adSales', label: '広告売上', color: '#ea580c' },
     { key: 'grossProfit', label: '粗利益', color: '#16a34a' },
-    { key: 'jisseki', label: '広告費', color: '#dc2626' },
+    { key: 'jisseki', label: '広告費(計算)', color: '#dc2626' },
   ] },
   adcost: { label: '広告費', yen: true, items: [
     { key: 'jisseki',       label: '合計',            color: '#dc2626', g: 0 },
@@ -6005,6 +5995,7 @@ const GRAPH_CATEGORIES = {
     { key: 'cvrSbShokore', label: 'SB広告-KW-商品コレ', color: '#db2777', g: 2, soft: true },
   ] },
   fees: { label: '諸費用', yen: true, items: [
+    { key: 'adCostActual', label: '広告費(実績)', color: '#b91c1c' },
     { key: 'storage', label: '保管費', color: '#0891b2' },
     { key: 'fbaFee', label: 'FBA手数料(送料)', color: '#a16207' },
   ] },
@@ -6059,7 +6050,7 @@ function graphMonthMetrics(ym){
   // 広告・出荷が揃った月だけを対象に（未完の月は null＝グラフ・表に出さない）
   const complete = isAdMonthClosed(ym) || adMonthDataComplete(ym);
   if (!complete) {
-    const z = { total: null, seo: null, adSales: null, jisseki: null, grossProfit: null, roas: null, totalQty: null, adQty: null, seoQty: null, fbaFee: null, storage: null, salesActual: null,
+    const z = { total: null, seo: null, adSales: null, jisseki: null, grossProfit: null, roas: null, totalQty: null, adQty: null, seoQty: null, fbaFee: null, storage: null, salesActual: null, adCostActual: null,
       adcSpTotal: null, adcSpKw: null, adcSpShohin: null, adcSbTotal: null, adcSbDouga: null, adcSbShokore: null,
       adcSpShare: null, adcSbShare: null, adcSpKwShare: null, adcSpShohinShare: null, adcSbDougaShare: null, adcSbShokoreShare: null,
       roasSpTotal: null, roasSpKw: null, roasSpShohin: null, roasSbTotal: null, roasSbDouga: null, roasSbShokore: null,
@@ -6134,7 +6125,7 @@ function graphMonthMetrics(ym){
   const adQty = total > 0 ? Math.round(totalQty * (adSales / total)) : 0; // 広告出荷数＝総出荷×広告売上比（想定）
   const seoQty = totalQty - adQty;
   const storage = (plData[ym] && plData[ym].storage != null) ? Number(plData[ym].storage) : null;  // 全体収支の保管費（未入力月はnull＝表示しない）
-  const r = { total, seo, adSales, jisseki, grossProfit, roas, totalQty, adQty, seoQty, fbaFee, storage, salesActual: (plData[ym] && plData[ym].sales != null) ? Number(plData[ym].sales) : null,
+  const r = { total, seo, adSales, jisseki, grossProfit, roas, totalQty, adQty, seoQty, fbaFee, storage, salesActual: (plData[ym] && plData[ym].sales != null) ? Number(plData[ym].sales) : null, adCostActual: (plData[ym] && plData[ym].adCost != null) ? Number(plData[ym].adCost) : null,
     adcSpTotal, adcSpKw: cSpKw, adcSpShohin: cSpShohin, adcSbTotal, adcSbDouga: cSbDouga, adcSbShokore: cSbShokore,
     adcSpShare, adcSbShare, adcSpKwShare, adcSpShohinShare, adcSbDougaShare, adcSbShokoreShare,
     roasSpTotal, roasSpKw, roasSpShohin, roasSbTotal, roasSbDouga, roasSbShokore,
@@ -6193,6 +6184,10 @@ function plManual(ym){
 function plActualSales(ym){
   return (plData[ym] && plData[ym].sales != null) ? Number(plData[ym].sales) : null;
 }
+// 広告費(全体収支の実額)：未入力はnull
+function plActualAdCost(ym){
+  return (plData[ym] && plData[ym].adCost != null) ? Number(plData[ym].adCost) : null;
+}
 // 対象の月一覧：広告データと出荷数が月末まで揃った完備月（または確定済み月）を新しい順で
 function plMonthsList(){
   const set = new Set();
@@ -6220,20 +6215,22 @@ function plTierClass(t, v){
   return '';
 }
 // ===== 全体収支：保管費／FBA手数料 CSV取込 =====
+const PL_IMP_ORDER = ['sales', 'adCost', 'storage', 'fbaFee'];
 const PL_IMP = {
-  sales: { title: '実売上の追加', col: '注文商品売上額',
+  sales: { label: '実売上', col: '注文商品売上額', manual: true,
     url: 'https://sellercentral.amazon.co.jp/gp/site-metrics/report.html?mons_sel_mkid=amzn1.mp.o.A1VC38T7YXB528&mons_sel_mcid=amzn1.merchant.o.A3UZ9NEVYAB78B&mons_sel_persist=true#/dashboard',
-    desc: '売上ダッシュボード/ビジネスレポートのCSVをアップロードすると、「注文商品売上額」列の合計が対象月の実売上（総売上）に入ります。手入力も可。', abs: false },
-  storage: { title: '保管費の追加', col: 'Monthly storage fee (est.)',
+    desc: '売上ダッシュボードのCSVの「注文商品売上額」列の合計を実売上（総売上）に設定。手入力も可。', abs: false },
+  adCost: { label: '広告費', col: '支出', manual: true,
+    url: 'https://advertising.amazon.co.jp/campaign-manager/all-campaigns',
+    desc: 'キャンペーンマネージャーのCSVの「支出」列の合計を広告費に設定。手入力も可。', abs: false },
+  storage: { label: '保管費', col: 'Monthly storage fee (est.)', manual: false,
     url: 'https://sellercentral.amazon.co.jp/reportcentral/STORAGE_FEE_CHARGES/1',
-    desc: '月次保管料レポート（Monthly Storage Fees）のCSVをアップロードすると、「Monthly storage fee (est.)」列の合計が対象月の保管費に入ります。', abs: false },
-  fbaFee: { title: 'FBA手数料(送料)の追加', col: '送料(FBA手数料)',
+    desc: '月次保管料レポートのCSVの「Monthly storage fee (est.)」列の合計を保管費に設定。', abs: false },
+  fbaFee: { label: 'FBA手数料(送料)', col: '送料(FBA手数料)', manual: false,
     url: 'https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash',
-    desc: 'レポートリポジトリのCSVをアップロードすると、「送料(FBA手数料)」列の合計（マイナスは除く）が対象月のFBA手数料に入ります。', abs: true }
+    desc: 'レポートリポジトリのCSVの「送料(FBA手数料)」列の合計（マイナス除去）をFBA手数料に設定。', abs: true }
 };
-let plImpField = 'sales';
 let plImpMonth = null;
-let plImpPending = null;
 function plImpColumn(cols, field){
   const norm = s => String(s).toLowerCase().replace(/\s+/g, '');
   if (field === 'storage') {
@@ -6248,6 +6245,14 @@ function plImpColumn(cols, field){
         || cols.find(c => norm(c).includes('orderedproductsales') && norm(c).indexOf('b2b') < 0)
         || cols.find(c => c.indexOf('注文商品売上') > -1)
         || cols.find(c => c.indexOf('売上') > -1);
+  }
+  if (field === 'adCost') {
+    return cols.find(c => c.trim() === '支出')
+        || cols.find(c => c.indexOf('支出') > -1)
+        || cols.find(c => norm(c) === 'spend')
+        || cols.find(c => norm(c).includes('spend'))
+        || cols.find(c => c.indexOf('広告費') > -1)
+        || cols.find(c => norm(c).includes('cost'));
   }
   return cols.find(c => c.replace(/\s/g, '') === '送料(FBA手数料)')
       || cols.find(c => c.replace(/\s/g, '').includes('送料(FBA手数料)'))
@@ -6268,33 +6273,48 @@ function plParseCsv(text, field){
   });
   return { ok: true, sum, rows: n, col };
 }
-function openPlImport(field, month){
-  plImpField = PL_IMP[field] ? field : 'sales';
+function openPlImport(month){
   const list = plMonthsList();
   plImpMonth = (month && list.includes(month)) ? month : (list.length ? list[list.length - 1] : null);
-  plImpPending = null;
   renderPlImportModal();
   document.getElementById('pl-import-modal').hidden = false;
 }
-function closePlImport(){ document.getElementById('pl-import-modal').hidden = true; plImpPending = null; }
+function closePlImport(){ document.getElementById('pl-import-modal').hidden = true; }
 function renderPlImportModal(){
-  const cfg = PL_IMP[plImpField];
-  document.getElementById('pl-imp-title').textContent = cfg.title;
-  document.getElementById('pl-imp-desc').textContent = cfg.desc;
-  document.getElementById('pl-imp-upsub').textContent = '対象列：' + cfg.col;
-  const link = document.getElementById('pl-imp-link');
-  link.href = cfg.url; link.querySelector('.url').textContent = cfg.url; link.title = cfg.url;
-  document.querySelectorAll('#pl-imp-type button').forEach(b => b.classList.toggle('active', b.dataset.f === plImpField));
   const sel = document.getElementById('pl-imp-month');
   const list = plMonthsList();
   if (list.length && !list.includes(plImpMonth)) plImpMonth = list[list.length - 1];
   sel.innerHTML = list.length ? list.slice().reverse().map(m => '<option value="' + m + '"' + (m === plImpMonth ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') : '<option value="">（対象月なし）</option>';
-  document.getElementById('pl-imp-preview').innerHTML = '';
-  document.getElementById('pl-imp-apply').disabled = true;
+  const cur = (f) => (plData[plImpMonth] && plData[plImpMonth][f] != null) ? plYen(plData[plImpMonth][f]) : '<span style="color:var(--text-tertiary)">未入力</span>';
+  let h = '';
+  PL_IMP_ORDER.forEach(f => {
+    const cfg = PL_IMP[f];
+    h += '<div class="pl-slot">'
+      + '<div class="pl-slot-head"><strong>' + cfg.label + '</strong>'
+      + '<span class="pl-slot-cur">現在: ' + cur(f) + '</span></div>'
+      + '<div class="pl-slot-desc">' + cfg.desc + (cfg.manual ? '' : '<br>※手入力は不可。CSVのみ。') + '</div>'
+      + '<div class="pl-slot-link">取得先：<a class="ret-report-link" href="' + cfg.url + '" target="_blank" rel="noopener" title="' + cfg.url + '"><span class="url">' + cfg.url + '</span><span class="ext">↗</span></a></div>'
+      + '<label class="upload-zone pl-slot-zone" data-f="' + f + '"><svg class="icn"><use href="#i-file-spreadsheet"/></svg>'
+      + '<div class="main">CSV / ZIP を選択またはドラッグ</div><div class="sub">対象列：' + retEsc(cfg.col) + '</div>'
+      + '<input type="file" data-f="' + f + '" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple></label>'
+      + '<div class="pl-slot-status" data-f="' + f + '"></div>'
+      + '</div>';
+  });
+  document.getElementById('pl-imp-slots').innerHTML = h;
+  document.querySelectorAll('#pl-imp-slots input[type=file]').forEach(inp => {
+    inp.addEventListener('change', (e) => { processPlSlot(inp.dataset.f, e.target.files); e.target.value = ''; });
+  });
+  document.querySelectorAll('#pl-imp-slots .pl-slot-zone').forEach(z => {
+    ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('dragover'); }));
+    z.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) processPlSlot(z.dataset.f, e.dataTransfer.files); });
+  });
 }
-async function processPlFiles(files){
+async function processPlSlot(field, files){
   const arr = Array.from(files || []); if (!arr.length) return;
-  const cfg = PL_IMP[plImpField];
+  if (!plImpMonth) return;
+  const cfg = PL_IMP[field];
+  const statusEl = document.querySelector('#pl-imp-slots .pl-slot-status[data-f="' + field + '"]');
   let sum = 0, rows = 0, foundCol = ''; const errs = [];
   for (const f of arr) {
     try {
@@ -6305,34 +6325,25 @@ async function processPlFiles(files){
       units.forEach(u => {
         const text = decodeAdBytes(u.bytes);
         if (text == null) { errs.push(u.name + '：文字コード不明'); return; }
-        const r = plParseCsv(text, plImpField);
+        const r = plParseCsv(text, field);
         if (!r.ok) { errs.push(u.name + '：' + r.msg); return; }
         sum += r.sum; rows += r.rows; foundCol = r.col;
       });
     } catch { errs.push(f.name + '：展開エラー'); }
   }
-  let val = Math.round(sum);
-  if (cfg.abs) val = Math.abs(val);
-  plImpPending = (rows > 0) ? val : null;
-  let pv;
   if (rows > 0) {
-    pv = '「' + retEsc(foundCol) + '」' + rows + ' 行を合計：<strong>' + plYen(val) + '</strong>' + (cfg.abs ? '（マイナス除去）' : '')
-      + '<br>対象月 <strong>' + (plImpMonth ? plImpMonth.replace('-', '/') : '—') + '</strong> の' + (plImpField === 'sales' ? '実売上（総売上）' : plImpField === 'storage' ? '保管費' : 'FBA手数料') + 'に設定します。';
+    let val = Math.round(sum);
+    if (cfg.abs) val = Math.abs(val);
+    if (!plData[plImpMonth]) plData[plImpMonth] = {};
+    plData[plImpMonth][field] = val;
+    savePlData();
+    renderPlView();
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal)">✓ 「' + retEsc(foundCol) + '」' + rows + '行 合計 ' + plYen(val) + (cfg.abs ? '（マイナス除去）' : '') + ' を ' + plImpMonth.replace('-', '/') + ' に設定</span>';
+    const curEl = statusEl.closest('.pl-slot').querySelector('.pl-slot-cur');
+    if (curEl) curEl.innerHTML = '現在: ' + plYen(val);
   } else {
-    pv = '<span style="color:var(--danger)">取込できる行が見つかりませんでした。列名をご確認ください。</span>';
+    if (statusEl) statusEl.innerHTML = '<span style="color:var(--danger)">取込できる行がありません。' + (errs.length ? retEsc(errs[0]) : '列名をご確認ください') + '</span>';
   }
-  if (errs.length) pv += '<br><span style="color:var(--danger)">' + errs.map(retEsc).join('<br>') + '</span>';
-  document.getElementById('pl-imp-preview').innerHTML = pv;
-  document.getElementById('pl-imp-apply').disabled = !(rows > 0 && plImpMonth);
-}
-function applyPlImport(){
-  if (plImpPending == null || !plImpMonth) return;
-  if (!plData[plImpMonth]) plData[plImpMonth] = {};
-  plData[plImpMonth][plImpField] = plImpPending;
-  savePlData();
-  closePlImport();
-  renderPlView();
-  toast((plImpField === 'sales' ? '実売上' : plImpField === 'storage' ? '保管費' : 'FBA手数料') + 'を ' + plImpMonth.replace('-', '/') + ' に設定しました');
 }
 function renderPlView(){
   const body = document.getElementById('pl-body');
@@ -6344,10 +6355,8 @@ function renderPlView(){
     + '<span class="lg-hi10">上位10%</span><span class="lg-hi20">上位20%</span>'
     + '<span class="lg-mid">中間</span><span class="lg-lo20">下位20%</span><span class="lg-lo10">下位10%</span></span>';
   h += '<div class="spacer" style="flex:1"></div>';
-  h += '<span style="font-size:12px;color:var(--text-tertiary);margin-right:8px;">総売上＝実売上(売上ダッシュボード)を入力／粗利益＝総売上－原価－販売手数料／実質利益＝粗利益－広告費－保管費－FBA手数料</span>';
-  h += '<button class="utility" id="pl-add-sales" style="font-size:12px;"><svg class="icn"><use href="#i-plus"/></svg> 実売上追加</button>';
-  h += '<button class="utility" id="pl-add-storage" style="font-size:12px;"><svg class="icn"><use href="#i-plus"/></svg> 保管費追加</button>';
-  h += '<button class="utility" id="pl-add-fba" style="font-size:12px;"><svg class="icn"><use href="#i-plus"/></svg> FBA手数料追加</button>';
+  h += '<span style="font-size:12px;color:var(--text-tertiary);margin-right:8px;">総売上＝実売上／粗利益＝総売上－原価－販売手数料／実質利益＝粗利益－広告費－保管費－FBA手数料</span>';
+  h += '<button class="primary" id="pl-add-month" style="font-size:12px;"><svg class="icn"><use href="#i-plus"/></svg> 月末データ追加</button>';
   h += '</div>';
 
   // 1パス目：行データを集める（総売上＝実売上。未入力はnull＝粗利益・実質利益もnull）
@@ -6355,12 +6364,12 @@ function renderPlView(){
   if (plMode === 'month') {
     plMonthsList().forEach(ym => {
       const c = plMonthCalc(ym), m = plManual(ym);
-      const sales = plActualSales(ym);
+      const sales = plActualSales(ym), adC = plActualAdCost(ym);
       const gross = (sales != null) ? sales - c.costSum : null;
-      const profit = (gross != null) ? gross - c.adCost - m.storage - m.fbaFee : null;
-      data.push({ key: ym, label: ym.replace('-', '/'), total: sales, gross, ad: c.adCost,
+      const profit = (gross != null) ? gross - (adC || 0) - m.storage - m.fbaFee : null;
+      data.push({ key: ym, label: ym.replace('-', '/'), total: sales, gross, ad: adC,
         storage: m.storage, fba: m.fbaFee,
-        storageEntered: plData[ym] && plData[ym].storage != null, fbaEntered: plData[ym] && plData[ym].fbaFee != null,
+        adEntered: adC != null, storageEntered: plData[ym] && plData[ym].storage != null, fbaEntered: plData[ym] && plData[ym].fbaFee != null,
         profit, editable: true, ym });
     });
   } else {
@@ -6371,21 +6380,21 @@ function renderPlView(){
       byYear[y].forEach(ym => {
         const c = plMonthCalc(ym), m = plManual(ym), s = plActualSales(ym);
         if (s != null) { salesSum += s; salesAny = true; }
-        costSum += c.costSum; a += c.adCost; st += m.storage; fb += m.fbaFee;
+        costSum += c.costSum; a += (plActualAdCost(ym) || 0); st += m.storage; fb += m.fbaFee;
       });
       const total = salesAny ? salesSum : null;
       const gross = salesAny ? salesSum - costSum : null;
       const profit = salesAny ? gross - a - st - fb : null;
-      data.push({ key: y, label: y + '年', total, gross, ad: a, storage: st, fba: fb, storageEntered: true, fbaEntered: true, profit, editable: false });
+      data.push({ key: y, label: y + '年', total, gross, ad: a, storage: st, fba: fb, adEntered: true, storageEntered: true, fbaEntered: true, profit, editable: false });
     });
   }
 
   // 実質利益の配色しきい値（未入力=nullは除外）
   const tiers = plProfitTiers(data.map(d => d.profit));
 
-  const thSales = '<th class="pl-c-sales"><a class="pl-th-link" href="' + PL_IMP.sales.url + '" target="_blank" rel="noopener" title="売上ダッシュボード">総売上<span class="ext">↗</span></a></th>';
-  const thStore = '<th class="pl-c-warm"><a class="pl-th-link" href="https://sellercentral.amazon.co.jp/reportcentral/STORAGE_FEE_CHARGES/1" target="_blank" rel="noopener">保管費<span class="ext">↗</span></a></th>';
-  const thFba = '<th class="pl-c-warm"><a class="pl-th-link" href="https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash" target="_blank" rel="noopener">FBA手数料(送料)<span class="ext">↗</span></a></th>';
+  const thSales = '<th class="pl-c-sales">総売上</th>';
+  const thStore = '<th class="pl-c-warm">保管費</th>';
+  const thFba = '<th class="pl-c-warm">FBA手数料(送料)</th>';
   const cols = '<th>期間</th>' + thSales + '<th class="pl-c-gross">粗利益</th><th class="pl-c-warm">広告費</th>' + thStore + thFba + '<th class="pl-c-profit">実質利益</th>';
   h += '<div style="overflow:auto;max-height:560px;"><table class="pl-table"><thead><tr>' + cols + '</tr></thead><tbody>';
 
@@ -6398,15 +6407,19 @@ function renderPlView(){
   data.forEach(d => {
     if (d.total != null) { sT += d.total; sTany = true; }
     if (d.gross != null) { sG += d.gross; sGany = true; }
-    sA += d.ad; sS += d.storage; sF += d.fba;
+    sA += (d.ad || 0); sS += d.storage; sF += d.fba;
     if (d.profit != null) { sP += d.profit; sPany = true; }
     const tier = plTierClass(tiers, d.profit);
     const profClass = (d.profit == null) ? '' : (tier ? ('pl-profit' + tier) : ('pl-profit' + (d.profit < 0 ? ' pl-neg' : '')));
-    // 総売上＝実売上（クリックで手入力。CSVは「実売上追加」or 期間クリック）
+    // 総売上＝実売上（クリックで手入力。CSVは「月末データ追加」or 期間クリック）
     const salesCell = d.editable
       ? '<td class="pl-edit pl-c-sales" data-ym="' + d.ym + '" data-f="sales" tabindex="0" title="クリックで実売上を入力">' + (d.total != null ? plYen(d.total) : NA) + '</td>'
       : '<td class="pl-c-sales">' + yenOrNA(d.total) + '</td>';
-    // 保管費・FBA手数料：表示のみ（手入力廃止。CSV取込で設定）
+    // 広告費＝実額（クリックで手入力。CSVも可）
+    const adCell = d.editable
+      ? '<td class="pl-edit pl-c-warm" data-ym="' + d.ym + '" data-f="adCost" tabindex="0" title="クリックで広告費を入力">' + (d.ad != null ? plYen(d.ad) : NA) + '</td>'
+      : '<td class="pl-c-warm">' + plYen(d.ad) + '</td>';
+    // 保管費・FBA手数料：表示のみ（手入力なし。CSV取込で設定）
     const storeCell = '<td class="pl-c-warm">' + (d.editable ? (d.storageEntered ? plYen(d.storage) : NA) : plYen(d.storage)) + '</td>';
     const fbaCell = '<td class="pl-c-warm">' + (d.editable ? (d.fbaEntered ? plYen(d.fba) : NA) : plYen(d.fba)) + '</td>';
     const periodCell = d.editable
@@ -6416,7 +6429,7 @@ function renderPlView(){
       + periodCell
       + salesCell
       + '<td class="pl-c-gross">' + yenOrNA(d.gross) + '</td>'
-      + '<td class="pl-c-warm">' + plYen(d.ad) + '</td>'
+      + adCell
       + storeCell
       + fbaCell
       + '<td class="' + profClass + '">' + yenOrNA(d.profit) + '</td>'
@@ -6455,12 +6468,10 @@ function renderPlView(){
     td.addEventListener('click', () => plActivateEdit(td));
     td.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); plActivateEdit(td); } });
   });
-  const bAddSales = body.querySelector('#pl-add-sales'); if (bAddSales) bAddSales.addEventListener('click', () => openPlImport('sales', null));
-  const bAddS = body.querySelector('#pl-add-storage'); if (bAddS) bAddS.addEventListener('click', () => openPlImport('storage', null));
-  const bAddF = body.querySelector('#pl-add-fba'); if (bAddF) bAddF.addEventListener('click', () => openPlImport('fbaFee', null));
+  const bAddMonth = body.querySelector('#pl-add-month'); if (bAddMonth) bAddMonth.addEventListener('click', () => openPlImport(null));
   body.querySelectorAll('.pl-period').forEach(td => {
-    td.addEventListener('click', () => openPlImport('sales', td.dataset.ym));
-    td.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPlImport('sales', td.dataset.ym); } });
+    td.addEventListener('click', () => openPlImport(td.dataset.ym));
+    td.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPlImport(td.dataset.ym); } });
   });
   // 確認箇所ツールチップ：クリック/タップで開閉（ホバーはCSSで対応）
   body.querySelectorAll('.pl-info').forEach(ic => {
