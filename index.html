@@ -508,7 +508,10 @@
   .pl-table tbody td.pl-c-warm,  .pl-table tfoot td.pl-c-warm  { background: #fffaf2; }
   .pl-table thead th.pl-c-roas { background: #ede9fe; color: #6d28d9; }
   .pl-table tbody td.pl-c-roas, .pl-table tfoot td.pl-c-roas { background: #f7f5ff; font-weight: 600; }
-  .pl-slot { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; margin-top: 10px; background: var(--bg-secondary); }
+  .pl-slot { border: 1px solid var(--border); border-radius: 10px; padding: 12px 14px; background: var(--bg-secondary); display: flex; flex-direction: column; }
+  #pl-imp-slots { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px; align-items: stretch; }
+  #pl-imp-slots .pl-slot-zone { margin-top: auto; }
+  @media (max-width: 680px) { #pl-imp-slots { grid-template-columns: 1fr; } }
   .pl-slot-head { display: flex; align-items: baseline; justify-content: space-between; gap: 8px; }
   .pl-slot-head strong { font-size: 14px; }
   .pl-slot-cur { font-size: 12px; color: var(--text-secondary); }
@@ -1396,7 +1399,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.85</span>
+  <span class="version">v1.86</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1655,7 +1658,7 @@
 
 <!-- 全体収支：月末データ取込モーダル（実売上・広告費・保管費・FBA手数料） -->
 <div class="modal-bg" id="pl-import-modal" hidden>
-  <div class="modal" style="max-width:560px;">
+  <div class="modal" style="max-width:860px;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <h3><svg class="icn" style="color:var(--teal);vertical-align:-3px;"><use href="#i-coins"/></svg> 月末データの追加</h3>
@@ -6276,8 +6279,11 @@ function plTierClass(t, v){
   return '';
 }
 // ===== 全体収支：月末データ CSV取込 =====
-const PL_IMP_ORDER = ['sales', 'ad', 'storage', 'fbaFee'];
+const PL_IMP_ORDER = ['shipment', 'sales', 'ad', 'storage', 'fbaFee'];
 const PL_IMP = {
+  shipment: { label: '出荷数', col: '出荷日 / FNSKU / 数量', manual: false, ship: true,
+    url: 'https://sellercentral.amazon.co.jp/reportcentral/AFNFulfilledShipmentsReport/1',
+    desc: 'FBA「出荷レポート」（レポート＞フルフィルメント＞売上＞出荷レポート）のCSVから、FNSKU別・日別の出荷数（販売数量）をこの月に取り込みます。', abs: false },
   sales: { label: '実売上', col: '注文商品売上額', manual: true,
     url: 'https://sellercentral.amazon.co.jp/gp/site-metrics/report.html?mons_sel_mkid=amzn1.mp.o.A1VC38T7YXB528&mons_sel_mcid=amzn1.merchant.o.A3UZ9NEVYAB78B&mons_sel_persist=true#/dashboard',
     desc: '売上ダッシュボードのCSVの「注文商品売上額」列の合計を実売上（総売上）に設定。手入力も可。', abs: false },
@@ -6347,6 +6353,37 @@ function plParseTxnCsv(text){
   });
   return { ok: true, fbaSigned, feeSigned, hasFee: hasFee && !!feeCol, rows: rows2, fbaCol, feeCol };
 }
+// FBA出荷レポート（出荷日/FNSKU/数量の注文明細）から、対象月のFNSKU別・日別 出荷数を集計
+function plParseShipCsv(text, ym){
+  let res;
+  try { res = Papa.parse(text, { header: true, skipEmptyLines: true }); } catch { return { ok: false, msg: '解析エラー' }; }
+  const rows = res.data || [];
+  if (!rows.length) return { ok: false, msg: '行がありません' };
+  const cols = Object.keys(rows[0]);
+  const norm = s => String(s).replace(/\s/g, '');
+  const dateCol = cols.find(c => norm(c) === '出荷日') || cols.find(c => c.indexOf('出荷日') > -1) || cols.find(c => c.toLowerCase().indexOf('shipment') > -1 && c.toLowerCase().indexOf('date') > -1);
+  const fnCol = cols.find(c => norm(c) === 'FNSKU') || cols.find(c => c.toUpperCase().indexOf('FNSKU') > -1);
+  const qtyCol = cols.find(c => norm(c) === '数量') || cols.find(c => c.indexOf('数量') > -1) || cols.find(c => c.toLowerCase() === 'quantity' || c.toLowerCase().indexOf('quantity') > -1);
+  if (!dateCol) return { ok: false, msg: '「出荷日」列が見つかりません' };
+  if (!fnCol) return { ok: false, msg: '「FNSKU」列が見つかりません' };
+  if (!qtyCol) return { ok: false, msg: '「数量」列が見つかりません' };
+  const agg = {}; let rowsUsed = 0, totalQty = 0;
+  rows.forEach(r => {
+    const m = String(r[dateCol] == null ? '' : r[dateCol]).match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+    if (!m) return;
+    if (m[1] + '-' + m[2] !== ym) return;
+    const day = String(+m[3]);
+    const f = String(r[fnCol] == null ? '' : r[fnCol]).trim();
+    if (!f) return;
+    const q = Number(String(r[qtyCol] == null ? '' : r[qtyCol]).replace(/[^0-9.\-]/g, '')) || 0;
+    if (q <= 0) return;
+    if (!agg[f]) agg[f] = {};
+    agg[f][day] = (agg[f][day] || 0) + q;
+    rowsUsed++; totalQty += q;
+  });
+  if (!rowsUsed) return { ok: false, msg: ym.replace('-', '/') + 'の出荷行がありません（対象月をご確認ください）' };
+  return { ok: true, agg, rows: rowsUsed, totalQty, fnskus: Object.keys(agg).length };
+}
 function plImpColumn(cols, field){
   const norm = s => String(s).toLowerCase().replace(/\s+/g, '');
   if (field === 'storage') {
@@ -6389,8 +6426,16 @@ function plParseCsv(text, field){
   });
   return { ok: true, sum, rows: n, col };
 }
+// モーダルの対象月：全体収支データのある月＋直近15か月（新しい月の出荷数も最初から取り込めるように）
+function plImpMonthsList(){
+  const set = new Set(plMonthsList());
+  const now = new Date();
+  let y = now.getFullYear(), m = now.getMonth() + 1;
+  for (let i = 0; i < 15; i++) { set.add(y + '-' + String(m).padStart(2, '0')); m--; if (m < 1) { m = 12; y--; } }
+  return Array.from(set).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
+}
 function openPlImport(month){
-  const list = plMonthsList();
+  const list = plImpMonthsList();
   plImpMonth = (month && list.includes(month)) ? month : (list.length ? list[list.length - 1] : null);
   renderPlImportModal();
   document.getElementById('pl-import-modal').hidden = false;
@@ -6398,11 +6443,16 @@ function openPlImport(month){
 function closePlImport(){ document.getElementById('pl-import-modal').hidden = true; }
 function renderPlImportModal(){
   const sel = document.getElementById('pl-imp-month');
-  const list = plMonthsList();
+  const list = plImpMonthsList();
   if (list.length && !list.includes(plImpMonth)) plImpMonth = list[list.length - 1];
   sel.innerHTML = list.length ? list.slice().reverse().map(m => '<option value="' + m + '"' + (m === plImpMonth ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') : '<option value="">（対象月なし）</option>';
   const fmtRoasV = r => (r == null) ? '—' : (Math.round(r * 100) / 100).toFixed(2);
   const cur = (f) => {
+    if (f === 'shipment') {
+      const sh = shipments[plImpMonth]; let q = 0;
+      if (sh) for (const fn in sh) for (const d in sh[fn]) q += Number(sh[fn][d]) || 0;
+      return q > 0 ? q.toLocaleString() + '点' : '<span style="color:var(--text-tertiary)">未入力</span>';
+    }
     if (f === 'ad') {
       const c = plActualAdCost(plImpMonth), s = plActualAdSales(plImpMonth);
       if (c == null && s == null) return '<span style="color:var(--text-tertiary)">未入力</span>';
@@ -6449,6 +6499,32 @@ async function processPlSlot(field, files){
     if (/\.zip$/i.test(f.name)) return await unzipCsvEntries(buf);
     return [{ name: f.name, bytes: buf }];
   };
+  if (cfg.ship) { // 出荷数：FBA出荷レポートからFNSKU別・日別の数量を取込（対象月を上書き）
+    const merged = {}; let rows = 0, totalQty = 0; const errs = [];
+    for (const f of arr) {
+      try {
+        for (const u of await decodeUnits(f)) {
+          const text = decodeAdBytes(u.bytes);
+          if (text == null) { errs.push(u.name + '：文字コード不明'); continue; }
+          const r = plParseShipCsv(text, plImpMonth);
+          if (!r.ok) { errs.push(u.name + '：' + r.msg); continue; }
+          for (const fn in r.agg) { if (!merged[fn]) merged[fn] = {}; for (const d in r.agg[fn]) merged[fn][d] = (merged[fn][d] || 0) + r.agg[fn][d]; }
+          rows += r.rows; totalQty += r.totalQty;
+        }
+      } catch { errs.push(f.name + '：展開エラー'); }
+    }
+    if (rows > 0) {
+      shipments[plImpMonth] = merged; // 出荷レポートで当月の出荷数を上書き
+      saveShipments(); renderPlView(); _graphMetricCache = {};
+      const nF = Object.keys(merged).length;
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal)">✓ ' + rows + '行集計 → ' + nF + '商品 / 合計' + totalQty.toLocaleString() + '点 を ' + plImpMonth.replace('-', '/') + ' に設定（出荷数データに反映）</span>';
+      const curEl = statusEl.closest('.pl-slot').querySelector('.pl-slot-cur');
+      if (curEl) curEl.innerHTML = '現在: 合計' + totalQty.toLocaleString() + '点';
+    } else if (statusEl) {
+      statusEl.innerHTML = '<span style="color:var(--danger)">取込できる行がありません。' + (errs.length ? retEsc(errs[0]) : '列名をご確認ください') + '</span>';
+    }
+    return;
+  }
   if (cfg.combo) { // 広告：合計費用=広告費 / 売上=広告売上（＋SP/SB内訳）
     let cost = 0, sales = 0, rows = 0; const errs = [];
     const bt = { sp: { kw: { cost: 0, sales: 0 }, shohin: { cost: 0, sales: 0 }, auto: { cost: 0, sales: 0 } }, sb: { douga: { cost: 0, sales: 0 }, shokore: { cost: 0, sales: 0 } } };
