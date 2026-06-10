@@ -477,6 +477,7 @@
   .graph-seg button { border: none; background: transparent; padding: 8px 16px; font-size: 15px; font-weight: 600; color: var(--text-secondary); border-radius: 6px; cursor: pointer; font-family: inherit; }
   .graph-seg button.active { background: var(--accent); color: #fff; }
   .graph-seg.blue button.active { background: var(--blue); }
+  .graph-seg.alt button.active { background: var(--purple); }
   .graph-select { font-size: 15px; padding: 9px 12px; border: 1px solid var(--border); border-radius: 9px; background: var(--bg-card); font-family: inherit; }
   .graph-range { display: inline-flex; align-items: center; gap: 8px; font-size: 15px; color: var(--text-secondary); }
   .graph-items { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 10px; }
@@ -1395,7 +1396,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.81</span>
+  <span class="version">v1.82</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6929,7 +6930,7 @@ function renderReturnsView(){
   let h = '<div class="graph-toolbar">';
   h += '<label class="ret-yearsel">年 <select id="ret-year">' + (years.length ? years.map(y => '<option value="' + y + '"' + (y === yr ? ' selected' : '') + '>' + y + '年</option>').join('') : '<option>—</option>') + '</select></label>';
   h += '<div class="graph-seg" id="ret-view"><button data-v="category" class="' + (retView === 'category' ? 'active' : '') + '">カテゴリ別</button><button data-v="fnsku" class="' + (retView === 'fnsku' ? 'active' : '') + '">FNSKU別</button></div>';
-  h += '<div class="graph-seg" id="ret-group"><button data-g="normal" class="' + (retGroupBy === 'normal' ? 'active' : '') + '">通常</button><button data-g="unit" class="' + (retGroupBy === 'unit' ? 'active' : '') + '">' + (retView === 'category' ? 'カテゴリ' : '商品') + 'くくり</button></div>';
+  h += '<div class="graph-seg alt" id="ret-group"><button data-g="normal" class="' + (retGroupBy === 'normal' ? 'active' : '') + '">通常</button><button data-g="unit" class="' + (retGroupBy === 'unit' ? 'active' : '') + '">' + (retView === 'category' ? 'カテゴリ' : '商品') + 'くくり</button></div>';
   if (retView === 'fnsku') {
     h += '<div class="ret-search"><svg class="icn"><use href="#i-search"/></svg>'
       + '<input id="ret-search-input" type="search" list="ret-search-list" placeholder="FNSKU・商品名で検索" value="' + retEsc(retSearch) + '" autocomplete="off">'
