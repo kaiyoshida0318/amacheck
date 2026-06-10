@@ -532,6 +532,7 @@
   .pl-drop-all .sub { font-size: 13px; color: var(--text-secondary); }
   .pl-drop-all.dragover { border-color: var(--teal); background: #ecfdf9; }
   .pl-drop-all input[type=file] { display: none; }
+  .pl-drop-disabled { opacity: .55; cursor: not-allowed; border-style: dashed; }
   .pl-drop-status { font-size: 13px; margin-top: 8px; line-height: 1.6; }
   .pl-table tfoot td { border-top: 2px solid var(--border-strong); border-bottom: none; font-weight: 700; background: var(--bg-secondary); }
   .pl-input { width: 100%; text-align: right; font: inherit; font-size: 14px; border: none; background: transparent; padding: 0; margin: 0; color: inherit; }
@@ -545,7 +546,9 @@
   .pl-table td.pl-edit:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
   .pl-table td.pl-edit .pl-empty { color: var(--text-tertiary); }
   .pl-table .pl-empty { color: var(--text-tertiary); font-weight: 400; }
-  .pl-table th .pl-badge { display: inline-flex; align-items: center; justify-content: center; width: 15px; height: 15px; border-radius: 50%; border: 1px solid currentColor; color: currentColor; font-size: 10px; font-weight: 700; line-height: 1; cursor: help; vertical-align: 1px; opacity: .85; }
+  .pl-table th .pl-badge { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #334155; color: #fff; font-size: 10px; font-weight: 700; line-height: 1; cursor: help; vertical-align: 1px; }
+  .pl-table th .pl-badge::after { content: attr(data-tip); position: absolute; top: 150%; right: 0; background: #1f2937; color: #fff; font-size: 12px; font-weight: 500; line-height: 1.5; white-space: normal; width: max-content; max-width: 240px; text-align: left; padding: 7px 10px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.3); opacity: 0; visibility: hidden; pointer-events: none; z-index: 60; }
+  .pl-table th .pl-badge:hover::after { opacity: 1; visibility: visible; }
   .pl-table td.pl-period { cursor: pointer; color: var(--blue); }
   .pl-table td.pl-period:hover { text-decoration: underline; }
   .pl-table th, .pl-table td { border-right: 1px solid var(--border); }
@@ -647,15 +650,17 @@
   .ret-pivot thead th:first-child { background: var(--bg-secondary); z-index: 2; }
   .ret-block { margin-bottom: 22px; border: 1px solid var(--border); border-radius: 12px; padding: 6px 12px 12px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
   .ret-block:last-child { margin-bottom: 4px; }
+  /* くくり表示の四半期ブロックは上下を詰める（上下の数値を見比べやすく） */
+  .ret-qblock { margin-bottom: 3px; padding: 3px 12px 5px; border-radius: 8px; box-shadow: none; }
+  .ret-qblock:last-child { margin-bottom: 4px; }
   .ret-block-h { font-weight: 700; font-size: 14px; color: var(--text); margin: 0 0 6px; padding: 8px 4px 8px 10px; border-left: 4px solid var(--blue); background: var(--bg-secondary); border-radius: 6px; }
   /* くくり表示（カテゴリ順／商品順）：横スクロールを出さず全幅に収め、列間に薄い縦線 */
   .ret-pivot-fitwrap { width: 100%; }
-  .ret-pivot-fit { width: 100%; }
+  .ret-pivot-fit { width: 100%; table-layout: fixed; }
   .ret-pivot-fit th, .ret-pivot-fit td { border-right: 1px solid var(--border); padding-left: 6px; padding-right: 6px; }
   .ret-pivot-fit th:last-child, .ret-pivot-fit td:last-child { border-right: none; }
-  /* 商品順は列が多いので、長い商品名・カテゴリ名のみ省略表示にして他は省略しない */
-  .ret-pivot-fit-fnsku td.ret-uname { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
-  .ret-pivot-fit-fnsku td.ret-ucat-cell { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* ラベル列は列幅に合わせて省略表示（縦線を全ブロックで一直線にするため列幅は固定） */
+  .ret-pivot-fit td.ret-uname, .ret-pivot-fit td.ret-ucat-cell, .ret-pivot-fit td.ret-fnsku-cell { max-width: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* くくり表示（ユニット×四半期を縦に並べる） */
   .ret-grouped { width: 100%; border-collapse: collapse; background: #fff; }
   .ret-grouped th, .ret-grouped td { padding: 8px 14px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; font-size: 14px; }
@@ -1421,7 +1426,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.93</span>
+  <span class="version">v1.97</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -2110,7 +2115,7 @@ function init(){
   document.getElementById('pl-imp-cancel').addEventListener('click', plCancelPending);
   document.getElementById('pl-imp-apply').addEventListener('click', plApplyPending);
   document.getElementById('pl-import-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'pl-import-modal') closePlImport(); });
-  document.getElementById('pl-imp-month').addEventListener('change', (e) => { plImpMonth = e.target.value; plPending = {}; renderPlImportModal(); });
+  document.getElementById('pl-imp-month').addEventListener('change', (e) => { plImpMonth = e.target.value || null; plPending = {}; renderPlImportModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('pl-import-modal').hidden) closePlImport(); });
   // 広告の種類 説明モーダル
   (function(){
@@ -6522,7 +6527,7 @@ function plImpMonthsList(){
 }
 function openPlImport(month){
   const list = plImpMonthsList();
-  plImpMonth = (month && list.includes(month)) ? month : (list.length ? list[list.length - 1] : null);
+  plImpMonth = (month && list.includes(month)) ? month : null; // ボタンからは未選択、日付クリック時はその月
   plPending = {};
   renderPlImportModal();
   document.getElementById('pl-import-modal').hidden = false;
@@ -6531,8 +6536,8 @@ function closePlImport(){ plPending = {}; document.getElementById('pl-import-mod
 function renderPlImportModal(){
   const sel = document.getElementById('pl-imp-month');
   const list = plImpMonthsList();
-  if (list.length && !list.includes(plImpMonth)) plImpMonth = list[list.length - 1];
-  sel.innerHTML = list.length ? list.slice().reverse().map(m => '<option value="' + m + '"' + (m === plImpMonth ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') : '<option value="">（対象月なし）</option>';
+  sel.innerHTML = '<option value=""' + (plImpMonth == null ? ' selected' : '') + '>対象月を選択…</option>'
+    + (list.length ? list.slice().reverse().map(m => '<option value="' + m + '"' + (m === plImpMonth ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') : '');
   const fmtRoasV = r => (r == null) ? '—' : (Math.round(r * 100) / 100).toFixed(2);
   const monthShipQty = () => { const sh = shipments[plImpMonth]; let q = 0; if (sh) for (const fn in sh) for (const d in sh[fn]) q += Number(sh[fn][d]) || 0; return q; };
   const muted = '<span style="color:var(--text-tertiary)">未入力</span>';
@@ -6562,19 +6567,26 @@ function renderPlImportModal(){
       + '</div>';
   });
   document.getElementById('pl-imp-slots').innerHTML = h;
-  // 下部：まとめて入れる単一ドロップゾーン（内容から自動判別）
-  document.getElementById('pl-imp-drop').innerHTML =
-    '<label class="upload-zone pl-drop-all"><svg class="icn" style="font-size:22px;"><use href="#i-file-spreadsheet"/></svg>'
-    + '<div class="main">A〜D のCSV / ZIP をまとめてここにドラッグ、またはクリックで選択</div>'
-    + '<div class="sub">ファイルの内容から自動で判別して取り込みます（複数まとめてOK）</div>'
-    + '<input type="file" id="pl-drop-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple></label>'
-    + '<div class="pl-drop-status" id="pl-drop-status"></div>';
-  const inp = document.getElementById('pl-drop-input');
-  inp.addEventListener('change', (e) => { processPlDrop(e.target.files); e.target.value = ''; });
-  const z = document.querySelector('.pl-drop-all');
-  ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('dragover'); }));
-  ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('dragover'); }));
-  z.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) processPlDrop(e.dataTransfer.files); });
+  // 下部：まとめて入れる単一ドロップゾーン（内容から自動判別）。対象月未選択時は無効。
+  if (plImpMonth == null) {
+    document.getElementById('pl-imp-drop').innerHTML =
+      '<div class="pl-drop-all pl-drop-disabled"><svg class="icn" style="font-size:22px;"><use href="#i-file-spreadsheet"/></svg>'
+      + '<div class="main">まず上で「対象月」を選択してください</div>'
+      + '<div class="sub">月を選ぶと、A〜DのCSVをまとめて取り込めます</div></div>';
+  } else {
+    document.getElementById('pl-imp-drop').innerHTML =
+      '<label class="upload-zone pl-drop-all"><svg class="icn" style="font-size:22px;"><use href="#i-file-spreadsheet"/></svg>'
+      + '<div class="main">A〜D のCSV / ZIP をまとめてここにドラッグ、またはクリックで選択</div>'
+      + '<div class="sub">ファイルの内容から自動で判別して取り込みます（複数まとめてOK）</div>'
+      + '<input type="file" id="pl-drop-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple></label>'
+      + '<div class="pl-drop-status" id="pl-drop-status"></div>';
+    const inp = document.getElementById('pl-drop-input');
+    inp.addEventListener('change', (e) => { processPlDrop(e.target.files); e.target.value = ''; });
+    const z = document.querySelector('.pl-drop-all');
+    ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('dragover'); }));
+    z.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) processPlDrop(e.dataTransfer.files); });
+  }
   // 反映待ちプレビューを復元＋カードを光らせる
   Object.keys(plPending).forEach(f => {
     const st = document.querySelector('#pl-imp-slots .pl-slot-status[data-f="' + f + '"]');
@@ -6599,13 +6611,28 @@ function plUpdateApplyBtn(){
   const ab = document.getElementById('pl-imp-apply');
   if (ab) { ab.disabled = n === 0; ab.textContent = n > 0 ? ('反映する（' + n + '件）') : '反映する'; }
 }
+let plUndoSnapshot = null; // 直前の反映前の状態（plData/shipments）。間違って反映したときのリカバリー用
 function plApplyPending(){
   const fs = Object.keys(plPending);
   if (!fs.length) return;
+  // 反映前の状態を退避（出荷数入力と同じく、あとから「元に戻す」で復元できるように）
+  plUndoSnapshot = { plData: JSON.parse(JSON.stringify(plData)), shipments: JSON.parse(JSON.stringify(shipments)) };
   fs.forEach(f => { try { plPending[f].apply(); } catch (e) {} });
   savePlData(); saveShipments(); _graphMetricCache = {};
+  const n = fs.length;
   plPending = {};
   renderPlView(); renderPlImportModal();
+  toast('反映しました（' + n + '件）', { label: '元に戻す', onClick: plUndoApply });
+}
+function plUndoApply(){
+  if (!plUndoSnapshot) { toast('元に戻せる反映がありません'); return; }
+  plData = plUndoSnapshot.plData;
+  shipments = plUndoSnapshot.shipments;
+  plUndoSnapshot = null;
+  savePlData(); saveShipments(); _graphMetricCache = {};
+  renderPlView();
+  if (!document.getElementById('pl-import-modal').hidden) renderPlImportModal();
+  toast('反映を取り消して元に戻しました');
 }
 function plCancelPending(){ plPending = {}; closePlImport(); }
 // 単一ドロップゾーン：内容から A〜D を自動判別して各項目をステージし、対応カードを光らせる
@@ -6790,6 +6817,7 @@ function renderPlView(){
     + '<span class="lg-hi10">上位10%</span><span class="lg-hi20">上位20%</span>'
     + '<span class="lg-mid">中間</span><span class="lg-lo20">下位20%</span><span class="lg-lo10">下位10%</span></span>';
   h += '<div class="spacer" style="flex:1"></div>';
+  if (plUndoSnapshot) h += '<button id="pl-undo" class="ghost" style="font-size:12px;margin-right:8px;" title="直前に反映したデータを取り消して元に戻します"><svg class="icn"><use href="#i-arrow-left"/></svg> 直前の反映を取り消す</button>';
   h += '<button class="primary" id="pl-add-month" style="font-size:12px;"><svg class="icn"><use href="#i-plus"/></svg> 月末データ追加</button>';
   h += '</div>';
 
@@ -6832,8 +6860,8 @@ function renderPlView(){
   const thSeo = '<th class="pl-c-sales">SEO売上</th>';
   const thStore = '<th class="pl-c-warm">保管費</th>';
   const thFba = '<th class="pl-c-warm">FBA手数料(送料)</th>';
-  const thGross = '<th class="pl-c-gross">粗利益 <span class="pl-badge" title="粗利益＝総売上－原価">?</span></th>';
-  const thProfit = '<th class="pl-c-profit">実質利益 <span class="pl-badge" title="実質利益＝粗利益－広告費－保管費－FBA手数料(送料)">?</span></th>';
+  const thGross = '<th class="pl-c-gross">粗利益 <span class="pl-badge" data-tip="粗利益＝総売上－原価">?</span></th>';
+  const thProfit = '<th class="pl-c-profit">実質利益 <span class="pl-badge" data-tip="実質利益＝粗利益－広告費－保管費－FBA手数料(送料)">?</span></th>';
   const cols = '<th>期間</th>' + thSales + thSeo + '<th class="pl-c-sales">広告売上</th>' + thGross + '<th class="pl-c-warm">広告費</th>' + thStore + thFba + thProfit + '<th class="pl-c-roas">ROAS</th>';
   h += '<div style="overflow:auto;max-height:560px;"><table class="pl-table"><thead><tr>' + cols + '</tr></thead><tbody>';
 
@@ -6924,6 +6952,7 @@ function renderPlView(){
     td.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); plActivateEdit(td); } });
   });
   const bAddMonth = body.querySelector('#pl-add-month'); if (bAddMonth) bAddMonth.addEventListener('click', () => openPlImport(null));
+  const bUndo = body.querySelector('#pl-undo'); if (bUndo) bUndo.addEventListener('click', plUndoApply);
   body.querySelectorAll('.pl-period').forEach(td => {
     td.addEventListener('click', () => openPlImport(td.dataset.ym));
     td.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); openPlImport(td.dataset.ym); } });
@@ -7060,7 +7089,19 @@ function retBuildBody(months){
 // 案A：月を横に並べる（1カテゴリ＝1行）
 function retLayoutPivot(units, months, periodLabel){
   const pl = periodLabel != null;
-  let h = (pl ? ('<div class="ret-pivot-fitwrap"><table class="ret-table ret-pivot ret-pivot-fit' + (retView === 'fnsku' ? ' ret-pivot-fit-fnsku' : '') + '">') : '<div style="overflow-x:auto;"><table class="ret-table ret-pivot">') + '<thead>';
+  let h = (pl ? ('<div class="ret-pivot-fitwrap"><table class="ret-table ret-pivot ret-pivot-fit' + (retView === 'fnsku' ? ' ret-pivot-fit-fnsku' : '') + '">') : '<div style="overflow-x:auto;"><table class="ret-table ret-pivot">');
+  if (pl) {
+    const labelW = retView === 'category' ? [14, 7] : [9, 13, 9, 6]; // 末尾が期間列
+    const sumW = retView === 'category' ? [7, 7, 7] : [6, 6, 6];
+    const nSub = months.length * 3;
+    const subW = (100 - labelW.concat(sumW).reduce((a, b) => a + b, 0)) / nSub;
+    h += '<colgroup>'
+      + labelW.map(w => '<col style="width:' + w + '%">').join('')
+      + sumW.map(w => '<col style="width:' + w + '%">').join('')
+      + Array(nSub).fill('<col style="width:' + subW.toFixed(3) + '%">').join('')
+      + '</colgroup>';
+  }
+  h += '<thead>';
   h += '<tr>' + (retView === 'category'
       ? ('<th rowspan="2"' + (pl ? '' : ' class="ret-sep-r"') + '>カテゴリ</th>')
       : ('<th rowspan="2" class="ret-lbl">カテゴリ</th><th rowspan="2" class="ret-lbl">商品名</th><th rowspan="2" class="ret-lbl' + (pl ? '' : ' ret-sep-r') + '">FNSKU</th>'));
@@ -7163,7 +7204,7 @@ function retBuildUnitGrouped(units, months){
     quarters.forEach(chunk => {
       if (w && chunk[0] > w) return; // 撤退月より後の四半期は表示しない
       const m1 = +chunk[0].slice(5, 7), m2 = +chunk[chunk.length - 1].slice(5, 7);
-      h += '<div class="ret-block">' + retLayoutPivot([u], chunk, m1 + '〜' + m2 + '月') + '</div>';
+      h += '<div class="ret-block ret-qblock">' + retLayoutPivot([u], chunk, m1 + '〜' + m2 + '月') + '</div>';
       any = true;
     });
   });
