@@ -521,6 +521,7 @@
   .pl-slot-zone .main { font-size: 13px; }
   .pl-slot-zone .sub { font-size: 11px; }
   .pl-slot-status { font-size: 12px; margin-top: 6px; min-height: 0; }
+  .pl-pending { color: #b45309; font-weight: 600; }
   .pl-table tfoot td { border-top: 2px solid var(--border-strong); border-bottom: none; font-weight: 700; background: var(--bg-secondary); }
   .pl-input { width: 100%; text-align: right; font: inherit; font-size: 14px; border: none; background: transparent; padding: 0; margin: 0; color: inherit; }
   .pl-input:focus { outline: none; box-shadow: inset 0 -2px 0 var(--blue); }
@@ -1399,7 +1400,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.86</span>
+  <span class="version">v1.87</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1673,7 +1674,8 @@
     </div>
     <div id="pl-imp-slots" style="margin-top:8px;"></div>
     <div class="modal-actions">
-      <button id="pl-imp-cancel">閉じる</button>
+      <button id="pl-imp-cancel">キャンセル</button>
+      <button id="pl-imp-apply" class="primary" disabled>反映する</button>
     </div>
   </div>
 </div>
@@ -2083,9 +2085,10 @@ function init(){
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('cat-modal').hidden) closeCatModal(); });
   // 全体収支 月末データ取込モーダル
   document.getElementById('pl-imp-close').addEventListener('click', closePlImport);
-  document.getElementById('pl-imp-cancel').addEventListener('click', closePlImport);
+  document.getElementById('pl-imp-cancel').addEventListener('click', plCancelPending);
+  document.getElementById('pl-imp-apply').addEventListener('click', plApplyPending);
   document.getElementById('pl-import-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'pl-import-modal') closePlImport(); });
-  document.getElementById('pl-imp-month').addEventListener('change', (e) => { plImpMonth = e.target.value; renderPlImportModal(); });
+  document.getElementById('pl-imp-month').addEventListener('change', (e) => { plImpMonth = e.target.value; plPending = {}; renderPlImportModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('pl-import-modal').hidden) closePlImport(); });
   // 広告の種類 説明モーダル
   (function(){
@@ -6437,10 +6440,11 @@ function plImpMonthsList(){
 function openPlImport(month){
   const list = plImpMonthsList();
   plImpMonth = (month && list.includes(month)) ? month : (list.length ? list[list.length - 1] : null);
+  plPending = {};
   renderPlImportModal();
   document.getElementById('pl-import-modal').hidden = false;
 }
-function closePlImport(){ document.getElementById('pl-import-modal').hidden = true; }
+function closePlImport(){ plPending = {}; document.getElementById('pl-import-modal').hidden = true; }
 function renderPlImportModal(){
   const sel = document.getElementById('pl-imp-month');
   const list = plImpMonthsList();
@@ -6488,25 +6492,54 @@ function renderPlImportModal(){
     ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('dragover'); }));
     z.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) processPlSlot(z.dataset.f, e.dataTransfer.files); });
   });
+  // 反映待ちプレビューを復元
+  Object.keys(plPending).forEach(f => {
+    const st = document.querySelector('#pl-imp-slots .pl-slot-status[data-f="' + f + '"]');
+    if (st) st.innerHTML = '<span class="pl-pending">反映待ち：' + plPending[f].summary + '（下の「反映する」で確定）</span>';
+  });
+  plUpdateApplyBtn();
 }
+let plPending = {};
+function plSlotError(statusEl, errs){ if (statusEl) statusEl.innerHTML = '<span style="color:var(--danger)">取込できる行がありません。' + (errs.length ? retEsc(errs[0]) : '列名をご確認ください') + '</span>'; }
+function plSetPending(field, summary, applyFn){
+  plPending[field] = { apply: applyFn, summary: summary };
+  const statusEl = document.querySelector('#pl-imp-slots .pl-slot-status[data-f="' + field + '"]');
+  if (statusEl) statusEl.innerHTML = '<span class="pl-pending">反映待ち：' + summary + '（下の「反映する」で確定）</span>';
+  plUpdateApplyBtn();
+}
+function plUpdateApplyBtn(){
+  const n = Object.keys(plPending).length;
+  const ab = document.getElementById('pl-imp-apply');
+  if (ab) { ab.disabled = n === 0; ab.textContent = n > 0 ? ('反映する（' + n + '件）') : '反映する'; }
+}
+function plApplyPending(){
+  const fs = Object.keys(plPending);
+  if (!fs.length) return;
+  fs.forEach(f => { try { plPending[f].apply(); } catch (e) {} });
+  savePlData(); saveShipments(); _graphMetricCache = {};
+  plPending = {};
+  renderPlView(); renderPlImportModal();
+}
+function plCancelPending(){ plPending = {}; closePlImport(); }
 async function processPlSlot(field, files){
   const arr = Array.from(files || []); if (!arr.length) return;
   if (!plImpMonth) return;
   const cfg = PL_IMP[field];
+  const ym = plImpMonth; // この取込の対象月（固定）
   const statusEl = document.querySelector('#pl-imp-slots .pl-slot-status[data-f="' + field + '"]');
   const decodeUnits = async (f) => {
     const buf = await readFileBytes(f);
     if (/\.zip$/i.test(f.name)) return await unzipCsvEntries(buf);
     return [{ name: f.name, bytes: buf }];
   };
-  if (cfg.ship) { // 出荷数：FBA出荷レポートからFNSKU別・日別の数量を取込（対象月を上書き）
+  if (cfg.ship) { // 出荷数：FBA出荷レポートからFNSKU別・日別の数量（対象月を上書き）
     const merged = {}; let rows = 0, totalQty = 0; const errs = [];
     for (const f of arr) {
       try {
         for (const u of await decodeUnits(f)) {
           const text = decodeAdBytes(u.bytes);
           if (text == null) { errs.push(u.name + '：文字コード不明'); continue; }
-          const r = plParseShipCsv(text, plImpMonth);
+          const r = plParseShipCsv(text, ym);
           if (!r.ok) { errs.push(u.name + '：' + r.msg); continue; }
           for (const fn in r.agg) { if (!merged[fn]) merged[fn] = {}; for (const d in r.agg[fn]) merged[fn][d] = (merged[fn][d] || 0) + r.agg[fn][d]; }
           rows += r.rows; totalQty += r.totalQty;
@@ -6514,15 +6547,9 @@ async function processPlSlot(field, files){
       } catch { errs.push(f.name + '：展開エラー'); }
     }
     if (rows > 0) {
-      shipments[plImpMonth] = merged; // 出荷レポートで当月の出荷数を上書き
-      saveShipments(); renderPlView(); _graphMetricCache = {};
       const nF = Object.keys(merged).length;
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal)">✓ ' + rows + '行集計 → ' + nF + '商品 / 合計' + totalQty.toLocaleString() + '点 を ' + plImpMonth.replace('-', '/') + ' に設定（出荷数データに反映）</span>';
-      const curEl = statusEl.closest('.pl-slot').querySelector('.pl-slot-cur');
-      if (curEl) curEl.innerHTML = '現在: 合計' + totalQty.toLocaleString() + '点';
-    } else if (statusEl) {
-      statusEl.innerHTML = '<span style="color:var(--danger)">取込できる行がありません。' + (errs.length ? retEsc(errs[0]) : '列名をご確認ください') + '</span>';
-    }
+      plSetPending(field, nF + '商品 / 合計' + totalQty.toLocaleString() + '点（' + ym.replace('-', '/') + 'の出荷数を上書き）', () => { shipments[ym] = merged; });
+    } else plSlotError(statusEl, errs);
     return;
   }
   if (cfg.combo) { // 広告：合計費用=広告費 / 売上=広告売上（＋SP/SB内訳）
@@ -6542,20 +6569,17 @@ async function processPlSlot(field, files){
       } catch { errs.push(f.name + '：展開エラー'); }
     }
     if (rows > 0) {
-      if (!plData[plImpMonth]) plData[plImpMonth] = {};
-      plData[plImpMonth].adCost = cost; plData[plImpMonth].adSales = sales;
-      if (haveType) { ['sp', 'sb'].forEach(pf => Object.keys(bt[pf]).forEach(st => { bt[pf][st].cost = Math.round(bt[pf][st].cost); bt[pf][st].sales = Math.round(bt[pf][st].sales); })); plData[plImpMonth].adByType = bt; }
-      savePlData(); renderPlView(); _graphMetricCache = {};
+      if (haveType) ['sp', 'sb'].forEach(pf => Object.keys(bt[pf]).forEach(st => { bt[pf][st].cost = Math.round(bt[pf][st].cost); bt[pf][st].sales = Math.round(bt[pf][st].sales); }));
       const roas = (cost > 0) ? (Math.round(sales / cost * 100) / 100).toFixed(2) : '—';
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal)">✓ ' + rows + '行集計 → 広告費 ' + plYen(cost) + ' / 広告売上 ' + plYen(sales) + ' / ROAS ' + roas + (haveType ? '（SP/SB内訳も取得）' : '') + ' を ' + plImpMonth.replace('-', '/') + ' に設定</span>';
-      const curEl = statusEl.closest('.pl-slot').querySelector('.pl-slot-cur');
-      if (curEl) curEl.innerHTML = '現在: 広告費 ' + plYen(cost) + ' / 広告売上 ' + plYen(sales) + ' / ROAS ' + roas;
-    } else if (statusEl) {
-      statusEl.innerHTML = '<span style="color:var(--danger)">取込できる行がありません。' + (errs.length ? retEsc(errs[0]) : '列名をご確認ください') + '</span>';
-    }
+      plSetPending(field, '広告費 ' + plYen(cost) + ' / 広告売上 ' + plYen(sales) + ' / ROAS ' + roas + (haveType ? '（SP/SB内訳）' : ''), () => {
+        if (!plData[ym]) plData[ym] = {};
+        plData[ym].adCost = cost; plData[ym].adSales = sales;
+        if (haveType) plData[ym].adByType = bt;
+      });
+    } else plSlotError(statusEl, errs);
     return;
   }
-  if (cfg.txn) { // トランザクションレポート：FBA手数料 と 販売手数料 を同時取込（旧形式にもフォールバック）
+  if (cfg.txn) { // トランザクションレポート：FBA手数料 と 販売手数料（旧形式にもフォールバック）
     let fbaSigned = 0, feeSigned = 0, rows = 0, anyFee = false; const errs = [];
     for (const f of arr) {
       try {
@@ -6564,25 +6588,20 @@ async function processPlSlot(field, files){
           if (text == null) { errs.push(u.name + '：文字コード不明'); continue; }
           const r = plParseTxnCsv(text);
           if (r.ok) { fbaSigned += r.fbaSigned; feeSigned += r.feeSigned; rows += r.rows; if (r.hasFee) anyFee = true; continue; }
-          const r2 = plParseCsv(text, 'fbaFee'); // 旧「送料(FBA手数料)」レポート
+          const r2 = plParseCsv(text, 'fbaFee');
           if (r2.ok) { fbaSigned += r2.sum; rows += r2.rows; continue; }
           errs.push(u.name + '：' + r.msg);
         }
       } catch { errs.push(f.name + '：展開エラー'); }
     }
     if (rows > 0) {
-      if (!plData[plImpMonth]) plData[plImpMonth] = {};
       const fba = Math.abs(Math.round(fbaSigned));
-      plData[plImpMonth].fbaFee = fba;
-      let feeMsg = '';
-      if (anyFee) { const fee = Math.abs(Math.round(feeSigned)); plData[plImpMonth].sellingFee = fee; feeMsg = ' / 販売手数料 ' + plYen(fee) + '（粗利に反映）'; }
-      savePlData(); renderPlView();
-      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal)">✓ ' + rows + '行集計 → FBA手数料 ' + plYen(fba) + feeMsg + ' を ' + plImpMonth.replace('-', '/') + ' に設定</span>';
-      const curEl = statusEl.closest('.pl-slot').querySelector('.pl-slot-cur');
-      if (curEl) curEl.innerHTML = '現在: FBA手数料 ' + plYen(fba) + (anyFee ? ' / 販売手数料 ' + plYen(Math.abs(Math.round(feeSigned))) : '');
-    } else if (statusEl) {
-      statusEl.innerHTML = '<span style="color:var(--danger)">取込できる行がありません。' + (errs.length ? retEsc(errs[0]) : '列名をご確認ください') + '</span>';
-    }
+      const fee = anyFee ? Math.abs(Math.round(feeSigned)) : null;
+      plSetPending(field, 'FBA手数料 ' + plYen(fba) + (fee != null ? ' / 販売手数料 ' + plYen(fee) + '（粗利に反映）' : ''), () => {
+        if (!plData[ym]) plData[ym] = {};
+        plData[ym].fbaFee = fba; if (fee != null) plData[ym].sellingFee = fee;
+      });
+    } else plSlotError(statusEl, errs);
     return;
   }
   let sum = 0, rows = 0, foundCol = ''; const errs = [];
@@ -6600,16 +6619,11 @@ async function processPlSlot(field, files){
   if (rows > 0) {
     let val = Math.round(sum);
     if (cfg.abs) val = Math.abs(val);
-    if (!plData[plImpMonth]) plData[plImpMonth] = {};
-    plData[plImpMonth][field] = val;
-    savePlData();
-    renderPlView();
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal)">✓ 「' + retEsc(foundCol) + '」' + rows + '行 合計 ' + plYen(val) + (cfg.abs ? '（マイナス除去）' : '') + ' を ' + plImpMonth.replace('-', '/') + ' に設定</span>';
-    const curEl = statusEl.closest('.pl-slot').querySelector('.pl-slot-cur');
-    if (curEl) curEl.innerHTML = '現在: ' + plYen(val);
-  } else {
-    if (statusEl) statusEl.innerHTML = '<span style="color:var(--danger)">取込できる行がありません。' + (errs.length ? retEsc(errs[0]) : '列名をご確認ください') + '</span>';
-  }
+    plSetPending(field, '「' + retEsc(foundCol) + '」' + rows + '行 合計 ' + plYen(val) + (cfg.abs ? '（マイナス除去）' : ''), () => {
+      if (!plData[ym]) plData[ym] = {};
+      plData[ym][field] = val;
+    });
+  } else plSlotError(statusEl, errs);
 }
 function renderPlView(){
   const body = document.getElementById('pl-body');
