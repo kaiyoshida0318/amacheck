@@ -1396,7 +1396,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.82</span>
+  <span class="version">v1.84</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6584,6 +6584,9 @@ function renderPlView(){
   }
   const NA = '<span class="pl-empty">未入力</span>';
   const yenOrNA = v => (v == null) ? NA : plYen(v);
+  // 粗利益・実質利益は自動計算列。実売上が未入力で計算できない時は「未入力」ではなく自動計算待ちを示す
+  const AUTO = '<span class="pl-empty" title="実売上を入力すると自動計算されます">自動計算</span>';
+  const yenOrAuto = v => (v == null) ? AUTO : plYen(v);
   const roasStr = r => (r == null) ? '<span class="pl-empty">—</span>' : (Math.round(r * 100) / 100).toFixed(2);
   data.forEach(d => {
     if (d.total != null) { sT += d.total; sTany = true; }
@@ -6614,21 +6617,21 @@ function renderPlView(){
     h += '<tr>'
       + periodCell
       + salesCell
-      + '<td class="pl-c-gross">' + yenOrNA(d.gross) + '</td>'
+      + '<td class="pl-c-gross">' + yenOrAuto(d.gross) + '</td>'
       + adCell
       + adSalesCell
       + roasCell
       + storeCell
       + fbaCell
-      + '<td class="' + profClass + '">' + yenOrNA(d.profit) + '</td>'
+      + '<td class="' + profClass + '">' + yenOrAuto(d.profit) + '</td>'
       + '</tr>';
   });
   const footRoas = (sA > 0) ? (Math.round(sAS / sA * 100) / 100).toFixed(2) : '<span class="pl-empty">—</span>';
   h += '</tbody><tfoot><tr>'
-    + '<td>合計</td><td class="pl-c-sales">' + (sTany ? plYen(sT) : NA) + '</td><td class="pl-c-gross">' + (sGany ? plYen(sG) : NA) + '</td><td class="pl-c-warm">' + plYen(sA) + '</td>'
+    + '<td>合計</td><td class="pl-c-sales">' + (sTany ? plYen(sT) : NA) + '</td><td class="pl-c-gross">' + (sGany ? plYen(sG) : AUTO) + '</td><td class="pl-c-warm">' + plYen(sA) + '</td>'
     + '<td class="pl-c-sales">' + plYen(sAS) + '</td><td class="pl-c-roas">' + footRoas + '</td>'
     + '<td class="pl-c-warm">' + plYen(sS) + '</td><td class="pl-c-warm">' + plYen(sF) + '</td>'
-    + '<td class="' + (sPany && sP < 0 ? 'pl-neg' : '') + '">' + (sPany ? plYen(sP) : NA) + '</td>'
+    + '<td class="' + (sPany && sP < 0 ? 'pl-neg' : '') + '">' + (sPany ? plYen(sP) : AUTO) + '</td>'
     + '</tr></tfoot></table></div>';
 
   body.innerHTML = h;
@@ -6930,7 +6933,7 @@ function renderReturnsView(){
   let h = '<div class="graph-toolbar">';
   h += '<label class="ret-yearsel">年 <select id="ret-year">' + (years.length ? years.map(y => '<option value="' + y + '"' + (y === yr ? ' selected' : '') + '>' + y + '年</option>').join('') : '<option>—</option>') + '</select></label>';
   h += '<div class="graph-seg" id="ret-view"><button data-v="category" class="' + (retView === 'category' ? 'active' : '') + '">カテゴリ別</button><button data-v="fnsku" class="' + (retView === 'fnsku' ? 'active' : '') + '">FNSKU別</button></div>';
-  h += '<div class="graph-seg alt" id="ret-group"><button data-g="normal" class="' + (retGroupBy === 'normal' ? 'active' : '') + '">通常</button><button data-g="unit" class="' + (retGroupBy === 'unit' ? 'active' : '') + '">' + (retView === 'category' ? 'カテゴリ' : '商品') + 'くくり</button></div>';
+  h += '<div class="graph-seg alt" id="ret-group"><button data-g="normal" class="' + (retGroupBy === 'normal' ? 'active' : '') + '">期間順</button><button data-g="unit" class="' + (retGroupBy === 'unit' ? 'active' : '') + '">' + (retView === 'category' ? 'カテゴリ順' : '商品順') + '</button></div>';
   if (retView === 'fnsku') {
     h += '<div class="ret-search"><svg class="icn"><use href="#i-search"/></svg>'
       + '<input id="ret-search-input" type="search" list="ret-search-list" placeholder="FNSKU・商品名で検索" value="' + retEsc(retSearch) + '" autocomplete="off">'
