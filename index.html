@@ -637,6 +637,14 @@
   .ret-block { margin-bottom: 22px; border: 1px solid var(--border); border-radius: 12px; padding: 6px 12px 12px; background: #fff; box-shadow: 0 1px 3px rgba(0,0,0,0.05); }
   .ret-block:last-child { margin-bottom: 4px; }
   .ret-block-h { font-weight: 700; font-size: 14px; color: var(--text); margin: 0 0 6px; padding: 8px 4px 8px 10px; border-left: 4px solid var(--blue); background: var(--bg-secondary); border-radius: 6px; }
+  /* くくり表示（カテゴリ順／商品順）：横スクロールを出さず全幅に収め、列間に薄い縦線 */
+  .ret-pivot-fitwrap { width: 100%; }
+  .ret-pivot-fit { width: 100%; }
+  .ret-pivot-fit th, .ret-pivot-fit td { border-right: 1px solid var(--border); padding-left: 6px; padding-right: 6px; }
+  .ret-pivot-fit th:last-child, .ret-pivot-fit td:last-child { border-right: none; }
+  /* 商品順は列が多いので、長い商品名・カテゴリ名のみ省略表示にして他は省略しない */
+  .ret-pivot-fit-fnsku td.ret-uname { max-width: 170px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .ret-pivot-fit-fnsku td.ret-ucat-cell { max-width: 90px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   /* くくり表示（ユニット×四半期を縦に並べる） */
   .ret-grouped { width: 100%; border-collapse: collapse; background: #fff; }
   .ret-grouped th, .ret-grouped td { padding: 8px 14px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; font-size: 14px; }
@@ -1402,7 +1410,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.90</span>
+  <span class="version">v1.91</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6900,7 +6908,7 @@ function retBuildBody(months){
 // 案A：月を横に並べる（1カテゴリ＝1行）
 function retLayoutPivot(units, months, periodLabel){
   const pl = periodLabel != null;
-  let h = '<div style="overflow-x:auto;"><table class="ret-table ret-pivot"><thead>';
+  let h = (pl ? ('<div class="ret-pivot-fitwrap"><table class="ret-table ret-pivot ret-pivot-fit' + (retView === 'fnsku' ? ' ret-pivot-fit-fnsku' : '') + '">') : '<div style="overflow-x:auto;"><table class="ret-table ret-pivot">') + '<thead>';
   h += '<tr>' + (retView === 'category'
       ? ('<th rowspan="2"' + (pl ? '' : ' class="ret-sep-r"') + '>カテゴリ</th>')
       : ('<th rowspan="2" class="ret-lbl">カテゴリ</th><th rowspan="2" class="ret-lbl">商品名</th><th rowspan="2" class="ret-lbl' + (pl ? '' : ' ret-sep-r') + '">FNSKU</th>'));
