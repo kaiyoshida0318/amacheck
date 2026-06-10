@@ -523,6 +523,16 @@
   .pl-slot-zone .sub { font-size: 12.5px; }
   .pl-slot-status { font-size: 13px; margin-top: 8px; min-height: 0; }
   .pl-pending { color: #b45309; font-weight: 600; }
+  .pl-letter { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; border-radius: 6px; background: var(--teal); color: #fff; font-size: 13px; font-weight: 700; margin-right: 8px; vertical-align: -2px; }
+  .pl-card { transition: box-shadow .25s ease, border-color .25s ease; }
+  .pl-card-hit { border-color: var(--teal); box-shadow: 0 0 0 3px rgba(13,148,136,.28); animation: plCardGlow .6s ease; }
+  @keyframes plCardGlow { 0% { box-shadow: 0 0 0 0 rgba(13,148,136,.55); } 100% { box-shadow: 0 0 0 3px rgba(13,148,136,.28); } }
+  .pl-drop-all { display: flex; flex-direction: column; align-items: center; gap: 6px; padding: 26px; border: 2px dashed var(--border-strong); border-radius: 12px; background: var(--bg-secondary); cursor: pointer; }
+  .pl-drop-all .main { font-size: 16px; font-weight: 600; }
+  .pl-drop-all .sub { font-size: 13px; color: var(--text-secondary); }
+  .pl-drop-all.dragover { border-color: var(--teal); background: #ecfdf9; }
+  .pl-drop-all input[type=file] { display: none; }
+  .pl-drop-status { font-size: 13px; margin-top: 8px; line-height: 1.6; }
   .pl-table tfoot td { border-top: 2px solid var(--border-strong); border-bottom: none; font-weight: 700; background: var(--bg-secondary); }
   .pl-input { width: 100%; text-align: right; font: inherit; font-size: 14px; border: none; background: transparent; padding: 0; margin: 0; color: inherit; }
   .pl-input:focus { outline: none; box-shadow: inset 0 -2px 0 var(--blue); }
@@ -1410,7 +1420,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.91</span>
+  <span class="version">v1.92</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1683,6 +1693,7 @@
       </label>
     </div>
     <div id="pl-imp-slots" style="margin-top:8px;"></div>
+    <div id="pl-imp-drop" style="margin-top:14px;"></div>
     <div class="modal-actions">
       <button id="pl-imp-cancel">キャンセル</button>
       <button id="pl-imp-apply" class="primary" disabled>反映する</button>
@@ -4731,8 +4742,10 @@ function adParsePrice(v){
 function classifyCampaign(row){
   const name = row['キャンペーン名'] || '';
   const type = (row['タイプ'] || '').toUpperCase();
+  const prod = String(row['広告プロダクト'] || '');
   const tgt = (row['ターゲティング'] || '').toUpperCase();
-  const platform = type.indexOf('SB') === 0 ? 'sb' : 'sp';
+  const isSb = type.indexOf('SB') === 0 || /brand/i.test(prod) || prod.indexOf('ブランド') > -1 || name.indexOf('【SB】') > -1;
+  const platform = isSb ? 'sb' : 'sp';
   let subtype;
   if (platform === 'sb') {
     subtype = name.indexOf('動画') > -1 ? 'douga' : 'shokore';
@@ -6292,23 +6305,20 @@ function plTierClass(t, v){
   return '';
 }
 // ===== 全体収支：月末データ CSV取込 =====
-const PL_IMP_ORDER = ['sales', 'ad', 'storage', 'fbaFee', 'shipment'];
+const PL_IMP_ORDER = ['sales', 'ad', 'storage', 'fbaFee'];
 const PL_IMP = {
-  shipment: { label: '出荷数', col: '出荷日 / FNSKU / 数量', manual: false, ship: true,
-    url: 'https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash',
-    desc: 'FBA「出荷レポート」（レポート＞フルフィルメント＞売上＞出荷レポート）のCSVから、FNSKU別・日別の出荷数（販売数量）をこの月に取り込みます。', abs: false },
-  sales: { label: '実売上', col: '注文商品売上額', manual: true,
+  sales: { label: '実売上', letter: 'A', col: '注文商品の売上額', manual: true,
     url: 'https://sellercentral.amazon.co.jp/gp/site-metrics/report.html?mons_sel_mkid=amzn1.mp.o.A1VC38T7YXB528&mons_sel_mcid=amzn1.merchant.o.A3UZ9NEVYAB78B&mons_sel_persist=true#/dashboard',
-    desc: '売上ダッシュボードのCSVの「注文商品売上額」列の合計を実売上（総売上）に設定。手入力も可。', abs: false },
-  ad: { label: '広告費・広告売上', col: '合計費用 / 売上', manual: true, combo: true,
+    desc: '売上ダッシュボードのCSV。「注文商品の売上額」を実売上（総売上）に設定。', abs: false },
+  ad: { label: '広告費・広告売上', letter: 'B', col: '合計費用 / 売上', manual: true, combo: true,
     url: 'https://advertising.amazon.co.jp/campaign-manager/all-campaigns',
-    desc: 'キャンペーンマネージャーのCSVから「合計費用」=広告費、「売上」=広告売上を合計して設定。全体ROASは自動計算（広告売上÷広告費）。広告費・広告売上は手入力も可。', abs: false },
-  storage: { label: '保管費', col: 'Monthly storage fee (est.)', manual: false,
+    desc: '広告レポートのCSV。「合計費用」=広告費、「売上」=広告売上を集計（SP/SB内訳・ROASも自動）。', abs: false },
+  storage: { label: '保管費', letter: 'C', col: 'Monthly storage fee (est.)', manual: false,
     url: 'https://sellercentral.amazon.co.jp/reportcentral/STORAGE_FEE_CHARGES/1',
-    desc: '月次保管料レポートのCSVの「Monthly storage fee (est.)」列の合計を保管費に設定。', abs: false },
-  fbaFee: { label: 'FBA手数料(送料)・販売手数料', col: 'FBA 手数料 / 手数料', manual: false, txn: true,
+    desc: '月次保管料レポートのCSV。「Monthly storage fee (est.)」の合計を保管費に設定。', abs: false },
+  fbaFee: { label: 'FBA手数料(送料)・販売手数料・出荷数', letter: 'D', col: 'FBA 手数料 / 手数料 / 数量', manual: false, txn: true,
     url: 'https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash',
-    desc: 'トランザクション（支払い）レポートのCSVから「FBA 手数料」=FBA手数料(送料)、「手数料」=販売手数料を月合計（返金の戻し分も反映、マイナス除去）。販売手数料は粗利益の計算を実額化します。旧「送料(FBA手数料)」レポートにも対応。', abs: true }
+    desc: 'トランザクション（支払い）レポートのCSV。「FBA 手数料」=FBA手数料(送料)、「手数料」=販売手数料、「注文」行の数量を商品マスタのSKU→FNSKUで出荷数に変換。販売手数料は粗利益を実額化。', abs: true }
 };
 let plImpMonth = null;
 // 広告CSV（キャンペーンマネージャー）から 合計費用=広告費 / 売上=広告売上 を集計
@@ -6326,6 +6336,7 @@ function plParseAdCsv(text){
   // キャンペーン分類用の列（あればSP/SB内訳も作る）
   const nameCol = cols.find(c => c.indexOf('キャンペーン名') > -1) || cols.find(c => c.trim() === 'campaignName');
   const typeCol = cols.find(c => c.indexOf('タイプ') > -1) || cols.find(c => ['campaignType', 'programType'].indexOf(c.trim()) > -1);
+  const prodCol = cols.find(c => c.indexOf('広告プロダクト') > -1) || cols.find(c => c.trim() === 'adProduct');
   const tgtCol = cols.find(c => c.indexOf('ターゲティング') > -1) || cols.find(c => c.trim() === 'campaignTargetingType');
   const num = v => { const r = String(v == null ? '' : v).replace(/[^0-9.\-]/g, ''); return (r === '' || r === '-' || isNaN(Number(r))) ? null : Number(r); };
   const byType = { sp: { kw: { cost: 0, sales: 0 }, shohin: { cost: 0, sales: 0 }, auto: { cost: 0, sales: 0 } }, sb: { douga: { cost: 0, sales: 0 }, shokore: { cost: 0, sales: 0 } } };
@@ -6334,7 +6345,7 @@ function plParseAdCsv(text){
     const c = num(r[costCol]), s = num(r[salesCol]);
     if (c != null) cost += c; if (s != null) sales += s; if (c != null || s != null) n++;
     if (nameCol) {
-      const cl = classifyCampaign({ 'キャンペーン名': r[nameCol] || '', 'タイプ': typeCol ? (r[typeCol] || '') : '', 'ターゲティング': tgtCol ? (r[tgtCol] || '') : '' });
+      const cl = classifyCampaign({ 'キャンペーン名': r[nameCol] || '', 'タイプ': typeCol ? (r[typeCol] || '') : '', '広告プロダクト': prodCol ? (r[prodCol] || '') : '', 'ターゲティング': tgtCol ? (r[tgtCol] || '') : '' });
       const b = byType[cl.platform] && byType[cl.platform][cl.subtype];
       if (b) { b.cost += (c || 0); b.sales += (s || 0); }
     }
@@ -6365,6 +6376,72 @@ function plParseTxnCsv(text){
     if (sv != null) { feeSigned += sv; hasFee = true; }
   });
   return { ok: true, fbaSigned, feeSigned, hasFee: hasFee && !!feeCol, rows: rows2, fbaCol, feeCol };
+}
+// 売上ダッシュボード（前文あり）から「注文商品の売上額」を実売上として取得
+function plParseSalesCsv(text){
+  const lines = String(text).split(/\r?\n/);
+  const norm = s => String(s).replace(/\s/g, '');
+  let hi = -1;
+  for (let i = 0; i < lines.length; i++) { const n = norm(lines[i]); if ((n.indexOf('注文商品の売上額') > -1 || n.indexOf('注文商品売上額') > -1) && lines[i].indexOf(',') > -1) { hi = i; break; } }
+  if (hi < 0) return { ok: false, msg: '「注文商品の売上額」列が見つかりません' };
+  // ヘッダー行から、空行またはカンマ無し行（＝次セクションの見出し）までを1ブロックとして抽出
+  const block = [lines[hi]];
+  for (let i = hi + 1; i < lines.length; i++) { const l = lines[i]; if (l.trim() === '' || l.indexOf(',') < 0) break; block.push(l); }
+  let res;
+  try { res = Papa.parse(block.join('\n'), { header: true, skipEmptyLines: true }); } catch { return { ok: false, msg: '解析エラー' }; }
+  const rows = res.data || [];
+  if (!rows.length) return { ok: false, msg: '行がありません' };
+  const cols = Object.keys(rows[0]);
+  const col = cols.find(c => norm(c) === '注文商品の売上額') || cols.find(c => norm(c) === '注文商品売上額')
+    || cols.find(c => norm(c).indexOf('注文商品') > -1 && c.indexOf('売上') > -1) || cols.find(c => c.indexOf('売上額') > -1);
+  if (!col) return { ok: false, msg: '売上額の列が見つかりません' };
+  let sum = 0, n = 0;
+  rows.forEach(r => { const v = String(r[col] == null ? '' : r[col]).replace(/[^0-9.\-]/g, ''); if (v === '' || v === '-' || isNaN(Number(v))) return; sum += Number(v); n++; });
+  if (!n) return { ok: false, msg: '売上額の数値がありません' };
+  return { ok: true, sum: Math.round(sum), rows: n, col };
+}
+// トランザクションレポートの「注文」行から、SKU→FNSKU（商品マスタのsku）で対象月の出荷数を集計
+function plParseShipFromTxn(text, ym){
+  const map = {}; products.forEach(p => { if (p.sku && p.fnsku) map[String(p.sku).trim()] = p.fnsku; });
+  const lines = String(text).split(/\r?\n/);
+  let hi = -1;
+  for (let i = 0; i < lines.length; i++) { if (lines[i].indexOf('トランザクションの種類') > -1 && lines[i].indexOf('SKU') > -1) { hi = i; break; } }
+  if (hi < 0) for (let i = 0; i < lines.length; i++) { if (lines[i].indexOf('FBA 手数料') > -1) { hi = i; break; } }
+  if (hi < 0) return { ok: false };
+  let res;
+  try { res = Papa.parse(lines.slice(hi).join('\n'), { header: true, skipEmptyLines: true }); } catch { return { ok: false }; }
+  const rows = res.data || [];
+  if (!rows.length) return { ok: false };
+  const cols = Object.keys(rows[0]);
+  const norm = s => String(s).replace(/\s/g, '');
+  const dateCol = cols.find(c => norm(c) === '日付/時間') || cols.find(c => c.indexOf('日付') > -1);
+  const typeCol = cols.find(c => c.indexOf('トランザクションの種類') > -1);
+  const skuCol = cols.find(c => norm(c) === 'SKU') || cols.find(c => c.toUpperCase().indexOf('SKU') > -1);
+  const qtyCol = cols.find(c => norm(c) === '数量') || cols.find(c => c.indexOf('数量') > -1);
+  if (!skuCol || !qtyCol) return { ok: false };
+  const agg = {}; let rowsUsed = 0, totalQty = 0; const unmatched = new Set();
+  rows.forEach(r => {
+    if (typeCol && String(r[typeCol] == null ? '' : r[typeCol]).trim() !== '注文') return; // 注文のみ＝出荷数
+    const m = String(r[dateCol] == null ? '' : r[dateCol]).match(/(\d{4})[-/](\d{2})[-/](\d{2})/);
+    if (dateCol && m && (m[1] + '-' + m[2] !== ym)) return; // 対象月のみ
+    const sku = String(r[skuCol] == null ? '' : r[skuCol]).trim(); if (!sku) return;
+    const q = Number(String(r[qtyCol] == null ? '' : r[qtyCol]).replace(/[^0-9.\-]/g, '')) || 0; if (q <= 0) return;
+    const fn = map[sku];
+    if (!fn) { unmatched.add(sku); return; }
+    const day = m ? String(+m[3]) : '1';
+    if (!agg[fn]) agg[fn] = {};
+    agg[fn][day] = (agg[fn][day] || 0) + q;
+    rowsUsed++; totalQty += q;
+  });
+  return { ok: true, agg, rows: rowsUsed, totalQty, unmatched, fnskus: Object.keys(agg).length };
+}
+// ドロップされたCSVの内容から、対応する項目（A〜D）を自動判別
+function detectPlType(text){
+  if (text.indexOf('FBA 手数料') > -1 || String(text).replace(/\s/g, '').indexOf('送料(FBA手数料)') > -1) return 'fbaFee';
+  if (/monthly\s*storage\s*fee/i.test(text)) return 'storage';
+  if (text.indexOf('合計費用') > -1) return 'ad';
+  if (String(text).replace(/\s/g, '').indexOf('注文商品の売上額') > -1 || String(text).replace(/\s/g, '').indexOf('注文商品売上額') > -1 || text.indexOf('売上ダッシュボード') > -1) return 'sales';
+  return null;
 }
 // FBA出荷レポート（出荷日/FNSKU/数量の注文明細）から、対象月のFNSKU別・日別 出荷数を集計
 function plParseShipCsv(text, ym){
@@ -6461,51 +6538,53 @@ function renderPlImportModal(){
   if (list.length && !list.includes(plImpMonth)) plImpMonth = list[list.length - 1];
   sel.innerHTML = list.length ? list.slice().reverse().map(m => '<option value="' + m + '"' + (m === plImpMonth ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') : '<option value="">（対象月なし）</option>';
   const fmtRoasV = r => (r == null) ? '—' : (Math.round(r * 100) / 100).toFixed(2);
+  const monthShipQty = () => { const sh = shipments[plImpMonth]; let q = 0; if (sh) for (const fn in sh) for (const d in sh[fn]) q += Number(sh[fn][d]) || 0; return q; };
+  const muted = '<span style="color:var(--text-tertiary)">未入力</span>';
   const cur = (f) => {
-    if (f === 'shipment') {
-      const sh = shipments[plImpMonth]; let q = 0;
-      if (sh) for (const fn in sh) for (const d in sh[fn]) q += Number(sh[fn][d]) || 0;
-      return q > 0 ? q.toLocaleString() + '点' : '<span style="color:var(--text-tertiary)">未入力</span>';
-    }
     if (f === 'ad') {
       const c = plActualAdCost(plImpMonth), s = plActualAdSales(plImpMonth);
-      if (c == null && s == null) return '<span style="color:var(--text-tertiary)">未入力</span>';
+      if (c == null && s == null) return muted;
       return '広告費 ' + (c != null ? plYen(c) : '—') + ' / 広告売上 ' + (s != null ? plYen(s) : '—') + ' / ROAS ' + fmtRoasV(plRoas(plImpMonth));
     }
     if (f === 'fbaFee') {
-      const e = plData[plImpMonth] || {};
-      if (e.fbaFee == null && e.sellingFee == null) return '<span style="color:var(--text-tertiary)">未入力</span>';
-      return 'FBA手数料 ' + (e.fbaFee != null ? plYen(e.fbaFee) : '—') + (e.sellingFee != null ? ' / 販売手数料 ' + plYen(e.sellingFee) : '');
+      const e = plData[plImpMonth] || {}; const q = monthShipQty();
+      if (e.fbaFee == null && e.sellingFee == null && q === 0) return muted;
+      return 'FBA手数料 ' + (e.fbaFee != null ? plYen(e.fbaFee) : '—') + (e.sellingFee != null ? ' / 販売手数料 ' + plYen(e.sellingFee) : '') + (q > 0 ? ' / 出荷数 ' + q.toLocaleString() + '点' : '');
     }
-    return (plData[plImpMonth] && plData[plImpMonth][f] != null) ? plYen(plData[plImpMonth][f]) : '<span style="color:var(--text-tertiary)">未入力</span>';
+    return (plData[plImpMonth] && plData[plImpMonth][f] != null) ? plYen(plData[plImpMonth][f]) : muted;
   };
+  // 上部：4つの説明カード（A〜D、アップロード枠なし）
   let h = '';
   PL_IMP_ORDER.forEach(f => {
     const cfg = PL_IMP[f];
-    h += '<div class="pl-slot' + (f === 'shipment' ? ' pl-slot-wide' : '') + '">'
-      + '<div class="pl-slot-head"><strong>' + cfg.label + '</strong>'
+    h += '<div class="pl-slot pl-card" data-f="' + f + '">'
+      + '<div class="pl-slot-head"><strong><span class="pl-letter">' + cfg.letter + '</span>' + cfg.label + '</strong>'
       + '<span class="pl-slot-cur">現在: ' + cur(f) + '</span></div>'
-      + '<div class="pl-slot-desc">' + cfg.desc + (cfg.manual ? '' : '<br>※手入力は不可。CSVのみ。') + '</div>'
+      + '<div class="pl-slot-desc">' + cfg.desc + '</div>'
       + '<div class="pl-slot-link">取得先：<a class="ret-report-link" href="' + cfg.url + '" target="_blank" rel="noopener" title="' + cfg.url + '"><span class="url">' + cfg.url + '</span><span class="ext">↗</span></a></div>'
-      + '<label class="upload-zone pl-slot-zone" data-f="' + f + '"><svg class="icn"><use href="#i-file-spreadsheet"/></svg>'
-      + '<div class="main">CSV / ZIP を選択またはドラッグ</div><div class="sub">対象列：' + retEsc(cfg.col) + '</div>'
-      + '<input type="file" data-f="' + f + '" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple></label>'
       + '<div class="pl-slot-status" data-f="' + f + '"></div>'
       + '</div>';
   });
   document.getElementById('pl-imp-slots').innerHTML = h;
-  document.querySelectorAll('#pl-imp-slots input[type=file]').forEach(inp => {
-    inp.addEventListener('change', (e) => { processPlSlot(inp.dataset.f, e.target.files); e.target.value = ''; });
-  });
-  document.querySelectorAll('#pl-imp-slots .pl-slot-zone').forEach(z => {
-    ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('dragover'); }));
-    ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('dragover'); }));
-    z.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) processPlSlot(z.dataset.f, e.dataTransfer.files); });
-  });
-  // 反映待ちプレビューを復元
+  // 下部：まとめて入れる単一ドロップゾーン（内容から自動判別）
+  document.getElementById('pl-imp-drop').innerHTML =
+    '<label class="upload-zone pl-drop-all"><svg class="icn" style="font-size:22px;"><use href="#i-file-spreadsheet"/></svg>'
+    + '<div class="main">A〜D のCSV / ZIP をまとめてここにドラッグ、またはクリックで選択</div>'
+    + '<div class="sub">ファイルの内容から自動で判別して取り込みます（複数まとめてOK）</div>'
+    + '<input type="file" id="pl-drop-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple></label>'
+    + '<div class="pl-drop-status" id="pl-drop-status"></div>';
+  const inp = document.getElementById('pl-drop-input');
+  inp.addEventListener('change', (e) => { processPlDrop(e.target.files); e.target.value = ''; });
+  const z = document.querySelector('.pl-drop-all');
+  ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('dragover'); }));
+  ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('dragover'); }));
+  z.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) processPlDrop(e.dataTransfer.files); });
+  // 反映待ちプレビューを復元＋カードを光らせる
   Object.keys(plPending).forEach(f => {
     const st = document.querySelector('#pl-imp-slots .pl-slot-status[data-f="' + f + '"]');
-    if (st) st.innerHTML = '<span class="pl-pending">反映待ち：' + plPending[f].summary + '（下の「反映する」で確定）</span>';
+    if (st) st.innerHTML = '<span class="pl-pending">反映待ち：' + plPending[f].summary + '</span>';
+    const card = document.querySelector('#pl-imp-slots .pl-card[data-f="' + f + '"]');
+    if (card) card.classList.add('pl-card-hit');
   });
   plUpdateApplyBtn();
 }
@@ -6514,7 +6593,9 @@ function plSlotError(statusEl, errs){ if (statusEl) statusEl.innerHTML = '<span 
 function plSetPending(field, summary, applyFn){
   plPending[field] = { apply: applyFn, summary: summary };
   const statusEl = document.querySelector('#pl-imp-slots .pl-slot-status[data-f="' + field + '"]');
-  if (statusEl) statusEl.innerHTML = '<span class="pl-pending">反映待ち：' + summary + '（下の「反映する」で確定）</span>';
+  if (statusEl) statusEl.innerHTML = '<span class="pl-pending">反映待ち：' + summary + '</span>';
+  const card = document.querySelector('#pl-imp-slots .pl-card[data-f="' + field + '"]');
+  if (card) { card.classList.remove('pl-card-hit'); void card.offsetWidth; card.classList.add('pl-card-hit'); }
   plUpdateApplyBtn();
 }
 function plUpdateApplyBtn(){
@@ -6531,6 +6612,74 @@ function plApplyPending(){
   renderPlView(); renderPlImportModal();
 }
 function plCancelPending(){ plPending = {}; closePlImport(); }
+// 単一ドロップゾーン：内容から A〜D を自動判別して各項目をステージし、対応カードを光らせる
+async function processPlDrop(files){
+  const arr = Array.from(files || []); if (!arr.length || !plImpMonth) return;
+  const ym = plImpMonth;
+  const statusEl = document.getElementById('pl-drop-status');
+  const decodeUnits = async (f) => {
+    const buf = await readFileBytes(f);
+    if (/\.zip$/i.test(f.name)) return await unzipCsvEntries(buf);
+    return [{ name: f.name, bytes: buf }];
+  };
+  const A = { sum: 0, rows: 0 };
+  const B = { cost: 0, sales: 0, rows: 0, haveType: false, bt: { sp: { kw: { cost: 0, sales: 0 }, shohin: { cost: 0, sales: 0 }, auto: { cost: 0, sales: 0 } }, sb: { douga: { cost: 0, sales: 0 }, shokore: { cost: 0, sales: 0 } } } };
+  const C = { sum: 0, rows: 0 };
+  const D = { fbaSigned: 0, feeSigned: 0, rows: 0, anyFee: false, ship: {}, shipRows: 0, shipQty: 0, unmatched: new Set() };
+  const errs = [], unrec = [];
+  for (const f of arr) {
+    try {
+      for (const u of await decodeUnits(f)) {
+        const text = decodeAdBytes(u.bytes);
+        if (text == null) { errs.push(u.name + '：文字コード不明'); continue; }
+        const t = detectPlType(text);
+        if (t === 'sales') { const r = plParseSalesCsv(text); if (r.ok) { A.sum += r.sum; A.rows += r.rows; } else errs.push(u.name + '：' + r.msg); }
+        else if (t === 'storage') { const r = plParseCsv(text, 'storage'); if (r.ok) { C.sum += r.sum; C.rows += r.rows; } else errs.push(u.name + '：' + r.msg); }
+        else if (t === 'ad') {
+          const r = plParseAdCsv(text);
+          if (r.ok) { B.cost += r.cost; B.sales += r.sales; B.rows += r.rows; if (r.byType) { B.haveType = true; ['sp', 'sb'].forEach(pf => Object.keys(B.bt[pf]).forEach(st => { if (r.byType[pf] && r.byType[pf][st]) { B.bt[pf][st].cost += r.byType[pf][st].cost; B.bt[pf][st].sales += r.byType[pf][st].sales; } })); } }
+          else errs.push(u.name + '：' + r.msg);
+        }
+        else if (t === 'fbaFee') {
+          const r = plParseTxnCsv(text);
+          if (r.ok) { D.fbaSigned += r.fbaSigned; D.feeSigned += r.feeSigned; D.rows += r.rows; if (r.hasFee) D.anyFee = true; }
+          else { const r2 = plParseCsv(text, 'fbaFee'); if (r2.ok) { D.fbaSigned += r2.sum; D.rows += r2.rows; } else errs.push(u.name + '：' + r.msg); }
+          const rs = plParseShipFromTxn(text, ym);
+          if (rs && rs.ok) { for (const fn in rs.agg) { if (!D.ship[fn]) D.ship[fn] = {}; for (const d in rs.agg[fn]) D.ship[fn][d] = (D.ship[fn][d] || 0) + rs.agg[fn][d]; } D.shipRows += rs.rows; D.shipQty += rs.totalQty; rs.unmatched.forEach(s => D.unmatched.add(s)); }
+        }
+        else unrec.push(u.name);
+      }
+    } catch { errs.push(f.name + '：展開エラー'); }
+  }
+  const hit = [];
+  if (A.rows > 0) { const val = Math.round(A.sum); plSetPending('sales', '実売上 ' + plYen(val), () => { if (!plData[ym]) plData[ym] = {}; plData[ym].sales = val; }); hit.push('A 実売上'); }
+  if (B.rows > 0) {
+    if (B.haveType) ['sp', 'sb'].forEach(pf => Object.keys(B.bt[pf]).forEach(st => { B.bt[pf][st].cost = Math.round(B.bt[pf][st].cost); B.bt[pf][st].sales = Math.round(B.bt[pf][st].sales); }));
+    const cost = Math.round(B.cost), sales = Math.round(B.sales), roas = cost > 0 ? (Math.round(sales / cost * 100) / 100).toFixed(2) : '—', bt = B.bt, haveType = B.haveType;
+    plSetPending('ad', '広告費 ' + plYen(cost) + ' / 広告売上 ' + plYen(sales) + ' / ROAS ' + roas + (haveType ? '（SP/SB内訳）' : ''), () => { if (!plData[ym]) plData[ym] = {}; plData[ym].adCost = cost; plData[ym].adSales = sales; if (haveType) plData[ym].adByType = bt; });
+    hit.push('B 広告');
+  }
+  if (C.rows > 0) { const val = Math.abs(Math.round(C.sum)); plSetPending('storage', '保管費 ' + plYen(val), () => { if (!plData[ym]) plData[ym] = {}; plData[ym].storage = val; }); hit.push('C 保管費'); }
+  if (D.rows > 0 || D.shipRows > 0) {
+    const fba = Math.abs(Math.round(D.fbaSigned)), fee = D.anyFee ? Math.abs(Math.round(D.feeSigned)) : null;
+    const ship = D.ship, hasShip = D.shipRows > 0, shipQty = D.shipQty, shipN = Object.keys(D.ship).length, unmatchedN = D.unmatched.size;
+    let summary = 'FBA手数料 ' + plYen(fba) + (fee != null ? ' / 販売手数料 ' + plYen(fee) : '');
+    if (hasShip) summary += ' / 出荷数 ' + shipQty.toLocaleString() + '点（' + shipN + '商品' + (unmatchedN ? '・未対応SKU' + unmatchedN + '件' : '') + '）';
+    else if (D.unmatched.size) summary += ' / 出荷数：マスタにSKU登録が無く変換できません';
+    plSetPending('fbaFee', summary, () => {
+      if (!plData[ym]) plData[ym] = {};
+      plData[ym].fbaFee = fba; if (fee != null) plData[ym].sellingFee = fee;
+      if (hasShip) shipments[ym] = ship;
+    });
+    hit.push('D FBA手数料・販売手数料・出荷数');
+  }
+  let msg = '';
+  if (hit.length) msg += '<span style="color:var(--teal)">✓ 判別：' + hit.map(retEsc).join(' / ') + '（' + ym.replace('-', '/') + '）</span>';
+  if (unrec.length) msg += (msg ? '<br>' : '') + '<span style="color:var(--danger)">判別できないファイル：' + unrec.map(retEsc).join(', ') + '</span>';
+  if (errs.length) msg += (msg ? '<br>' : '') + '<span style="color:var(--danger)">' + retEsc(errs[0]) + '</span>';
+  if (!hit.length && !unrec.length && !errs.length) msg = '<span style="color:var(--danger)">取込できる内容がありませんでした。</span>';
+  if (statusEl) statusEl.innerHTML = msg;
+}
 async function processPlSlot(field, files){
   const arr = Array.from(files || []); if (!arr.length) return;
   if (!plImpMonth) return;
