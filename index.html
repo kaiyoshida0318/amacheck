@@ -1385,7 +1385,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.78</span>
+  <span class="version">v1.79</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6087,14 +6087,13 @@ function graphMonthMetrics(ym){
   const adcSbDougaShare   = _sb2 > 0 ? cSbDouga / _sb2 * 100 : null;     // 動画/(動画+商品コレ)
   const adcSbShokoreShare = _sb2 > 0 ? cSbShokore / _sb2 * 100 : null;   // 商品コレ/(動画+商品コレ)
   const seo = total - adSales;
-  let totalQty = 0, costSum = 0;
+  let totalQty = 0;
   for (const fnsku in sh) {
     let q = 0; const days = sh[fnsku];
     for (const d in days) q += Number(days[d]) || 0;
     totalQty += q;
-    const p = products.find(x => x.fnsku === fnsku);
-    if (p && p.sellingPrice != null && p.sellingPrice !== '') costSum += q * ((Number(p.cost) || 0) + (Number(p.sellingFee) || 0));
   }
+  const costSum = plCostSum(ym); // Σ出荷×原価 ＋ 販売手数料(実額優先)
   const grossProfit = total - costSum; // 粗利益＝総売上(セール価格反映)−原価−販売手数料（全体収支と同一定義）
   const fbaFee = (plData[ym] && plData[ym].fbaFee != null) ? Number(plData[ym].fbaFee) : null;  // 全体収支のFBA手数料(送料)実額（未入力月はnull）
   const jisseki = adCost;                                                // 広告費（jisstekiキーはそのまま、表示名は広告費）
@@ -6162,15 +6161,29 @@ function graphLatestYM(){
 // ========== 全体収支 ==========
 let plMode = 'month'; // 'month' | 'year'
 // 月の自動計算分（総売上・粗利益・広告費）。完備判定は使わず、データがあれば計算
-function plMonthCalc(ym){
+// 月の実額販売手数料（トランザクションレポート取込値）。未取込はnull
+function plActualSellingFee(ym){
+  return (plData[ym] && plData[ym].sellingFee != null) ? Number(plData[ym].sellingFee) : null;
+}
+// 粗利益用の控除合計 = Σ出荷×原価(価格設定済み) ＋ 販売手数料
+//   販売手数料：実額(plData.sellingFee)があればそれを、無ければΣ出荷×マスター販売手数料を使用
+function plCostSum(ym){
   const sh = shipments[ym] || {};
-  let costSum = 0; // Σ 出荷数×(原価+販売手数料)：価格設定済み商品のみ
+  let cogs = 0, feeMaster = 0; // 原価合計 / マスター販売手数料合計（価格設定済み商品のみ）
   for (const fnsku in sh) {
     let q = 0; const days = sh[fnsku];
     for (const d in days) q += Number(days[d]) || 0;
     const p = products.find(x => x.fnsku === fnsku);
-    if (p && p.sellingPrice != null && p.sellingPrice !== '') costSum += q * ((Number(p.cost) || 0) + (Number(p.sellingFee) || 0));
+    if (p && p.sellingPrice != null && p.sellingPrice !== '') {
+      cogs += q * (Number(p.cost) || 0);
+      feeMaster += q * (Number(p.sellingFee) || 0);
+    }
   }
+  const feeActual = plActualSellingFee(ym);
+  return cogs + (feeActual != null ? feeActual : feeMaster);
+}
+function plMonthCalc(ym){
+  const costSum = plCostSum(ym); // Σ出荷×原価 ＋ 販売手数料(実額優先)
   const dim = daysInMonth(ym);
   let adCost = 0;
   for (let d = 1; d <= dim; d++) {
@@ -6249,9 +6262,9 @@ const PL_IMP = {
   storage: { label: '保管費', col: 'Monthly storage fee (est.)', manual: false,
     url: 'https://sellercentral.amazon.co.jp/reportcentral/STORAGE_FEE_CHARGES/1',
     desc: '月次保管料レポートのCSVの「Monthly storage fee (est.)」列の合計を保管費に設定。', abs: false },
-  fbaFee: { label: 'FBA手数料(送料)', col: '送料(FBA手数料)', manual: false,
+  fbaFee: { label: 'FBA手数料(送料)・販売手数料', col: 'FBA 手数料 / 手数料', manual: false, txn: true,
     url: 'https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash',
-    desc: 'レポートリポジトリのCSVの「送料(FBA手数料)」列の合計（マイナス除去）をFBA手数料に設定。', abs: true }
+    desc: 'トランザクション（支払い）レポートのCSVから「FBA 手数料」=FBA手数料(送料)、「手数料」=販売手数料を月合計（返金の戻し分も反映、マイナス除去）。販売手数料は粗利益の計算を実額化します。旧「送料(FBA手数料)」レポートにも対応。', abs: true }
 };
 let plImpMonth = null;
 // 広告CSV（キャンペーンマネージャー）から 合計費用=広告費 / 売上=広告売上 を集計
@@ -6270,6 +6283,31 @@ function plParseAdCsv(text){
   let cost = 0, sales = 0, n = 0;
   rows.forEach(r => { const c = num(r[costCol]), s = num(r[salesCol]); if (c != null) cost += c; if (s != null) sales += s; if (c != null || s != null) n++; });
   return { ok: true, cost: Math.round(cost), sales: Math.round(sales), rows: n, costCol, salesCol };
+}
+// トランザクション（支払い）レポートから FBA手数料(=FBA 手数料列) と 販売手数料(=手数料列) を集計。
+// 先頭に定義行のプリアンブルがあるため、ヘッダー行（「FBA 手数料」を含む行）を探してから解析。
+// 返金等での戻し分は符号付きで合算（=ネット）。呼び出し側で絶対値化。
+function plParseTxnCsv(text){
+  const lines = String(text).split(/\r?\n/);
+  let hi = -1;
+  for (let i = 0; i < lines.length; i++) { if (lines[i].indexOf('FBA 手数料') > -1) { hi = i; break; } }
+  if (hi < 0) return { ok: false, msg: 'トランザクションレポートのヘッダー（FBA 手数料列）が見つかりません' };
+  let res;
+  try { res = Papa.parse(lines.slice(hi).join('\n'), { header: true, skipEmptyLines: true }); } catch { return { ok: false, msg: '解析エラー' }; }
+  const rows = res.data || [];
+  if (!rows.length) return { ok: false, msg: '行がありません' };
+  const cols = Object.keys(rows[0]);
+  const fbaCol = cols.find(c => c.trim() === 'FBA 手数料') || cols.find(c => c.replace(/\s/g, '') === 'FBA手数料');
+  const feeCol = cols.find(c => c.trim() === '手数料'); // 販売手数料（カテゴリー成約料）
+  if (!fbaCol) return { ok: false, msg: '「FBA 手数料」列が見つかりません' };
+  const num = v => { const r = String(v == null ? '' : v).replace(/[^0-9.\-]/g, ''); return (r === '' || r === '-' || isNaN(Number(r))) ? null : Number(r); };
+  let fbaSigned = 0, feeSigned = 0, rows2 = 0, hasFee = false;
+  rows.forEach(r => {
+    const fv = num(r[fbaCol]); const sv = feeCol ? num(r[feeCol]) : null;
+    if (fv != null) { fbaSigned += fv; rows2++; }
+    if (sv != null) { feeSigned += sv; hasFee = true; }
+  });
+  return { ok: true, fbaSigned, feeSigned, hasFee: hasFee && !!feeCol, rows: rows2, fbaCol, feeCol };
 }
 function plImpColumn(cols, field){
   const norm = s => String(s).toLowerCase().replace(/\s+/g, '');
@@ -6332,6 +6370,11 @@ function renderPlImportModal(){
       if (c == null && s == null) return '<span style="color:var(--text-tertiary)">未入力</span>';
       return '広告費 ' + (c != null ? plYen(c) : '—') + ' / 広告売上 ' + (s != null ? plYen(s) : '—') + ' / ROAS ' + fmtRoasV(plRoas(plImpMonth));
     }
+    if (f === 'fbaFee') {
+      const e = plData[plImpMonth] || {};
+      if (e.fbaFee == null && e.sellingFee == null) return '<span style="color:var(--text-tertiary)">未入力</span>';
+      return 'FBA手数料 ' + (e.fbaFee != null ? plYen(e.fbaFee) : '—') + (e.sellingFee != null ? ' / 販売手数料 ' + plYen(e.sellingFee) : '');
+    }
     return (plData[plImpMonth] && plData[plImpMonth][f] != null) ? plYen(plData[plImpMonth][f]) : '<span style="color:var(--text-tertiary)">未入力</span>';
   };
   let h = '';
@@ -6389,6 +6432,36 @@ async function processPlSlot(field, files){
       if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal)">✓ ' + rows + '行集計 → 広告費 ' + plYen(cost) + ' / 広告売上 ' + plYen(sales) + ' / ROAS ' + roas + ' を ' + plImpMonth.replace('-', '/') + ' に設定</span>';
       const curEl = statusEl.closest('.pl-slot').querySelector('.pl-slot-cur');
       if (curEl) curEl.innerHTML = '現在: 広告費 ' + plYen(cost) + ' / 広告売上 ' + plYen(sales) + ' / ROAS ' + roas;
+    } else if (statusEl) {
+      statusEl.innerHTML = '<span style="color:var(--danger)">取込できる行がありません。' + (errs.length ? retEsc(errs[0]) : '列名をご確認ください') + '</span>';
+    }
+    return;
+  }
+  if (cfg.txn) { // トランザクションレポート：FBA手数料 と 販売手数料 を同時取込（旧形式にもフォールバック）
+    let fbaSigned = 0, feeSigned = 0, rows = 0, anyFee = false; const errs = [];
+    for (const f of arr) {
+      try {
+        for (const u of await decodeUnits(f)) {
+          const text = decodeAdBytes(u.bytes);
+          if (text == null) { errs.push(u.name + '：文字コード不明'); continue; }
+          const r = plParseTxnCsv(text);
+          if (r.ok) { fbaSigned += r.fbaSigned; feeSigned += r.feeSigned; rows += r.rows; if (r.hasFee) anyFee = true; continue; }
+          const r2 = plParseCsv(text, 'fbaFee'); // 旧「送料(FBA手数料)」レポート
+          if (r2.ok) { fbaSigned += r2.sum; rows += r2.rows; continue; }
+          errs.push(u.name + '：' + r.msg);
+        }
+      } catch { errs.push(f.name + '：展開エラー'); }
+    }
+    if (rows > 0) {
+      if (!plData[plImpMonth]) plData[plImpMonth] = {};
+      const fba = Math.abs(Math.round(fbaSigned));
+      plData[plImpMonth].fbaFee = fba;
+      let feeMsg = '';
+      if (anyFee) { const fee = Math.abs(Math.round(feeSigned)); plData[plImpMonth].sellingFee = fee; feeMsg = ' / 販売手数料 ' + plYen(fee) + '（粗利に反映）'; }
+      savePlData(); renderPlView();
+      if (statusEl) statusEl.innerHTML = '<span style="color:var(--teal)">✓ ' + rows + '行集計 → FBA手数料 ' + plYen(fba) + feeMsg + ' を ' + plImpMonth.replace('-', '/') + ' に設定</span>';
+      const curEl = statusEl.closest('.pl-slot').querySelector('.pl-slot-cur');
+      if (curEl) curEl.innerHTML = '現在: FBA手数料 ' + plYen(fba) + (anyFee ? ' / 販売手数料 ' + plYen(Math.abs(Math.round(feeSigned))) : '');
     } else if (statusEl) {
       statusEl.innerHTML = '<span style="color:var(--danger)">取込できる行がありません。' + (errs.length ? retEsc(errs[0]) : '列名をご確認ください') + '</span>';
     }
