@@ -1385,7 +1385,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v1.76</span>
+  <span class="version">v1.78</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6201,13 +6201,23 @@ function plRoas(ym){
   const c = plActualAdCost(ym), s = plActualAdSales(ym);
   return (c != null && s != null && c > 0) ? s / c : null;
 }
-// 対象の月一覧：広告データと出荷数が月末まで揃った完備月（または確定済み月）を新しい順で
+// 対象の月一覧：出荷がある or 全体収支(plData)に何か入力済みの月を昇順で
+// （広告データ完備判定には依存しない＝広告レポート未投入でも全体収支に表示・入力可）
+function plMonthHasShipments(ym){
+  const sh = shipments[ym]; if (!sh) return false;
+  for (const f in sh){ const days = sh[f]; for (const d in days){ if ((Number(days[d]) || 0) > 0) return true; } }
+  return false;
+}
+function plMonthHasPlData(ym){
+  const e = plData[ym]; if (!e) return false;
+  return ['sales', 'adCost', 'adSales', 'storage', 'fbaFee'].some(f => e[f] != null);
+}
 function plMonthsList(){
   const set = new Set();
   Object.keys(shipments).forEach(k => set.add(k));
-  Object.keys(adData).forEach(k => set.add(k.slice(0, 7)));
+  Object.keys(plData).forEach(k => set.add(k));
   return Array.from(set)
-    .filter(k => /^\d{4}-\d{2}$/.test(k) && (isAdMonthClosed(k) || adMonthDataComplete(k)))
+    .filter(k => /^\d{4}-\d{2}$/.test(k) && (plMonthHasShipments(k) || plMonthHasPlData(k)))
     .sort();
 }
 const plYen = (v) => '¥' + Math.round(v).toLocaleString();
@@ -6945,7 +6955,7 @@ function applyReturnImport(){
 
 function renderGraphView(){
   _graphMetricCache = {};
-  if (!['sales', 'roas', 'fees', 'shipment'].includes(graphCategory)) { graphCategory = 'sales'; graphHiddenItems = graphDefaultHidden('sales'); }
+  if (!['sales', 'roas', 'fees', 'shipment', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk'].includes(graphCategory)) { graphCategory = 'sales'; graphHiddenItems = graphDefaultHidden('sales'); }
   if (graphEndYM == null) {
     graphEndYM = graphLatestYM();
     graphStartYM = (parseInt(graphEndYM.slice(0, 4), 10) - 1) + '-01';
@@ -6976,8 +6986,8 @@ function renderGraphView(){
     + '<button data-v="jan" class="' + (graphPeriodStart === 'jan' ? 'active' : '') + '">1月始まり</button>'
     + '<button data-v="may" class="' + (graphPeriodStart === 'may' ? 'active' : '') + '">5月始まり</button></div>';
   h += '<select class="graph-select" id="graph-cat" style="font-weight:700;">';
-  // 月別グラフは全体収支の数値のみ（広告データのキャンペーン別分析は別物として除外）
-  ['sales', 'roas', 'fees', 'shipment'].forEach(k => {
+  // 月別グラフ：全体収支の数値＋広告費の割合比較（SP/SB・SP内・SB内）
+  ['sales', 'roas', 'fees', 'shipment', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk'].forEach(k => {
     if (!GRAPH_CATEGORIES[k]) return;
     h += '<option value="' + k + '"' + (k === graphCategory ? ' selected' : '') + '>' + GRAPH_CATEGORIES[k].label + '</option>';
   });
