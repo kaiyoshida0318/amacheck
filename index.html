@@ -485,9 +485,9 @@
   .graph-item-btn .dot { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,0.9); }
   .graph-item-gap { width: 24px; flex: 0 0 auto; }
   /* 全体収支 */
-  .pl-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 14px; }
-  .pl-table th, .pl-table td { padding: 10px 14px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
-  .pl-table th { background: var(--bg-secondary); color: var(--text-secondary); font-weight: 600; font-size: 13px; position: sticky; top: 0; z-index: 1; }
+  .pl-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 15px; }
+  .pl-table th, .pl-table td { padding: 9px 8px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; }
+  .pl-table th { background: var(--bg-secondary); color: var(--text-secondary); font-weight: 600; font-size: 14px; position: sticky; top: 0; z-index: 1; }
   .pl-table th:first-child, .pl-table td:first-child { text-align: left; position: sticky; left: 0; background: #fff; font-weight: 600; }
   .pl-table th:first-child { background: var(--bg-secondary); z-index: 2; }
   .pl-table tr:hover td { background: var(--bg-secondary); }
@@ -1426,7 +1426,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.00</span>
+  <span class="version">v2.01</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6865,7 +6865,7 @@ function renderPlView(){
   const thGross = '<th class="pl-c-gross">粗利益 <span class="pl-badge" data-tip="粗利益＝総売上－原価">?</span></th>';
   const thProfit = '<th class="pl-c-profit">実質利益 <span class="pl-badge" data-tip="実質利益＝粗利益－広告費－保管費－FBA手数料(送料)">?</span></th>';
   const cols = '<th>期間</th>' + thSales + thSeo + '<th class="pl-c-sales">広告売上</th>' + thGross + '<th class="pl-c-warm">広告費</th>' + thStore + thFba + thProfit + '<th class="pl-c-roas">ROAS</th>';
-  h += '<div style="overflow:auto;max-height:560px;"><table class="pl-table"><thead><tr>' + cols + '</tr></thead><tbody>';
+  h += '<div style="overflow-y:auto;overflow-x:hidden;max-height:560px;"><table class="pl-table"><thead><tr>' + cols + '</tr></thead><tbody>';
 
   let sT = 0, sTany = false, sG = 0, sGany = false, sA = 0, sAS = 0, sS = 0, sF = 0, sP = 0, sPany = false;
   if (!data.length) {
