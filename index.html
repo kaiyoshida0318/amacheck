@@ -661,6 +661,9 @@
   .ret-pivot-fit th:last-child, .ret-pivot-fit td:last-child { border-right: none; }
   /* ラベル列は列幅に合わせて省略表示（縦線を全ブロックで一直線にするため列幅は固定） */
   .ret-pivot-fit td.ret-uname, .ret-pivot-fit td.ret-ucat-cell, .ret-pivot-fit td.ret-fnsku-cell { max-width: none; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  /* 商品順の商品名は省略せず折り返して全体を表示（判別しやすく） */
+  .ret-pivot-fit-fnsku td.ret-uname { white-space: normal; overflow: visible; text-overflow: clip; word-break: break-word; line-height: 1.35; }
+  .ret-pivot-fit td, .ret-pivot-fit th { vertical-align: middle; }
   /* くくり表示（ユニット×四半期を縦に並べる） */
   .ret-grouped { width: 100%; border-collapse: collapse; background: #fff; }
   .ret-grouped th, .ret-grouped td { padding: 8px 14px; border-bottom: 1px solid var(--border); text-align: right; white-space: nowrap; font-size: 14px; }
@@ -714,6 +717,8 @@
   table.ad-table tbody td.t-lo10, .ad-legend .lg-lo10 { color: #c0392b; font-weight: 700; }
   .ad-legend { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-tertiary); white-space: nowrap; }
   .ad-legend .lg-mid { color: var(--text-secondary); }
+  .ship-legend .lg-shhi { color: #2563eb; font-weight: 700; }
+  .ship-legend .lg-shlo { color: #d32f2f; font-weight: 700; }
   /* 確定をうながす目立つ確認バナー */
   .ad-confirm-banner {
     display: flex; align-items: center; justify-content: space-between; gap: 14px; flex-wrap: wrap;
@@ -1426,7 +1431,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.01</span>
+  <span class="version">v2.03</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1532,6 +1537,10 @@
       <select id="month-select"></select>
       <select id="year-select" hidden></select>
       <span class="ship-total">合計出荷数 <strong id="ship-grand-total">0</strong></span>
+      <span class="ad-legend ship-legend" title="各商品で出荷数の多い5日（日別）／5か月（月別）を青、少ない5日／5か月を赤で表示します。日別はその月の全日が入力されている商品のみ配色されます。">配色:
+        <span class="lg-shhi">多い 上位5</span>
+        <span class="lg-shlo">少ない 下位5</span>
+      </span>
       <div class="spacer"></div>
       <button class="primary" id="open-input"><svg class="icn"><use href="#i-plus"/></svg> 出荷数入力</button>
       <button class="utility toggle-header-btn" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
@@ -7093,7 +7102,7 @@ function retLayoutPivot(units, months, periodLabel){
   const pl = periodLabel != null;
   let h = (pl ? ('<div class="ret-pivot-fitwrap"><table class="ret-table ret-pivot ret-pivot-fit' + (retView === 'fnsku' ? ' ret-pivot-fit-fnsku' : '') + '">') : '<div style="overflow-x:auto;"><table class="ret-table ret-pivot">');
   if (pl) {
-    const labelW = retView === 'category' ? [14, 7] : [9, 13, 9, 6]; // 末尾が期間列
+    const labelW = retView === 'category' ? [14, 7] : [8, 20, 9, 5]; // [カテゴリ,(商品名,FNSKU,)期間] 末尾が期間列
     const sumW = retView === 'category' ? [7, 7, 7] : [6, 6, 6];
     const nSub = months.length * 3;
     const subW = (100 - labelW.concat(sumW).reduce((a, b) => a + b, 0)) / nSub;
