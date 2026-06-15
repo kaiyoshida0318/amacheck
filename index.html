@@ -653,6 +653,11 @@
   /* くくり表示の四半期ブロックは上下を詰める（上下の数値を見比べやすく） */
   .ret-qblock { margin-bottom: 3px; padding: 3px 12px 5px; border-radius: 8px; box-shadow: none; }
   .ret-qblock:last-child { margin-bottom: 4px; }
+  /* 同一カテゴリ／商品のブロックを枠で囲ってグループ化（隣同士で色を変えて区切りを明確に） */
+  .ret-ugroup { border: 1px solid var(--border); border-left: 5px solid #2563eb; border-radius: 10px; background: rgba(37,99,235,0.05); padding: 6px; margin-bottom: 16px; }
+  .ret-ugroup:nth-of-type(even) { border-left-color: #7c3aed; background: rgba(124,58,237,0.055); }
+  .ret-ugroup .ret-qblock { margin-bottom: 4px; }
+  .ret-ugroup .ret-qblock:last-child { margin-bottom: 0; }
   .ret-block-h { font-weight: 700; font-size: 14px; color: var(--text); margin: 0 0 6px; padding: 8px 4px 8px 10px; border-left: 4px solid var(--blue); background: var(--bg-secondary); border-radius: 6px; }
   /* くくり表示（カテゴリ順／商品順）：横スクロールを出さず全幅に収め、列間に薄い縦線 */
   .ret-pivot-fitwrap { width: 100%; }
@@ -1431,7 +1436,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.03</span>
+  <span class="version">v2.04</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -7212,12 +7217,13 @@ function retBuildUnitGrouped(units, months){
   let h = '', any = false;
   units.forEach(u => {
     const w = unitWithdrawnMonth(u);
+    let inner = '';
     quarters.forEach(chunk => {
       if (w && chunk[0] > w) return; // 撤退月より後の四半期は表示しない
       const m1 = +chunk[0].slice(5, 7), m2 = +chunk[chunk.length - 1].slice(5, 7);
-      h += '<div class="ret-block ret-qblock">' + retLayoutPivot([u], chunk, m1 + '〜' + m2 + '月') + '</div>';
-      any = true;
+      inner += '<div class="ret-block ret-qblock">' + retLayoutPivot([u], chunk, m1 + '〜' + m2 + '月') + '</div>';
     });
+    if (inner) { h += '<div class="ret-ugroup">' + inner + '</div>'; any = true; }
   });
   if (!any) return '<div class="ret-empty">この期間に表示できるデータがありません。</div>';
   return h;
