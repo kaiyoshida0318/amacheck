@@ -1436,7 +1436,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.05</span>
+  <span class="version">v2.06</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -7059,7 +7059,9 @@ function retUnits(months){
   const set = new Set(); months.forEach(ym => retFnskus(ym).forEach(f => { if (retShipQty(ym, f) > 0 || retQty(ym, f) > 0) set.add(f); }));
   let arr = Array.from(set); if (retCatFilter) arr = arr.filter(f => catOf(f) === retCatFilter);
   if (q) arr = arr.filter(f => f.toLowerCase().includes(q) || (retName(f) || '').toLowerCase().includes(q));
-  arr.sort((a, b) => catOf(a).localeCompare(catOf(b), 'ja') || (retName(a) || a).localeCompare(retName(b) || b, 'ja'));
+  const mIdx = {}; products.forEach((p, i) => { if (p.fnsku && mIdx[p.fnsku] === undefined) mIdx[p.fnsku] = i; });
+  const mi = f => (mIdx[f] === undefined ? Number.MAX_SAFE_INTEGER : mIdx[f]); // 商品マスタの並び順（未登録は末尾）
+  arr.sort((a, b) => catOf(a).localeCompare(catOf(b), 'ja') || (mi(a) - mi(b)) || (retName(a) || a).localeCompare(retName(b) || b, 'ja'));
   return arr.map(f => ({ key: f, cat: catOf(f), name: (retName(f) ? retName(f) + ' ' : '') + f, pname: retName(f), fnsku: f }));
 }
 const catLink = (u) => retView === 'category'
