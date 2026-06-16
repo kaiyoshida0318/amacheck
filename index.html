@@ -715,6 +715,7 @@
   .graph-table tbody tr.grp-b { background: rgba(234,88,12,0.08); }
   .graph-table .grp-label { font-weight: 700; color: var(--black); }
   .graph-table .grp-start td { border-top: 2px solid var(--border-strong); }
+  .graph-table .gt-adsep { border-right: 1px solid #cbd5e1; }
   /* 数字の4色分け（列ごとの順位）：上位10%=濃青 / 上位20%=青 / 下位20%=橙 / 下位10%=赤。中間は通常色 */
   table.ad-table tbody td.t-hi10, .ad-legend .lg-hi10 { color: #1d4ed8; font-weight: 700; }
   table.ad-table tbody td.t-hi20, .ad-legend .lg-hi20 { color: #16a34a; font-weight: 700; }
@@ -1436,7 +1437,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.06</span>
+  <span class="version">v2.07</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6041,7 +6042,7 @@ const GRAPH_CATEGORIES = {
     { key: 'adcSbShokoreShare', label: 'SB広告-KW-商品コレ 割合', color: '#db2777' },
   ] },
   roas: { label: 'ROAS', yen: false, dec: true, items: [
-    { key: 'roasActual', label: '全体ROAS(倍率)', color: '#dc2626' },
+    { key: 'roasActual', label: '広告ROAS(全体)', color: '#dc2626' },
     { key: 'roasActualSpKw', label: 'SP-KW', color: '#0891b2' },
     { key: 'roasActualSpShohin', label: 'SP-商品', color: '#7c3aed' },
     { key: 'roasActualSbDouga', label: 'SB-動画', color: '#d97706' },
@@ -7633,7 +7634,13 @@ function buildGraphTable(){
   const cat = GRAPH_CATEGORIES[graphCategory];
   const items = graphAllItems().filter(it => !graphHiddenItems.has(it.key));
   const yoy = (graphTableMode === 'yoy');
+  const extraCols = (graphCategory === 'adcost') ? [
+    { key: 'adSalesActual', label: '広告売上', color: '#ea580c', fmt: { yen: true } },
+    { key: 'roasActual', label: '広告ROAS(全体)', color: '#dc2626', fmt: { dec: true } }
+  ] : [];
+  const sepIdx = extraCols.length - 1;
   let h = '<table class="graph-table"><thead><tr><th>月 <button class="gt-sort" id="gt-sort" title="月の並び替え（新しい順／古い順）">' + (graphTableSort === 'desc' ? '▼' : '▲') + '</button></th>' + (yoy ? '<th></th>' : '');
+  extraCols.forEach((c, i) => h += '<th style="color:' + c.color + '"' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + c.label + '</th>');
   items.forEach(it => h += '<th style="color:' + it.color + '">' + it.label + '</th>');
   h += '</tr></thead><tbody>';
 
@@ -7645,8 +7652,10 @@ function buildGraphTable(){
       const prev = graphMonthMetrics(ymOf(graphPrevYear, m));
       h += '<tr class="grp-start"><td class="grp-label" rowspan="2">' + m + '月</td>'
         + '<td class="yr-sub">' + graphCurYear + '年</td>';
+      extraCols.forEach((c, i) => h += '<td' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + fmtGraphVal(cur[c.key], c.fmt) + '</td>');
       items.forEach(it => h += '<td>' + fmtGraphVal(cur[it.key], cat) + '</td>');
       h += '</tr><tr><td class="yr-sub">' + graphPrevYear + '年</td>';
+      extraCols.forEach((c, i) => h += '<td' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + fmtGraphVal(prev[c.key], c.fmt) + '</td>');
       items.forEach(it => h += '<td>' + fmtGraphVal(prev[it.key], cat) + '</td>');
       h += '</tr>';
     });
@@ -7675,11 +7684,12 @@ function buildGraphTable(){
       const met = graphMonthMetrics(ymOf(y, mo));
       const cls = rowCls(y, mo);
       h += '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="grp-label">' + y + '/' + String(mo).padStart(2, '0') + '</td>';
+      extraCols.forEach((c, i) => h += '<td' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + fmtGraphVal(met[c.key], c.fmt) + '</td>');
       items.forEach(it => h += '<td>' + fmtGraphVal(met[it.key], cat) + '</td>');
       h += '</tr>';
       rowCount++;
     });
-    if (!rowCount) h += '<tr><td colspan="' + (items.length + 1) + '" style="text-align:center;color:var(--text-tertiary);padding:20px;">全体収支データのある月がありません</td></tr>';
+    if (!rowCount) h += '<tr><td colspan="' + (items.length + 1 + extraCols.length) + '" style="text-align:center;color:var(--text-tertiary);padding:20px;">全体収支データのある月がありません</td></tr>';
   }
   h += '</tbody></table>';
   return h;
