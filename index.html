@@ -1437,7 +1437,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.08</span>
+  <span class="version">v2.09</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6049,13 +6049,11 @@ const GRAPH_CATEGORIES = {
     { key: 'roasActualSbShokore', label: 'SB-商品コレ', color: '#db2777' },
   ] },
   cvr: { label: 'CVR', yen: false, pct: true, items: [
-    { key: 'cvr',          label: '全体CVR',         color: '#dc2626', g: 0 },
-    { key: 'cvrSpTotal',   label: 'SP広告全体',      color: '#2563eb', g: 1 },
-    { key: 'cvrSpKw',      label: 'SP広告-KW',       color: '#0891b2', g: 1, soft: true },
-    { key: 'cvrSpShohin',  label: 'SP広告-商品',     color: '#7c3aed', g: 1, soft: true },
-    { key: 'cvrSbTotal',   label: 'SB広告全体',      color: '#ea580c', g: 2 },
-    { key: 'cvrSbDouga',   label: 'SB広告-KW-動画',  color: '#d97706', g: 2, soft: true },
-    { key: 'cvrSbShokore', label: 'SB広告-KW-商品コレ', color: '#db2777', g: 2, soft: true },
+    { key: 'cvr',          label: 'CVR(全体)',  color: '#dc2626' },
+    { key: 'cvrSpKw',      label: 'SP-KW',     color: '#0891b2' },
+    { key: 'cvrSpShohin',  label: 'SP-商品',    color: '#7c3aed' },
+    { key: 'cvrSbDouga',   label: 'SB-動画',    color: '#d97706' },
+    { key: 'cvrSbShokore', label: 'SB-商品コレ', color: '#db2777' },
   ] },
   fees: { label: '諸費用', yen: true, items: [
     { key: 'storage', label: '保管費', color: '#0891b2' },
@@ -6092,7 +6090,6 @@ function graphDefaultHidden(cat){
   else if (cat === 'fees') GRAPH_CATEGORIES.sales.items.forEach(i => hidden.add(i.key));
   else if (cat === 'adcost') ['adcActualSpKw', 'adcActualSpShohin', 'adcActualSbDouga', 'adcActualSbShokore'].forEach(k => hidden.add(k));
   else if (cat === 'roas') ['roasSpKw', 'roasSpShohin', 'roasSbDouga', 'roasSbShokore'].forEach(k => hidden.add(k));
-  else if (cat === 'cvr') ['cvrSpKw', 'cvrSpShohin', 'cvrSbDouga', 'cvrSbShokore'].forEach(k => hidden.add(k));
   return hidden;
 }
 let graphPeriodStart = 'jan';   // 'jan' | 'may'
@@ -7416,7 +7413,7 @@ function applyReturnImport(){
 
 function renderGraphView(){
   _graphMetricCache = {};
-  if (!['sales', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'fees', 'shipment'].includes(graphCategory)) { graphCategory = 'sales'; graphHiddenItems = graphDefaultHidden('sales'); }
+  if (!['sales', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'cvr', 'fees', 'shipment'].includes(graphCategory)) { graphCategory = 'sales'; graphHiddenItems = graphDefaultHidden('sales'); }
   if (graphEndYM == null) {
     graphEndYM = graphLatestYM();
     graphStartYM = (parseInt(graphEndYM.slice(0, 4), 10) - 1) + '-01';
@@ -7448,7 +7445,7 @@ function renderGraphView(){
     + '<button data-v="may" class="' + (graphPeriodStart === 'may' ? 'active' : '') + '">5月始まり</button></div>';
   h += '<select class="graph-select" id="graph-cat" style="font-weight:700;">';
   // 月別グラフ：全体収支の数値＋広告費・広告費の割合比較（SP/SB・SP内・SB内）
-  ['sales', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'fees', 'shipment'].forEach(k => {
+  ['sales', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'cvr', 'fees', 'shipment'].forEach(k => {
     if (!GRAPH_CATEGORIES[k]) return;
     h += '<option value="' + k + '"' + (k === graphCategory ? ' selected' : '') + '>' + GRAPH_CATEGORIES[k].label + '</option>';
   });
