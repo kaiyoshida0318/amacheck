@@ -1437,7 +1437,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.09</span>
+  <span class="version">v2.10</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6048,7 +6048,7 @@ const GRAPH_CATEGORIES = {
     { key: 'roasActualSbDouga', label: 'SB-動画', color: '#d97706' },
     { key: 'roasActualSbShokore', label: 'SB-商品コレ', color: '#db2777' },
   ] },
-  cvr: { label: 'CVR', yen: false, pct: true, items: [
+  cvr: { label: 'CVR', yen: false, pct: true, dec2: true, items: [
     { key: 'cvr',          label: 'CVR(全体)',  color: '#dc2626' },
     { key: 'cvrSpKw',      label: 'SP-KW',     color: '#0891b2' },
     { key: 'cvrSpShohin',  label: 'SP-商品',    color: '#7c3aed' },
@@ -7569,7 +7569,7 @@ function buildGraphChart(){
     const v = niceMax * t / ticks;
     const y = yOf(v);
     svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="rgba(0,0,0,0.08)"/>';
-    const lab = cat.pct ? (Math.round(v) + '%') : cat.dec ? (v.toFixed(2)) : cat.yen ? ('¥' + Math.round(v).toLocaleString()) : Math.round(v).toLocaleString();
+    const lab = cat.pct ? ((cat.dec2 ? v.toFixed(2) : Math.round(v)) + '%') : cat.dec ? (v.toFixed(2)) : cat.yen ? ('¥' + Math.round(v).toLocaleString()) : Math.round(v).toLocaleString();
     svg += '<text x="' + (padL - 10) + '" y="' + (y + 6) + '" text-anchor="end" font-size="17" fill="#888">' + lab + '</text>';
   }
   // X軸ラベル
@@ -7622,7 +7622,7 @@ function niceCeil(v){
 
 function fmtGraphVal(v, cat){
   if (v == null || isNaN(v)) return '';
-  if (cat && cat.pct) return Math.round(v) + '%';
+  if (cat && cat.pct) return (cat.dec2 ? v.toFixed(2) : Math.round(v)) + '%';
   if (cat && cat.dec) return v.toFixed(2);
   return (cat && cat.yen ? '¥' : '') + Math.round(v).toLocaleString();
 }
