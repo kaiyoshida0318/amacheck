@@ -546,7 +546,7 @@
   .pl-table td.pl-edit:focus-visible { outline: 2px solid var(--blue); outline-offset: -2px; }
   .pl-table td.pl-edit .pl-empty { color: var(--text-tertiary); }
   .pl-table .pl-empty { color: var(--text-tertiary); font-weight: 400; }
-  .pl-table .pl-empty .pl-note { display: block; font-size: 10px; line-height: 1.2; margin-top: 1px; opacity: .85; }
+  .pl-table .pl-empty .pl-note { display: block; font-size: 11px; line-height: 1.25; margin-top: 2px; opacity: 1; color: var(--text-secondary); font-weight: 500; }
   .pl-table th .pl-badge { position: relative; display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; background: #334155; color: #fff; font-size: 10px; font-weight: 700; line-height: 1; cursor: help; vertical-align: 1px; }
   .pl-table th .pl-badge::after { content: attr(data-tip); position: absolute; top: 150%; right: 0; background: #1f2937; color: #fff; font-size: 12px; font-weight: 500; line-height: 1.5; white-space: normal; width: max-content; max-width: 240px; text-align: left; padding: 7px 10px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.3); opacity: 0; visibility: hidden; pointer-events: none; z-index: 60; }
   .pl-table th .pl-badge:hover::after { opacity: 1; visibility: visible; }
@@ -1438,7 +1438,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.12</span>
+  <span class="version">v2.14</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -6341,7 +6341,7 @@ const PL_IMP = {
     desc: '広告レポートのCSV。「合計費用」=広告費、「売上」=広告売上を集計（SP/SB内訳・ROASも自動）。', abs: false },
   storage: { label: '保管費', letter: 'C', col: 'Monthly storage fee (est.)', manual: false,
     url: 'https://sellercentral.amazon.co.jp/reportcentral/STORAGE_FEE_CHARGES/1',
-    desc: '月次保管料レポートのCSV。「Monthly storage fee (est.)」の合計を保管費に設定。※このレポートは翌月7日以降にならないとダウンロードできません。', abs: false },
+    desc: '月次保管料レポートのCSV。「Monthly storage fee (est.)」の合計を保管費に設定。<strong>※このレポートは翌月7日以降にならないとダウンロードできません。</strong>', abs: false },
   fbaFee: { label: 'FBA手数料(送料)・販売手数料・出荷数', letter: 'A', col: 'FBA 手数料 / 手数料 / 数量', manual: false, txn: true,
     url: 'https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash',
     desc: 'トランザクション（支払い）レポートのCSV。「FBA 手数料」=FBA手数料(送料)、「手数料」=販売手数料、「注文」行の数量を商品マスタのSKU→FNSKUで出荷数に変換。販売手数料は粗利益を実額化。', abs: true }
