@@ -1228,6 +1228,9 @@
     vertical-align: middle;
     animation: pulse 2s ease-in-out infinite;
   }
+  @keyframes acbSpin { to { transform: rotate(360deg); } }
+  .btn-spin { display: inline-block; width: 13px; height: 13px; border: 2px solid rgba(255,255,255,.45); border-top-color: #fff; border-radius: 50%; vertical-align: -2px; margin-right: 5px; animation: acbSpin .6s linear infinite; }
+  button.is-loading { opacity: .9; cursor: progress; }
   @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.4; }
@@ -1438,7 +1441,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.14</span>
+  <span class="version">v2.16</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -3394,6 +3397,7 @@ function setupMasterCellInteraction(){
     if (asinSelection) {
       const maxIdx = visibleMasterProducts().length - 1;
       if ((e.ctrlKey || e.metaKey) && (e.key === 'c' || e.key === 'C')) {
+        if (window.getSelection && String(window.getSelection()).length > 0) return;
         e.preventDefault(); copyAsinSelection(); return;
       } else if (e.key === 'ArrowUp' || e.key === 'ArrowDown') {
         e.preventDefault();
@@ -3415,7 +3419,7 @@ function setupMasterCellInteraction(){
     }
     if (!masterSelection) return;
     if (e.ctrlKey || e.metaKey) {
-      if (e.key === 'c' || e.key === 'C') { e.preventDefault(); copyMasterCells(); }
+      if (e.key === 'c' || e.key === 'C') { if (window.getSelection && String(window.getSelection()).length > 0) return; e.preventDefault(); copyMasterCells(); }
       else if (e.key === 'v' || e.key === 'V') { e.preventDefault(); pasteMasterCells(); }
     } else if (e.key === 'Delete' || e.key === 'Backspace') {
       e.preventDefault();
@@ -3772,6 +3776,8 @@ function setupCellInteraction(){
 
     if (e.ctrlKey || e.metaKey) {
       if (e.key === 'c' || e.key === 'C') {
+        const hasText = window.getSelection && String(window.getSelection()).length > 0;
+        if (!cellSelection || hasText) return; // セル未選択／通常のテキスト選択時はブラウザのコピーに任せる
         e.preventDefault();
         copySelectedCells();
       } else if (e.key === 'v' || e.key === 'V') {
@@ -4296,37 +4302,53 @@ function applyShipment(){
   msg += '\nよろしいですか？';
   if (!confirm(msg)) return;
 
-  // Undo stackに保存（Ctrl+Zとトーストの「元に戻す」両方で復元可能）
-  pushUndoState();
+  // 押下直後のフィードバック：重い処理（集計・保存・再描画）の前に「反映中…」を表示
+  const applyBtn = document.getElementById('apply');
+  const applyOrig = applyBtn.innerHTML;
+  applyBtn.disabled = true;
+  applyBtn.classList.add('is-loading');
+  applyBtn.innerHTML = '<span class="btn-spin"></span> 反映中…';
 
-  if (!shipments[ym]) shipments[ym] = {};
+  // 「反映中…」を画面に描画させてから実処理（同期処理だと表示前に固まるため次フレームで実行）
+  setTimeout(() => {
+    try {
+      // Undo stackに保存（Ctrl+Zとトーストの「元に戻す」両方で復元可能）
+      pushUndoState();
 
-  // 上書きモード：その日のデータを一度全クリアしてから新しい合計をセット
-  products.forEach(p => {
-    if (shipments[ym][p.fnsku] && shipments[ym][p.fnsku][day] !== undefined) {
-      delete shipments[ym][p.fnsku][day];
+      if (!shipments[ym]) shipments[ym] = {};
+
+      // 上書きモード：その日のデータを一度全クリアしてから新しい合計をセット
+      products.forEach(p => {
+        if (shipments[ym][p.fnsku] && shipments[ym][p.fnsku][day] !== undefined) {
+          delete shipments[ym][p.fnsku][day];
+        }
+      });
+
+      let appliedQty = 0, appliedCount = 0, ignored = 0;
+      for (const asin in allCounts) {
+        const product = productByAsin.get(asin.toUpperCase());
+        if (!product) { ignored++; continue; }
+        if (!shipments[ym][product.fnsku]) shipments[ym][product.fnsku] = {};
+        shipments[ym][product.fnsku][day] = allCounts[asin];
+        appliedCount++;
+        appliedQty += allCounts[asin];
+      }
+      saveShipments();
+
+      currentMonth = ym;
+      document.getElementById('month-select').value = ym;
+      renderShipmentTable();
+      closeModal();
+
+      let toastMsg = m + '/' + d + ' に ' + appliedCount + '種 / 合計 ' + appliedQty + '個 を反映';
+      if (ignored > 0) toastMsg += '（商品リスト外 ' + ignored + '種は無視）';
+      toast(toastMsg, { label: '元に戻す', onClick: undo });
+    } finally {
+      applyBtn.disabled = false;
+      applyBtn.classList.remove('is-loading');
+      applyBtn.innerHTML = applyOrig;
     }
-  });
-
-  let appliedQty = 0, appliedCount = 0, ignored = 0;
-  for (const asin in allCounts) {
-    const product = productByAsin.get(asin.toUpperCase());
-    if (!product) { ignored++; continue; }
-    if (!shipments[ym][product.fnsku]) shipments[ym][product.fnsku] = {};
-    shipments[ym][product.fnsku][day] = allCounts[asin];
-    appliedCount++;
-    appliedQty += allCounts[asin];
-  }
-  saveShipments();
-
-  currentMonth = ym;
-  document.getElementById('month-select').value = ym;
-  renderShipmentTable();
-  closeModal();
-
-  let toastMsg = m + '/' + d + ' に ' + appliedCount + '種 / 合計 ' + appliedQty + '個 を反映';
-  if (ignored > 0) toastMsg += '（商品リスト外 ' + ignored + '種は無視）';
-  toast(toastMsg, { label: '元に戻す', onClick: undo });
+  }, 30);
 }
 
 // ============================================
@@ -5443,14 +5465,26 @@ function applyAdImport(){
   if (valid.some(e => !e.date)) { toast('日付が未設定のファイルがあります'); return; }
   const closedHit = valid.find(e => isAdMonthClosed(e.date.slice(0, 7)));
   if (closedHit) { toast(closedHit.date.slice(0, 7) + ' は確定済みです。解除してから反映してください'); return; }
-  let applied = 0, lastDate = null;
-  valid.forEach(e => { adData[e.date] = e.agg; applied++; lastDate = e.date; });
-  saveAdData();
-  if (lastDate) { adMonth = lastDate.slice(0, 7); adYear = lastDate.slice(0, 4); }
-  populateAdProductSelect();
-  renderAdTable();
-  toast(applied + ' 日分の広告データを反映しました');
-  closeAdAddModal();
+
+  // 押下直後のフィードバック（重い処理の前に「反映中…」を表示）
+  const btn = document.getElementById('ad-add-apply');
+  const orig = btn.innerHTML;
+  btn.disabled = true; btn.classList.add('is-loading');
+  btn.innerHTML = '<span class="btn-spin"></span> 反映中…';
+  setTimeout(() => {
+    try {
+      let applied = 0, lastDate = null;
+      valid.forEach(e => { adData[e.date] = e.agg; applied++; lastDate = e.date; });
+      saveAdData();
+      if (lastDate) { adMonth = lastDate.slice(0, 7); adYear = lastDate.slice(0, 4); }
+      populateAdProductSelect();
+      renderAdTable();
+      toast(applied + ' 日分の広告データを反映しました');
+      closeAdAddModal();
+    } finally {
+      btn.disabled = false; btn.classList.remove('is-loading'); btn.innerHTML = orig;
+    }
+  }, 30);
 }
 
 // ============================================
