@@ -1441,7 +1441,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.18</span>
+  <span class="version">v2.19</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1569,11 +1569,9 @@
       <select id="ad-month-select"></select>
       <select id="ad-year-select" hidden></select>
       <span id="ad-range-ctrl" hidden style="display:inline-flex;align-items:center;gap:6px;">
-        <button class="utility" id="ad-range-prev" title="1週間前へ" style="font-size:12px;padding:5px 8px;">◀ 1週</button>
         <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);">最終日
           <input type="date" id="ad-range-end" style="font-size:13px;padding:5px 8px;">
         </label>
-        <button class="utility" id="ad-range-next" title="1週間後へ" style="font-size:12px;padding:5px 8px;">1週 ▶</button>
       </span>
       <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);">
         キャンペーン
@@ -2192,18 +2190,8 @@ function init(){
     });
   });
   {
-    const shiftRange = (days) => {
-      if (!adRangeEnd) adRangeEnd = defaultAdRangeEnd();
-      const [y, m, d] = adRangeEnd.split('-').map(Number);
-      const dt = new Date(y, m - 1, d); dt.setDate(dt.getDate() + days);
-      adRangeEnd = ymdKey(dt); renderAdTable();
-    };
     const reEl = document.getElementById('ad-range-end');
     if (reEl) reEl.addEventListener('change', (e) => { if (e.target.value) { adRangeEnd = e.target.value; renderAdTable(); } });
-    const prevEl = document.getElementById('ad-range-prev');
-    if (prevEl) prevEl.addEventListener('click', () => shiftRange(-7));
-    const nextEl = document.getElementById('ad-range-next');
-    if (nextEl) nextEl.addEventListener('click', () => shiftRange(7));
   }
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !document.getElementById('ad-add-modal').hidden) closeAdAddModal();
