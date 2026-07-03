@@ -1441,7 +1441,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.19</span>
+  <span class="version">v2.20</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1982,8 +1982,20 @@ function loadShipments(){
   try { return JSON.parse(localStorage.getItem(STORAGE_SHIPMENTS) || '{}'); }
   catch { return {}; }
 }
+// localStorage保存の共通ラッパー（容量上限などで失敗しても例外を投げず false を返す）
+let _lsQuotaWarned = false;
+function lsPersist(key, obj){
+  try { localStorage.setItem(key, JSON.stringify(obj)); return true; }
+  catch (e) {
+    if (!_lsQuotaWarned) {
+      _lsQuotaWarned = true;
+      alert('⚠️ ブラウザの保存容量が上限に達したため、データを保存できませんでした。\n\nこのままページを更新すると今回の変更は失われます。\n不要な月の出荷数データ・広告データを削除するなどして容量を空けてから、もう一度お試しください。');
+    }
+    return false;
+  }
+}
 function saveShipments(){
-  localStorage.setItem(STORAGE_SHIPMENTS, JSON.stringify(shipments));
+  return lsPersist(STORAGE_SHIPMENTS, shipments);
 }
 function genSaleId(){ return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function loadSales(){
@@ -2002,7 +2014,7 @@ function loadAdData(){
   catch { return {}; }
 }
 function saveAdData(){
-  localStorage.setItem(STORAGE_ADDATA, JSON.stringify(adData));
+  return lsPersist(STORAGE_ADDATA, adData);
 }
 // 確定（締め）済みの月のスナップショット { 'YYYY-MM': { filter: { day: {total, m} } } }
 let adClose = (function(){ try { return JSON.parse(localStorage.getItem(STORAGE_ADCLOSE) || '{}'); } catch { return {}; } })();
@@ -4344,16 +4356,20 @@ function applyShipment(){
         appliedCount++;
         appliedQty += allCounts[asin];
       }
-      saveShipments();
+      const saved = saveShipments();
 
       currentMonth = ym;
       document.getElementById('month-select').value = ym;
       renderShipmentTable();
       closeModal();
 
-      let toastMsg = m + '/' + d + ' に ' + appliedCount + '種 / 合計 ' + appliedQty + '個 を反映';
-      if (ignored > 0) toastMsg += '（商品リスト外 ' + ignored + '種は無視）';
-      toast(toastMsg, { label: '元に戻す', onClick: undo });
+      if (saved) {
+        let toastMsg = m + '/' + d + ' に ' + appliedCount + '種 / 合計 ' + appliedQty + '個 を反映';
+        if (ignored > 0) toastMsg += '（商品リスト外 ' + ignored + '種は無視）';
+        toast(toastMsg, { label: '元に戻す', onClick: undo });
+      } else {
+        toast('⚠️ 反映しましたが保存できませんでした（容量上限）。更新すると消えます', { label: '元に戻す', onClick: undo });
+      }
     } finally {
       applyBtn.disabled = false;
       applyBtn.classList.remove('is-loading');
@@ -5512,11 +5528,12 @@ function applyAdImport(){
     try {
       let applied = 0, lastDate = null;
       valid.forEach(e => { adData[e.date] = e.agg; applied++; lastDate = e.date; });
-      saveAdData();
+      const saved = saveAdData();
       if (lastDate) { adMonth = lastDate.slice(0, 7); adYear = lastDate.slice(0, 4); }
       populateAdProductSelect();
       renderAdTable();
-      toast(applied + ' 日分の広告データを反映しました');
+      toast(saved ? (applied + ' 日分の広告データを反映しました')
+                  : ('⚠️ ' + applied + ' 日分を反映しましたが保存できませんでした（容量上限）。更新すると消えます'));
       closeAdAddModal();
     } finally {
       btn.disabled = false; btn.classList.remove('is-loading'); btn.innerHTML = orig;
