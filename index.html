@@ -1441,7 +1441,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.16</span>
+  <span class="version">v2.17</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1564,9 +1564,17 @@
       <div class="period-toggle">
         <button class="period-btn active" data-ad-period="daily">日別</button>
         <button class="period-btn" data-ad-period="monthly">月別</button>
+        <button class="period-btn" data-ad-period="last30">直近30日</button>
       </div>
       <select id="ad-month-select"></select>
       <select id="ad-year-select" hidden></select>
+      <span id="ad-range-ctrl" hidden style="display:inline-flex;align-items:center;gap:6px;">
+        <button class="utility" id="ad-range-prev" title="1週間前へ" style="font-size:12px;padding:5px 8px;">◀ 1週</button>
+        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);">最終日
+          <input type="date" id="ad-range-end" style="font-size:13px;padding:5px 8px;">
+        </label>
+        <button class="utility" id="ad-range-next" title="1週間後へ" style="font-size:12px;padding:5px 8px;">1週 ▶</button>
+      </span>
       <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);">
         キャンペーン
         <select id="ad-product-select" style="font-size:13px;padding:6px 8px;"></select>
@@ -1951,6 +1959,7 @@ let adData = loadAdData();
 let adCampaigns = (function(){ try { return JSON.parse(localStorage.getItem(STORAGE_CAMPAIGNS) || '[]'); } catch { return []; } })();
 let campaignDrafts = [];
 let adPeriod = 'daily';
+let adRangeEnd = null; // 直近30日ローリング表示の最終日(YYYY-MM-DD)
 let adMonth = ymKey(new Date());
 let adYear = String(new Date().getFullYear());
 let adProduct = 'all';
@@ -2182,6 +2191,20 @@ function init(){
       renderAdTable();
     });
   });
+  {
+    const shiftRange = (days) => {
+      if (!adRangeEnd) adRangeEnd = defaultAdRangeEnd();
+      const [y, m, d] = adRangeEnd.split('-').map(Number);
+      const dt = new Date(y, m - 1, d); dt.setDate(dt.getDate() + days);
+      adRangeEnd = ymdKey(dt); renderAdTable();
+    };
+    const reEl = document.getElementById('ad-range-end');
+    if (reEl) reEl.addEventListener('change', (e) => { if (e.target.value) { adRangeEnd = e.target.value; renderAdTable(); } });
+    const prevEl = document.getElementById('ad-range-prev');
+    if (prevEl) prevEl.addEventListener('click', () => shiftRange(-7));
+    const nextEl = document.getElementById('ad-range-next');
+    if (nextEl) nextEl.addEventListener('click', () => shiftRange(7));
+  }
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !document.getElementById('ad-add-modal').hidden) closeAdAddModal();
   });
@@ -5063,7 +5086,7 @@ function populateAdProductSelect(){
   const sel = document.getElementById('ad-product-select');
   if (!sel) return;
   // 表示中の月（日別=その月／月別=その年の年末）を基準に、実施中・当月までのオフを表示
-  const refYm = (adPeriod === 'monthly') ? (adYear + '-12') : adMonth;
+  const refYm = (adPeriod === 'monthly') ? (adYear + '-12') : (adPeriod === 'last30' ? (adRangeEnd || defaultAdRangeEnd()).slice(0, 7) : adMonth);
   // 商品単位に集約：その商品のいずれかのキャンペーンが当月可視なら表示
   const visMap = new Map();
   adCampaigns.forEach(c => {
@@ -5104,6 +5127,12 @@ function renderAdTable(){
       const dateStr = adMonth + '-' + String(d).padStart(2, '0');
       rows.push({ label: d, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr) });
     }
+  } else if (adPeriod === 'last30') {
+    if (!adRangeEnd) adRangeEnd = defaultAdRangeEnd();
+    last30Dates(adRangeEnd).forEach(dateStr => {
+      const mo = +dateStr.slice(5, 7), da = +dateStr.slice(8, 10);
+      rows.push({ label: mo + '/' + da, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr) });
+    });
   } else {
     for (let mo = 1; mo <= 12; mo++) {
       const prefix = adYear + '-' + String(mo).padStart(2, '0');
@@ -5138,7 +5167,7 @@ function renderAdTable(){
     + adColgroup()
     + '<thead>'
     + '<tr>'
-    + '<th rowspan="3" class="ad-daycol">' + (adPeriod === 'daily' ? '日' : '月') + '</th>'
+    + '<th rowspan="3" class="ad-daycol">' + (adPeriod === 'monthly' ? '月' : (adPeriod === 'last30' ? '日付' : '日')) + '</th>'
     + '<th colspan="5" class="adg adg-sales">全体</th>'
     + '<th colspan="9" class="adg adg-sp">スポンサープロダクト広告</th>'
     + '<th colspan="9" class="adg adg-sb">スポンサーブランド広告</th>'
@@ -5294,6 +5323,26 @@ function populateAdMonthYear(){
   if (ys) ys.value = adYear;
   if (ms) ms.hidden = (adPeriod !== 'daily');
   if (ys) ys.hidden = (adPeriod !== 'monthly');
+  const rc = document.getElementById('ad-range-ctrl');
+  if (rc) rc.hidden = (adPeriod !== 'last30');
+  const re = document.getElementById('ad-range-end');
+  if (re && adPeriod === 'last30') { if (!adRangeEnd) adRangeEnd = defaultAdRangeEnd(); re.value = adRangeEnd; }
+}
+// 直近30日の既定最終日：広告データの最新日（無ければ今日）
+function defaultAdRangeEnd(){
+  const keys = Object.keys(adData).sort();
+  const today = ymdKey(new Date());
+  return keys.length ? keys[keys.length - 1] : today;
+}
+// Date→YYYY-MM-DD
+function ymdKey(d){ return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
+// 最終日から遡って30日ぶんの日付配列（古い順）
+function last30Dates(endStr){
+  const [y, m, d] = endStr.split('-').map(Number);
+  const end = new Date(y, m - 1, d);
+  const arr = [];
+  for (let i = 29; i >= 0; i--) { const dt = new Date(end); dt.setDate(end.getDate() - i); arr.push(ymdKey(dt)); }
+  return arr;
 }
 
 let pendingAdImports = []; // [{id, fileName, date, agg, count, prods, error}] 反映で確定
