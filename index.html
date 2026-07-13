@@ -390,6 +390,8 @@
   table.ad-table col.col-yen { width: 4.35%; }
   table.ad-table col.col-roas { width: 3.6%; }
   table.ad-table .ad-daycol.ad-sale { background: rgba(194,24,91,0.12); box-shadow: inset 3px 0 0 var(--sale); color: var(--sale); }
+  .ad-saletip-pop { position: fixed; z-index: 9999; background: #1f2937; color: #fff; font-size: 12px; font-weight: 600; padding: 6px 9px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.3); pointer-events: none; white-space: nowrap; opacity: 0; }
+  .ad-saletip-pop.show { opacity: 1; }
   /* 広告表は画面幅いっぱいに全幅表示（横スクロールを出さない） */
   #ad-view .table-wrap {
     width: calc(100vw - 24px);
@@ -1441,7 +1443,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.22</span>
+  <span class="version">v2.24</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1646,6 +1648,11 @@
         <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-chart-bar"/></svg> 広告データ追加</h3>
         <div class="sub" style="margin-bottom:0;">広告キャンペーンレポート（CSV）をアップロードします。<strong>複数ファイルを同時に取り込めます。</strong>日付はファイル名から自動判別し、取れない場合は下の「既定の日付」を使うので、必要に応じて各ファイルの日付を直してください。<strong>状態が「有効」のキャンペーンのみ</strong>取り込みます。</div>
         <div class="pl-slot-link" style="margin-top:8px;">取得先：<a class="ret-report-link" href="https://advertising-japan.amazon.com/campaign-manager/all-campaigns" target="_blank" rel="noopener" title="https://advertising-japan.amazon.com/campaign-manager/all-campaigns"><span class="url">https://advertising-japan.amazon.com/campaign-manager/all-campaigns</span><span class="ext">↗</span></a></div>
+        <div class="ad-fname-note" style="margin-top:10px;padding:10px 12px;background:#fff7ed;border:1px solid #fdba74;border-radius:8px;font-size:13px;line-height:1.65;color:#9a3412;">
+          <strong style="color:#c2410c;font-size:13.5px;">⚠️ 複数ファイルをまとめて取り込むときの必須ルール</strong><br>
+          日付は<strong>ファイル名から自動判別</strong>します。ファイル名に日付が無いと、全ファイルが同じ「既定の日付」になり<strong>上書き・混在</strong>してしまいます。<br>
+          アップロード前に、各ファイル名を <strong>「0713」のように日付(月日)が分かる形</strong>にリネームしてください。<span style="color:#7c2d12;">例：<code style="background:#ffedd5;padding:1px 5px;border-radius:4px;">0713.csv</code> ／ <code style="background:#ffedd5;padding:1px 5px;border-radius:4px;">広告_0713.csv</code></span>
+        </div>
       </div>
       <button id="ad-add-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
@@ -1656,7 +1663,7 @@
     <label class="upload-zone" id="ad-upzone" for="ad-file-input" style="margin-top:14px;">
       <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
       <div class="main">CSV / ZIP をクリックまたはドラッグ&ドロップ（複数可）</div>
-      <div class="sub">キャンペーンレポート .csv</div>
+      <div class="sub">キャンペーンレポート .csv　<strong style="color:#c2410c;">複数時はファイル名を「0713」など日付入りに</strong></div>
       <input type="file" id="ad-file-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple>
     </label>
     </label>
@@ -2163,6 +2170,7 @@ function init(){
   document.getElementById('data-export').addEventListener('click', exportAllData);
   document.getElementById('data-import').addEventListener('click', () => document.getElementById('data-import-input').click());
   document.getElementById('data-import-input').addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) importAllData(e.target.files[0]); e.target.value = ''; });
+  initSaleTip();
   document.getElementById('sale-edit-cancel').addEventListener('click', cancelSaleEdit);
   document.getElementById('sale-file-input').addEventListener('change', handleSaleFile);
   const saleDz = document.getElementById('sale-upzone');
@@ -5017,6 +5025,29 @@ function saleNamesForDate(dateStr){
   saleRanges.forEach(s => { if (dateStr >= s.start && dateStr <= s.end) names.push((s.label && s.label.trim()) ? s.label.trim() : 'セール'); });
   return names;
 }
+// 広告データ表のセール日セルに、カーソル追従で即時にセール名を表示する
+function initSaleTip(){
+  if (window._saleTipReady) return; window._saleTipReady = true;
+  const tip = document.createElement('div');
+  tip.className = 'ad-saletip-pop';
+  document.body.appendChild(tip);
+  let active = null;
+  const place = (e) => {
+    let x = e.clientX + 14, y = e.clientY + 16;
+    const w = tip.offsetWidth, h = tip.offsetHeight;
+    if (x + w > window.innerWidth - 8) x = e.clientX - w - 12;
+    if (y + h > window.innerHeight - 8) y = e.clientY - h - 12;
+    tip.style.left = x + 'px'; tip.style.top = y + 'px';
+  };
+  document.addEventListener('mouseover', (e) => {
+    const cell = e.target.closest && e.target.closest('.ad-daycol[data-saletip]');
+    if (cell) { active = cell; tip.textContent = cell.getAttribute('data-saletip'); tip.classList.add('show'); place(e); }
+  });
+  document.addEventListener('mousemove', (e) => { if (active) place(e); });
+  document.addEventListener('mouseout', (e) => {
+    if (active && (!e.relatedTarget || !active.contains(e.relatedTarget))) { active = null; tip.classList.remove('show'); }
+  });
+}
 // その月（YYYY-MM）がいずれかのセール期間と重なるか
 function monthOverlapsSale(ym){
   return saleRanges.some(s => s.start <= ym + '-31' && s.end >= ym + '-01');
@@ -5349,12 +5380,14 @@ function renderAdTable(){
     const dayClickable = (adPeriod === 'daily') && !isAdMonthClosed(adMonth);
     const dayCls = 'ad-daycol' + (r.sale ? ' ad-sale' : '') + (dayClickable ? ' ad-day-clickable' : '');
     const saleLabel = (r.saleNames && r.saleNames.length) ? ('🏷 セール：' + r.saleNames.join(' / ')) : 'セール期間';
-    const dayTitle = r.sale
-      ? (saleLabel + (dayClickable ? '｜クリックで広告データを追加' : ''))
-      : (dayClickable ? ('クリックで' + r.label + '日の広告データを追加') : '');
+    const saleTip = r.sale ? (saleLabel + (dayClickable ? '｜クリックで広告データを追加' : '')) : '';
+    const nonSaleTitle = (!r.sale && dayClickable) ? ('クリックで' + r.label + '日の広告データを追加') : '';
+    const dayAttr = r.sale
+      ? (' data-saletip="' + String(saleTip).replace(/"/g, '&quot;') + '"')
+      : (nonSaleTitle ? (' title="' + String(nonSaleTitle).replace(/"/g, '&quot;') + '"') : '');
     const dayClick = dayClickable ? (' onclick="openAdAddForDay(' + r.label + ')"') : '';
     html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + '">'
-      + '<td class="' + dayCls + '" title="' + String(dayTitle).replace(/"/g, '&quot;') + '"' + dayClick + '>' + r.label + '</td>'
+      + '<td class="' + dayCls + '"' + dayAttr + dayClick + '>' + r.label + '</td>'
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
       + tcell(total, 'adc-sales adc-gstart', 'total')
       + tcell(seo, 'adc-sales-l1', 'seo')
