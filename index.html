@@ -1441,7 +1441,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.21</span>
+  <span class="version">v2.22</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -5011,6 +5011,12 @@ function priceForProductOnDate(product, dateStr){
 function dateInAnySale(dateStr){
   return saleRanges.some(s => dateStr >= s.start && dateStr <= s.end);
 }
+// その日を含むセールの名称（複数可）を返す
+function saleNamesForDate(dateStr){
+  const names = [];
+  saleRanges.forEach(s => { if (dateStr >= s.start && dateStr <= s.end) names.push((s.label && s.label.trim()) ? s.label.trim() : 'セール'); });
+  return names;
+}
 // その月（YYYY-MM）がいずれかのセール期間と重なるか
 function monthOverlapsSale(ym){
   return saleRanges.some(s => s.start <= ym + '-31' && s.end >= ym + '-01');
@@ -5193,13 +5199,13 @@ function renderAdTable(){
     const days = daysInMonth(adMonth);
     for (let d = 1; d <= days; d++) {
       const dateStr = adMonth + '-' + String(d).padStart(2, '0');
-      rows.push({ label: d, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr) });
+      rows.push({ label: d, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr), saleNames: saleNamesForDate(dateStr) });
     }
   } else if (adPeriod === 'last2m') {
     if (!adRangeEnd) adRangeEnd = defaultAdRangeEnd();
     last2mDates(adRangeEnd).forEach(dateStr => {
       const mo = +dateStr.slice(5, 7), da = +dateStr.slice(8, 10);
-      rows.push({ label: mo + '/' + da, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr) });
+      rows.push({ label: mo + '/' + da, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr), saleNames: saleNamesForDate(dateStr) });
     });
   } else {
     for (let mo = 1; mo <= 12; mo++) {
@@ -5342,12 +5348,13 @@ function renderAdTable(){
     };
     const dayClickable = (adPeriod === 'daily') && !isAdMonthClosed(adMonth);
     const dayCls = 'ad-daycol' + (r.sale ? ' ad-sale' : '') + (dayClickable ? ' ad-day-clickable' : '');
-    const dayTitle = dayClickable
-      ? ('クリックで' + r.label + '日の広告データを追加' + (r.sale ? '（セール期間）' : ''))
-      : (r.sale ? 'セール期間' : '');
+    const saleLabel = (r.saleNames && r.saleNames.length) ? ('🏷 セール：' + r.saleNames.join(' / ')) : 'セール期間';
+    const dayTitle = r.sale
+      ? (saleLabel + (dayClickable ? '｜クリックで広告データを追加' : ''))
+      : (dayClickable ? ('クリックで' + r.label + '日の広告データを追加') : '');
     const dayClick = dayClickable ? (' onclick="openAdAddForDay(' + r.label + ')"') : '';
     html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + '">'
-      + '<td class="' + dayCls + '" title="' + dayTitle + '"' + dayClick + '>' + r.label + '</td>'
+      + '<td class="' + dayCls + '" title="' + String(dayTitle).replace(/"/g, '&quot;') + '"' + dayClick + '>' + r.label + '</td>'
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
       + tcell(total, 'adc-sales adc-gstart', 'total')
       + tcell(seo, 'adc-sales-l1', 'seo')
