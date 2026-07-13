@@ -1443,7 +1443,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.24</span>
+  <span class="version">v2.25</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1646,24 +1646,22 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-chart-bar"/></svg> 広告データ追加</h3>
-        <div class="sub" style="margin-bottom:0;">広告キャンペーンレポート（CSV）をアップロードします。<strong>複数ファイルを同時に取り込めます。</strong>日付はファイル名から自動判別し、取れない場合は下の「既定の日付」を使うので、必要に応じて各ファイルの日付を直してください。<strong>状態が「有効」のキャンペーンのみ</strong>取り込みます。</div>
+        <div class="sub" style="margin-bottom:0;">広告キャンペーンレポート（CSV）をアップロードします。<strong>複数ファイルを同時に取り込めます。</strong>日付は<strong>ファイル名から自動でひも付け</strong>されます（下の注意を参照）。<strong>状態が「有効」のキャンペーンのみ</strong>取り込みます。</div>
         <div class="pl-slot-link" style="margin-top:8px;">取得先：<a class="ret-report-link" href="https://advertising-japan.amazon.com/campaign-manager/all-campaigns" target="_blank" rel="noopener" title="https://advertising-japan.amazon.com/campaign-manager/all-campaigns"><span class="url">https://advertising-japan.amazon.com/campaign-manager/all-campaigns</span><span class="ext">↗</span></a></div>
-        <div class="ad-fname-note" style="margin-top:10px;padding:10px 12px;background:#fff7ed;border:1px solid #fdba74;border-radius:8px;font-size:13px;line-height:1.65;color:#9a3412;">
-          <strong style="color:#c2410c;font-size:13.5px;">⚠️ 複数ファイルをまとめて取り込むときの必須ルール</strong><br>
-          日付は<strong>ファイル名から自動判別</strong>します。ファイル名に日付が無いと、全ファイルが同じ「既定の日付」になり<strong>上書き・混在</strong>してしまいます。<br>
-          アップロード前に、各ファイル名を <strong>「0713」のように日付(月日)が分かる形</strong>にリネームしてください。<span style="color:#7c2d12;">例：<code style="background:#ffedd5;padding:1px 5px;border-radius:4px;">0713.csv</code> ／ <code style="background:#ffedd5;padding:1px 5px;border-radius:4px;">広告_0713.csv</code></span>
+        <div class="ad-fname-note" style="margin-top:10px;padding:11px 13px;background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;font-size:13px;line-height:1.7;color:#1e3a8a;">
+          <strong style="color:#1d4ed8;font-size:13.5px;">📅 ファイル名で日付を指定します（手入力なし）</strong><br>
+          各ファイルの日付は<strong>ファイル名から自動でひも付け</strong>されます。アップロード前に、ファイル名を
+          <strong>「26-0713」＝ 年-月日</strong>（西暦下2桁「26」＋ハイフン＋月日「0713」）の形にしてください。<br>
+          <span style="color:#1e40af;">例：<code style="background:#dbeafe;padding:1px 6px;border-radius:4px;">26-0713.csv</code>（2026年7月13日）／ <code style="background:#dbeafe;padding:1px 6px;border-radius:4px;">広告_26-0713.csv</code> でもOK</span><br>
+          読み込んだ一覧で日付を確認し、問題なければ「反映する」を押してください。判別できないファイルは赤く表示されるので、リネームして入れ直せば大丈夫です。
         </div>
       </div>
       <button id="ad-add-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
-    <div class="row" style="margin-top:16px;">
-      <label for="ad-date" style="font-weight:600;font-size:13px;">既定の日付<span style="font-weight:400;color:var(--text-tertiary);">（ファイル名から判別できない場合に使用）</span></label>
-      <input type="date" id="ad-date" style="font-size:14px;padding:8px 10px;">
-    </div>
     <label class="upload-zone" id="ad-upzone" for="ad-file-input" style="margin-top:14px;">
       <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
       <div class="main">CSV / ZIP をクリックまたはドラッグ&ドロップ（複数可）</div>
-      <div class="sub">キャンペーンレポート .csv　<strong style="color:#c2410c;">複数時はファイル名を「0713」など日付入りに</strong></div>
+      <div class="sub">キャンペーンレポート .csv　<strong style="color:#1d4ed8;">ファイル名は「26-0713」（年-月日）にしてください</strong></div>
       <input type="file" id="ad-file-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple>
     </label>
     </label>
@@ -4963,10 +4961,17 @@ function parseAdCsv(text){
 }
 // ファイル名から日付(YYYY-MM-DD)を推測。取れなければ ''
 function detectDateFromName(name){
+  // 例) 2026-07-13 / 20260713 / 2026_07_13（4桁年）
   let m = name.match(/(20\d{2})[-_./]?(\d{2})[-_./]?(\d{2})/);
   if (m) {
     const mo = +m[2], d = +m[3];
     if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) return m[1] + '-' + m[2] + '-' + m[3];
+  }
+  // 例) 26-0713 / 26-07-13（下2桁年 - 月日）
+  m = name.match(/(?:^|[^\d])(\d{2})-(\d{2})[-_.]?(\d{2})(?:[^\d]|$)/);
+  if (m) {
+    const mo = +m[2], d = +m[3];
+    if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) return (2000 + +m[1]) + '-' + m[2] + '-' + m[3];
   }
   return '';
 }
@@ -5467,7 +5472,6 @@ function openAdAddModal(presetDate){
     d.setDate(d.getDate() - 1);
     val = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
   }
-  document.getElementById('ad-date').value = val;
   pendingAdImports = [];
   renderAdImportList();
   document.getElementById('ad-add-modal').hidden = false;
@@ -5536,7 +5540,6 @@ function readFileBytes(f){
 async function processAdFiles(files){
   const list = Array.from(files || []);
   if (!list.length) return;
-  const defDate = document.getElementById('ad-date').value || '';
   // CSV/ZIP を展開して「取込単位（name, bytes）」の配列に正規化
   const units = [];
   for (const f of list) {
@@ -5562,7 +5565,11 @@ async function processAdFiles(files){
     } else {
       const r = parseAdCsv(text);
       if (!r.ok) entry = { id: ++adImportSeq, fileName: u.name, date: '', agg: null, count: 0, prods: [], error: r.msg };
-      else entry = { id: ++adImportSeq, fileName: u.name, date: detectDateFromName(u.name) || defDate, agg: r.agg, count: r.count, prods: r.prods, error: '' };
+      else {
+        const dt = detectDateFromName(u.name);
+        if (!dt) entry = { id: ++adImportSeq, fileName: u.name, date: '', agg: r.agg, count: r.count, prods: r.prods, error: 'ファイル名から日付を判別できません。ファイル名を「26-0713」形式にしてください' };
+        else entry = { id: ++adImportSeq, fileName: u.name, date: dt, agg: r.agg, count: r.count, prods: r.prods, error: '' };
+      }
     }
     pendingAdImports.push(entry);
   });
@@ -5602,7 +5609,8 @@ function renderAdImportList(){
     if (e.error) {
       h += '<span style="color:var(--danger);font-size:12px;flex-shrink:0;">取込不可：' + escapeHtml(e.error) + '</span>';
     } else {
-      h += '<input type="date" value="' + e.date + '" onchange="updateAdImportDate(' + e.id + ', this.value)" style="font-size:13px;padding:4px 6px;flex-shrink:0;' + (closed ? 'border-color:var(--danger);' : '') + '">';
+      const md = e.date.slice(5).replace('-', '/'); // MM/DD
+      h += '<span style="flex-shrink:0;font-size:13px;font-weight:600;color:var(--black);white-space:nowrap;' + (closed ? 'color:var(--danger);' : '') + '">📅 ' + e.date.slice(0, 4) + '/' + md + '</span>';
       h += '<span style="color:var(--success);font-size:12px;flex-shrink:0;white-space:nowrap;">' + e.count + '件</span>';
     }
     h += '<button onclick="removeAdImport(' + e.id + ')" class="ghost" title="一覧から外す" style="padding:2px 6px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>';
@@ -5610,8 +5618,8 @@ function renderAdImportList(){
     if (closed) h += '<div style="color:var(--danger);font-size:11px;margin:-2px 0 2px 2px;">' + e.date.slice(0, 7) + ' は確定済み。解除するか日付を変えてください</div>';
   });
   h += '</div>';
-  const noDate = pendingAdImports.filter(e => !e.error && !e.date).length;
-  if (noDate) h += '<div style="color:var(--amber);font-size:12px;margin-top:6px;">日付が未設定のファイルが ' + noDate + ' 件あります。各行で日付を選んでください。</div>';
+  const badName = pendingAdImports.filter(e => e.error && e.error.indexOf('日付を判別できません') > -1).length;
+  if (badName) h += '<div style="color:var(--danger);font-size:12px;margin-top:8px;font-weight:600;">⚠️ ' + badName + ' 件はファイル名から日付を判別できませんでした。ファイル名を「26-0713」（年-月日）の形式にリネームして入れ直してください。</div>';
   el.innerHTML = h;
   updateAdApplyState();
 }
