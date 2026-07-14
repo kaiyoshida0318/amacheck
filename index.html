@@ -1443,7 +1443,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.27</span>
+  <span class="version">v2.29</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1646,7 +1646,8 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-chart-bar"/></svg> 広告データ追加</h3>
-        <div class="sub" style="margin-bottom:0;">広告キャンペーンレポート（CSV）をアップロードします。<strong>複数ファイルを同時に取り込めます。</strong>日付は<strong>ファイル名から自動でひも付け</strong>されます（下の注意を参照）。<strong>状態が「有効」のキャンペーンのみ</strong>取り込みます。</div>
+        <div class="sub" id="ad-modal-sub" style="margin-bottom:0;">広告キャンペーンレポート（CSV）をアップロードします。<strong>複数ファイルを同時に取り込めます。</strong>日付は<strong>ファイル名から自動でひも付け</strong>されます（下の注意を参照）。<strong>状態が「有効」のキャンペーンのみ</strong>取り込みます。</div>
+        <div id="ad-fixed-banner" hidden style="margin-top:8px;padding:8px 12px;background:#ecfdf5;border:1px solid #6ee7b7;border-radius:8px;font-size:13.5px;color:#065f46;"></div>
         <div class="pl-slot-link" style="margin-top:8px;">取得先：<a class="ret-report-link" href="https://advertising-japan.amazon.com/campaign-manager/all-campaigns" target="_blank" rel="noopener" title="https://advertising-japan.amazon.com/campaign-manager/all-campaigns"><span class="url">https://advertising-japan.amazon.com/campaign-manager/all-campaigns</span><span class="ext">↗</span></a></div>
         <div class="ad-fname-note" style="margin-top:10px;padding:11px 13px;background:#eff6ff;border:1px solid #93c5fd;border-radius:8px;font-size:13px;line-height:1.7;color:#1e3a8a;">
           <strong style="color:#1d4ed8;font-size:13.5px;">📅 ファイル名から日付を自動判別<br><span style="font-weight:600;">（手動で日付を選ぶ必要はありません）</span></strong><br>
@@ -1661,7 +1662,7 @@
     <label class="upload-zone" id="ad-upzone" for="ad-file-input" style="margin-top:14px;">
       <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
       <div class="main">CSV / ZIP をクリックまたはドラッグ&ドロップ（複数可）</div>
-      <div class="sub">キャンペーンレポート .csv　<strong style="color:#1d4ed8;">ファイル名は「26-0713」（年-月日）にしてください</strong></div>
+      <div class="sub" id="ad-drop-sub">キャンペーンレポート .csv　<strong style="color:#1d4ed8;">ファイル名は「26-0713」（年-月日）にしてください</strong></div>
       <input type="file" id="ad-file-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple>
     </label>
     </label>
@@ -2202,7 +2203,7 @@ function init(){
   // 撤退済み商品（専用ページへ遷移）
   document.getElementById('open-withdrawn').addEventListener('click', () => switchView('withdrawn'));
   // 広告データ
-  document.getElementById('open-ad-add').addEventListener('click', openAdAddModal);
+  document.getElementById('open-ad-add').addEventListener('click', () => openAdAddModal());
   // 返品データ追加モーダル
   document.getElementById('ret-add-close').addEventListener('click', closeRetAddModal);
   document.getElementById('ret-add-cancel').addEventListener('click', closeRetAddModal);
@@ -5465,13 +5466,24 @@ function setAdApplyEnabled(on){
   const btn = document.getElementById('ad-add-apply');
   if (btn) btn.disabled = !on;
 }
+let adImportMode = 'multi'; // 'multi'=ボタン（複数・ファイル名日付） / 'fixed'=日付クリック（その日で固定）
+let adFixedDate = '';
+function applyAdModalChrome(){
+  const fixed = adImportMode === 'fixed';
+  const note = document.querySelector('.ad-fname-note'); if (note) note.style.display = fixed ? 'none' : '';
+  const sub = document.getElementById('ad-modal-sub');
+  if (sub) sub.innerHTML = fixed
+    ? '広告キャンペーンレポート（CSV）をアップロードします。アップロードしたファイルは<strong>下の日付のデータ</strong>として取り込みます。<strong>状態が「有効」のキャンペーンのみ</strong>取り込みます。'
+    : '広告キャンペーンレポート（CSV）をアップロードします。<strong>複数ファイルを同時に取り込めます。</strong>日付は<strong>ファイル名から自動でひも付け</strong>されます（下の注意を参照）。<strong>状態が「有効」のキャンペーンのみ</strong>取り込みます。';
+  const banner = document.getElementById('ad-fixed-banner');
+  if (banner) { banner.hidden = !fixed; if (fixed) banner.innerHTML = '📅 取り込む日付：<strong>' + adFixedDate.replace(/-/g, '/') + '</strong>（この日付で固定）'; }
+  const dropSub = document.getElementById('ad-drop-sub');
+  if (dropSub) dropSub.innerHTML = fixed ? 'キャンペーンレポート .csv' : 'キャンペーンレポート .csv　<strong style="color:#1d4ed8;">ファイル名は「26-0713」（年-月日）にしてください</strong>';
+}
 function openAdAddModal(presetDate){
-  let val = presetDate;
-  if (!val) {
-    const d = new Date();
-    d.setDate(d.getDate() - 1);
-    val = d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0');
-  }
+  if (presetDate) { adImportMode = 'fixed'; adFixedDate = presetDate; }
+  else { adImportMode = 'multi'; adFixedDate = ''; }
+  applyAdModalChrome();
   pendingAdImports = [];
   renderAdImportList();
   document.getElementById('ad-add-modal').hidden = false;
@@ -5565,6 +5577,9 @@ async function processAdFiles(files){
     } else {
       const r = parseAdCsv(text);
       if (!r.ok) entry = { id: ++adImportSeq, fileName: u.name, date: '', agg: null, count: 0, prods: [], error: r.msg };
+      else if (adImportMode === 'fixed') {
+        entry = { id: ++adImportSeq, fileName: u.name, date: adFixedDate, agg: r.agg, count: r.count, prods: r.prods, error: '' };
+      }
       else {
         const dt = detectDateFromName(u.name);
         if (!dt) entry = { id: ++adImportSeq, fileName: u.name, date: '', agg: r.agg, count: r.count, prods: r.prods, error: 'ファイル名から日付を判別できません。ファイル名を「26-0713」形式にしてください' };
@@ -5618,7 +5633,7 @@ function renderAdImportList(){
     if (closed) h += '<div style="color:var(--danger);font-size:11px;margin:-2px 0 2px 2px;">' + e.date.slice(0, 7) + ' は確定済み。解除するか日付を変えてください</div>';
   });
   h += '</div>';
-  const badName = pendingAdImports.filter(e => e.error && e.error.indexOf('日付を判別できません') > -1).length;
+  const badName = (adImportMode === 'multi') ? pendingAdImports.filter(e => e.error && e.error.indexOf('日付を判別できません') > -1).length : 0;
   if (badName) h += '<div style="color:var(--danger);font-size:12px;margin-top:8px;font-weight:600;">⚠️ ' + badName + ' 件はファイル名から日付を判別できませんでした。ファイル名を「26-0713」（年-月日）の形式にリネームして入れ直してください。</div>';
   el.innerHTML = h;
   updateAdApplyState();
@@ -6541,7 +6556,7 @@ const PL_IMP = {
     desc: '広告レポートのCSV。「合計費用」=広告費、「売上」=広告売上を集計（SP/SB内訳・ROASも自動）。', abs: false },
   storage: { label: '保管費', letter: 'C', col: 'Monthly storage fee (est.)', manual: false,
     url: 'https://sellercentral.amazon.co.jp/reportcentral/STORAGE_FEE_CHARGES/1',
-    desc: '月次保管料レポートのCSV。「Monthly storage fee (est.)」の合計を保管費に設定。<strong>※このレポートは翌月7日以降にならないとダウンロードできません。</strong>', abs: false },
+    desc: '月次保管料レポートのCSV。「Monthly storage fee (est.)」の合計を保管費に設定。<strong>※このレポートは翌月13日頃以降にならないとダウンロードできません。</strong>', abs: false },
   fbaFee: { label: 'FBA手数料(送料)・販売手数料・出荷数', letter: 'A', col: 'FBA 手数料 / 手数料 / 数量', manual: false, txn: true,
     url: 'https://sellercentral.amazon.co.jp/payments/reports-repository?ref_=xx_rrepo_ttab_dash',
     desc: 'トランザクション（支払い）レポートのCSV。「FBA 手数料」=FBA手数料(送料)、「手数料」=販売手数料、「注文」行の数量を商品マスタのSKU→FNSKUで出荷数に変換。販売手数料は粗利益を実額化。', abs: true }
@@ -7095,7 +7110,7 @@ function renderPlView(){
     h += '<tr><td colspan="10" style="text-align:center;color:var(--text-tertiary);padding:24px;">データがありません</td></tr>';
   }
   const NA = '<span class="pl-empty">未入力</span>';
-  const NA_STORE = '<span class="pl-empty">未入力<span class="pl-note">翌月7日以降</span></span>';
+  const NA_STORE = '<span class="pl-empty">未入力<span class="pl-note">翌月13日以降</span></span>';
   const yenOrNA = v => (v == null) ? NA : plYen(v);
   // 粗利益・実質利益は自動計算列。実売上が未入力で計算できない時は「未入力」ではなく自動計算待ちを示す
   const AUTO = '<span class="pl-empty" title="総売上を入力すると自動計算されます">自動計算</span>';
