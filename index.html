@@ -1443,7 +1443,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.29</span>
+  <span class="version">v2.30</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -1661,7 +1661,7 @@
     </div>
     <label class="upload-zone" id="ad-upzone" for="ad-file-input" style="margin-top:14px;">
       <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
-      <div class="main">CSV / ZIP をクリックまたはドラッグ&ドロップ（複数可）</div>
+      <div class="main" id="ad-drop-main">CSV / ZIP をクリックまたはドラッグ&ドロップ（複数可）</div>
       <div class="sub" id="ad-drop-sub">キャンペーンレポート .csv　<strong style="color:#1d4ed8;">ファイル名は「26-0713」（年-月日）にしてください</strong></div>
       <input type="file" id="ad-file-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple>
     </label>
@@ -5479,6 +5479,8 @@ function applyAdModalChrome(){
   if (banner) { banner.hidden = !fixed; if (fixed) banner.innerHTML = '📅 取り込む日付：<strong>' + adFixedDate.replace(/-/g, '/') + '</strong>（この日付で固定）'; }
   const dropSub = document.getElementById('ad-drop-sub');
   if (dropSub) dropSub.innerHTML = fixed ? 'キャンペーンレポート .csv' : 'キャンペーンレポート .csv　<strong style="color:#1d4ed8;">ファイル名は「26-0713」（年-月日）にしてください</strong>';
+  const dropMain = document.getElementById('ad-drop-main');
+  if (dropMain) dropMain.textContent = fixed ? 'CSV / ZIP をクリックまたはドラッグ&ドロップ' : 'CSV / ZIP をクリックまたはドラッグ&ドロップ（複数可）';
 }
 function openAdAddModal(presetDate){
   if (presetDate) { adImportMode = 'fixed'; adFixedDate = presetDate; }
