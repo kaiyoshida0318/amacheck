@@ -1362,6 +1362,14 @@
     gap: 12px;
     margin-left: auto;
   }
+  .newtab-btn {
+    display: inline-flex; align-items: center; gap: 5px;
+    padding: 7px 13px; border: 1px solid var(--border); border-radius: 9px;
+    background: #fff; color: var(--text-secondary); font-size: 13px; font-weight: 600;
+    cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s;
+  }
+  .newtab-btn:hover { background: var(--bg-secondary); border-color: #cbd5e1; }
+  .newtab-btn .nt-ico { font-size: 14px; font-weight: 700; line-height: 1; }
   .version {
     color: var(--text-secondary);
     font-family: ui-monospace, "SF Mono", Menlo, monospace;
@@ -1443,8 +1451,9 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.31</span>
+  <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
+    <span class="version">v2.32</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2166,6 +2175,10 @@ function init(){
   window.addEventListener('resize', adjustHiddenTableHeight);
   // セール設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
+  document.getElementById('open-newtab').addEventListener('click', () => {
+    const base = location.href.split('#')[0];
+    window.open(base + '#view=master', '_blank');
+  });
   document.getElementById('data-export').addEventListener('click', exportAllData);
   document.getElementById('data-import').addEventListener('click', () => document.getElementById('data-import-input').click());
   document.getElementById('data-import-input').addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) importAllData(e.target.files[0]); e.target.value = ''; });
@@ -2353,8 +2366,9 @@ function init(){
     switchView(view, true);
   });
 
-  // 初期表示：商品マスタタブ
-  switchView('master', true);
+  // 初期表示：商品マスタタブ（新しいタブ用に #view=xxx 指定があればそれを優先）
+  const _hv = (location.hash.match(/view=([a-z]+)/i) || [])[1];
+  switchView((_hv || 'master'), true);
 }
 
 function switchView(name, fromPop){
