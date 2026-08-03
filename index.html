@@ -720,10 +720,10 @@
   .graph-table .grp-start td { border-top: 2px solid var(--border-strong); }
   .graph-table .gt-adsep { border-right: 1px solid #cbd5e1; }
   /* 数字の4色分け（列ごとの順位）：上位10%=濃青 / 上位20%=青 / 下位20%=橙 / 下位10%=赤。中間は通常色 */
-  table.ad-table tbody td.t-hi10, .ad-legend .lg-hi10 { color: #1d4ed8; font-weight: 700; }
-  table.ad-table tbody td.t-hi20, .ad-legend .lg-hi20 { color: #16a34a; font-weight: 700; }
-  table.ad-table tbody td.t-lo20, .ad-legend .lg-lo20 { color: #d97706; font-weight: 700; }
-  table.ad-table tbody td.t-lo10, .ad-legend .lg-lo10 { color: #c0392b; font-weight: 700; }
+  table.ad-table tbody td.t-hi10, .graph-table td.t-hi10, .ad-legend .lg-hi10 { color: #1d4ed8; font-weight: 700; }
+  table.ad-table tbody td.t-hi20, .graph-table td.t-hi20, .ad-legend .lg-hi20 { color: #16a34a; font-weight: 700; }
+  table.ad-table tbody td.t-lo20, .graph-table td.t-lo20, .ad-legend .lg-lo20 { color: #d97706; font-weight: 700; }
+  table.ad-table tbody td.t-lo10, .graph-table td.t-lo10, .ad-legend .lg-lo10 { color: #c0392b; font-weight: 700; }
   .ad-legend { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-tertiary); white-space: nowrap; }
   .ad-legend .lg-mid { color: var(--text-secondary); }
   .ship-legend .lg-shhi { color: #2563eb; font-weight: 700; }
@@ -1443,7 +1443,7 @@
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
-  <span class="version">v2.30</span>
+  <span class="version">v2.31</span>
   <div class="header-tools">
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
@@ -7865,6 +7865,31 @@ function buildGraphTable(){
     { key: 'roasActual', label: '広告ROAS(全体)', color: '#dc2626', fmt: { dec: true } }
   ] : [];
   const sepIdx = extraCols.length - 1;
+
+  // --- 列ごとの分位配色（広告データ表と同じ仕組み。広告費系は安いほど青） ---
+  const yoyG = (graphTableMode === 'yoy');
+  const hasPl = (met) => met.salesActual != null || met.adCostActual != null || met.adSalesActual != null || met.storage != null || met.fbaFee != null;
+  const metricList = [];
+  if (yoyG) {
+    graphMonthOrder().forEach(m => { metricList.push(graphMonthMetrics(ymOf(graphCurYear, m))); metricList.push(graphMonthMetrics(ymOf(graphPrevYear, m))); });
+  } else {
+    plMonthsList().forEach(ym => { const mt = graphMonthMetrics(ym); if (hasPl(mt)) metricList.push(mt); });
+  }
+  const MING = 4;
+  const pctl = (s, q) => { const i = (s.length - 1) * q, lo = Math.floor(i), hi = Math.ceil(i); return lo === hi ? s[lo] : s[lo] + (s[hi] - s[lo]) * (i - lo); };
+  const colTier = {};
+  extraCols.map(c => c.key).concat(items.map(it => it.key)).forEach(k => {
+    const vals = metricList.map(mt => mt[k]).filter(v => v != null && !isNaN(v));
+    if (vals.length >= MING) { const s = vals.slice().sort((a, b) => a - b); if (s[0] !== s[s.length - 1]) colTier[k] = { p90: pctl(s, .9), p80: pctl(s, .8), p20: pctl(s, .2), p10: pctl(s, .1) }; }
+  });
+  const isCostKey = (k) => k === 'adCostActual' || k.indexOf('adcActual') === 0 || k === 'storage' || k === 'fbaFee';
+  const tcls = (k, v) => {
+    const t = colTier[k]; if (!t || v == null || isNaN(v)) return '';
+    if (isCostKey(k)) { if (v >= t.p90) return ' t-lo10'; if (v >= t.p80) return ' t-lo20'; if (v <= t.p10) return ' t-hi10'; if (v <= t.p20) return ' t-hi20'; return ''; }
+    if (v >= t.p90) return ' t-hi10'; if (v >= t.p80) return ' t-hi20'; if (v <= t.p10) return ' t-lo10'; if (v <= t.p20) return ' t-lo20'; return '';
+  };
+  const gcell = (k, v, fmtCat, extraCls) => '<td class="' + ((extraCls || '') + tcls(k, v)).trim() + '">' + fmtGraphVal(v, fmtCat) + '</td>';
+  const gtLegend = '<div class="ad-legend" style="margin:0 0 7px;">配色: <span class="lg-hi10">上位10%</span> <span class="lg-hi20">上位20%</span> <span class="lg-mid">中間</span> <span class="lg-lo20">下位20%</span> <span class="lg-lo10">下位10%</span> <span class="lg-mid" style="margin-left:6px;">※広告費は安いほど青</span></div>';
   let h = '<table class="graph-table"><thead><tr><th>月 <button class="gt-sort" id="gt-sort" title="月の並び替え（新しい順／古い順）">' + (graphTableSort === 'desc' ? '▼' : '▲') + '</button></th>' + (yoy ? '<th></th>' : '');
   extraCols.forEach((c, i) => h += '<th style="color:' + c.color + '"' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + c.label + '</th>');
   items.forEach(it => h += '<th style="color:' + it.color + '">' + it.label + '</th>');
@@ -7878,11 +7903,11 @@ function buildGraphTable(){
       const prev = graphMonthMetrics(ymOf(graphPrevYear, m));
       h += '<tr class="grp-start"><td class="grp-label" rowspan="2">' + m + '月</td>'
         + '<td class="yr-sub">' + graphCurYear + '年</td>';
-      extraCols.forEach((c, i) => h += '<td' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + fmtGraphVal(cur[c.key], c.fmt) + '</td>');
-      items.forEach(it => h += '<td>' + fmtGraphVal(cur[it.key], cat) + '</td>');
+      extraCols.forEach((c, i) => h += gcell(c.key, cur[c.key], c.fmt, i === sepIdx ? 'gt-adsep' : ''));
+      items.forEach(it => h += gcell(it.key, cur[it.key], cat));
       h += '</tr><tr><td class="yr-sub">' + graphPrevYear + '年</td>';
-      extraCols.forEach((c, i) => h += '<td' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + fmtGraphVal(prev[c.key], c.fmt) + '</td>');
-      items.forEach(it => h += '<td>' + fmtGraphVal(prev[it.key], cat) + '</td>');
+      extraCols.forEach((c, i) => h += gcell(c.key, prev[c.key], c.fmt, i === sepIdx ? 'gt-adsep' : ''));
+      items.forEach(it => h += gcell(it.key, prev[it.key], cat));
       h += '</tr>';
     });
   } else {
@@ -7910,15 +7935,15 @@ function buildGraphTable(){
       const met = graphMonthMetrics(ymOf(y, mo));
       const cls = rowCls(y, mo);
       h += '<tr' + (cls ? ' class="' + cls + '"' : '') + '><td class="grp-label">' + y + '/' + String(mo).padStart(2, '0') + '</td>';
-      extraCols.forEach((c, i) => h += '<td' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + fmtGraphVal(met[c.key], c.fmt) + '</td>');
-      items.forEach(it => h += '<td>' + fmtGraphVal(met[it.key], cat) + '</td>');
+      extraCols.forEach((c, i) => h += gcell(c.key, met[c.key], c.fmt, i === sepIdx ? 'gt-adsep' : ''));
+      items.forEach(it => h += gcell(it.key, met[it.key], cat));
       h += '</tr>';
       rowCount++;
     });
     if (!rowCount) h += '<tr><td colspan="' + (items.length + 1 + extraCols.length) + '" style="text-align:center;color:var(--text-tertiary);padding:20px;">全体収支データのある月がありません</td></tr>';
   }
   h += '</tbody></table>';
-  return h;
+  return gtLegend + h;
 }
 window.renderGraphView = renderGraphView;
 
