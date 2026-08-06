@@ -1453,7 +1453,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.32</span>
+    <span class="version">v2.33</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1972,11 +1972,12 @@ const STORAGE_CAT = 'amacheck_categories_v1';
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
 let _lsQuotaWarned = false;
-let products = loadProducts();
-let shipments = loadShipments();
-let saleRanges = loadSales();
-let adData = loadAdData();
-let adCampaigns = lzGet(STORAGE_CAMPAIGNS, []);
+let _idb = null, _idbReady = false;
+let products = [];
+let shipments = {};
+let saleRanges = [];
+let adData = {};
+let adCampaigns = [];
 let campaignDrafts = [];
 let adPeriod = 'daily';
 let adRangeEnd = null; // 直近2ヶ月（約60日連続）ローリング表示の最終日(YYYY-MM-DD)
@@ -1992,7 +1993,7 @@ function loadProducts(){
   return lzGet(STORAGE_PRODUCTS, []);
 }
 function saveProducts(){
-  return lzSet(STORAGE_PRODUCTS, products);
+  return persistKey(STORAGE_PRODUCTS, products);
 }
 function loadShipments(){
   return lzGet(STORAGE_SHIPMENTS, {});
@@ -2028,7 +2029,7 @@ function lzGet(key, fallback){
   } catch (e) { return fallback; }
 }
 function saveShipments(){
-  return lzSet(STORAGE_SHIPMENTS, shipments);
+  return persistKey(STORAGE_SHIPMENTS, shipments);
 }
 function genSaleId(){ return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 function loadSales(){
@@ -2040,42 +2041,88 @@ function loadSales(){
   return arr;
 }
 function saveSales(){
-  return lzSet(STORAGE_SALES, saleRanges);
+  return persistKey(STORAGE_SALES, saleRanges);
 }
 function loadAdData(){
   return lzGet(STORAGE_ADDATA, {});
 }
 function saveAdData(){
-  return lzSet(STORAGE_ADDATA, adData);
+  return persistKey(STORAGE_ADDATA, adData);
 }
 // 確定（締め）済みの月のスナップショット { 'YYYY-MM': { filter: { day: {total, m} } } }
-let adClose = lzGet(STORAGE_ADCLOSE, {});
-function saveAdClose(){ return lzSet(STORAGE_ADCLOSE, adClose); }
+let adClose = {};
+function saveAdClose(){ return persistKey(STORAGE_ADCLOSE, adClose); }
 // 全体収支の手入力（保管費・FBA手数料）を月単位で保存： { 'YYYY-MM': { storage:数値, fbaFee:数値 } }
-let plData = lzGet(STORAGE_PL, {});
-function savePlData(){ return lzSet(STORAGE_PL, plData); }
+let plData = {};
+function savePlData(){ return persistKey(STORAGE_PL, plData); }
 // 返品データ： { 'YYYY-MM': { FNSKU: { 商品の状態: 点数 } } }
-let returnsData = lzGet(STORAGE_RETURNS, {});
-function saveReturns(){ return lzSet(STORAGE_RETURNS, returnsData); }
+let returnsData = {};
+function saveReturns(){ return persistKey(STORAGE_RETURNS, returnsData); }
 // 商品カテゴリ： { FNSKU: 'カテゴリ名' }
-let categories = lzGet(STORAGE_CAT, {});
-function saveCategories(){ return lzSet(STORAGE_CAT, categories); }
+let categories = {};
+function saveCategories(){ return persistKey(STORAGE_CAT, categories); }
 
-// 既存の非圧縮データを起動時に一度だけ圧縮化（容量を即時に圧縮）
 const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS];
-function migrateCompressAll(){
-  const cur = { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns };
-  AMACHECK_KEYS.forEach(k => {
-    const raw = localStorage.getItem(k);
-    if (raw != null && raw.slice(0, 4) !== 'LZ1:' && cur[k] !== undefined) lzSet(k, cur[k]);
+
+// ==== 永続化: IndexedDB（大容量）優先。使えない時は localStorage(圧縮) にフォールバック ====
+function idbOpen(){
+  return new Promise((res) => {
+    try {
+      const rq = indexedDB.open('amacheck_db', 1);
+      rq.onupgradeneeded = () => { if (!rq.result.objectStoreNames.contains('kv')) rq.result.createObjectStore('kv'); };
+      rq.onsuccess = () => { _idb = rq.result; _idbReady = true; res(true); };
+      rq.onerror = () => res(false);
+      rq.onblocked = () => res(false);
+    } catch (e) { res(false); }
   });
 }
-try { migrateCompressAll(); } catch (e) {}
+function idbGet(key){
+  return new Promise((res) => { try { const tx = _idb.transaction('kv', 'readonly').objectStore('kv').get(key); tx.onsuccess = () => res(tx.result); tx.onerror = () => res(undefined); } catch (e) { res(undefined); } });
+}
+function idbSet(key, val){
+  return new Promise((res) => { try { const tx = _idb.transaction('kv', 'readwrite'); tx.objectStore('kv').put(val, key); tx.oncomplete = () => res(true); tx.onerror = () => res(false); tx.onabort = () => res(false); } catch (e) { res(false); } });
+}
+// 保存の共通入口：IDBがあればIDB（write-behind）、無ければlocalStorage圧縮
+function persistKey(key, obj){
+  if (_idbReady) {
+    idbSet(key, obj).then(ok => { if (!ok && !_lsQuotaWarned) { _lsQuotaWarned = true; alert('⚠️ データの保存に失敗しました。ブラウザの空き容量をご確認ください。'); } });
+    return true;
+  }
+  return lzSet(key, obj);
+}
+function amacheckStateMap(){
+  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns };
+}
+// 起動：IDBを開き、（初回は）localStorageから移行してから各データを読み込み、init()する
+async function bootstrap(){
+  const ok = await idbOpen();
+  const load = async (k, fb) => {
+    if (ok) {
+      let v = await idbGet(k);
+      if (v === undefined) { const ls = lzGet(k, undefined); if (ls !== undefined) { v = ls; await idbSet(k, ls); } }
+      return (v === undefined) ? fb : v;
+    }
+    return lzGet(k, fb);
+  };
+  products = await load(STORAGE_PRODUCTS, []);
+  shipments = await load(STORAGE_SHIPMENTS, {});
+  saleRanges = await load(STORAGE_SALES, []);
+  if (!Array.isArray(saleRanges)) saleRanges = [];
+  { let ch = false; saleRanges.forEach(s => { if (!s.id) { s.id = genSaleId(); ch = true; } }); if (ch) persistKey(STORAGE_SALES, saleRanges); }
+  adData = await load(STORAGE_ADDATA, {});
+  adCampaigns = await load(STORAGE_CAMPAIGNS, []);
+  adClose = await load(STORAGE_ADCLOSE, {});
+  plData = await load(STORAGE_PL, {});
+  returnsData = await load(STORAGE_RETURNS, {});
+  categories = await load(STORAGE_CAT, {});
+  init();
+}
 
 // 全データのエクスポート（読める素のJSONで書き出し）
 function exportAllData(){
   const dump = { app: 'amacheck', version: 1, exportedAt: new Date().toISOString(), data: {} };
-  AMACHECK_KEYS.forEach(k => { dump.data[k] = lzGet(k, null); });
+  const st = amacheckStateMap();
+  AMACHECK_KEYS.forEach(k => { dump.data[k] = (st[k] !== undefined ? st[k] : null); });
   const blob = new Blob([JSON.stringify(dump)], { type: 'application/json' });
   const url = URL.createObjectURL(blob);
   const a = document.createElement('a');
@@ -2097,10 +2144,15 @@ function importAllData(file){
     const keys = AMACHECK_KEYS.filter(k => data[k] !== undefined && data[k] !== null);
     if (!keys.length) { alert('復元できるデータが見つかりませんでした。'); return; }
     if (!confirm('現在のデータを、このバックアップの内容で上書きします。\n（' + keys.length + '種類のデータ）\n\nよろしいですか？この操作は元に戻せません。')) return;
-    let okAll = true;
-    keys.forEach(k => { if (!lzSet(k, data[k])) okAll = false; });
-    if (okAll) { alert('復元しました。ページを再読み込みします。'); location.reload(); }
-    else { alert('一部のデータを保存できませんでした（容量上限の可能性）。容量を空けてから再度お試しください。'); }
+    (async () => {
+      let okAll = true;
+      for (const k of keys) {
+        if (_idbReady) { const ok = await idbSet(k, data[k]); if (!ok) okAll = false; }
+        else { if (!lzSet(k, data[k])) okAll = false; }
+      }
+      if (okAll) { alert('復元しました。ページを再読み込みします。'); location.reload(); }
+      else { alert('一部のデータを保存できませんでした。空き容量をご確認のうえ再度お試しください。'); }
+    })();
   };
   reader.readAsText(file);
 }
@@ -5687,7 +5739,7 @@ function applyAdImport(){
 // ============================================
 // 広告キャンペーン管理
 // ============================================
-function saveCampaigns(){ return lzSet(STORAGE_CAMPAIGNS, adCampaigns); }
+function saveCampaigns(){ return persistKey(STORAGE_CAMPAIGNS, adCampaigns); }
 function genCampId(){ return 'c' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
 const CAMP_TYPE_LABELS = { sp: 'スポンサープロダクト広告', sb: 'スポンサーブランド広告' };
 // キャンペーンの「商品」（広告データの絞り込み単位）。未設定ならキャンペーン名から自動推定
@@ -7964,7 +8016,7 @@ window.renderGraphView = renderGraphView;
 
 window.openEditModal = openEditModal;
 
-init();
+bootstrap();
 </script>
 </body>
 </html>
