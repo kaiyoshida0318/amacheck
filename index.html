@@ -1369,6 +1369,8 @@
     cursor: pointer; white-space: nowrap; transition: background .15s, border-color .15s;
   }
   .newtab-btn:hover { background: var(--bg-secondary); border-color: #cbd5e1; }
+  .danger-ghost { display: inline-flex; align-items: center; gap: 5px; background: #fff; color: #c0392b; border: 1px solid #f0c4bd; border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
+  .danger-ghost:hover { background: #fdecea; border-color: #e2a49a; }
   .newtab-btn .nt-ico { font-size: 14px; font-weight: 700; line-height: 1; }
   .version {
     color: var(--text-secondary);
@@ -1453,7 +1455,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.33</span>
+    <span class="version">v2.34</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1677,6 +1679,7 @@
     </label>
     <div id="ad-import-preview" style="margin-top:12px;font-size:13px;color:var(--text-secondary);"></div>
     <div class="modal-actions">
+      <button id="ad-del-day" class="danger-ghost" title="この日付の広告データを削除" hidden style="margin-right:auto;"><svg class="icn"><use href="#i-trash"/></svg> この日付を削除</button>
       <button id="ad-add-cancel">キャンセル</button>
       <button class="confirm" id="ad-add-apply" disabled><svg class="icn"><use href="#i-check"/></svg> 反映する</button>
     </div>
@@ -1804,6 +1807,7 @@
     <div id="pages"></div>
     <button id="add-page"><svg class="icn"><use href="#i-plus"/></svg> ページを追加（2ページ目以降）</button>
     <div class="modal-actions">
+      <button id="ship-del-day" class="danger-ghost" title="選んだ日付の出荷数データを全商品ぶん削除" style="margin-right:auto;"><svg class="icn"><use href="#i-trash"/></svg> この日付を削除</button>
       <button id="cancel">キャンセル</button>
       <button class="confirm" id="apply"><svg class="icn"><use href="#i-check"/></svg> 反映する</button>
     </div>
@@ -2314,6 +2318,7 @@ function init(){
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('asin-modal').hidden) closeAsinModal(); });
   document.getElementById('ad-add-close').addEventListener('click', closeAdAddModal);
   document.getElementById('ad-add-cancel').addEventListener('click', closeAdAddModal);
+  document.getElementById('ad-del-day').addEventListener('click', deleteAdDay);
   document.getElementById('ad-add-apply').addEventListener('click', applyAdImport);
   document.getElementById('ad-add-modal').addEventListener('mousedown', (e) => { if (e.target.id === 'ad-add-modal') closeAdAddModal(); });
   document.getElementById('ad-file-input').addEventListener('change', handleAdFile);
@@ -2345,6 +2350,7 @@ function init(){
     if (e.key === 'Escape' && !document.getElementById('ad-add-modal').hidden) closeAdAddModal();
   });
   document.getElementById('cancel').addEventListener('click', closeModal);
+  document.getElementById('ship-del-day').addEventListener('click', deleteShipDay);
   document.getElementById('apply').addEventListener('click', applyShipment);
   document.getElementById('add-page').addEventListener('click', () => addPage());
   document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
@@ -4347,6 +4353,22 @@ function openInputForDay(day){
 }
 window.openInputForDay = openInputForDay;
 function closeModal(){ document.getElementById('modal').hidden = true; }
+function deleteShipDay(){
+  const dstr = document.getElementById('paste-date').value;
+  if (!dstr) { toast('日付を選んでください'); return; }
+  const ym = dstr.slice(0, 7), day = String(+dstr.slice(8, 10));
+  const has = shipments[ym] && Object.keys(shipments[ym]).some(f => shipments[ym][f] && shipments[ym][f][day] !== undefined);
+  if (!has) { toast(dstr.replace(/-/g, '/') + ' の出荷数データはありません'); return; }
+  if (!confirm(dstr.replace(/-/g, '/') + ' の出荷数データを全商品ぶん削除します。よろしいですか？')) return;
+  pushUndoState();
+  Object.keys(shipments[ym]).forEach(f => { if (shipments[ym][f]) delete shipments[ym][f][day]; });
+  saveShipments();
+  currentMonth = ym;
+  document.getElementById('month-select').value = ym;
+  renderShipmentTable();
+  closeModal();
+  toast(dstr.replace(/-/g, '/') + ' の出荷数データを削除しました', { label: '元に戻す', onClick: undo });
+}
 
 function addPage(){
   pageCounter++;
@@ -5547,6 +5569,8 @@ function applyAdModalChrome(){
   if (dropSub) dropSub.innerHTML = fixed ? 'キャンペーンレポート .csv' : 'キャンペーンレポート .csv　<strong style="color:#1d4ed8;">ファイル名は「26-0713」（年-月日）にしてください</strong>';
   const dropMain = document.getElementById('ad-drop-main');
   if (dropMain) dropMain.textContent = fixed ? 'CSV / ZIP をクリックまたはドラッグ&ドロップ' : 'CSV / ZIP をクリックまたはドラッグ&ドロップ（複数可）';
+  const delBtn = document.getElementById('ad-del-day');
+  if (delBtn) delBtn.hidden = !(fixed && adData[adFixedDate]);
 }
 function openAdAddModal(presetDate){
   if (presetDate) { adImportMode = 'fixed'; adFixedDate = presetDate; }
@@ -5705,6 +5729,18 @@ function renderAdImportList(){
   if (badName) h += '<div style="color:var(--danger);font-size:12px;margin-top:8px;font-weight:600;">⚠️ ' + badName + ' 件はファイル名から日付を判別できませんでした。ファイル名を「26-0713」（年-月日）の形式にリネームして入れ直してください。</div>';
   el.innerHTML = h;
   updateAdApplyState();
+}
+// 「反映する」：一覧のファイルをそれぞれの日付に確定保存（同一日付は合算ではなく後勝ち＝上書き）
+function deleteAdDay(){
+  const dstr = adFixedDate;
+  if (!dstr || !adData[dstr]) { toast('この日付のデータはありません'); return; }
+  if (!confirm(dstr.replace(/-/g, '/') + ' の広告データを削除します。よろしいですか？')) return;
+  const snapshot = JSON.parse(JSON.stringify(adData[dstr]));
+  delete adData[dstr];
+  saveAdData();
+  closeAdAddModal();
+  renderAdTable();
+  toast(dstr.replace(/-/g, '/') + ' の広告データを削除しました', { label: '元に戻す', onClick: () => { adData[dstr] = snapshot; saveAdData(); renderAdTable(); toast('削除を取り消しました'); } });
 }
 // 「反映する」：一覧のファイルをそれぞれの日付に確定保存（同一日付は合算ではなく後勝ち＝上書き）
 function applyAdImport(){
