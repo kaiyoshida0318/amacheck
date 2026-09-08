@@ -1241,8 +1241,7 @@
   .toast {
     position: fixed;
     bottom: 24px;
-    left: 50%;
-    transform: translateX(-50%);
+    right: 24px;
     background: var(--black);
     color: #fff;
     padding: 10px 18px;
@@ -1252,7 +1251,8 @@
     opacity: 0;
     transition: opacity 0.2s;
     pointer-events: none;
-    max-width: 600px;
+    max-width: min(460px, 92vw);
+    box-shadow: 0 6px 24px rgba(0,0,0,.25);
     display: flex;
     align-items: center;
     gap: 12px;
@@ -1455,7 +1455,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.34</span>
+    <span class="version">v2.35</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
