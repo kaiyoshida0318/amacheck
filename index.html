@@ -1455,13 +1455,14 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.35</span>
+    <span class="version">v2.36</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
       <button class="zoom-btn" id="zoom-in" title="文字を大きく">A+</button>
     </div>
     <button class="utility" id="open-sale" title="セール期間・対象商品を設定" style="font-size:13px;"><svg class="icn"><use href="#i-tag"/></svg> セール設定</button>
+    <button class="utility" id="open-sync" title="GitHubにデータを同期（別PCと共有）" style="font-size:13px;"><svg class="icn"><use href="#i-upload"/></svg> 同期</button>
     <button class="utility" id="data-export" title="全データをファイルに書き出してバックアップ" style="font-size:13px;"><svg class="icn"><use href="#i-file-spreadsheet"/></svg> バックアップ</button>
     <button class="utility" id="data-import" title="バックアップファイルから復元" style="font-size:13px;"><svg class="icn"><use href="#i-plus"/></svg> 復元</button>
     <input type="file" id="data-import-input" accept="application/json,.json" hidden>
@@ -1951,6 +1952,41 @@
   </div>
 </div>
 
+<div class="modal-bg" id="sync-modal" hidden>
+  <div class="modal" style="max-width:560px;">
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+      <h3 style="margin:0;"><svg class="icn" style="vertical-align:-3px;color:var(--teal);"><use href="#i-upload"/></svg> クラウド同期（GitHub）</h3>
+      <button id="sync-close" class="ghost" title="閉じる" style="margin-left:auto;padding:6px 8px;"><svg class="icn"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="sub" style="margin-bottom:12px;">GitHubのリポジトリにデータ（JSON）を保存し、別PCからも同じデータを見られる・編集できるようにします。<strong>PATはこの端末のブラウザ内にのみ保存</strong>され、GitHub以外へは送信しません。</div>
+    <div style="display:grid;grid-template-columns:120px 1fr;gap:10px 12px;align-items:center;font-size:13px;">
+      <label for="sync-owner" style="font-weight:600;">ユーザー名</label>
+      <input id="sync-owner" type="text" placeholder="kaiyoshida0318" style="padding:8px 10px;">
+      <label for="sync-repo" style="font-weight:600;">リポジトリ名</label>
+      <input id="sync-repo" type="text" placeholder="amacheck-data" style="padding:8px 10px;">
+      <label for="sync-branch" style="font-weight:600;">ブランチ</label>
+      <input id="sync-branch" type="text" placeholder="main" style="padding:8px 10px;">
+      <label for="sync-path" style="font-weight:600;">ファイル名</label>
+      <input id="sync-path" type="text" placeholder="amacheck.json" style="padding:8px 10px;">
+      <label for="sync-token" style="font-weight:600;">PAT（トークン）</label>
+      <input id="sync-token" type="password" placeholder="github_pat_..." autocomplete="off" style="padding:8px 10px;">
+    </div>
+    <label style="display:flex;align-items:center;gap:8px;margin-top:12px;font-size:13px;cursor:pointer;">
+      <input type="checkbox" id="sync-auto"> 編集したら自動でGitHubへアップロードする（推奨）
+    </label>
+    <div id="sync-status" style="margin-top:12px;font-size:12.5px;color:var(--text-secondary);min-height:18px;"></div>
+    <div class="modal-actions" style="margin-top:14px;flex-wrap:wrap;gap:8px;">
+      <button id="sync-save" style="margin-right:auto;">設定を保存</button>
+      <button id="sync-download" class="utility"><svg class="icn"><use href="#i-download"/></svg> 取得（GitHub→この端末）</button>
+      <button id="sync-upload" class="confirm"><svg class="icn"><use href="#i-upload"/></svg> アップロード（この端末→GitHub）</button>
+    </div>
+    <div style="margin-top:10px;font-size:11.5px;color:var(--text-tertiary);line-height:1.6;">
+      別PCで使うとき：同じ「ユーザー名／リポジトリ名／ブランチ／ファイル名／PAT」を入力 → 「取得」で最新を読み込み → 編集 → 「アップロード」で反映。<br>
+      ※このリポジトリはPublicのため、保存したデータは公開されます。PATは絶対に他人に渡さないでください。
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -2090,12 +2126,103 @@ function idbSet(key, val){
 function persistKey(key, obj){
   if (_idbReady) {
     idbSet(key, obj).then(ok => { if (!ok && !_lsQuotaWarned) { _lsQuotaWarned = true; alert('⚠️ データの保存に失敗しました。ブラウザの空き容量をご確認ください。'); } });
+    scheduleSync();
     return true;
   }
-  return lzSet(key, obj);
+  const r = lzSet(key, obj); scheduleSync(); return r;
 }
 function amacheckStateMap(){
   return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns };
+}
+
+// ================= GitHub クラウド同期 =================
+const SYNC_CFG_KEY = 'amacheck_sync_v1';
+let _syncBusy = false, _syncTimer = null, _syncSha = null, _syncArmed = false;
+function ghCfg(){ try { return JSON.parse(localStorage.getItem(SYNC_CFG_KEY) || '{}'); } catch (e) { return {}; } }
+function ghSaveCfg(c){ try { localStorage.setItem(SYNC_CFG_KEY, JSON.stringify(c)); } catch (e) {} }
+function ghConfigured(c){ c = c || ghCfg(); return !!(c.owner && c.repo && c.token); }
+function utf8ToB64(str){ const bytes = new TextEncoder().encode(str); let bin = ''; const CH = 0x8000; for (let i = 0; i < bytes.length; i += CH) bin += String.fromCharCode.apply(null, bytes.subarray(i, i + CH)); return btoa(bin); }
+function b64ToUtf8(b64){ const bin = atob(String(b64).replace(/\s/g, '')); const bytes = Uint8Array.from(bin, c => c.charCodeAt(0)); return new TextDecoder().decode(bytes); }
+function ghApiUrl(cfg){ return 'https://api.github.com/repos/' + cfg.owner + '/' + cfg.repo + '/contents/' + (cfg.path || 'amacheck.json'); }
+function ghHeaders(cfg){ return { 'Authorization': 'Bearer ' + cfg.token, 'Accept': 'application/vnd.github+json', 'X-GitHub-Api-Version': '2022-11-28' }; }
+async function ghMeta(cfg){
+  const r = await fetch(ghApiUrl(cfg) + '?ref=' + encodeURIComponent(cfg.branch || 'main') + '&t=' + Date.now(), { headers: ghHeaders(cfg), cache: 'no-store' });
+  if (r.status === 404) return { sha: null };
+  if (!r.ok) throw new Error('取得エラー ' + r.status + '：' + (await r.text()).slice(0, 140));
+  const j = await r.json();
+  return { sha: j.sha, download_url: j.download_url, content: j.content, encoding: j.encoding };
+}
+async function ghDownload(cfg){
+  const m = await ghMeta(cfg);
+  if (!m.sha) return { obj: null, sha: null };
+  let text;
+  if (m.content && m.encoding === 'base64') text = b64ToUtf8(m.content);
+  else { const rr = await fetch(m.download_url + (m.download_url.indexOf('?') > -1 ? '&' : '?') + 't=' + Date.now(), { cache: 'no-store' }); text = await rr.text(); }
+  return { obj: JSON.parse(text), sha: m.sha };
+}
+async function ghUpload(cfg, payloadObj, sha){
+  const body = { message: 'amacheck sync ' + new Date().toISOString(), content: utf8ToB64(JSON.stringify(payloadObj)), branch: (cfg.branch || 'main') };
+  if (sha) body.sha = sha;
+  const r = await fetch(ghApiUrl(cfg), { method: 'PUT', headers: Object.assign({ 'Content-Type': 'application/json' }, ghHeaders(cfg)), body: JSON.stringify(body) });
+  if (!r.ok) throw new Error('アップロード失敗 ' + r.status + '：' + (await r.text()).slice(0, 180));
+  const j = await r.json();
+  return j.content.sha;
+}
+function setSyncStatus(msg){ const el = document.getElementById('sync-status'); if (el) el.textContent = msg; }
+async function syncUpload(manual){
+  const cfg = ghCfg();
+  if (!ghConfigured(cfg)) { if (manual) toast('先に同期設定（ユーザー名・リポジトリ・PAT）を入力してください'); return; }
+  if (_syncBusy) return; _syncBusy = true; setSyncStatus('アップロード中…');
+  try {
+    let sha = _syncSha;
+    try { sha = (await ghMeta(cfg)).sha; } catch (e) {}
+    const payload = { app: 'amacheck', version: 1, updatedAt: Date.now(), data: amacheckStateMap() };
+    _syncSha = await ghUpload(cfg, payload, sha);
+    cfg.lastUpdatedAt = payload.updatedAt; ghSaveCfg(cfg);
+    setSyncStatus('✅ アップロード完了：' + new Date().toLocaleString());
+    if (manual) toast('GitHubにアップロードしました');
+  } catch (e) { setSyncStatus('⚠️ ' + e.message); if (manual) alert('アップロードに失敗しました。\n\n' + e.message + '\n\nユーザー名・リポジトリ名・PATの権限（Contents: Read and write）をご確認ください。'); }
+  finally { _syncBusy = false; }
+}
+async function syncDownload(){
+  const cfg = ghCfg();
+  if (!ghConfigured(cfg)) { toast('先に同期設定を入力してください'); return; }
+  setSyncStatus('取得中…');
+  try {
+    const { obj, sha } = await ghDownload(cfg);
+    if (!obj || !obj.data) { setSyncStatus('GitHubにまだデータがありません'); alert('GitHubにまだデータがありません。\nこの端末のデータで「アップロード」してから、別PCで「取得」してください。'); return; }
+    const remoteAt = obj.updatedAt || 0, localAt = cfg.lastUpdatedAt || 0;
+    if (localAt > remoteAt) { if (!confirm('この端末の方が新しい可能性があります。\nGitHubの内容で上書きすると、手元の未アップロード分は失われます。\n\nそれでも取得（上書き）しますか？')) { setSyncStatus('取得を中止しました'); return; } }
+    _syncSha = sha;
+    const keys = AMACHECK_KEYS.filter(k => obj.data[k] !== undefined && obj.data[k] !== null);
+    for (const k of keys) { if (_idbReady) await idbSet(k, obj.data[k]); else lzSet(k, obj.data[k]); }
+    cfg.lastUpdatedAt = remoteAt; ghSaveCfg(cfg);
+    alert('GitHubから取得しました。ページを再読み込みします。'); location.reload();
+  } catch (e) { setSyncStatus('⚠️ ' + e.message); alert('取得に失敗しました。\n\n' + e.message); }
+}
+function scheduleSync(){ if (!_syncArmed) return; const cfg = ghCfg(); if (!ghConfigured(cfg) || !cfg.auto) return; clearTimeout(_syncTimer); _syncTimer = setTimeout(() => syncUpload(false), 6000); }
+function openSyncModal(){
+  const cfg = ghCfg();
+  document.getElementById('sync-owner').value = cfg.owner || 'kaiyoshida0318';
+  document.getElementById('sync-repo').value = cfg.repo || 'amacheck-data';
+  document.getElementById('sync-branch').value = cfg.branch || 'main';
+  document.getElementById('sync-path').value = cfg.path || 'amacheck.json';
+  document.getElementById('sync-token').value = cfg.token || '';
+  document.getElementById('sync-auto').checked = cfg.auto !== false;
+  setSyncStatus(cfg.lastUpdatedAt ? ('前回同期：' + new Date(cfg.lastUpdatedAt).toLocaleString()) : (ghConfigured(cfg) ? '設定済み。まだ同期していません' : '未設定'));
+  document.getElementById('sync-modal').hidden = false;
+}
+function saveSyncCfgFromForm(){
+  const cfg = ghCfg();
+  cfg.owner = document.getElementById('sync-owner').value.trim();
+  cfg.repo = document.getElementById('sync-repo').value.trim();
+  cfg.branch = document.getElementById('sync-branch').value.trim() || 'main';
+  cfg.path = document.getElementById('sync-path').value.trim() || 'amacheck.json';
+  cfg.token = document.getElementById('sync-token').value.trim();
+  cfg.auto = document.getElementById('sync-auto').checked;
+  ghSaveCfg(cfg);
+  setSyncStatus(ghConfigured(cfg) ? '設定を保存しました。「アップロード」または「取得」を実行できます' : 'ユーザー名・リポジトリ・PATを入力してください');
+  toast('同期設定を保存しました');
 }
 // 起動：IDBを開き、（初回は）localStorageから移行してから各データを読み込み、init()する
 async function bootstrap(){
@@ -2120,6 +2247,7 @@ async function bootstrap(){
   returnsData = await load(STORAGE_RETURNS, {});
   categories = await load(STORAGE_CAT, {});
   init();
+  _syncArmed = true; // 初回ロード後に自動同期を有効化（起動時の無駄アップロードを防止）
 }
 
 // 全データのエクスポート（読める素のJSONで書き出し）
@@ -2231,6 +2359,12 @@ function init(){
   window.addEventListener('resize', adjustHiddenTableHeight);
   // セール設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
+  document.getElementById('open-sync').addEventListener('click', openSyncModal);
+  document.getElementById('sync-close').addEventListener('click', () => { document.getElementById('sync-modal').hidden = true; });
+  document.getElementById('sync-save').addEventListener('click', saveSyncCfgFromForm);
+  document.getElementById('sync-upload').addEventListener('click', () => { saveSyncCfgFromForm(); syncUpload(true); });
+  document.getElementById('sync-download').addEventListener('click', () => { saveSyncCfgFromForm(); syncDownload(); });
+  document.getElementById('sync-modal').addEventListener('click', (e) => { if (e.target.id === 'sync-modal') e.currentTarget.hidden = true; });
   document.getElementById('open-newtab').addEventListener('click', () => {
     const base = location.href.split('#')[0];
     window.open(base + '#view=master', '_blank');
