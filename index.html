@@ -1455,7 +1455,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.36</span>
+    <span class="version">v2.38</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1799,18 +1799,17 @@
 <div class="modal-bg" id="modal" hidden>
   <div class="modal">
     <h3>出荷数入力</h3>
-    <div class="sub">セラーセントラルの注文管理画面をCtrl+A → Ctrl+Cでコピーし、下の枠に貼り付け。<strong>ASINごとに「数量：」の後の数字を合計</strong>します。複数ページにわたる場合はページを追加してください。<strong>反映するとその日のデータは新しい合計値で上書き</strong>されます。</div>
-    <div class="pl-slot-link" style="margin-top:8px;">取得先：<a class="ret-report-link" href="https://sellercentral-japan.amazon.com/orders-v3?page=1&date-range=" target="_blank" rel="noopener" title="https://sellercentral-japan.amazon.com/orders-v3?page=1&date-range="><span class="url">https://sellercentral-japan.amazon.com/orders-v3?page=1&date-range=</span><span class="ext">↗</span></a></div>
-    <div class="row">
-      <label for="paste-date">日付</label>
-      <input type="date" id="paste-date">
-    </div>
-    <div id="pages"></div>
-    <button id="add-page"><svg class="icn"><use href="#i-plus"/></svg> ページを追加（2ページ目以降）</button>
+    <div class="sub">出荷数データのCSVファイル（列：日付・ASIN・SKU・商品名・注文数量）をドロップ、またはクリックで選択してください。<strong>日付は各ファイルの「日付」列から自動でひも付け</strong>します。<strong>複数ファイル・ZIPにも対応</strong>。反映すると、対象の日付は新しい値で上書きされます。</div>
+    <label class="upload-zone pl-drop-all" id="ship-drop" style="margin-top:12px;">
+      <svg class="icn" style="font-size:22px;"><use href="#i-file-spreadsheet"/></svg>
+      <div class="main">CSV / ZIP をクリックまたはドラッグ&ドロップ（複数可）</div>
+      <div class="sub">出荷数データ .csv（SKUで商品を照合し、注文数量を出荷数に反映）</div>
+      <input type="file" id="ship-file-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple>
+    </label>
+    <div id="ship-imp-list" style="margin-top:12px;"></div>
     <div class="modal-actions">
-      <button id="ship-del-day" class="danger-ghost" title="選んだ日付の出荷数データを全商品ぶん削除" style="margin-right:auto;"><svg class="icn"><use href="#i-trash"/></svg> この日付を削除</button>
       <button id="cancel">キャンセル</button>
-      <button class="confirm" id="apply"><svg class="icn"><use href="#i-check"/></svg> 反映する</button>
+      <button class="confirm" id="apply" disabled><svg class="icn"><use href="#i-check"/></svg> 反映する</button>
     </div>
   </div>
 </div>
@@ -2336,8 +2335,6 @@ function init(){
     });
   });
 
-  document.getElementById('paste-date').value = todayStr();
-
   document.getElementById('open-add').addEventListener('click', () => switchView('add'));
   document.getElementById('logo-home').addEventListener('click', (e) => {
     // Ctrl/⌘+クリックで新規タブにもう1ページ（商品マスタ画面で起動）
@@ -2484,9 +2481,15 @@ function init(){
     if (e.key === 'Escape' && !document.getElementById('ad-add-modal').hidden) closeAdAddModal();
   });
   document.getElementById('cancel').addEventListener('click', closeModal);
-  document.getElementById('ship-del-day').addEventListener('click', deleteShipDay);
-  document.getElementById('apply').addEventListener('click', applyShipment);
-  document.getElementById('add-page').addEventListener('click', () => addPage());
+  document.getElementById('apply').addEventListener('click', applyShipImport);
+  {
+    const inp = document.getElementById('ship-file-input');
+    inp.addEventListener('change', (e) => { processShipFiles(e.target.files); e.target.value = ''; });
+    const z = document.getElementById('ship-drop');
+    ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('dragover'); }));
+    z.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) processShipFiles(e.dataTransfer.files); });
+  }
   document.getElementById('modal').addEventListener('click', (e) => { if (e.target.id === 'modal') closeModal(); });
 
   document.getElementById('file-input').addEventListener('change', handleFile);
@@ -3298,7 +3301,7 @@ function renderDailyTable(){
   // セール期間バンド（日付ヘッダーの上）
   if (hasSale) {
     html += '<tr class="sale-row">';
-    html += '<th colspan="3" class="sale-corner"></th>';
+    html += '<th colspan="4" class="sale-corner"></th>';
     let d = 1;
     while (d <= days) {
       if (saleInfo[d]) {
@@ -3318,7 +3321,7 @@ function renderDailyTable(){
     html += '</tr>';
   }
   html += '<tr class="cols-row">';
-  html += '<th>FNSKU</th><th>画像</th><th>商品名</th>';
+  html += '<th>ASIN</th><th>FNSKU</th><th>画像</th><th>商品名</th>';
   for (let d = 1; d <= days; d++) {
     const saleCls = saleInfo[d] ? ' sale-day' : '';
     html += '<th class="day day-clickable' + saleCls + '" data-day="' + d + '" title="クリックで' + d + '日の出荷数を入力" onclick="openInputForDay(' + d + ')">' + d + '</th>';
@@ -3341,6 +3344,7 @@ function renderDailyTable(){
     }
     let total = 0;
     html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '" data-row="' + idx + '">';
+    html += '<td class="asin">' + escapeHtml(p.asin || '-') + '</td>';
     html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
     html += '<td class="img">' + productImageHtml(p, 52) + '</td>';
     html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
@@ -3473,7 +3477,7 @@ function renderMonthlyTable(){
   const currentMm = now.getFullYear() === parseInt(year) ? (now.getMonth() + 1) : -1;
 
   let html = '<div class="table-wrap"><table class="ship"><thead><tr>';
-  html += '<th>FNSKU</th><th>画像</th><th>商品名</th>';
+  html += '<th>ASIN</th><th>FNSKU</th><th>画像</th><th>商品名</th>';
   for (let m = 1; m <= 12; m++) {
     const isCur = m === currentMm;
     html += '<th class="month' + (isCur ? ' current' : '') + '">' + m + '月</th>';
@@ -3503,6 +3507,7 @@ function renderMonthlyTable(){
       sorted.slice(-3).forEach(o => mLo.add(o.m));
     }
     html += '<tr>';
+    html += '<td class="asin">' + escapeHtml(p.asin || '-') + '</td>';
     html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
     html += '<td class="img">' + productImageHtml(p, 52) + '</td>';
     html += '<td class="name" title="' + escapeHtml(p.name) + '">' + escapeHtml(p.name) + '</td>';
@@ -4473,35 +4478,142 @@ function closeFillOptionsPopup(){
 // ============================================
 // 出荷数貼付モーダル
 // ============================================
-function openModal(presetDate){
+let pendingShipImports = []; // [{id, fileName, byDate:{ymd:{fnsku:qty}}, dates:[], totalQty, matched, unmatched:[], error}]
+let shipImportSeq = 0;
+function openModal(){
   if (!products.length) { toast('先に商品情報を登録してください'); return; }
-  document.getElementById('paste-date').value = presetDate || todayStr();
-  document.getElementById('pages').innerHTML = '';
-  addPage();
+  pendingShipImports = [];
+  renderShipImportList();
   document.getElementById('modal').hidden = false;
 }
-// ヘッダーの日付クリックから、その日付で出荷数入力を開く
-function openInputForDay(day){
-  const dateStr = currentMonth + '-' + String(day).padStart(2, '0');
-  openModal(dateStr);
-}
+// ヘッダーの日付クリックからも同じ取込モーダルを開く（日付は各ファイルの「日付」列から判定）
+function openInputForDay(day){ openModal(); }
 window.openInputForDay = openInputForDay;
 function closeModal(){ document.getElementById('modal').hidden = true; }
-function deleteShipDay(){
-  const dstr = document.getElementById('paste-date').value;
-  if (!dstr) { toast('日付を選んでください'); return; }
-  const ym = dstr.slice(0, 7), day = String(+dstr.slice(8, 10));
-  const has = shipments[ym] && Object.keys(shipments[ym]).some(f => shipments[ym][f] && shipments[ym][f][day] !== undefined);
-  if (!has) { toast(dstr.replace(/-/g, '/') + ' の出荷数データはありません'); return; }
-  if (!confirm(dstr.replace(/-/g, '/') + ' の出荷数データを全商品ぶん削除します。よろしいですか？')) return;
-  pushUndoState();
-  Object.keys(shipments[ym]).forEach(f => { if (shipments[ym][f]) delete shipments[ym][f][day]; });
-  saveShipments();
-  currentMonth = ym;
-  document.getElementById('month-select').value = ym;
-  renderShipmentTable();
-  closeModal();
-  toast(dstr.replace(/-/g, '/') + ' の出荷数データを削除しました', { label: '元に戻す', onClick: undo });
+
+// 出荷数CSVを解析：列＝日付/ASIN/SKU/商品名/注文数量（注文件数）。SKU→FNSKU（無ければASIN）で照合
+function parseShipCsv(text){
+  let rows;
+  try { rows = Papa.parse(text.trim(), { skipEmptyLines: true }).data; } catch (e) { return { ok: false, msg: 'CSV解析に失敗しました' }; }
+  if (!rows || rows.length < 2) return { ok: false, msg: '中身が空です' };
+  const head = rows[0].map(c => String(c).trim());
+  const col = (names) => head.findIndex(h => names.some(n => h === n || h.indexOf(n) > -1));
+  const iDate = col(['日付']), iAsin = col(['ASIN']), iSku = col(['SKU', '出品者SKU']), iQty = col(['注文数量', '数量', '販売数量']);
+  if (iDate < 0 || iQty < 0 || (iSku < 0 && iAsin < 0)) return { ok: false, msg: '想定の列（日付／SKU・ASIN／注文数量）が見つかりません' };
+  const skuMap = new Map(), asinMap = new Map();
+  products.forEach(p => { if (p.sku) skuMap.set(String(p.sku).trim().toUpperCase(), p.fnsku); if (p.asin) asinMap.set(String(p.asin).trim().toUpperCase(), p.fnsku); });
+  const byDate = {}; let totalQty = 0, matched = 0; const unmatched = [];
+  const num = (v) => { const n = parseInt(String(v).replace(/[^0-9\-]/g, ''), 10); return isNaN(n) ? 0 : n; };
+  for (let r = 1; r < rows.length; r++) {
+    const row = rows[r]; if (!row || !row.length) continue;
+    const dRaw = String(row[iDate] || '').trim();
+    const dm = dRaw.match(/(\d{4})\D(\d{1,2})\D(\d{1,2})/);
+    if (!dm) continue;
+    const ymd = dm[1] + '-' + String(+dm[2]).padStart(2, '0') + '-' + String(+dm[3]).padStart(2, '0');
+    const qty = num(row[iQty]);
+    const sku = iSku >= 0 ? String(row[iSku] || '').trim().toUpperCase() : '';
+    const asin = iAsin >= 0 ? String(row[iAsin] || '').trim().toUpperCase() : '';
+    let fnsku = (sku && skuMap.get(sku)) || (asin && asinMap.get(asin)) || null;
+    if (!fnsku) { unmatched.push(sku || asin || '(不明)'); continue; }
+    if (!byDate[ymd]) byDate[ymd] = {};
+    byDate[ymd][fnsku] = (byDate[ymd][fnsku] || 0) + qty;
+    totalQty += qty; matched++;
+  }
+  const dates = Object.keys(byDate).sort();
+  if (!dates.length) return { ok: false, msg: '有効な行がありません（日付・数量・SKU/ASINをご確認ください）' };
+  return { ok: true, byDate, dates, totalQty, matched, unmatched };
+}
+
+async function processShipFiles(files){
+  const list = Array.from(files || []);
+  if (!list.length) return;
+  const units = [];
+  for (const f of list) {
+    try {
+      const buf = await readFileBytes(f);
+      if (/\.zip$/i.test(f.name)) {
+        const entries = await unzipCsvEntries(buf);
+        if (!entries.length) pendingShipImports.push({ id: ++shipImportSeq, fileName: f.name, error: 'ZIP内にCSVなし' });
+        entries.forEach(en => units.push({ name: en.name, bytes: en.bytes }));
+      } else units.push({ name: f.name, bytes: buf });
+    } catch (err) { pendingShipImports.push({ id: ++shipImportSeq, fileName: f.name, error: 'ZIP展開エラー' }); }
+  }
+  units.forEach(u => {
+    const text = decodeAdBytes(u.bytes);
+    if (text == null) { pendingShipImports.push({ id: ++shipImportSeq, fileName: u.name, error: '文字コード判別不可' }); return; }
+    const r = parseShipCsv(text);
+    if (!r.ok) pendingShipImports.push({ id: ++shipImportSeq, fileName: u.name, error: r.msg });
+    else pendingShipImports.push({ id: ++shipImportSeq, fileName: u.name, byDate: r.byDate, dates: r.dates, totalQty: r.totalQty, matched: r.matched, unmatched: r.unmatched, error: '' });
+  });
+  renderShipImportList();
+}
+
+function renderShipImportList(){
+  const box = document.getElementById('ship-imp-list');
+  const apply = document.getElementById('apply');
+  if (!pendingShipImports.length) { box.innerHTML = ''; apply.disabled = true; return; }
+  let h = '<div style="font-size:13px;font-weight:600;margin-bottom:6px;">読み込んだファイル（' + pendingShipImports.length + '）</div>';
+  pendingShipImports.forEach(e => {
+    h += '<div style="display:flex;align-items:center;gap:10px;padding:8px 10px;border:1px solid var(--border);border-radius:8px;margin-bottom:6px;flex-wrap:wrap;">';
+    h += '<span style="font-weight:600;font-size:13px;flex:1;min-width:140px;word-break:break-all;">' + escapeHtml(e.fileName) + '</span>';
+    if (e.error) {
+      h += '<span style="color:var(--danger);font-size:12px;">取込不可：' + escapeHtml(e.error) + '</span>';
+    } else {
+      const dlabel = e.dates.length === 1 ? e.dates[0].replace(/-/g, '/') : (e.dates[0].replace(/-/g, '/') + '〜' + e.dates[e.dates.length - 1].replace(/-/g, '/') + '（' + e.dates.length + '日）');
+      h += '<span style="font-size:13px;font-weight:600;white-space:nowrap;">📅 ' + dlabel + '</span>';
+      h += '<span style="color:var(--success);font-size:12px;white-space:nowrap;">' + e.matched + '商品 / 合計 ' + e.totalQty.toLocaleString() + '個</span>';
+      if (e.unmatched && e.unmatched.length) h += '<span style="color:var(--amber);font-size:12px;white-space:nowrap;">未照合 ' + e.unmatched.length + '件</span>';
+    }
+    h += '<button onclick="removeShipImport(' + e.id + ')" class="ghost" title="一覧から外す" style="padding:2px 6px;"><svg class="icn"><use href="#i-x"/></svg></button>';
+    h += '</div>';
+  });
+  const un = pendingShipImports.filter(e => !e.error && e.unmatched && e.unmatched.length).reduce((a, e) => a + e.unmatched.length, 0);
+  if (un) h += '<div style="color:var(--amber);font-size:12px;margin-top:2px;">※ 未照合＝商品マスタのSKU/ASINと一致しなかった行です（その行は取り込まれません）。商品マスタの「出品者SKU」をご確認ください。</div>';
+  box.innerHTML = h;
+  apply.disabled = !pendingShipImports.some(e => !e.error && e.matched > 0);
+}
+window.removeShipImport = function(id){ pendingShipImports = pendingShipImports.filter(e => e.id !== id); renderShipImportList(); };
+
+function applyShipImport(){
+  const valid = pendingShipImports.filter(e => !e.error && e.byDate);
+  if (!valid.length) { toast('取り込めるファイルがありません'); return; }
+  const applyBtn = document.getElementById('apply');
+  const applyOrig = applyBtn.innerHTML;
+  applyBtn.disabled = true; applyBtn.classList.add('is-loading');
+  applyBtn.innerHTML = '<span class="btn-spin"></span> 反映中…';
+  setTimeout(() => {
+    try {
+      pushUndoState();
+      const allDates = new Set();
+      valid.forEach(e => e.dates.forEach(d => allDates.add(d)));
+      // 対象日を一旦クリア（その日の全商品）→ ファイルの値をセット（＝上書き）
+      allDates.forEach(ymd => {
+        const ym = ymd.slice(0, 7), day = String(+ymd.slice(8, 10));
+        if (shipments[ym]) Object.keys(shipments[ym]).forEach(f => { if (shipments[ym][f]) delete shipments[ym][f][day]; });
+      });
+      let totalQty = 0, totalRows = 0; let lastYm = null;
+      valid.forEach(e => {
+        Object.keys(e.byDate).forEach(ymd => {
+          const ym = ymd.slice(0, 7), day = String(+ymd.slice(8, 10));
+          lastYm = ym;
+          if (!shipments[ym]) shipments[ym] = {};
+          Object.keys(e.byDate[ymd]).forEach(fnsku => {
+            if (!shipments[ym][fnsku]) shipments[ym][fnsku] = {};
+            shipments[ym][fnsku][day] = e.byDate[ymd][fnsku];
+            totalQty += e.byDate[ymd][fnsku]; totalRows++;
+          });
+        });
+      });
+      const saved = saveShipments();
+      if (lastYm) { currentMonth = lastYm; document.getElementById('month-select').value = lastYm; }
+      renderShipmentTable();
+      closeModal();
+      const msg = valid.length + 'ファイル / ' + allDates.size + '日分 / 合計 ' + totalQty.toLocaleString() + '個 を反映';
+      toast(saved ? msg : ('⚠️ ' + msg + '（保存できませんでした）'), { label: '元に戻す', onClick: undo });
+    } finally {
+      applyBtn.disabled = false; applyBtn.classList.remove('is-loading'); applyBtn.innerHTML = applyOrig;
+    }
+  }, 30);
 }
 
 function addPage(){
