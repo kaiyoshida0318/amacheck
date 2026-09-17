@@ -1373,6 +1373,9 @@
   .danger-ghost:hover { background: #fdecea; border-color: #e2a49a; }
   /* 3つの取込ボタンは「＋レポート追加」に集約したため非表示 */
   .report-add-btn:hover { background: #b91c1c !important; border-color: #b91c1c !important; }
+  .imp-badge { display: inline-flex; align-items: center; gap: 4px; margin-left: 8px; font-size: 11.5px; font-weight: 600; padding: 3px 9px; border-radius: 999px; white-space: nowrap; }
+  .imp-badge.on { background: #ecfdf5; color: #047857; border: 1px solid #6ee7b7; }
+  .imp-badge.off { background: #fef2f2; color: #b91c1c; border: 1px solid #fecaca; }
   .rpt-sec-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; margin: 16px 0 10px; }
   .rpt-pill { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
   .rpt-pill-cal { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
@@ -1482,7 +1485,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.44</span>
+    <span class="version">v2.46</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1597,7 +1600,7 @@
         <span class="lg-shlo">少ない 下位5</span>
       </span>
       <div class="spacer"></div>
-      <button class="primary report-add-btn" id="open-input" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> レポート追加</button>
+      <button class="primary report-add-btn" id="open-input" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 出荷数データを追加</button><span class="imp-badge" id="imp-badge-ship"></span>
       <button class="utility toggle-header-btn" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div id="shipment-body"></div>
@@ -1634,7 +1637,7 @@
         <button class="utility" id="open-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button>
       </span>
       <div class="spacer"></div>
-      <button class="primary report-add-btn" id="open-ad-add" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> レポート追加</button>
+      <button class="primary report-add-btn" id="open-ad-add" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 広告データを追加</button><span class="imp-badge" id="imp-badge-ad"></span>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
       <button class="utility toggle-header-btn" id="toggle-header-ad" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
@@ -2050,6 +2053,13 @@
           <div class="me-card" data-me="B"><div class="h"><span class="me-badge">B</span> 広告費・広告売上</div><div class="d">広告レポート（月合計）。SP/SB内訳・ROASも自動集計。</div><div class="me-status off">未取込</div></div>
           <div class="me-card" data-me="C"><div class="h"><span class="me-badge">C</span> 保管費</div><div class="d">月次保管料レポート。※翌月13日頃以降に取得可能。</div><div class="me-status off">未取込</div></div>
           <div class="me-card" data-me="D"><div class="h"><span class="me-badge">D</span> 総売上</div><div class="d">売上ダッシュボード。総売上を反映。</div><div class="me-status off">未取込</div></div>
+        </div>
+      </div>
+      <div id="report-ret-section" hidden>
+        <hr style="border:none;border-top:1px dashed #cbd5e1;margin:18px 0;">
+        <div class="rpt-sec-title"><span class="rpt-pill" style="background:#fee2e2;color:#b91c1c;border:1px solid #fca5a5;">返品データ</span> 返品レポート</div>
+        <div class="me-grid" style="grid-template-columns:1fr;">
+          <div class="me-card" id="report-ret-card"><div class="h"><span class="me-badge" style="background:#dc2626;">返</span> 返品データ（FBA返品レポート）</div><div class="d">返品日からFNSKU・月へ自動振り分け。返品率は「欠陥品・不良品」を使用（他の状態も保存）。同じ月は上書き。</div><div class="me-status off">未取込</div></div>
         </div>
       </div>
       <div id="report-unknown" style="margin-top:10px;font-size:12px;color:var(--danger);"></div>
@@ -2657,6 +2667,7 @@ function init(){
 }
 
 function switchView(name, fromPop){
+  try { setTimeout(updateImportBadges, 0); } catch (e) {}
   // home はマスタにリダイレクト
   if (name === 'home') name = 'master';
   document.getElementById('add-view').hidden = (name !== 'add');
@@ -4672,7 +4683,8 @@ const REPORT_FILE_TYPES = [
   { badge: 'A', pattern: 'トランザクション レポート .csv', label: '月末：FBA手数料・販売手数料・出荷数', key: 'なし（対象月に合算）', dest: '全体収支（FBA手数料・販売手数料）', url: 'https://sellercentral-japan.amazon.com/payments/reports-repository' },
   { badge: 'B', pattern: '広告レポート（月合計）.csv', label: '月末：広告費・広告売上', key: 'なし（対象月に合算）', dest: '全体収支（広告費・広告売上・ROAS）', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
   { badge: 'C', pattern: '月次保管料レポート .csv', label: '月末：保管費', key: 'なし（対象月に合算）', dest: '全体収支（保管費）', url: 'https://sellercentral-japan.amazon.com/reportcentral/STORAGE_FEE_CHARGES/1' },
-  { badge: 'D', pattern: '売上ダッシュボード .csv', label: '月末：総売上', key: 'なし（対象月に合算）', dest: '全体収支（総売上）', url: 'https://sellercentral-japan.amazon.com/gp/site-metrics/report.html' }
+  { badge: 'D', pattern: '売上ダッシュボード .csv', label: '月末：総売上', key: 'なし（対象月に合算）', dest: '全体収支（総売上）', url: 'https://sellercentral-japan.amazon.com/gp/site-metrics/report.html' },
+  { badge: '返', pattern: '167067020635.csv（数字でOK）', label: '返品データ（FBA返品レポート）', key: 'FNSKU（＋返品日で月へ）', dest: '返品率（欠陥品・不良品を使用）', url: 'https://sellercentral-japan.amazon.com/reportcentral/CUSTOMER_CONCESSIONS/1' }
 ];
 const REPORT_FILE_TIP = '①②（広告データ・出荷数データ）を同じ日付でそろえて入れると、その日が対で取り込まれます。片方だけの日は取り込み時に確認が出ます（チェックを入れれば取込可）。ファイル名に「広告データ」「出荷数データ」を入れると確実に振り分けられます。';
 function buildReportFileTypePanel(){
@@ -4695,13 +4707,14 @@ function buildReportFileTypePanel(){
     + '</div></div></div>';
 }
 let _rpt = null;
-function rptReset(){ _rpt = { ship: [], ad: [], month: { A: null, B: null, C: null, D: null }, unknown: [], errors: [], meMonth: null, allowPartial: false }; }
+function rptReset(){ _rpt = { ship: [], ad: [], month: { A: null, B: null, C: null, D: null }, ret: null, unknown: [], errors: [], meMonth: null, allowPartial: false }; }
 function openReportModal(){
   if (!products.length) { toast('先に商品情報を登録してください'); return; }
   rptReset();
   document.getElementById('report-filetypes').innerHTML = buildReportFileTypePanel();
   document.getElementById('report-cal-section').hidden = true;
   document.getElementById('report-me-section').hidden = true;
+  document.getElementById('report-ret-section').hidden = true;
   document.getElementById('report-calendar').innerHTML = '';
   document.getElementById('report-notice').innerHTML = '';
   document.getElementById('report-file-input').value = '';
@@ -4715,6 +4728,24 @@ function openReportModal(){
   document.getElementById('report-modal').hidden = false;
 }
 function closeReportModal(){ document.getElementById('report-modal').hidden = true; }
+// 各ページの取込状況バッジ（最終取込月／未取込）
+function latestMonthKey(obj, mapFn){
+  const ms = Object.keys(obj || {}).filter(k => { const v = obj[k]; return v && (mapFn ? mapFn(v) : Object.keys(v).length); });
+  if (!ms.length) return null; ms.sort(); return ms[ms.length - 1];
+}
+function setImpBadge(id, ym){
+  const el = document.getElementById(id); if (!el) return;
+  if (ym) { el.className = 'imp-badge on'; el.textContent = '最終取込 ' + ym.replace('-', '/'); }
+  else { el.className = 'imp-badge off'; el.textContent = '未取込'; }
+}
+function updateImportBadges(){
+  setImpBadge('imp-badge-ship', latestMonthKey(shipments));
+  // 広告は日別データの最新月
+  const adYms = Object.keys(adData || {}).map(d => d.slice(0, 7));
+  setImpBadge('imp-badge-ad', adYms.length ? adYms.sort()[adYms.length - 1] : null);
+  setImpBadge('imp-badge-pl', latestMonthKey(plData, v => v && (v.sales != null || v.adCost != null || v.storage != null || v.fbaFee != null)));
+  setImpBadge('imp-badge-ret', latestMonthKey(returnsData));
+}
 function rptFillMonthSelect(){
   const sel = document.getElementById('report-me-month'); if (!sel) return;
   const list = plImpMonthsList();
@@ -4751,6 +4782,16 @@ async function rptStage(files){
       else _rpt.errors.push(fname + '：' + sr.msg);
       return;
     }
+    // 返品レポート（返品日＋FNSKU列）を内容で判別（ファイル名が数字でもOK・Shift-JIS対応）
+    if (/返品日|return-date/.test(text) && /FNSKU/i.test(text)) {
+      const rr = parseReturnCsv(text);
+      if (rr.ok) {
+        if (!_rpt.ret) _rpt.ret = { agg: {}, count: 0, months: [] };
+        for (const ym in rr.agg) { if (!_rpt.ret.agg[ym]) _rpt.ret.agg[ym] = {}; for (const fn in rr.agg[ym]) { if (!_rpt.ret.agg[ym][fn]) _rpt.ret.agg[ym][fn] = {}; for (const dp in rr.agg[ym][fn]) _rpt.ret.agg[ym][fn][dp] = (_rpt.ret.agg[ym][fn][dp] || 0) + rr.agg[ym][fn][dp]; } }
+        _rpt.ret.count += rr.count; _rpt.ret.months = Object.keys(_rpt.ret.agg).sort();
+        return;
+      }
+    }
     // ② 内容で判別（月末データ／従来の日別広告26-0713／出荷）
     const t = detectPlType(text);
     const dailyDate = detectDateFromName(fname);
@@ -4784,8 +4825,15 @@ function rptRender(){
   // セクション表示は該当データが入った時だけ
   const hasCal = _rpt.ad.length || _rpt.ship.length;
   const hasMe = _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D;
+  const hasRet = _rpt.ret && _rpt.ret.count > 0;
   document.getElementById('report-cal-section').hidden = !hasCal;
   document.getElementById('report-me-section').hidden = !hasMe;
+  document.getElementById('report-ret-section').hidden = !hasRet;
+  {
+    const rc = document.getElementById('report-ret-card'); const st = rc.querySelector('.me-status');
+    if (hasRet) { rc.classList.add('hit'); st.className = 'me-status on'; let defc = 0; for (const ym in _rpt.ret.agg) for (const fn in _rpt.ret.agg[ym]) defc += Number(_rpt.ret.agg[ym][fn][RET_DISP]) || 0; st.textContent = '✓ 返品 ' + _rpt.ret.count + '件（欠陥品・不良品 ' + defc + '点／対象月 ' + _rpt.ret.months.map(m=>m.replace('-','/')).join('・') + '）'; }
+    else { rc.classList.remove('hit'); st.className = 'me-status off'; st.textContent = '未取込'; }
+  }
   // 月末データのハイライト
   const M = _rpt.month;
   const setSlot = (key, hit, label) => {
@@ -4853,7 +4901,7 @@ function rptMismatchExists(){
   return false;
 }
 function rptUpdateApply(){
-  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D;
+  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D || (_rpt.ret && _rpt.ret.count);
   const blocked = rptMismatchExists() && !_rpt.allowPartial;
   document.getElementById('report-apply').disabled = !anyData || blocked;
   const bits = [];
@@ -4861,10 +4909,11 @@ function rptUpdateApply(){
   if (_rpt.ship.length) { const sd = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => sd.add(d))); bits.push('出荷' + sd.size + '日'); }
   const meN = ['A', 'B', 'C', 'D'].filter(k => _rpt.month[k]).length;
   if (meN) bits.push('月末' + meN + '種');
+  if (_rpt.ret && _rpt.ret.count) bits.push('返品' + _rpt.ret.count + '件');
   document.getElementById('report-status').textContent = bits.length ? (bits.join(' / ') + (blocked ? '　⚠️ 対の欠けを確認してください' : '')) : '';
 }
 function applyReportAll(){
-  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D;
+  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D || (_rpt.ret && _rpt.ret.count);
   if (!anyData) { toast('取り込めるデータがありません'); return; }
   if (rptMismatchExists() && !_rpt.allowPartial) { toast('対になっていない日があります。チェックを入れると取り込めます'); return; }
   const btn = document.getElementById('report-apply'); const orig = btn.innerHTML;
@@ -4898,15 +4947,20 @@ function applyReportAll(){
         }
         lastYm = ym;
       }
+      // 返品データ（月単位で上書き）
+      if (_rpt.ret && _rpt.ret.count) { for (const ym in _rpt.ret.agg) { returnsData[ym] = _rpt.ret.agg[ym]; lastYm = lastYm || ym; } saveReturns(); }
       _graphMetricCache = {};
       const okS = saveShipments(); saveAdData(); savePlData();
       if (lastYm) { currentMonth = lastYm; const msel = document.getElementById('month-select'); if (msel) msel.value = lastYm; }
       renderShipmentTable(); renderPlView();
+      try { updateImportBadges(); } catch (e) {}
       closeReportModal();
       const parts = [];
       if (_rpt.ad.length) parts.push('広告' + _rpt.ad.length + '日');
       if (shipDatesAll.size) parts.push('出荷' + shipDatesAll.size + '日');
       const meN = ['A', 'B', 'C', 'D'].filter(k => _rpt.month[k]).length; if (meN) parts.push('月末' + meN + '種');
+      if (_rpt.ret && _rpt.ret.count) parts.push('返品' + _rpt.ret.count + '件');
+      try { if (typeof renderReturnsView === 'function') renderReturnsView(); } catch (e) {}
       toast(parts.join(' / ') + ' を反映しました', { label: '元に戻す', onClick: () => { undo(); if (plUndoSnapshot) plUndoApply(); } });
     } finally {
       btn.disabled = false; btn.classList.remove('is-loading'); btn.innerHTML = orig;
@@ -7748,7 +7802,7 @@ function renderPlView(){
     + '<span class="lg-mid">中間</span><span class="lg-lo20">下位20%</span><span class="lg-lo10">下位10%</span></span>';
   h += '<div class="spacer" style="flex:1"></div>';
   if (plUndoSnapshot) h += '<button id="pl-undo" class="ghost" style="font-size:12px;margin-right:8px;" title="直前に反映したデータを取り消して元に戻します"><svg class="icn"><use href="#i-arrow-left"/></svg> 直前の反映を取り消す</button>';
-  h += '<button class="primary report-add-btn" id="pl-add-month" style="font-size:12px;background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> レポート追加</button>';
+  h += '<button class="primary report-add-btn" id="pl-add-month" style="font-size:12px;background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 月末データを追加</button><span class="imp-badge" id="imp-badge-pl"></span>';
   h += '</div>';
 
   // 1パス目：行データを集める（総売上＝実売上。未入力はnull＝粗利益・実質利益もnull）
@@ -7883,6 +7937,7 @@ function renderPlView(){
     td.addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); plActivateEdit(td); } });
   });
   const bAddMonth = body.querySelector('#pl-add-month'); if (bAddMonth) bAddMonth.addEventListener('click', () => openReportModal());
+  try { updateImportBadges(); } catch (e) {}
   const bUndo = body.querySelector('#pl-undo'); if (bUndo) bUndo.addEventListener('click', plUndoApply);
   body.querySelectorAll('.pl-period').forEach(td => {
     td.addEventListener('click', () => openPlImport(td.dataset.ym));
@@ -8167,7 +8222,7 @@ function renderReturnsView(){
   h += '<div class="spacer" style="flex:1"></div>';
   h += '<span style="font-size:11px;color:var(--text-tertiary);margin-right:8px;">返品率＝返品÷出荷／対象「欠陥品・不良品」</span>';
   h += '<button class="utility" id="ret-cat-open" style="font-size:12px;"><svg class="icn"><use href="#i-tag"/></svg> カテゴリ設定</button>';
-  h += '<button class="primary" id="ret-add-open"><svg class="icn"><use href="#i-plus"/></svg> 返品データ追加</button>';
+  h += '<button class="primary report-add-btn" id="ret-add-open" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 返品データを追加</button><span class="imp-badge" id="imp-badge-ret"></span>';
   h += '</div>';
 
   h += '<div id="ret-table-area"></div>';
@@ -8179,7 +8234,8 @@ function renderReturnsView(){
   body.querySelectorAll('#ret-view button').forEach(b => b.addEventListener('click', () => { retView = b.dataset.v; if (retView === 'category') retCatFilter = null; retSearch = ''; renderReturnsView(); }));
   body.querySelectorAll('#ret-group button').forEach(b => b.addEventListener('click', () => { retGroupBy = b.dataset.g; renderReturnsView(); }));
   const clr = body.querySelector('#ret-clearfilter'); if (clr) clr.addEventListener('click', () => { retCatFilter = null; renderReturnsView(); });
-  const addBtn = body.querySelector('#ret-add-open'); if (addBtn) addBtn.addEventListener('click', () => openRetAddModal());
+  const addBtn = body.querySelector('#ret-add-open'); if (addBtn) addBtn.addEventListener('click', () => openReportModal());
+  try { updateImportBadges(); } catch (e) {}
   const catBtn = body.querySelector('#ret-cat-open'); if (catBtn) catBtn.addEventListener('click', openCatModal);
   const srch = body.querySelector('#ret-search-input');
   if (srch) srch.addEventListener('input', () => { retSearch = srch.value.trim(); renderRetTableArea(months, years.length); });
