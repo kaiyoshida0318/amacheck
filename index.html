@@ -1483,7 +1483,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.42</span>
+    <span class="version">v2.43</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2025,6 +2025,7 @@
       <p class="sub" style="margin:4px 0 0;">CSV / ZIP をドロップ →「🔍 チェック」で内容を確認 →「✅ 反映する」で取り込みます。ZIPでまとめて入れてもOK。</p>
     </div>
     <div style="overflow-y:auto;flex:1 1 auto;min-height:0;margin-top:12px;">
+      <div id="report-filetypes"></div>
       <label class="upload-zone pl-drop-all" id="report-drop" style="margin-top:0;">
         <svg class="icn" style="font-size:22px;"><use href="#i-file-spreadsheet"/></svg>
         <div class="main">CSV / ZIP をクリック、またはここにドラッグ&ドロップ（複数可）</div>
@@ -4662,11 +4663,40 @@ function renderShipImportList(){
 window.removeShipImport = function(id){ pendingShipImports = pendingShipImports.filter(e => e.id !== id); renderShipImportList(); };
 
 // ======================= 統合「＋レポート追加」 =======================
+// 対応ファイル種別の定義（このパネル＝唯一の正。カレンダー行/月末スロットと番号を統一）
+const REPORT_FILE_TYPES = [
+  { badge: '①', pattern: '広告データ-2026-0916.csv', label: '広告データ（日別）', key: 'ファイル名の日付', dest: 'カレンダー①・月別グラフ／広告データ' },
+  { badge: '②', pattern: '出荷数データ-26-0915.csv', label: '出荷数データ（日別）', key: 'SKU / ASIN（＋各行の日付）', dest: 'カレンダー②・出荷数データ' },
+  { badge: 'A', pattern: 'トランザクション レポート .csv', label: '月末：FBA手数料・販売手数料・出荷数', key: 'なし（対象月に合算）', dest: '全体収支（FBA手数料・販売手数料）' },
+  { badge: 'B', pattern: '広告レポート（月合計）.csv', label: '月末：広告費・広告売上', key: 'なし（対象月に合算）', dest: '全体収支（広告費・広告売上・ROAS）' },
+  { badge: 'C', pattern: '月次保管料レポート .csv', label: '月末：保管費', key: 'なし（対象月に合算）', dest: '全体収支（保管費）' },
+  { badge: 'D', pattern: '売上ダッシュボード .csv', label: '月末：総売上', key: 'なし（対象月に合算）', dest: '全体収支（総売上）' }
+];
+const REPORT_FILE_TIP = '①②（広告データ・出荷数データ）を同じ日付でそろえて入れると、その日が対で取り込まれます。片方だけの日は取り込み時に確認が出ます（チェックを入れれば取込可）。ファイル名に「広告データ」「出荷数データ」を入れると確実に振り分けられます。';
+function buildReportFileTypePanel(){
+  const card = (t) => '<div style="border:1px solid var(--border);border-radius:6px;padding:8px 12px;background:#fff;">'
+    + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
+    + '<span style="font-size:16px;font-weight:800;">' + t.badge + '</span>'
+    + '<code style="font-family:ui-monospace,Menlo,monospace;color:var(--teal);font-size:10.5px;background:var(--bg-secondary);padding:2px 6px;border-radius:3px;">' + t.pattern + '</code>'
+    + '</div>'
+    + '<div style="font-weight:700;color:#0f172a;margin-bottom:2px;font-size:12.5px;">' + t.label + '</div>'
+    + '<div style="color:var(--text-tertiary);font-size:10.5px;">キー：<strong style="color:#334155;">' + t.key + '</strong> → ' + t.dest + 'に反映</div>'
+    + '</div>';
+  return '<div style="text-align:left;border:1px solid var(--border);border-radius:8px;margin-bottom:14px;overflow:hidden;">'
+    + '<div onclick="this.nextElementSibling.style.display = this.nextElementSibling.style.display===\'none\' ? \'block\' : \'none\'; this.querySelector(\'.acc-arrow\').textContent = this.nextElementSibling.style.display===\'none\' ? \'▶\' : \'▼\';" style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;cursor:pointer;background:var(--bg-secondary);font-size:12px;font-weight:700;color:var(--text-secondary);user-select:none;">'
+    + '<span>📋 対応ファイルの種類を確認する</span><span class="acc-arrow" style="font-size:10px;color:var(--text-tertiary);">▶</span>'
+    + '</div>'
+    + '<div style="display:none;"><div style="padding:6px 14px 12px;">'
+    + '<div style="display:grid;grid-template-columns:1fr;gap:8px;margin-top:6px;">' + REPORT_FILE_TYPES.map(card).join('') + '</div>'
+    + '<div style="margin-top:10px;padding:8px 10px;background:#fff8e1;border-radius:5px;font-size:10.5px;color:#6d4c00;border:1px solid #ffe082;line-height:1.6;">💡 ' + REPORT_FILE_TIP + '</div>'
+    + '</div></div></div>';
+}
 let _rpt = null;
 function rptReset(){ _rpt = { ship: [], ad: [], month: { A: null, B: null, C: null, D: null }, unknown: [], errors: [], meMonth: null, allowPartial: false }; }
 function openReportModal(){
   if (!products.length) { toast('先に商品情報を登録してください'); return; }
   rptReset();
+  document.getElementById('report-filetypes').innerHTML = buildReportFileTypePanel();
   document.getElementById('report-file-input').value = '';
   document.getElementById('report-calendar').innerHTML = '<div style="font-size:13px;color:var(--text-tertiary);padding:6px 2px;">ファイルをドロップすると、日別の取込状況（◯＝あり／✕＝なし）が表示されます。</div>';
   document.getElementById('report-notice').innerHTML = '';
