@@ -1483,7 +1483,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.40</span>
+    <span class="version">v2.41</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -4750,18 +4750,22 @@ function rptRender(){
     const dom = rptDominantMonth();
     const y = +dom.slice(0, 4), mo = +dom.slice(5, 7);
     const nd = new Date(y, mo, 0).getDate();
-    const mk = (has) => has ? '<span class="mk-ok">◯</span>' : '<span class="mk-miss">✕</span>';
     let head = '<tr><th class="lab">種別＼日（' + dom + '）</th>';
     for (let d = 1; d <= nd; d++) head += '<th>' + d + '</th>';
     head += '</tr>';
-    const rowHtml = (label, sub, set) => {
+    const rowHtml = (label, sub, set, other) => {
       let h = '<td class="lab">' + label + '<div class="rowh">' + sub + '</div></td>';
-      for (let d = 1; d <= nd; d++) { const ymd = dom + '-' + String(d).padStart(2, '0'); h += '<td>' + mk(set.has(ymd)) + '</td>'; }
+      for (let d = 1; d <= nd; d++) {
+        const ymd = dom + '-' + String(d).padStart(2, '0');
+        const mine = set.has(ymd), theirs = other.has(ymd);
+        const cell = mine ? '<span class="mk-ok">◯</span>' : (theirs ? '<span class="mk-miss">✕</span>' : '');
+        h += '<td>' + cell + '</td>';
+      }
       return '<tr>' + h + '</tr>';
     };
     calBox.innerHTML = '<div class="rcal-wrap"><table class="rcal"><thead>' + head + '</thead><tbody>'
-      + rowHtml('① 広告データ', 'キャンペーンレポート', adDates)
-      + rowHtml('② 出荷数データ', '注文数量', shipDates)
+      + rowHtml('① 広告データ', 'キャンペーンレポート', adDates, shipDates)
+      + rowHtml('② 出荷数データ', '注文数量', shipDates, adDates)
       + '</tbody></table></div>';
     // 対になっていない日
     const miss = [];
