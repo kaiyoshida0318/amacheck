@@ -1371,6 +1371,34 @@
   .newtab-btn:hover { background: var(--bg-secondary); border-color: #cbd5e1; }
   .danger-ghost { display: inline-flex; align-items: center; gap: 5px; background: #fff; color: #c0392b; border: 1px solid #f0c4bd; border-radius: 8px; padding: 8px 12px; font-size: 13px; font-weight: 600; cursor: pointer; }
   .danger-ghost:hover { background: #fdecea; border-color: #e2a49a; }
+  /* 3つの取込ボタンは「＋レポート追加」に集約したため非表示 */
+  .report-add-btn:hover { background: #b91c1c !important; border-color: #b91c1c !important; }
+  #open-input, #open-ad-add, #pl-add-month { display: none !important; }
+  .rpt-sec-title { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 14px; margin: 16px 0 10px; }
+  .rpt-pill { font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; }
+  .rpt-pill-cal { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
+  .rpt-pill-me { background: #f3e8ff; color: #6d28d9; border: 1px solid #c4b5fd; }
+  #report-calendar .rcal-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  table.rcal { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 11.5px; }
+  table.rcal th, table.rcal td { border: 1px solid var(--border-light, #eef1f4); text-align: center; padding: 5px 0; }
+  table.rcal th.lab, table.rcal td.lab { width: 150px; text-align: left; padding-left: 12px; font-weight: 600; background: #fff; }
+  table.rcal thead th { background: var(--bg-secondary); color: var(--text-secondary); font-weight: 600; }
+  table.rcal .rowh { font-size: 11px; color: var(--text-tertiary); font-weight: 400; }
+  table.rcal .mk-ok { color: #16a34a; font-size: 14px; font-weight: 700; }
+  table.rcal .mk-miss { color: #e11d48; font-weight: 700; }
+  #report-notice .rpt-notice { display: flex; gap: 10px; align-items: flex-start; background: #fff7ed; border: 1px solid #fdba74; border-radius: 10px; padding: 11px 13px; font-size: 12.5px; color: #9a3412; margin-top: 8px; line-height: 1.6; }
+  #report-notice .rpt-notice b { color: #c2410c; }
+  #report-notice .rpt-chk { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-secondary); margin-top: 6px; cursor: pointer; }
+  .me-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .me-card { border: 1px solid var(--border); border-radius: 11px; padding: 12px 14px; background: #fff; transition: .15s; }
+  .me-card.hit { border-color: var(--teal); background: #ecfdf5; box-shadow: 0 0 0 3px rgba(13,148,136,.15); }
+  .me-card .h { display: flex; align-items: center; gap: 8px; font-weight: 700; font-size: 13.5px; }
+  .me-card .me-badge { width: 22px; height: 22px; border-radius: 6px; background: #94a3b8; color: #fff; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; font-weight: 800; }
+  .me-card.hit .me-badge { background: var(--teal); }
+  .me-card .d { font-size: 11.5px; color: var(--text-secondary); margin-top: 6px; line-height: 1.5; }
+  .me-card .me-status { margin-top: 8px; font-size: 12px; font-weight: 600; }
+  .me-card .me-status.on { color: #047857; }
+  .me-card .me-status.off { color: var(--text-tertiary); font-weight: 500; }
   .newtab-btn .nt-ico { font-size: 14px; font-weight: 700; line-height: 1; }
   .version {
     color: var(--text-secondary);
@@ -1455,12 +1483,13 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.38</span>
+    <span class="version">v2.40</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
       <button class="zoom-btn" id="zoom-in" title="文字を大きく">A+</button>
     </div>
+    <button class="utility report-add-btn" id="open-report" title="出荷数・広告・月末データのCSV/ZIPをまとめて取り込む" style="font-size:13px;background:#dc2626;border:1px solid #dc2626;color:#fff;font-weight:700;"><svg class="icn"><use href="#i-plus"/></svg> レポート追加</button>
     <button class="utility" id="open-sale" title="セール期間・対象商品を設定" style="font-size:13px;"><svg class="icn"><use href="#i-tag"/></svg> セール設定</button>
     <button class="utility" id="open-sync" title="GitHubにデータを同期（別PCと共有）" style="font-size:13px;"><svg class="icn"><use href="#i-upload"/></svg> 同期</button>
     <button class="utility" id="data-export" title="全データをファイルに書き出してバックアップ" style="font-size:13px;"><svg class="icn"><use href="#i-file-spreadsheet"/></svg> バックアップ</button>
@@ -1986,6 +2015,51 @@
   </div>
 </div>
 
+<div class="modal-bg" id="report-modal" hidden>
+  <div class="modal" id="report-modal-inner" style="max-width:min(1320px,97vw);width:100%;max-height:90vh;display:flex;flex-direction:column;">
+    <div style="flex-shrink:0;">
+      <div style="display:flex;align-items:center;gap:8px;">
+        <h3 style="margin:0;">📂 レポートを追加</h3>
+        <button id="report-close" class="ghost" title="閉じる" style="margin-left:auto;padding:6px 8px;"><svg class="icn"><use href="#i-x"/></svg></button>
+      </div>
+      <p class="sub" style="margin:4px 0 0;">CSV / ZIP をドロップ →「🔍 チェック」で内容を確認 →「✅ 反映する」で取り込みます。ZIPでまとめて入れてもOK。</p>
+    </div>
+    <div style="overflow-y:auto;flex:1 1 auto;min-height:0;margin-top:12px;">
+      <label class="upload-zone pl-drop-all" id="report-drop" style="margin-top:0;">
+        <svg class="icn" style="font-size:22px;"><use href="#i-file-spreadsheet"/></svg>
+        <div class="main">CSV / ZIP をクリック、またはここにドラッグ&ドロップ（複数可）</div>
+        <div class="sub">広告データ / 出荷数データ / 月末データ4種 を自動で判別して振り分けます</div>
+        <input type="file" id="report-file-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple>
+      </label>
+
+      <div class="rpt-sec-title"><span class="rpt-pill rpt-pill-cal">カレンダー</span> ① 広告データ ・ ② 出荷数データ</div>
+      <div id="report-calendar"><div style="font-size:13px;color:var(--text-tertiary);padding:6px 2px;">ファイルをドロップすると、日別の取込状況（◯＝あり／✕＝なし）が表示されます。</div></div>
+      <div id="report-notice"></div>
+
+      <hr style="border:none;border-top:1px dashed #cbd5e1;margin:18px 0;">
+
+      <div class="rpt-sec-title"><span class="rpt-pill rpt-pill-me">月末データ</span> ③ 月末データ（4種類）
+        <span style="margin-left:12px;font-size:12.5px;font-weight:500;color:var(--text-secondary);">対象月
+          <select id="report-me-month" style="font-size:12.5px;padding:4px 8px;margin-left:4px;"></select>
+        </span>
+      </div>
+      <div class="me-grid" id="report-me-grid">
+        <div class="me-card" data-me="A"><div class="h"><span class="me-badge">A</span> FBA手数料・販売手数料・出荷数</div><div class="d">トランザクションレポート。FBA手数料(送料)・販売手数料・出荷数を反映。</div><div class="me-status off">未取込</div></div>
+        <div class="me-card" data-me="B"><div class="h"><span class="me-badge">B</span> 広告費・広告売上</div><div class="d">広告レポート（月合計）。SP/SB内訳・ROASも自動集計。</div><div class="me-status off">未取込</div></div>
+        <div class="me-card" data-me="C"><div class="h"><span class="me-badge">C</span> 保管費</div><div class="d">月次保管料レポート。※翌月13日頃以降に取得可能。</div><div class="me-status off">未取込</div></div>
+        <div class="me-card" data-me="D"><div class="h"><span class="me-badge">D</span> 総売上</div><div class="d">売上ダッシュボード。総売上を反映。</div><div class="me-status off">未取込</div></div>
+      </div>
+      <div id="report-unknown" style="margin-top:10px;font-size:12px;color:var(--danger);"></div>
+    </div>
+    <div style="flex-shrink:0;border-top:1px solid var(--border);margin-top:12px;padding-top:12px;display:flex;align-items:center;gap:10px;">
+      <span id="report-status" style="font-size:12.5px;color:var(--text-secondary);"></span>
+      <span style="flex:1;"></span>
+      <button id="report-cancel">閉じる</button>
+      <button class="confirm" id="report-apply" disabled><svg class="icn"><use href="#i-check"/></svg> 反映する</button>
+    </div>
+  </div>
+</div>
+
 <div class="toast" id="toast"></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
@@ -2356,6 +2430,19 @@ function init(){
   window.addEventListener('resize', adjustHiddenTableHeight);
   // セール設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
+  document.getElementById('open-report').addEventListener('click', openReportModal);
+  document.getElementById('report-close').addEventListener('click', closeReportModal);
+  document.getElementById('report-cancel').addEventListener('click', closeReportModal);
+  document.getElementById('report-apply').addEventListener('click', applyReportAll);
+  document.getElementById('report-modal').addEventListener('click', (e) => { if (e.target.id === 'report-modal') closeReportModal(); });
+  {
+    const inp = document.getElementById('report-file-input');
+    inp.addEventListener('change', (e) => { rptStage(e.target.files); e.target.value = ''; });
+    const z = document.getElementById('report-drop');
+    ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('dragover'); }));
+    ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('dragover'); }));
+    z.addEventListener('drop', e => { if (e.dataTransfer && e.dataTransfer.files) rptStage(e.dataTransfer.files); });
+  }
   document.getElementById('open-sync').addEventListener('click', openSyncModal);
   document.getElementById('sync-close').addEventListener('click', () => { document.getElementById('sync-modal').hidden = true; });
   document.getElementById('sync-save').addEventListener('click', saveSyncCfgFromForm);
@@ -4573,6 +4660,196 @@ function renderShipImportList(){
   apply.disabled = !pendingShipImports.some(e => !e.error && e.matched > 0);
 }
 window.removeShipImport = function(id){ pendingShipImports = pendingShipImports.filter(e => e.id !== id); renderShipImportList(); };
+
+// ======================= 統合「＋レポート追加」 =======================
+let _rpt = null;
+function rptReset(){ _rpt = { ship: [], ad: [], month: { A: null, B: null, C: null, D: null }, unknown: [], errors: [], meMonth: null, allowPartial: false }; }
+function openReportModal(){
+  if (!products.length) { toast('先に商品情報を登録してください'); return; }
+  rptReset();
+  document.getElementById('report-file-input').value = '';
+  document.getElementById('report-calendar').innerHTML = '<div style="font-size:13px;color:var(--text-tertiary);padding:6px 2px;">ファイルをドロップすると、日別の取込状況（◯＝あり／✕＝なし）が表示されます。</div>';
+  document.getElementById('report-notice').innerHTML = '';
+  document.getElementById('report-unknown').textContent = '';
+  document.querySelectorAll('#report-me-grid .me-card').forEach(c => { c.classList.remove('hit'); c.querySelector('.me-status').className = 'me-status off'; c.querySelector('.me-status').textContent = '未取込'; });
+  rptFillMonthSelect();
+  document.getElementById('report-status').textContent = '';
+  document.getElementById('report-apply').disabled = true;
+  document.getElementById('report-modal').hidden = false;
+}
+function closeReportModal(){ document.getElementById('report-modal').hidden = true; }
+function rptFillMonthSelect(){
+  const sel = document.getElementById('report-me-month'); if (!sel) return;
+  const list = plImpMonthsList();
+  const cur = sel.value;
+  sel.innerHTML = list.slice().reverse().map(m => '<option value="' + m + '">' + m.replace('-', '/') + '</option>').join('');
+  if (cur && list.includes(cur)) sel.value = cur;
+}
+async function rptStage(files){
+  const arr = Array.from(files || []); if (!arr.length) return;
+  const units = [];
+  for (const f of arr) {
+    try {
+      const buf = await readFileBytes(f);
+      if (/\.zip$/i.test(f.name)) (await unzipCsvEntries(buf)).forEach(e => units.push({ name: e.name, bytes: e.bytes }));
+      else units.push({ name: f.name, bytes: buf });
+    } catch (e) { _rpt.errors.push(f.name + '：展開エラー'); }
+  }
+  units.forEach(u => {
+    const text = decodeAdBytes(u.bytes);
+    if (text == null) { _rpt.errors.push(u.name + '：文字コード不明'); return; }
+    const t = detectPlType(text);
+    const dailyDate = detectDateFromName(u.name);
+    if (t === 'ad' && dailyDate) { // 日別 広告データ（ファイル名 26-0713）
+      const ar = parseAdCsv(text);
+      if (ar.ok) _rpt.ad.push({ name: u.name, date: dailyDate, agg: ar.agg, count: ar.count });
+      else _rpt.errors.push(u.name + '：' + ar.msg);
+      return;
+    }
+    if (t === 'fbaFee') { _rpt.month.A = { name: u.name, text }; return; }
+    if (t === 'ad') { _rpt.month.B = { name: u.name, text }; return; }
+    if (t === 'storage') { _rpt.month.C = { name: u.name, text }; return; }
+    if (t === 'sales') { _rpt.month.D = { name: u.name, text }; return; }
+    // 月末データでなければ出荷数CSVとして判定
+    const sr = parseShipCsv(text);
+    if (sr.ok) { _rpt.ship.push({ name: u.name, byDate: sr.byDate, dates: sr.dates, totalQty: sr.totalQty, matched: sr.matched, unmatched: sr.unmatched }); return; }
+    _rpt.unknown.push(u.name);
+  });
+  rptRender();
+}
+function rptDominantMonth(){
+  const cnt = {};
+  const add = (ymd) => { const ym = ymd.slice(0, 7); cnt[ym] = (cnt[ym] || 0) + 1; };
+  _rpt.ship.forEach(s => s.dates.forEach(add));
+  _rpt.ad.forEach(a => add(a.date));
+  const ms = Object.keys(cnt); if (!ms.length) return null;
+  ms.sort((x, y) => (cnt[y] - cnt[x]) || (x < y ? -1 : 1));
+  return ms[0];
+}
+function rptRender(){
+  // 月末データのハイライト
+  const M = _rpt.month;
+  const setSlot = (key, hit, label) => {
+    const c = document.querySelector('#report-me-grid .me-card[data-me="' + key + '"]'); if (!c) return;
+    const st = c.querySelector('.me-status');
+    if (hit) { c.classList.add('hit'); st.className = 'me-status on'; st.textContent = '✓ ' + label; }
+    else { c.classList.remove('hit'); st.className = 'me-status off'; st.textContent = '未取込'; }
+  };
+  setSlot('A', M.A, M.A && M.A.name); setSlot('B', M.B, M.B && M.B.name);
+  setSlot('C', M.C, M.C && M.C.name); setSlot('D', M.D, M.D && M.D.name);
+
+  // カレンダー（広告・出荷）
+  const adDates = new Set(_rpt.ad.map(a => a.date));
+  const shipDates = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => shipDates.add(d)));
+  const calBox = document.getElementById('report-calendar');
+  const noticeBox = document.getElementById('report-notice');
+  if (!adDates.size && !shipDates.size) {
+    calBox.innerHTML = '<div style="font-size:13px;color:var(--text-tertiary);padding:6px 2px;">（広告データ・出荷数データはまだありません）</div>';
+    noticeBox.innerHTML = '';
+  } else {
+    const dom = rptDominantMonth();
+    const y = +dom.slice(0, 4), mo = +dom.slice(5, 7);
+    const nd = new Date(y, mo, 0).getDate();
+    const mk = (has) => has ? '<span class="mk-ok">◯</span>' : '<span class="mk-miss">✕</span>';
+    let head = '<tr><th class="lab">種別＼日（' + dom + '）</th>';
+    for (let d = 1; d <= nd; d++) head += '<th>' + d + '</th>';
+    head += '</tr>';
+    const rowHtml = (label, sub, set) => {
+      let h = '<td class="lab">' + label + '<div class="rowh">' + sub + '</div></td>';
+      for (let d = 1; d <= nd; d++) { const ymd = dom + '-' + String(d).padStart(2, '0'); h += '<td>' + mk(set.has(ymd)) + '</td>'; }
+      return '<tr>' + h + '</tr>';
+    };
+    calBox.innerHTML = '<div class="rcal-wrap"><table class="rcal"><thead>' + head + '</thead><tbody>'
+      + rowHtml('① 広告データ', 'キャンペーンレポート', adDates)
+      + rowHtml('② 出荷数データ', '注文数量', shipDates)
+      + '</tbody></table></div>';
+    // 対になっていない日
+    const miss = [];
+    for (let d = 1; d <= nd; d++) {
+      const ymd = dom + '-' + String(d).padStart(2, '0');
+      const a = adDates.has(ymd), s = shipDates.has(ymd);
+      if (a !== s) miss.push({ d, which: a ? '出荷数' : '広告' });
+    }
+    if (miss.length) {
+      noticeBox.innerHTML = '<div class="rpt-notice"><span style="font-size:16px;">⚠️</span><div><b>対になっていない日があります：' + miss.map(m => (mo + '/' + m.d)).join('・') + '</b>（' + miss[0].which + 'データが取り込まれていない日があります）。<br>通常は広告データと出荷数データを両方そろえて取り込むことをおすすめします。片方だけでよければ下にチェックしてください。<label class="rpt-chk"><input type="checkbox" id="report-allow-partial"> 片方しかない日も、そのまま取り込む</label></div></div>';
+      const cb = document.getElementById('report-allow-partial');
+      cb.checked = _rpt.allowPartial;
+      cb.addEventListener('change', () => { _rpt.allowPartial = cb.checked; rptUpdateApply(); });
+    } else noticeBox.innerHTML = '';
+  }
+  // 未判別
+  document.getElementById('report-unknown').textContent = _rpt.unknown.length ? ('判別できないファイル：' + _rpt.unknown.join(', ')) : '';
+  rptUpdateApply();
+}
+function rptMismatchExists(){
+  const adDates = new Set(_rpt.ad.map(a => a.date));
+  const shipDates = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => shipDates.add(d)));
+  if (!adDates.size && !shipDates.size) return false;
+  const all = new Set([...adDates, ...shipDates]);
+  for (const ymd of all) { if (adDates.has(ymd) !== shipDates.has(ymd)) return true; }
+  return false;
+}
+function rptUpdateApply(){
+  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D;
+  const blocked = rptMismatchExists() && !_rpt.allowPartial;
+  document.getElementById('report-apply').disabled = !anyData || blocked;
+  const bits = [];
+  if (_rpt.ad.length) bits.push('広告' + _rpt.ad.length + '日');
+  if (_rpt.ship.length) { const sd = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => sd.add(d))); bits.push('出荷' + sd.size + '日'); }
+  const meN = ['A', 'B', 'C', 'D'].filter(k => _rpt.month[k]).length;
+  if (meN) bits.push('月末' + meN + '種');
+  document.getElementById('report-status').textContent = bits.length ? (bits.join(' / ') + (blocked ? '　⚠️ 対の欠けを確認してください' : '')) : '';
+}
+function applyReportAll(){
+  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D;
+  if (!anyData) { toast('取り込めるデータがありません'); return; }
+  if (rptMismatchExists() && !_rpt.allowPartial) { toast('対になっていない日があります。チェックを入れると取り込めます'); return; }
+  const btn = document.getElementById('report-apply'); const orig = btn.innerHTML;
+  btn.disabled = true; btn.classList.add('is-loading'); btn.innerHTML = '<span class="btn-spin"></span> 反映中…';
+  setTimeout(() => {
+    try {
+      pushUndoState();
+      plUndoSnapshot = { plData: JSON.parse(JSON.stringify(plData)), shipments: JSON.parse(JSON.stringify(shipments)) };
+      let lastYm = null;
+      // ① 出荷数データ（対象日をクリア→上書き）
+      const shipDatesAll = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => shipDatesAll.add(d)));
+      shipDatesAll.forEach(ymd => { const ym = ymd.slice(0, 7), day = String(+ymd.slice(8, 10)); if (shipments[ym]) Object.keys(shipments[ym]).forEach(f => { if (shipments[ym][f]) delete shipments[ym][f][day]; }); });
+      _rpt.ship.forEach(s => Object.keys(s.byDate).forEach(ymd => { const ym = ymd.slice(0, 7), day = String(+ymd.slice(8, 10)); lastYm = ym; if (!shipments[ym]) shipments[ym] = {}; Object.keys(s.byDate[ymd]).forEach(fn => { if (!shipments[ym][fn]) shipments[ym][fn] = {}; shipments[ym][fn][day] = s.byDate[ymd][fn]; }); }));
+      // ② 広告データ（日別）
+      _rpt.ad.forEach(a => { adData[a.date] = a.agg; lastYm = lastYm || a.date.slice(0, 7); });
+      // ③ 月末データ（対象月へ）
+      const ym = document.getElementById('report-me-month').value;
+      if (ym) {
+        if (!plData[ym]) plData[ym] = {};
+        if (_rpt.month.D) { const r = plParseSalesCsv(_rpt.month.D.text); if (r.ok) plData[ym].sales = Math.round(r.sum); }
+        if (_rpt.month.C) { const r = plParseCsv(_rpt.month.C.text, 'storage'); if (r.ok) plData[ym].storage = Math.abs(Math.round(r.sum)); }
+        if (_rpt.month.B) { const r = plParseAdCsv(_rpt.month.B.text); if (r.ok) { plData[ym].adCost = Math.round(r.cost); plData[ym].adSales = Math.round(r.sales); if (r.byType) plData[ym].adByType = r.byType; } }
+        if (_rpt.month.A) {
+          const r = plParseTxnCsv(_rpt.month.A.text);
+          if (r.ok) { plData[ym].fbaFee = Math.abs(Math.round(r.fbaSigned)); if (r.hasFee) plData[ym].sellingFee = Math.abs(Math.round(r.feeSigned)); }
+          const rs = plParseShipFromTxn(_rpt.month.A.text, ym);
+          if (rs && rs.ok && rs.rows > 0 && !shipDatesAll.size) { // 出荷CSVを別途入れていない時だけ、トランザクション由来の出荷数を採用
+            if (!shipments[ym]) shipments[ym] = {};
+            for (const fn in rs.agg) { shipments[ym][fn] = rs.agg[fn]; }
+          }
+        }
+        lastYm = ym;
+      }
+      _graphMetricCache = {};
+      const okS = saveShipments(); saveAdData(); savePlData();
+      if (lastYm) { currentMonth = lastYm; const msel = document.getElementById('month-select'); if (msel) msel.value = lastYm; }
+      renderShipmentTable(); renderPlView();
+      closeReportModal();
+      const parts = [];
+      if (_rpt.ad.length) parts.push('広告' + _rpt.ad.length + '日');
+      if (shipDatesAll.size) parts.push('出荷' + shipDatesAll.size + '日');
+      const meN = ['A', 'B', 'C', 'D'].filter(k => _rpt.month[k]).length; if (meN) parts.push('月末' + meN + '種');
+      toast(parts.join(' / ') + ' を反映しました', { label: '元に戻す', onClick: () => { undo(); if (plUndoSnapshot) plUndoApply(); } });
+    } finally {
+      btn.disabled = false; btn.classList.remove('is-loading'); btn.innerHTML = orig;
+    }
+  }, 30);
+}
 
 function applyShipImport(){
   const valid = pendingShipImports.filter(e => !e.error && e.byDate);
