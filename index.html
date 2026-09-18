@@ -1489,7 +1489,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.50</span>
+    <span class="version">v2.51</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -4903,7 +4903,7 @@ function rptRender(){
   // 月末データの「対象月」を、取り込んだファイルから自動推定して既定にセット（誤って別の月へ入るのを防止）
   if (hasMe) {
     let guess = rptDominantMonth();
-    if (!guess) { for (const k of ['A', 'B', 'C', 'D']) { if (_rpt.month[k]) { const d = detectDateFromName(_rpt.month[k].name); if (d) { guess = d.slice(0, 7); break; } } } }
+    if (!guess) { for (const k of ['A', 'B', 'C', 'D']) { if (_rpt.month[k]) { const mm = detectMonthFromName(_rpt.month[k].name); if (mm) { guess = mm; break; } } } }
     if (guess) {
       const sel = document.getElementById('report-me-month');
       if (sel) {
@@ -5730,6 +5730,16 @@ function detectDateFromName(name){
     const mo = +m[2], d = +m[3];
     if (mo >= 1 && mo <= 12 && d >= 1 && d <= 31) return (2000 + +m[1]) + '-' + m[2] + '-' + m[3];
   }
+  return '';
+}
+// ファイル名から「年月(YYYY-MM)」を推定：2025-12 / 202512 / 2025_12 / 25-12 / 完全日付の年月
+function detectMonthFromName(name){
+  const full = detectDateFromName(name);
+  if (full) return full.slice(0, 7);
+  let m = name.match(/(20\d{2})[-_./]?(\d{2})(?![-_./]?\d)/);
+  if (m) { const mo = +m[2]; if (mo >= 1 && mo <= 12) return m[1] + '-' + m[2]; }
+  m = name.match(/(?:^|[^\d])(\d{2})-(\d{2})(?![-_.]?\d)/);
+  if (m) { const mo = +m[2]; if (mo >= 1 && mo <= 12) return (2000 + +m[1]) + '-' + m[2]; }
   return '';
 }
 
