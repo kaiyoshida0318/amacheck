@@ -255,6 +255,10 @@
   /* セル選択（複数選択） */
   table.ship td.day.cell-selected { background: rgba(37, 99, 235, 0.22) !important; }
   table.ship td.total.cell-selected { background: rgba(37, 99, 235, 0.22) !important; }
+  table.ship tfoot .ship-foot td { position: sticky; bottom: 0; z-index: 3; background: #eef2f7; font-weight: 700; border-top: 2px solid var(--border-strong, #cbd5e1); }
+  table.ship tfoot .ship-foot td.foot-label { text-align: right; color: var(--text-secondary); }
+  table.ship tfoot .ship-foot td.day-total { text-align: center; color: #0f172a; }
+  table.ship tfoot .ship-foot td.total { background: #e2e8f0; }
   table.ship td.total.cell-active {
     outline: 3px solid var(--blue);
     outline-offset: -3px;
@@ -1485,7 +1489,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.46</span>
+    <span class="version">v2.47</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -3432,6 +3436,7 @@ function renderDailyTable(){
   const monthData = shipments[currentMonth] || {};
   const shipProducts = products.filter(isProductVisibleInShip);
   let grandTotal = 0;
+  const dayTotals = new Array(days + 1).fill(0);
   shipProducts.forEach((p, idx) => {
     const fnskuData = monthData[p.fnsku] || {};
     // その月の全日が埋まったら、上位5日=赤・下位5日=青の数字色
@@ -3458,6 +3463,7 @@ function renderDailyTable(){
     for (let d = 1; d <= days; d++) {
       const q = fnskuData[d] || 0;
       total += q;
+      dayTotals[d] += q;
       let cls = 'day' + (q ? ' has' : ' zero');
       if (q) { if (dHi.has(d)) cls += ' rank-hi'; else if (dLo.has(d)) cls += ' rank-lo'; }
       if (saleFlag[d]) {
@@ -3470,7 +3476,10 @@ function renderDailyTable(){
     html += '<td class="total">' + total + '</td></tr>';
     grandTotal += total;
   });
-  html += '</tbody></table></div>';
+  let footer = '</tbody><tfoot><tr class="ship-foot"><td colspan="4" class="foot-label">日別合計</td>';
+  for (let d = 1; d <= days; d++) footer += '<td class="day-total">' + (dayTotals[d] || '') + '</td>';
+  footer += '<td class="total">' + grandTotal + '</td></tr></tfoot>';
+  html += footer + '</table></div>';
   body.innerHTML = html;
   setShipTotal(grandTotal);
 
