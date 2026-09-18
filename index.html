@@ -1489,7 +1489,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.47</span>
+    <span class="version">v2.48</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -7213,6 +7213,14 @@ function graphLatestYM(){
 
 // ========== 全体収支 ==========
 let plMode = 'month'; // 'month' | 'year'
+let plYear = null; // 月別モードで表示する年（未設定は最新年）
+function plAvailYears(){
+  const ys = new Set();
+  plMonthsList().forEach(ym => ys.add(ym.slice(0, 4)));
+  const cy = new Date().getFullYear();
+  for (let y = cy; y >= cy - 3; y--) ys.add(String(y)); // 直近4年は常に選べる
+  return Array.from(ys).sort((a, b) => b - a); // 新しい順
+}
 // 月の自動計算分（総売上・粗利益・広告費）。完備判定は使わず、データがあれば計算
 // 月の実額販売手数料（トランザクションレポート取込値）。未取込はnull
 function plActualSellingFee(ym){
@@ -7806,6 +7814,13 @@ function renderPlView(){
   h += '<div class="graph-seg" id="pl-mode">'
     + '<button data-v="month" class="' + (plMode === 'month' ? 'active' : '') + '">月別</button>'
     + '<button data-v="year" class="' + (plMode === 'year' ? 'active' : '') + '">年別</button></div>';
+  if (plMode === 'month') {
+    const years = plAvailYears();
+    if (!plYear || !years.includes(plYear)) plYear = years[0];
+    h += '<select id="pl-year" style="font-size:13px;padding:5px 8px;margin-left:6px;">'
+      + years.map(y => '<option value="' + y + '"' + (y === plYear ? ' selected' : '') + '>' + y + '年</option>').join('')
+      + '</select>';
+  }
   h += '<span class="ad-legend" style="margin-left:4px;">実質利益の配色:'
     + '<span class="lg-hi10">上位10%</span><span class="lg-hi20">上位20%</span>'
     + '<span class="lg-mid">中間</span><span class="lg-lo20">下位20%</span><span class="lg-lo10">下位10%</span></span>';
@@ -7817,7 +7832,7 @@ function renderPlView(){
   // 1パス目：行データを集める（総売上＝実売上。未入力はnull＝粗利益・実質利益もnull）
   const data = [];
   if (plMode === 'month') {
-    plMonthsList().forEach(ym => {
+    plMonthsList().filter(ym => ym.slice(0, 4) === plYear).forEach(ym => {
       const c = plMonthCalc(ym), m = plManual(ym);
       const sales = plActualSales(ym), adC = plActualAdCost(ym), adS = plActualAdSales(ym);
       const gross = (sales != null) ? sales - c.costSum : null;
@@ -7920,6 +7935,7 @@ function renderPlView(){
 
   body.innerHTML = h;
   body.querySelectorAll('#pl-mode button').forEach(b => b.addEventListener('click', () => { plMode = b.dataset.v; renderPlView(); }));
+  { const ys = body.querySelector('#pl-year'); if (ys) ys.addEventListener('change', () => { plYear = ys.value; renderPlView(); }); }
   const plActivateEdit = (td) => {
     if (td.querySelector('input')) return;
     const ym = td.dataset.ym, f = td.dataset.f;
