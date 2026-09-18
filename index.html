@@ -130,10 +130,12 @@
   }
   /* 出荷数データの日別は、コンテナ幅(1400px)を超えて画面幅いっぱいに広げる */
   .table-wrap.ship-wide {
-    width: calc(100vw - 32px);
-    margin-left: calc(50% - 50vw + 16px);
-    margin-right: calc(50% - 50vw + 16px);
+    width: min(calc(100vw - 32px), 1560px);
+    margin-left: 50%;
+    transform: translateX(-50%);
   }
+  /* 出荷数データ日別テーブルを全体80%に縮小（大きすぎる対策） */
+  table.ship.ship-zoom { zoom: 0.8; width: auto; }
   body.header-hidden .table-wrap {
     max-height: calc(100vh - 120px);
   }
@@ -161,7 +163,7 @@
   table.ship.ship-daily td.asin { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   table.ship.ship-daily td.day, table.ship.ship-daily th.day { width: auto; padding-left: 1px; padding-right: 1px; }
   table.ship td.asin { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; padding: 8px 10px; }
-  table.ship td.name { text-align: left; max-width: 240px; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; font-size: 14px; }
+  table.ship td.name { text-align: left; max-width: 160px; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; font-size: 14px; }
   table.ship td.img { padding: 6px; }
   table.ship td.img .ph {
     width: 52px; height: 52px;
@@ -188,12 +190,12 @@
     object-fit: cover;
     background: #fff;
   }
-  table.ship td.day { width: 42px; padding: 8px 2px; color: var(--text-tertiary); font-size: 16px; }
+  table.ship td.day { width: 38px; padding: 8px 2px; color: var(--text-tertiary); font-size: 16px; }
   table.ship td.day.zero { background: #fff; color: #999; }
   table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
   table.ship td.day.today { background: var(--amber-light); }
   table.ship td.day.zero.today { background: var(--amber-light); color: var(--amber); }
-  table.ship th.day { width: 42px; padding: 8px 2px; font-size: 14px; }
+  table.ship th.day { width: 38px; padding: 8px 2px; font-size: 14px; }
   /* セール期間バンド（日付ヘッダーの上） */
   table.ship thead tr.sale-row th { top: 0; z-index: 6; padding: 2px; }
   table.ship thead tr.cols-row th { top: var(--sale-band-h, 0px); }
@@ -1498,7 +1500,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.54</span>
+    <span class="version">v2.55</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -3415,7 +3417,7 @@ function renderDailyTable(){
   let colg = '<colgroup><col style="width:92px"><col style="width:84px"><col style="width:36px"><col style="width:120px">';
   for (let d = 1; d <= days; d++) colg += '<col>';
   colg += '<col style="width:52px"></colgroup>';
-  html += '<div class="table-wrap ship-wide"><table class="ship">' + colg + '<thead>';
+  html += '<div class="table-wrap ship-wide"><table class="ship ship-zoom">' + colg + '<thead>';
   // セール期間バンド（日付ヘッダーの上）
   if (hasSale) {
     html += '<tr class="sale-row">';
