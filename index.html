@@ -128,6 +128,12 @@
     overflow: auto;
     max-height: calc(100vh - 240px);
   }
+  /* 出荷数データの日別は、コンテナ幅(1400px)を超えて画面幅いっぱいに広げる */
+  .table-wrap.ship-wide {
+    width: calc(100vw - 32px);
+    margin-left: calc(50% - 50vw + 16px);
+    margin-right: calc(50% - 50vw + 16px);
+  }
   body.header-hidden .table-wrap {
     max-height: calc(100vh - 120px);
   }
@@ -151,6 +157,9 @@
     z-index: 5;
     box-shadow: inset 0 -1px 0 var(--border-strong);
   }
+  table.ship.ship-daily { table-layout: fixed; }
+  table.ship.ship-daily td.asin { overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  table.ship.ship-daily td.day, table.ship.ship-daily th.day { width: auto; padding-left: 1px; padding-right: 1px; }
   table.ship td.asin { font-family: ui-monospace, "SF Mono", Menlo, monospace; font-size: 13px; padding: 8px 10px; }
   table.ship td.name { text-align: left; max-width: 240px; overflow: hidden; text-overflow: ellipsis; padding-right: 10px; font-size: 14px; }
   table.ship td.img { padding: 6px; }
@@ -179,12 +188,12 @@
     object-fit: cover;
     background: #fff;
   }
-  table.ship td.day { width: 34px; padding: 8px 2px; color: var(--text-tertiary); font-size: 14px; }
+  table.ship td.day { width: 42px; padding: 8px 2px; color: var(--text-tertiary); font-size: 16px; }
   table.ship td.day.zero { background: #fff; color: #999; }
   table.ship td.day.has { color: var(--black); font-weight: 600; background: var(--accent-light); }
   table.ship td.day.today { background: var(--amber-light); }
   table.ship td.day.zero.today { background: var(--amber-light); color: var(--amber); }
-  table.ship th.day { width: 34px; padding: 8px 2px; font-size: 13px; }
+  table.ship th.day { width: 42px; padding: 8px 2px; font-size: 14px; }
   /* セール期間バンド（日付ヘッダーの上） */
   table.ship thead tr.sale-row th { top: 0; z-index: 6; padding: 2px; }
   table.ship thead tr.cols-row th { top: var(--sale-band-h, 0px); }
@@ -1489,7 +1498,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.52</span>
+    <span class="version">v2.54</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -3403,7 +3412,10 @@ function renderDailyTable(){
 
   let html = '<div class="ship-hint"><svg class="icn"><use href="#i-info"/></svg>'
     + '<span>表ヘッダーの<strong>日付（数字）</strong>をクリックすると、その日の出荷数をすぐに入力できます。</span></div>';
-  html += '<div class="table-wrap"><table class="ship"><thead>';
+  let colg = '<colgroup><col style="width:92px"><col style="width:84px"><col style="width:36px"><col style="width:120px">';
+  for (let d = 1; d <= days; d++) colg += '<col>';
+  colg += '<col style="width:52px"></colgroup>';
+  html += '<div class="table-wrap ship-wide"><table class="ship">' + colg + '<thead>';
   // セール期間バンド（日付ヘッダーの上）
   if (hasSale) {
     html += '<tr class="sale-row">';
