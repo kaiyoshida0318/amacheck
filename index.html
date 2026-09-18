@@ -1489,7 +1489,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.48</span>
+    <span class="version">v2.50</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2451,6 +2451,7 @@ function init(){
   document.getElementById('report-close').addEventListener('click', closeReportModal);
   document.getElementById('report-cancel').addEventListener('click', closeReportModal);
   document.getElementById('report-apply').addEventListener('click', applyReportAll);
+  { const ms = document.getElementById('report-me-month'); if (ms) ms.addEventListener('change', () => { if (_rpt) _rpt._meMonthTouched = true; }); }
   document.getElementById('report-modal').addEventListener('click', (e) => { if (e.target.id === 'report-modal') closeReportModal(); });
   {
     const inp = document.getElementById('report-file-input');
@@ -4899,6 +4900,18 @@ function rptRender(){
   }
   // 未判別
   document.getElementById('report-unknown').textContent = _rpt.unknown.length ? ('判別できないファイル：' + _rpt.unknown.join(', ')) : '';
+  // 月末データの「対象月」を、取り込んだファイルから自動推定して既定にセット（誤って別の月へ入るのを防止）
+  if (hasMe) {
+    let guess = rptDominantMonth();
+    if (!guess) { for (const k of ['A', 'B', 'C', 'D']) { if (_rpt.month[k]) { const d = detectDateFromName(_rpt.month[k].name); if (d) { guess = d.slice(0, 7); break; } } } }
+    if (guess) {
+      const sel = document.getElementById('report-me-month');
+      if (sel) {
+        if (![...sel.options].some(o => o.value === guess)) { const op = document.createElement('option'); op.value = guess; op.textContent = guess.replace('-', '/'); sel.insertBefore(op, sel.firstChild); }
+        if (!_rpt._meMonthTouched) sel.value = guess;
+      }
+    }
+  }
   rptUpdateApply();
 }
 function rptMismatchExists(){
@@ -4925,6 +4938,12 @@ function applyReportAll(){
   const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D || (_rpt.ret && _rpt.ret.count);
   if (!anyData) { toast('取り込めるデータがありません'); return; }
   if (rptMismatchExists() && !_rpt.allowPartial) { toast('対になっていない日があります。チェックを入れると取り込めます'); return; }
+  const hasMeApply = _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D;
+  if (hasMeApply) {
+    const meYm = document.getElementById('report-me-month').value;
+    if (!meYm) { toast('月末データの「対象月」を選んでください'); return; }
+    if (!confirm('月末データ（A〜D）を「' + meYm.replace('-', '/') + '」に反映します。よろしいですか？\n\n違う月の場合はキャンセルして、上の「対象月」を選び直してください。')) return;
+  }
   const btn = document.getElementById('report-apply'); const orig = btn.innerHTML;
   btn.disabled = true; btn.classList.add('is-loading'); btn.innerHTML = '<span class="btn-spin"></span> 反映中…';
   setTimeout(() => {
@@ -7523,7 +7542,7 @@ function plImpMonthsList(){
   const set = new Set(plMonthsList());
   const now = new Date();
   let y = now.getFullYear(), m = now.getMonth() + 1;
-  for (let i = 0; i < 15; i++) { set.add(y + '-' + String(m).padStart(2, '0')); m--; if (m < 1) { m = 12; y--; } }
+  for (let i = 0; i < 24; i++) { set.add(y + '-' + String(m).padStart(2, '0')); m--; if (m < 1) { m = 12; y--; } }
   return Array.from(set).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
 }
 function openPlImport(month){
@@ -7817,7 +7836,7 @@ function renderPlView(){
   if (plMode === 'month') {
     const years = plAvailYears();
     if (!plYear || !years.includes(plYear)) plYear = years[0];
-    h += '<select id="pl-year" style="font-size:13px;padding:5px 8px;margin-left:6px;">'
+    h += '<select id="pl-year" style="font-size:15px;font-weight:600;padding:8px 12px;margin-left:8px;border:1px solid var(--border);border-radius:9px;background:#fff;color:var(--text-secondary);cursor:pointer;">'
       + years.map(y => '<option value="' + y + '"' + (y === plYear ? ' selected' : '') + '>' + y + '年</option>').join('')
       + '</select>';
   }
