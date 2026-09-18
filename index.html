@@ -1489,7 +1489,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.51</span>
+    <span class="version">v2.52</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -4694,7 +4694,7 @@ const REPORT_FILE_TYPES = [
   { badge: 'B', pattern: '広告レポート（月合計）.csv', label: '月末：広告費・広告売上', key: 'なし（対象月に合算）', dest: '全体収支（広告費・広告売上・ROAS）', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
   { badge: 'C', pattern: '月次保管料レポート .csv', label: '月末：保管費', key: 'なし（対象月に合算）', dest: '全体収支（保管費）', url: 'https://sellercentral-japan.amazon.com/reportcentral/STORAGE_FEE_CHARGES/1' },
   { badge: 'D', pattern: '売上ダッシュボード .csv', label: '月末：総売上', key: 'なし（対象月に合算）', dest: '全体収支（総売上）', url: 'https://sellercentral-japan.amazon.com/gp/site-metrics/report.html' },
-  { badge: '返', pattern: '167067020635.csv（数字でOK）', label: '返品データ（FBA返品レポート）', key: 'FNSKU（＋返品日で月へ）', dest: '返品率（欠陥品・不良品を使用）', url: 'https://sellercentral-japan.amazon.com/reportcentral/CUSTOMER_CONCESSIONS/1' }
+  { badge: '返', pattern: '167067020635.csv（数字でOK）', label: '返品データ（FBA返品レポート）', key: 'FNSKU（＋返品日で月へ）', dest: '返品率（欠陥品・不良品を使用）', url: 'https://sellercentral-japan.amazon.com/reportcentral/CUSTOMER_RETURNS/1' }
 ];
 const REPORT_FILE_TIP = '①②（広告データ・出荷数データ）を同じ日付でそろえて入れると、その日が対で取り込まれます。片方だけの日は取り込み時に確認が出ます（チェックを入れれば取込可）。ファイル名に「広告データ」「出荷数データ」を入れると確実に振り分けられます。';
 function buildReportFileTypePanel(){
