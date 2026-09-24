@@ -130,8 +130,18 @@
   }
   /* 出荷数データの日別：テーブル内容に幅を合わせる（右の余白を出さない）。
      内容がコンテナより広ければ画面幅いっぱいまで使い、はみ出す分だけ横スクロール */
+  /* 日別表は画面幅いっぱいまで広げられる枠（.ship-breakout）に入れ、表の実幅に合わせて中央寄せ。
+     画面に収まる限り横スクロールは出ない（狭い画面でのみ横スクロール） */
+  .ship-breakout {
+    width: calc(100vw - 24px);
+    margin-left: calc(50% - 50vw + 12px);
+    margin-right: calc(50% - 50vw + 12px);
+    display: flex;
+    justify-content: center;
+  }
   .table-wrap.ship-fit {
-    width: 100%;
+    width: max-content;
+    max-width: 100%;
     overflow: auto;
   }
   /* 日別テーブルは全ての日列を同じ幅で末尾まで並べ、はみ出す分は横スクロール。
@@ -269,7 +279,7 @@
   table.ship td.total.cell-selected { background: rgba(37, 99, 235, 0.22) !important; }
   table.ship tfoot .ship-foot td { position: sticky; bottom: 0; z-index: 3; background: #eef2f7; font-weight: 700; border-top: 2px solid var(--border-strong, #cbd5e1); }
   table.ship tfoot .ship-foot td.foot-label { text-align: right; color: var(--text-secondary); }
-  table.ship tfoot .ship-foot td.day-total { text-align: center; color: #0f172a; }
+  table.ship tfoot .ship-foot td.day-total { text-align: center; color: #0f172a; padding-left: 1px; padding-right: 1px; }
   table.ship tfoot .ship-foot td.total { background: #e2e8f0; }
   table.ship td.total.cell-active {
     outline: 3px solid var(--blue);
@@ -1502,7 +1512,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.57</span>
+    <span class="version">v2.58</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -3417,9 +3427,9 @@ function renderDailyTable(){
   let html = '<div class="ship-hint"><svg class="icn"><use href="#i-info"/></svg>'
     + '<span>表ヘッダーの<strong>日付（数字）</strong>をクリックすると、その日の出荷数をすぐに入力できます。</span></div>';
   let colg = '<colgroup><col style="width:104px"><col style="width:96px"><col style="width:44px"><col style="width:170px">';
-  for (let d = 1; d <= days; d++) colg += '<col style="width:40px">';
+  for (let d = 1; d <= days; d++) colg += '<col style="width:36px">';
   colg += '<col style="width:60px"></colgroup>';
-  html += '<div class="table-wrap ship-fit"><table class="ship ship-daily">' + colg + '<thead>';
+  html += '<div class="ship-breakout"><div class="table-wrap ship-fit"><table class="ship ship-daily">' + colg + '<thead>';
   // セール期間バンド（日付ヘッダーの上）
   if (hasSale) {
     html += '<tr class="sale-row">';
@@ -3496,7 +3506,7 @@ function renderDailyTable(){
   let footer = '</tbody><tfoot><tr class="ship-foot"><td colspan="4" class="foot-label">日別合計</td>';
   for (let d = 1; d <= days; d++) footer += '<td class="day-total">' + (dayTotals[d] || '') + '</td>';
   footer += '<td class="total">' + grandTotal + '</td></tr></tfoot>';
-  html += footer + '</table></div>';
+  html += footer + '</table></div></div>';
   body.innerHTML = html;
   setShipTotal(grandTotal);
 
