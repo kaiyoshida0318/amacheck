@@ -1436,6 +1436,12 @@
   table.rcal .rowh { font-size: 11px; color: var(--text-tertiary); font-weight: 400; }
   table.rcal .mk-ok { color: #16a34a; font-size: 14px; font-weight: 700; }
   table.rcal .mk-miss { color: #e11d48; font-weight: 700; }
+  #report-me-table .rcal-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  table.rcal-me td, table.rcal-me th { padding: 6px 0; }
+  table.rcal .mk-ow, .rcal-legend .mk-ow { color: #d97706; font-size: 14px; font-weight: 700; }
+  table.rcal .mk-done, .rcal-legend .mk-done { color: #94a3b8; font-size: 11px; font-weight: 600; }
+  .rcal-legend { font-size: 11.5px; color: var(--text-tertiary); margin-top: 2px; }
+  .rcal-legend .mk-ok { color: #16a34a; font-weight: 700; }
   #report-notice .rpt-notice { display: flex; gap: 10px; align-items: flex-start; background: #fff7ed; border: 1px solid #fdba74; border-radius: 10px; padding: 11px 13px; font-size: 12.5px; color: #9a3412; margin-top: 8px; line-height: 1.6; }
   #report-notice .rpt-notice b { color: #c2410c; }
   #report-notice .rpt-chk { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-secondary); margin-top: 6px; cursor: pointer; }
@@ -1533,7 +1539,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.61</span>
+    <span class="version">v2.63</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2092,11 +2098,12 @@
       <div id="report-me-section" hidden>
         <hr style="border:none;border-top:1px dashed #cbd5e1;margin:18px 0;">
         <div class="rpt-sec-title"><span class="rpt-pill rpt-pill-me">月末データ</span> ③ 月末データ（4種類）
-          <span style="margin-left:12px;font-size:12.5px;font-weight:500;color:var(--text-secondary);">対象月
+          <span id="report-me-month-wrap" style="margin-left:12px;font-size:12.5px;font-weight:500;color:var(--text-secondary);">月が読めないファイルの対象月
             <select id="report-me-month" style="font-size:12.5px;padding:4px 8px;margin-left:4px;"></select>
           </span>
           <span id="report-me-warn" style="margin-left:10px;font-size:12.5px;font-weight:700;"></span>
         </div>
+        <div id="report-me-table" style="margin:4px 0 12px;"></div>
         <div class="me-grid" id="report-me-grid">
           <div class="me-card" data-me="A"><div class="h"><span class="me-badge">A</span> FBA手数料・販売手数料・出荷数</div><div class="d">トランザクションレポート。FBA手数料(送料)・販売手数料・出荷数を反映。</div><div class="me-status off">未取込</div></div>
           <div class="me-card" data-me="B"><div class="h"><span class="me-badge">B</span> 広告費・広告売上</div><div class="d">広告レポート（月合計）。SP/SB内訳・ROASも自動集計。</div><div class="me-status off">未取込</div></div>
@@ -2496,7 +2503,7 @@ function init(){
   document.getElementById('report-close').addEventListener('click', closeReportModal);
   document.getElementById('report-cancel').addEventListener('click', closeReportModal);
   document.getElementById('report-apply').addEventListener('click', applyReportAll);
-  { const ms = document.getElementById('report-me-month'); if (ms) ms.addEventListener('change', () => { if (_rpt) _rpt._meMonthTouched = true; rptUpdateMeWarn(); }); }
+  { const ms = document.getElementById('report-me-month'); if (ms) ms.addEventListener('change', () => { if (_rpt) { _rpt._meMonthTouched = true; rptRender(); } }); }
   document.getElementById('report-modal').addEventListener('click', (e) => { if (e.target.id === 'report-modal') closeReportModal(); });
   {
     const inp = document.getElementById('report-file-input');
@@ -4205,8 +4212,43 @@ function setupCellInteraction(){
     if (!activeInput) e.preventDefault();
   });
 
+  // ドラッグ選択（合計列を含む）・フィル中に、表の下端／上端（またはその外）までマウスが来たら
+  // 表を自動スクロールし、端に見えている行まで選択を伸ばし続ける
+  let selAutoTimer = null, selLastY = 0;
+  const stopSelAuto = () => { if (selAutoTimer) { clearInterval(selAutoTimer); selAutoTimer = null; } };
+  const selAutoStep = () => {
+    const wrap = document.querySelector('#shipment-view:not([hidden]) .table-wrap');
+    if (!dragMode || !wrap || !cellSelection) { stopSelAuto(); return; }
+    const r = wrap.getBoundingClientRect();
+    const head = wrap.querySelector('thead'), foot = wrap.querySelector('tfoot');
+    const top = r.top + (head ? head.getBoundingClientRect().height : 0);
+    const bottom = r.bottom - (foot ? foot.getBoundingClientRect().height : 0);
+    const edge = 24;
+    let dy = 0;
+    // 速さは端からの距離に比例（近いとゆっくり、遠いほど速い）
+    if (selLastY > bottom - edge) dy = Math.min(18, Math.max(3, (selLastY - (bottom - edge)) / 10));
+    else if (selLastY < top + edge) dy = -Math.min(18, Math.max(3, ((top + edge) - selLastY) / 10));
+    if (!dy) { stopSelAuto(); return; }
+    const before = wrap.scrollTop;
+    wrap.scrollTop = before + dy;
+    // 端（表示範囲の最下行／最上行）の行を新しい選択の端にする
+    const probeY = dy > 0 ? Math.min(selLastY, bottom - 2) : Math.max(selLastY, top + 2);
+    const rows = Array.from(wrap.querySelectorAll('tbody tr[data-row]'));
+    let target = null;
+    for (const tr of rows) { const rr = tr.getBoundingClientRect(); if (rr.top <= probeY && rr.bottom > probeY) { target = tr; break; } }
+    if (!target && rows.length) target = dy > 0 ? rows[rows.length - 1] : rows[0];
+    if (target) {
+      const row = parseInt(target.dataset.row, 10);
+      if (dragMode === 'select' && cellSelection.focusRow !== row) { cellSelection.focusRow = row; applySelectionUI(); }
+      else if (dragMode === 'fill' && fillEnd && fillEnd.row !== row) { fillEnd = { row, col: fillEnd.col }; showFillPreview(); }
+    }
+    if (wrap.scrollTop === before) stopSelAuto();   // これ以上スクロールできない
+  };
+
   document.addEventListener('mousemove', (e) => {
     if (!dragMode) return;
+    selLastY = e.clientY;
+    if (!selAutoTimer) { selAutoStep(); if (dragMode) selAutoTimer = selAutoTimer || setInterval(selAutoStep, 16); }
     const dayCell = e.target.closest('table.ship td.day');
     const totalCell = e.target.closest('table.ship td.total');
     const cell = dayCell || totalCell;
@@ -4226,6 +4268,7 @@ function setupCellInteraction(){
   });
 
   document.addEventListener('mouseup', () => {
+    stopSelAuto();
     if (dragMode === 'fill') {
       executeFill('copy');
     }
@@ -4738,10 +4781,10 @@ window.removeShipImport = function(id){ pendingShipImports = pendingShipImports.
 const REPORT_FILE_TYPES = [
   { badge: '①', pattern: '広告データ-2026-0916.csv', label: '広告データ（日別）', key: 'ファイル名の日付', dest: 'カレンダー①・月日別グラフ／広告データ', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
   { badge: '②', pattern: '出荷数データ-26-0915.csv', label: '出荷数データ（日別）', key: 'SKU / ASIN（＋各行の日付）', dest: 'カレンダー②・出荷数データ', url: 'https://sellercentral-japan.amazon.com/reportcentral/BUSINESS_REPORTS' },
-  { badge: 'A', pattern: 'トランザクション レポート .csv', label: '月末：FBA手数料・販売手数料・出荷数', key: 'なし（対象月に合算）', dest: '全体収支（FBA手数料・販売手数料）', url: 'https://sellercentral-japan.amazon.com/payments/reports-repository' },
-  { badge: 'B', pattern: '広告レポート（月合計）.csv', label: '月末：広告費・広告売上', key: 'なし（対象月に合算）', dest: '全体収支（広告費・広告売上・ROAS）', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
-  { badge: 'C', pattern: '月次保管料レポート .csv', label: '月末：保管費', key: 'なし（対象月に合算）', dest: '全体収支（保管費）', url: 'https://sellercentral-japan.amazon.com/reportcentral/STORAGE_FEE_CHARGES/1' },
-  { badge: 'D', pattern: '売上ダッシュボード .csv', label: '月末：総売上', key: 'なし（対象月に合算）', dest: '全体収支（総売上）', url: 'https://sellercentral-japan.amazon.com/gp/site-metrics/report.html' },
+  { badge: 'A', pattern: 'トランザクション レポート .csv', label: '月末：FBA手数料・販売手数料・出荷数', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（FBA手数料・販売手数料）', url: 'https://sellercentral-japan.amazon.com/payments/reports-repository' },
+  { badge: 'B', pattern: '広告レポート（月合計）.csv', label: '月末：広告費・広告売上', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（広告費・広告売上・ROAS）', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
+  { badge: 'C', pattern: '月次保管料レポート .csv', label: '月末：保管費', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（保管費）', url: 'https://sellercentral-japan.amazon.com/reportcentral/STORAGE_FEE_CHARGES/1' },
+  { badge: 'D', pattern: '売上ダッシュボード .csv', label: '月末：総売上', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（総売上）', url: 'https://sellercentral-japan.amazon.com/gp/site-metrics/report.html' },
   { badge: '返', pattern: '167067020635.csv（数字でOK）', label: '返品データ（FBA返品レポート）', key: 'FNSKU（＋返品日で月へ）', dest: '返品率（欠陥品・不良品を使用）', url: 'https://sellercentral-japan.amazon.com/reportcentral/CUSTOMER_RETURNS/1' }
 ];
 const REPORT_FILE_TIP = '①②（広告データ・出荷数データ）を同じ日付でそろえて入れると、その日が対で取り込まれます。片方だけの日は取り込み時に確認が出ます（チェックを入れれば取込可）。ファイル名に「広告データ」「出荷数データ」を入れると確実に振り分けられます。';
@@ -4765,7 +4808,7 @@ function buildReportFileTypePanel(){
     + '</div></div></div>';
 }
 let _rpt = null;
-function rptReset(){ _rpt = { ship: [], ad: [], month: { A: null, B: null, C: null, D: null }, ret: null, unknown: [], errors: [], meMonth: null, allowPartial: false }; }
+function rptReset(){ _rpt = { ship: [], ad: [], meFiles: [], ret: null, unknown: [], errors: [], meMonth: null, allowPartial: false }; }
 function openReportModal(){
   if (!products.length) { toast('先に商品情報を登録してください'); return; }
   rptReset();
@@ -4776,6 +4819,7 @@ function openReportModal(){
   document.getElementById('report-calendar').innerHTML = '';
   document.getElementById('report-notice').innerHTML = '';
   document.getElementById('report-file-input').value = '';
+  { const mt = document.getElementById('report-me-table'); if (mt) mt.innerHTML = ''; const mw = document.getElementById('report-me-warn'); if (mw) mw.textContent = ''; }
   document.getElementById('report-calendar').innerHTML = '<div style="font-size:13px;color:var(--text-tertiary);padding:6px 2px;">ファイルをドロップすると、日別の取込状況（◯＝あり／✕＝なし）が表示されます。</div>';
   document.getElementById('report-notice').innerHTML = '';
   document.getElementById('report-unknown').textContent = '';
@@ -4859,10 +4903,12 @@ async function rptStage(files){
       else _rpt.errors.push(fname + '：' + ar.msg);
       return;
     }
-    if (t === 'fbaFee') { _rpt.month.A = { name: fname, text }; return; }
-    if (t === 'ad') { _rpt.month.B = { name: fname, text }; return; }
-    if (t === 'storage') { _rpt.month.C = { name: fname, text }; return; }
-    if (t === 'sales') { _rpt.month.D = { name: fname, text }; return; }
+    const meKey = { fbaFee: 'A', ad: 'B', storage: 'C', sales: 'D' }[t];
+    if (meKey) {   // 月末データ：ファイルごとに月を読み取り、その月へ振り分ける（複数月を一度に取込可）
+      const nameYm = detectMonthFromName(fname), bodyYm = rptMonthFromContent(meKey, text);
+      _rpt.meFiles.push({ key: meKey, name: fname, text, nameYm, bodyYm, ym: nameYm || bodyYm || '' });
+      return;
+    }
     // 月末データでなければ出荷数CSVとして判定
     const sr = parseShipCsv(text);
     if (sr.ok) { _rpt.ship.push({ name: fname, byDate: sr.byDate, dates: sr.dates, totalQty: sr.totalQty, matched: sr.matched, unmatched: sr.unmatched }); return; }
@@ -4870,33 +4916,97 @@ async function rptStage(files){
   });
   rptRender();
 }
-// 月末ファイル（A〜D）の名前から読み取った月（最初に見つかったもの）
-function rptMonthEndNameMonth(){
-  for (const k of ['A', 'B', 'C', 'D']) { if (_rpt.month[k]) { const mm = detectMonthFromName(_rpt.month[k].name); if (mm) return mm; } }
-  return null;
+// ===== 月末データ（A〜D）：ファイルごとに月へ振り分け =====
+const RPT_ME_KEYS = ['A', 'B', 'C', 'D'];
+const RPT_ME_FIELDS = { A: ['fbaFee', 'sellingFee'], B: ['adCost', 'adSales'], C: ['storage'], D: ['sales'] };
+const RPT_ME_LABEL = { A: ['A FBA手数料', '販売手数料・出荷数'], B: ['B 広告費', '広告売上'], C: ['C 保管費', '月次保管料'], D: ['D 総売上', '売上ダッシュボード'] };
+// B（広告レポート）は中身の「期間」列（例 2025/01/01 - 2025/01/31）からも月を読む
+function rptMonthFromContent(key, text){
+  if (key !== 'B') return '';
+  try {
+    const r = Papa.parse(text, { header: true, skipEmptyLines: true, preview: 3 });
+    const row = (r.data || [])[0] || {};
+    const col = Object.keys(row).find(c => c.trim() === '期間');
+    const m = col && String(row[col]).match(/(20\d{2})[\/\-.](\d{1,2})/);
+    if (m && +m[2] >= 1 && +m[2] <= 12) return m[1] + '-' + String(+m[2]).padStart(2, '0');
+  } catch (e) {}
+  return '';
 }
-// 月末ファイル（A〜D）から反映予定の数字（保存はしない）
-function rptMonthEndValues(){
+function rptHasMe(){ return !!(_rpt && _rpt.meFiles && _rpt.meFiles.length); }
+// 振り分け先の月：ファイル名の月 → 中身の期間（B）→ 読み取れない時だけ「対象月」
+function rptMeYm(f){ if (f.ym) return f.ym; const sel = document.getElementById('report-me-month'); return sel ? sel.value : ''; }
+// { plan: { 'YYYY-MM': { A: file, B: file, ... } }, dupl: ['B 2025/01', ...] }（同じ月・同じ種類は後のファイルを使用）
+function rptMePlan(){
+  const plan = {}, dupl = [];
+  (_rpt.meFiles || []).forEach(f => {
+    const ym = rptMeYm(f); if (!ym) return;
+    plan[ym] = plan[ym] || {};
+    if (plan[ym][f.key]) dupl.push(f.key + ' ' + ym.replace('-', '/'));
+    plan[ym][f.key] = f;
+  });
+  return { plan, dupl };
+}
+// その月に反映予定の数字（保存はしない）
+function rptMeValuesFor(slot){
   const v = {};
   try {
-    if (_rpt.month.D) { const r = plParseSalesCsv(_rpt.month.D.text); if (r.ok) v.sales = Math.round(r.sum); }
-    if (_rpt.month.C) { const r = plParseCsv(_rpt.month.C.text, 'storage'); if (r.ok) v.storage = Math.abs(Math.round(r.sum)); }
-    if (_rpt.month.B) { const r = plParseAdCsv(_rpt.month.B.text); if (r.ok) { v.adCost = Math.round(r.cost); v.adSales = Math.round(r.sales); } }
-    if (_rpt.month.A) { const r = plParseTxnCsv(_rpt.month.A.text); if (r.ok) { v.fbaFee = Math.abs(Math.round(r.fbaSigned)); if (r.hasFee) v.sellingFee = Math.abs(Math.round(r.feeSigned)); } }
+    if (slot.D) { const r = plParseSalesCsv(slot.D.text); if (r.ok) v.sales = Math.round(r.sum); }
+    if (slot.C) { const r = plParseCsv(slot.C.text, 'storage'); if (r.ok) v.storage = Math.abs(Math.round(r.sum)); }
+    if (slot.B) { const r = plParseAdCsv(slot.B.text); if (r.ok) { v.adCost = Math.round(r.cost); v.adSales = Math.round(r.sales); } }
+    if (slot.A) { const r = plParseTxnCsv(slot.A.text); if (r.ok) { v.fbaFee = Math.abs(Math.round(r.fbaSigned)); if (r.hasFee) v.sellingFee = Math.abs(Math.round(r.feeSigned)); } }
   } catch (e) {}
   return v;
 }
-// 対象月の横に出す注意（ファイル名の月と違う／日別データの月と違う）
+// 月の表（縦＝A〜D、横＝1〜12月）。◯＝今回取り込む／橙◯＝取込済みを上書き／済＝取込済み（今回は変更なし）
+function rptRenderMeTable(){
+  const box = document.getElementById('report-me-table'); if (!box) return;
+  const { plan } = rptMePlan();
+  const yms = Object.keys(plan).sort();
+  const pending = (_rpt.meFiles || []).filter(f => !rptMeYm(f));
+  if (!yms.length) {
+    box.innerHTML = pending.length ? '<div style="font-size:13px;color:var(--danger);padding:6px 2px;">月が読み取れないファイルがあります。上の「対象月」を選ぶと表に入ります。</div>' : '';
+    return;
+  }
+  const years = Array.from(new Set(yms.map(m => m.slice(0, 4)))).sort();
+  const has = (ym, k) => !!(plData[ym] && RPT_ME_FIELDS[k].some(fl => plData[ym][fl] != null));
+  let h = '';
+  years.forEach(y => {
+    let head = '<tr><th class="lab">種別＼月（' + y + '年）</th>';
+    for (let m = 1; m <= 12; m++) head += '<th>' + m + '月</th>';
+    head += '</tr>';
+    let body = '';
+    RPT_ME_KEYS.forEach(k => {
+      let row = '<td class="lab">' + RPT_ME_LABEL[k][0] + '<div class="rowh">' + RPT_ME_LABEL[k][1] + '</div></td>';
+      for (let m = 1; m <= 12; m++) {
+        const ym = y + '-' + String(m).padStart(2, '0');
+        const f = plan[ym] && plan[ym][k], done = has(ym, k);
+        let cell = '';
+        if (f) cell = done ? '<span class="mk-ow" title="' + retEsc(f.name) + '（取込済みの値を上書き）">◯</span>' : '<span class="mk-ok" title="' + retEsc(f.name) + '">◯</span>';
+        else if (done) cell = '<span class="mk-done" title="取込済み（今回は変更なし）">済</span>';
+        row += '<td>' + cell + '</td>';
+      }
+      body += '<tr>' + row + '</tr>';
+    });
+    h += '<div class="rcal-wrap" style="margin-bottom:8px;"><table class="rcal rcal-me"><thead>' + head + '</thead><tbody>' + body + '</tbody></table></div>';
+  });
+  h += '<div class="rcal-legend"><span class="mk-ok">◯</span> 今回取り込む　<span class="mk-ow">◯</span> 取込済みを上書き　<span class="mk-done">済</span> 取込済み（今回は変更なし）</div>';
+  box.innerHTML = h;
+}
+// 対象月の横に出す注意
 function rptUpdateMeWarn(){
   const el = document.getElementById('report-me-warn'); if (!el || !_rpt) return;
+  const files = _rpt.meFiles || [];
   const sel = document.getElementById('report-me-month'); const cur = sel ? sel.value : '';
-  const nameYm = rptMonthEndNameMonth(), dom = rptDominantMonth();
-  let w = '';
-  if (nameYm && cur && nameYm !== cur) w = '⚠️ ファイル名は ' + nameYm.replace('-', '/') + ' です。対象月と違います';
-  else if (!nameYm && dom && cur && dom !== cur) w = '⚠️ 一緒に入れた日別データは ' + dom.replace('-', '/') + ' です';
-  else if (nameYm && dom && nameYm !== dom) w = '※日別データ（' + dom.replace('-', '/') + '）とは別の月です';
-  el.textContent = w;
-  el.style.color = w.indexOf('⚠️') === 0 ? 'var(--danger)' : 'var(--text-tertiary)';
+  const unnamed = files.filter(f => !f.ym);
+  const wrap = document.getElementById('report-me-month-wrap'); if (wrap) wrap.style.display = unnamed.length ? '' : 'none';
+  const ws = [];
+  files.forEach(f => { if (f.nameYm && f.bodyYm && f.nameYm !== f.bodyYm) ws.push('⚠️ ' + f.key + '：ファイル名は ' + f.nameYm.replace('-', '/') + '、中身の期間は ' + f.bodyYm.replace('-', '/') + ' です'); });
+  const { dupl } = rptMePlan();
+  if (dupl.length) ws.push('⚠️ 同じ月に同じ種類が複数：' + dupl.join('・') + '（後のファイルを使用）');
+  if (unnamed.length && !cur) ws.push('⚠️ 月が読めないファイル ' + unnamed.length + '件：対象月を選んでください');
+  else if (unnamed.length) { const dom = rptDominantMonth(); if (dom && dom !== cur) ws.push('※一緒に入れた日別データは ' + dom.replace('-', '/') + ' です'); }
+  el.textContent = ws.join('　');
+  el.style.color = ws.some(w => w.indexOf('⚠️') === 0) ? 'var(--danger)' : 'var(--text-tertiary)';
 }
 function rptDominantMonth(){
   const cnt = {};
@@ -4910,7 +5020,7 @@ function rptDominantMonth(){
 function rptRender(){
   // セクション表示は該当データが入った時だけ
   const hasCal = _rpt.ad.length || _rpt.ship.length;
-  const hasMe = _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D;
+  const hasMe = rptHasMe();
   const hasRet = _rpt.ret && _rpt.ret.count > 0;
   document.getElementById('report-cal-section').hidden = !hasCal;
   document.getElementById('report-me-section').hidden = !hasMe;
@@ -4921,15 +5031,19 @@ function rptRender(){
     else { rc.classList.remove('hit'); st.className = 'me-status off'; st.textContent = '未取込'; }
   }
   // 月末データのハイライト
-  const M = _rpt.month;
   const setSlot = (key, hit, label) => {
     const c = document.querySelector('#report-me-grid .me-card[data-me="' + key + '"]'); if (!c) return;
     const st = c.querySelector('.me-status');
     if (hit) { c.classList.add('hit'); st.className = 'me-status on'; st.textContent = '✓ ' + label; }
     else { c.classList.remove('hit'); st.className = 'me-status off'; st.textContent = '未取込'; }
   };
-  setSlot('A', M.A, M.A && M.A.name); setSlot('B', M.B, M.B && M.B.name);
-  setSlot('C', M.C, M.C && M.C.name); setSlot('D', M.D, M.D && M.D.name);
+  RPT_ME_KEYS.forEach(k => {
+    const fs = (_rpt.meFiles || []).filter(f => f.key === k);
+    if (!fs.length) { setSlot(k, false); return; }
+    const ms = Array.from(new Set(fs.map(f => rptMeYm(f)).filter(Boolean))).sort().map(m => m.replace('-', '/'));
+    setSlot(k, true, fs.length === 1 ? (fs[0].name + (ms.length ? ' → ' + ms[0] : '')) : (fs.length + 'ファイル（' + (ms.join('・') || '月未選択') + '）'));
+  });
+  rptRenderMeTable();
 
   // カレンダー（広告・出荷）
   const adDates = new Set(_rpt.ad.map(a => a.date));
@@ -4977,15 +5091,12 @@ function rptRender(){
   // 未判別
   document.getElementById('report-unknown').textContent = _rpt.unknown.length ? ('判別できないファイル：' + _rpt.unknown.join(', ')) : '';
   // 月末データの「対象月」を、取り込んだファイルから自動推定して既定にセット（誤って別の月へ入るのを防止）
+  // 月が読めないファイル用の「対象月」は自動で決めず、選んでもらう（日別データの月に引っ張られて別の月へ入る事故を防ぐ）
   if (hasMe) {
-    // ★月末ファイル自身の名前の月を優先（日別データの月を優先すると、別の月の月末データが紛れ込む）
-    let guess = rptMonthEndNameMonth() || rptDominantMonth();
-    if (guess) {
-      const sel = document.getElementById('report-me-month');
-      if (sel) {
-        if (![...sel.options].some(o => o.value === guess)) { const op = document.createElement('option'); op.value = guess; op.textContent = guess.replace('-', '/'); sel.insertBefore(op, sel.firstChild); }
-        if (!_rpt._meMonthTouched) sel.value = guess;
-      }
+    const sel = document.getElementById('report-me-month');
+    if (sel) {
+      if (![...sel.options].some(o => o.value === '')) { const op = document.createElement('option'); op.value = ''; op.textContent = '選んでください'; sel.insertBefore(op, sel.firstChild); }
+      if (!_rpt._meMonthTouched) sel.value = '';
     }
   }
   rptUpdateMeWarn();
@@ -5000,31 +5111,36 @@ function rptMismatchExists(){
   return false;
 }
 function rptUpdateApply(){
-  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D || (_rpt.ret && _rpt.ret.count);
+  const anyData = _rpt.ship.length || _rpt.ad.length || rptHasMe() || (_rpt.ret && _rpt.ret.count);
   const blocked = rptMismatchExists() && !_rpt.allowPartial;
   document.getElementById('report-apply').disabled = !anyData || blocked;
   const bits = [];
   if (_rpt.ad.length) bits.push('広告' + _rpt.ad.length + '日');
   if (_rpt.ship.length) { const sd = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => sd.add(d))); bits.push('出荷' + sd.size + '日'); }
-  const meN = ['A', 'B', 'C', 'D'].filter(k => _rpt.month[k]).length;
-  if (meN) bits.push('月末' + meN + '種');
+  if (rptHasMe()) { const nM = Object.keys(rptMePlan().plan).length; bits.push('月末' + _rpt.meFiles.length + 'ファイル' + (nM ? '（' + nM + 'か月）' : '')); }
   if (_rpt.ret && _rpt.ret.count) bits.push('返品' + _rpt.ret.count + '件');
   document.getElementById('report-status').textContent = bits.length ? (bits.join(' / ') + (blocked ? '　⚠️ 対の欠けを確認してください' : '')) : '';
 }
 function applyReportAll(){
-  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D || (_rpt.ret && _rpt.ret.count);
+  const anyData = _rpt.ship.length || _rpt.ad.length || rptHasMe() || (_rpt.ret && _rpt.ret.count);
   if (!anyData) { toast('取り込めるデータがありません'); return; }
   if (rptMismatchExists() && !_rpt.allowPartial) { toast('対になっていない日があります。チェックを入れると取り込めます'); return; }
-  const hasMeApply = _rpt.month.A || _rpt.month.B || _rpt.month.C || _rpt.month.D;
+  const hasMeApply = rptHasMe();
+  let mePlan = null;
   if (hasMeApply) {
-    const meYm = document.getElementById('report-me-month').value;
-    if (!meYm) { toast('月末データの「対象月」を選んでください'); return; }
+    if (_rpt.meFiles.some(f => !rptMeYm(f))) { toast('月が読み取れない月末ファイルがあります。「対象月」を選んでください'); return; }
+    const { plan, dupl } = rptMePlan();
+    const yms = Object.keys(plan).sort();
     let warn = '';
-    const nameYm = rptMonthEndNameMonth();
-    if (nameYm && nameYm !== meYm) warn += '⚠️ 月末ファイルの名前は「' + nameYm.replace('-', '/') + '」ですが、対象月は「' + meYm.replace('-', '/') + '」です。\n\n';
-    const dup = plFindDuplicateMonth(meYm, rptMonthEndValues());
-    if (dup) warn += plDupWarnText(meYm, dup) + '\n\n';
-    if (!confirm(warn + '月末データ（A〜D）を「' + meYm.replace('-', '/') + '」に反映します。よろしいですか？\n\n違う月の場合はキャンセルして、上の「対象月」を選び直してください。')) return;
+    _rpt.meFiles.forEach(f => { if (f.nameYm && f.bodyYm && f.nameYm !== f.bodyYm) warn += '⚠️ ' + f.key + '「' + f.name + '」：ファイル名は ' + f.nameYm.replace('-', '/') + '、中身の期間は ' + f.bodyYm.replace('-', '/') + ' です。\n'; });
+    if (dupl.length) warn += '⚠️ 同じ月・同じ種類のファイルが複数あります（後のファイルを使用）：' + dupl.join('、') + '\n';
+    // 重複チェック：保存済みの別の月、または今回いっしょに入れる別の月と同じ数字になっていないか
+    const valsBy = {}; yms.forEach(ym => { valsBy[ym] = rptMeValuesFor(plan[ym]); });
+    const merged = Object.assign({}, plData); yms.forEach(ym => { merged[ym] = Object.assign({}, plData[ym] || {}, valsBy[ym]); });
+    yms.forEach(ym => { const dup = plFindDuplicateMonth(ym, valsBy[ym], merged); if (dup) warn += plDupWarnText(ym, dup) + '\n'; });
+    const list = yms.map(ym => '・' + ym.replace('-', '/') + '：' + RPT_ME_KEYS.filter(k => plan[ym][k]).join('・')).join('\n');
+    if (!confirm((warn ? warn + '\n' : '') + '月末データを次の月に反映します。よろしいですか？\n' + list)) return;
+    mePlan = plan;
   }
   const btn = document.getElementById('report-apply'); const orig = btn.innerHTML;
   btn.disabled = true; btn.classList.add('is-loading'); btn.innerHTML = '<span class="btn-spin"></span> 反映中…';
@@ -5039,24 +5155,24 @@ function applyReportAll(){
       _rpt.ship.forEach(s => Object.keys(s.byDate).forEach(ymd => { const ym = ymd.slice(0, 7), day = String(+ymd.slice(8, 10)); lastYm = ym; if (!shipments[ym]) shipments[ym] = {}; Object.keys(s.byDate[ymd]).forEach(fn => { if (!shipments[ym][fn]) shipments[ym][fn] = {}; shipments[ym][fn][day] = s.byDate[ymd][fn]; }); }));
       // ② 広告データ（日別）
       _rpt.ad.forEach(a => { adData[a.date] = a.agg; lastYm = lastYm || a.date.slice(0, 7); });
-      // ③ 月末データ（対象月へ）
-      const ym = document.getElementById('report-me-month').value;
-      if (ym && hasMeApply) {   // 月末ファイル（A〜D）を入れた時だけ。日別だけの取込で空の月を作らない
+      // ③ 月末データ（ファイルごとの月へ）
+      if (mePlan) Object.keys(mePlan).sort().forEach(ym => {
+        const slot = mePlan[ym];
         if (!plData[ym]) plData[ym] = {};
-        if (_rpt.month.D) { const r = plParseSalesCsv(_rpt.month.D.text); if (r.ok) plData[ym].sales = Math.round(r.sum); }
-        if (_rpt.month.C) { const r = plParseCsv(_rpt.month.C.text, 'storage'); if (r.ok) plData[ym].storage = Math.abs(Math.round(r.sum)); }
-        if (_rpt.month.B) { const r = plParseAdCsv(_rpt.month.B.text); if (r.ok) { plData[ym].adCost = Math.round(r.cost); plData[ym].adSales = Math.round(r.sales); if (r.byType) plData[ym].adByType = r.byType; } }
-        if (_rpt.month.A) {
-          const r = plParseTxnCsv(_rpt.month.A.text);
+        if (slot.D) { const r = plParseSalesCsv(slot.D.text); if (r.ok) plData[ym].sales = Math.round(r.sum); }
+        if (slot.C) { const r = plParseCsv(slot.C.text, 'storage'); if (r.ok) plData[ym].storage = Math.abs(Math.round(r.sum)); }
+        if (slot.B) { const r = plParseAdCsv(slot.B.text); if (r.ok) { plData[ym].adCost = Math.round(r.cost); plData[ym].adSales = Math.round(r.sales); if (r.byType) plData[ym].adByType = r.byType; } }
+        if (slot.A) {
+          const r = plParseTxnCsv(slot.A.text);
           if (r.ok) { plData[ym].fbaFee = Math.abs(Math.round(r.fbaSigned)); if (r.hasFee) plData[ym].sellingFee = Math.abs(Math.round(r.feeSigned)); }
-          const rs = plParseShipFromTxn(_rpt.month.A.text, ym);
+          const rs = plParseShipFromTxn(slot.A.text, ym);
           if (rs && rs.ok && rs.rows > 0 && !shipDatesAll.size) { // 出荷CSVを別途入れていない時だけ、トランザクション由来の出荷数を採用
             if (!shipments[ym]) shipments[ym] = {};
             for (const fn in rs.agg) { shipments[ym][fn] = rs.agg[fn]; }
           }
         }
         lastYm = ym;
-      }
+      });
       // 返品データ（月単位で上書き）
       if (_rpt.ret && _rpt.ret.count) { for (const ym in _rpt.ret.agg) { returnsData[ym] = _rpt.ret.agg[ym]; lastYm = lastYm || ym; } saveReturns(); }
       _graphMetricCache = {};
@@ -5068,7 +5184,7 @@ function applyReportAll(){
       const parts = [];
       if (_rpt.ad.length) parts.push('広告' + _rpt.ad.length + '日');
       if (shipDatesAll.size) parts.push('出荷' + shipDatesAll.size + '日');
-      const meN = ['A', 'B', 'C', 'D'].filter(k => _rpt.month[k]).length; if (meN) parts.push('月末' + meN + '種');
+      if (mePlan) parts.push('月末' + _rpt.meFiles.length + 'ファイル（' + Object.keys(mePlan).length + 'か月）');
       if (_rpt.ret && _rpt.ret.count) parts.push('返品' + _rpt.ret.count + '件');
       try { if (typeof renderReturnsView === 'function') renderReturnsView(); } catch (e) {}
       toast(parts.join(' / ') + ' を反映しました', { label: '元に戻す', onClick: () => { undo(); if (plUndoSnapshot) plUndoApply(); } });
@@ -7755,12 +7871,13 @@ let plImpFileMonths = new Set();   // 月別取込で入れたファイル名か
 const PL_DUP_FIELDS = { sales: '総売上', adCost: '広告費', adSales: '広告売上', storage: '保管費', fbaFee: 'FBA手数料', sellingFee: '販売手数料' };
 // 取り込む数字（vals）が、対象月以外の月と1円単位で同じになっていないか（別の月のファイルを取り違えた時の検出）
 //  2項目以上一致、または ¥1,000以上の項目が1つでも一致したら「同じ月」とみなす
-function plFindDuplicateMonth(ym, vals){
+function plFindDuplicateMonth(ym, vals, source){
+  const src = source || plData;
   const fs = Object.keys(PL_DUP_FIELDS).filter(f => vals && vals[f] != null && Number(vals[f]) !== 0);
   if (!fs.length) return null;
-  for (const other of Object.keys(plData).sort()) {
-    if (other === ym || !plData[other]) continue;
-    const o = plData[other];
+  for (const other of Object.keys(src).sort()) {
+    if (other === ym || !src[other]) continue;
+    const o = src[other];
     const hits = fs.filter(f => o[f] != null && Number(o[f]) === Number(vals[f]));
     if (hits.length >= 2 || hits.some(f => Math.abs(Number(vals[f])) >= 1000)) return { ym: other, fields: hits };
   }
