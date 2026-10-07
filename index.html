@@ -1512,8 +1512,13 @@
   .kw-crumb b { color: var(--black); }
   .kw-crumb-q { color: var(--purple); font-weight: 700; }
   .kw-crumb-sep { margin: 0 6px; color: var(--text-tertiary); }
-  .kw-help { width: 20px; height: 20px; margin-left: 6px; border-radius: 50%; border: 1.5px solid var(--purple); background: #fff; color: var(--purple); font-size: 12px; font-weight: 800; line-height: 1; cursor: pointer; padding: 0; vertical-align: 1px; font-family: inherit; }
-  .kw-help:hover { background: var(--purple); color: #fff; }
+  /* ？ボタン：共通の button（inline-flex・左寄せ）を打ち消して真ん中に。目立つ黄色 */
+  .kw-help { display: inline-flex; align-items: center; justify-content: center; gap: 0; box-sizing: border-box; flex-shrink: 0;
+    width: 22px; height: 22px; min-width: 22px; margin: 0 0 0 6px; padding: 0 !important; border-radius: 50%; border: 1.5px solid #eab308;
+    background: #facc15; color: #422006; font-size: 13px; font-weight: 900; line-height: 1; text-align: center; cursor: pointer; vertical-align: middle; font-family: inherit;
+    box-shadow: 0 1px 2px rgba(161,98,7,0.35); }
+  .kw-help:hover { background: #eab308; border-color: #ca8a04; color: #422006; }
+  .kw-step-lbl .kw-help { position: relative; top: -2px; }
   table.kwh-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
   table.kwh-tbl th, table.kwh-tbl td { border: 1px solid var(--border); padding: 8px 10px; vertical-align: top; text-align: left; line-height: 1.6; }
   table.kwh-tbl th { background: var(--bg-secondary); color: var(--text-secondary); font-size: 12px; }
@@ -1535,7 +1540,7 @@
   .adkw-hide-btns { position: absolute; right: 16px; z-index: 40; display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
   .adkw-hide-btns[hidden] { display: none; }
   .adkw-hide-btns button { justify-content: center; white-space: nowrap; padding: 5px 12px !important; line-height: 1.3; }
-  .kw-clear { margin: 0 4px 0 10px; border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .kw-clear { margin: 0 12px 0 0; border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .kw-clear:hover { background: var(--purple); color: #fff; }
   .kw-count { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
   .kw-count .kw-dot { margin-left: 2px; margin-right: 2px; }
@@ -1713,7 +1718,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.83</span>
+    <span class="version">v2.85</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -5990,10 +5995,11 @@ function renderAdKwView(){
   h += '</div>';
   // いま見ているもの＋絞り込みを解除
   const filtered = kwType !== 'all' || kwKind !== 'all' || !!kwCamp || !!kwSearch.trim();
-  h += '<div class="kw-crumb"><span class="kw-crumb-l">いま見ているもの</span>'
+  h += '<div class="kw-crumb">'
+    + (filtered ? '<button type="button" class="kw-clear" id="kw-clear" title="①対象（タイプ・種別・キャンペーン・検索）をすべて「すべて」に戻します">✕ 絞り込みを解除</button>' : '')
+    + '<span class="kw-crumb-l">いま見ているもの</span>'
     + '<b>' + crumbType + '</b> › <b>' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + '</b> › <b>' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + '</b>'
     + (kwSearch.trim() ? '　<span class="kw-crumb-q">検索「' + escapeHtml(kwSearch.trim()) + '」</span>' : '')
-    + (filtered ? '<button type="button" class="kw-clear" id="kw-clear" title="①対象（タイプ・種別・キャンペーン・検索）をすべて「すべて」に戻します">✕ 絞り込みを解除</button>' : '')
     + '<span class="kw-crumb-sep">／</span>' + periodTxt + '<span class="kw-crumb-sep">／</span>' + GROUP_NAME[kwGroup]
     + '</div>';
 
