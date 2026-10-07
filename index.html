@@ -1714,7 +1714,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.80</span>
+    <span class="version">v2.81</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -5935,6 +5935,14 @@ function renderAdKwView(){
       + '</div></div>';
     return;
   }
+  // ===== ①対象：選べる種別・キャンペーンを先に確定（無効になったキャンペーンは表の集計前に「すべて」へ） =====
+  const allRows = all.flatMap(d => adKwData[d] || []);
+  const typeOf = r => String(r.type || '').toUpperCase();
+  const KW_KINDS = ['キーワード', '商品'];
+  allRows.forEach(r => { if (r.kind && KW_KINDS.indexOf(r.kind) < 0) KW_KINDS.push(r.kind); });
+  const hasKind = k => allRows.some(r => (kwType === 'all' || typeOf(r) === kwType) && r.kind === k);
+  const camps = Array.from(new Set(allRows.filter(r => (kwType === 'all' || typeOf(r) === kwType) && (kwKind === 'all' || r.kind === kwKind)).map(r => r.campaign))).filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'));
+  if (kwCamp && camps.indexOf(kwCamp) < 0) kwCamp = '';
   const [from, to] = kwPeriod();
   const days = kwDayList(from, to);
   const rows = kwRows(from, to);
@@ -5945,15 +5953,11 @@ function renderAdKwView(){
   const hasPrev = kwDates().some(d => d >= pFrom && d <= pTo);
   const seg = (id, list, cur) => '<div class="graph-seg sm" id="' + id + '">' + list.map(([v, l]) => '<button type="button" data-v="' + v + '" class="' + (v === cur ? 'active' : '') + '">' + l + '</button>').join('') + '</div>';
 
-  // ===== ①対象 → ②期間 → ③見せ方（上から順に選ぶ3段） =====
-  const allRows = all.flatMap(d => adKwData[d] || []);
-  const typeOf = r => String(r.type || '').toUpperCase();
-  const KW_KINDS = ['キーワード', '商品'];
-  allRows.forEach(r => { if (r.kind && KW_KINDS.indexOf(r.kind) < 0) KW_KINDS.push(r.kind); });
-  const hasKind = k => allRows.some(r => (kwType === 'all' || typeOf(r) === kwType) && r.kind === k);
-  const camps = Array.from(new Set(allRows.filter(r => (kwType === 'all' || typeOf(r) === kwType) && (kwKind === 'all' || r.kind === kwKind)).map(r => r.campaign))).filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'));
-  if (kwCamp && camps.indexOf(kwCamp) < 0) kwCamp = '';
+  // ===== ①対象 → ②期間 → ③まとめ方（上から順に選ぶ3段） =====
   const typeName = kwType === 'all' ? 'すべて' : kwType;
+  // キャンペーンだけ選んだときは「いま見ているもの」にそのキャンペーンのタイプ（SP／SB）を出す
+  const campTypes = kwCamp ? Array.from(new Set(allRows.filter(r => r.campaign === kwCamp).map(typeOf).filter(Boolean))).sort() : [];
+  const crumbType = (kwType === 'all' && campTypes.length) ? campTypes.join('・') : typeName;
   const segD = (id, list, cur, big) => '<div class="graph-seg sm' + (big ? ' kw-big' : '') + '" id="' + id + '">' + list.map(([v, l, dis, tip]) => '<button type="button" data-v="' + v + '" class="' + (v === cur ? 'active' : '') + '"' + (dis ? ' disabled title="' + (tip || 'データがありません') + '"' : '') + '>' + l + '</button>').join('') + '</div>';
   let h = '<div class="kw-steps"' + (kwStepsHidden ? ' hidden' : '') + '>';
   // ① 対象
@@ -5980,7 +5984,7 @@ function renderAdKwView(){
   // いま見ているもの＋絞り込みを解除
   const filtered = kwType !== 'all' || kwKind !== 'all' || !!kwCamp || !!kwSearch.trim();
   h += '<div class="kw-crumb"><span class="kw-crumb-l">いま見ているもの</span>'
-    + '<b>' + typeName + '</b> › <b>' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + '</b> › <b>' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + '</b>'
+    + '<b>' + crumbType + '</b> › <b>' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + '</b> › <b>' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + '</b>'
     + (kwSearch.trim() ? '　<span class="kw-crumb-q">検索「' + escapeHtml(kwSearch.trim()) + '」</span>' : '')
     + '<span class="kw-crumb-sep">／</span>' + periodTxt + '<span class="kw-crumb-sep">／</span>' + GROUP_NAME[kwGroup]
     + '<span class="kw-crumb-btns">'
@@ -6054,8 +6058,9 @@ function renderAdKwView(){
   // イベント
   const segOn = (id, fn) => body.querySelectorAll('#' + id + ' button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); renderAdKwView(); }));
   segOn('kw-range', v => { kwRange = v; if (v === 'custom' && !kwFrom) { kwFrom = from; kwTo = to; } });
-  segOn('kw-type', v => { if (kwType !== v) { kwType = v; kwKind = 'all'; kwCamp = ''; } });   // 上の段を変えたら下の段は「すべて」に戻す
-  segOn('kw-kind', v => { if (kwKind !== v) { kwKind = v; kwCamp = ''; } });
+  // 上の段を変えても、下の段（種別・キャンペーン）は新しい条件に含まれていれば残す（含まれなければ描画時に「すべて」へ）
+  segOn('kw-type', v => { if (kwType !== v) { kwType = v; if (kwKind !== 'all' && !allRows.some(r => (v === 'all' || typeOf(r) === v) && r.kind === kwKind)) kwKind = 'all'; } });
+  segOn('kw-kind', v => { kwKind = v; });
   segOn('kw-group', v => { kwGroup = v; if (v === 'camp' && (kwSortKey === 'target' || kwSortKey === 'match' || kwSortKey === 'bid')) kwSortKey = 'cost'; });
   body.querySelectorAll('.kw-copy').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); kwCopyText(b.dataset.copy, '「' + b.dataset.copy + '」をコピーしました'); }));
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
