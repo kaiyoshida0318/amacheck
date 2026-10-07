@@ -1435,7 +1435,7 @@
   /* ===== KW推移モーダル ===== */
   .kwm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9200; display: flex; align-items: flex-start; justify-content: center; padding-top: 2.5vh; }
   .kwm-bg[hidden] { display: none; }
-  .kwm-box { background: #fff; width: 79vw; min-width: min(1100px, 96vw); max-width: 1560px; max-height: 96vh; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; }
+  .kwm-box { background: #fff; width: 79vw; min-width: min(1100px, 96vw); max-width: 1560px; height: 96vh; max-height: 96vh; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; }
   .kwm-head { display: flex; align-items: center; gap: 18px; padding: 20px 30px; border-bottom: 1px solid var(--border); }
   .kwm-title-wrap { flex: 1; min-width: 0; }
   .kwm-title { font-size: 21px; font-weight: 800; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
@@ -1447,7 +1447,10 @@
   .kwm-bidnow b { font-size: 23px; color: #9333ea; }
   .kwm-bidnow em { display: block; font-size: 12px; font-style: normal; color: var(--text-tertiary); }
   .kwm-close { border: none; background: var(--bg-secondary); border-radius: 50%; width: 44px; height: 44px; cursor: pointer; font-size: 20px; color: var(--text-secondary); flex-shrink: 0; }
-  .kwm-body { padding: 18px 30px 24px; overflow: auto; }
+  .kwm-body { padding: 18px 30px 24px; overflow: auto; flex: 1 1 auto; min-height: 0; }
+  /* グラフを隠しても画面の大きさは変えない（v2.90）：空いた分は表が伸びて使う */
+  .kwm-body.nochart { display: flex; flex-direction: column; }
+  .kwm-body.nochart .kwm-tblwrap { flex: 1 1 auto; max-height: none; min-height: 0; }
   .kwm-ctrl { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
   .kwm-seg { display: inline-flex; gap: 6px; }
   .kwm-seg button { font-size: 15px; padding: 8px 20px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; font-family: inherit; font-weight: 600; }
@@ -1470,7 +1473,8 @@
   .kwm-yr.off { opacity: 0.45; text-decoration: line-through; }
   .kwm-chart { position: relative; height: 400px; margin-bottom: 18px; }
   .kwm-nochart { padding: 40px; text-align: center; color: var(--text-tertiary); font-size: 13px; background: var(--bg-secondary); border-radius: 8px; }
-  .kwm-tblhead .kwm-hide-btn { font-size: 14px; padding: 6px 14px; font-weight: 600; }
+  .kwm-tblhead .kwm-hide-btn { font-size: 14px; padding: 6px 14px; font-weight: 600; background: var(--teal); border-color: var(--teal); color: #fff; }   /* 「ヘッダーを隠す」と同じ色 */
+  .kwm-tblhead .kwm-hide-btn:hover { background: var(--teal-hover); border-color: var(--teal-hover); color: #fff; }
   .kwm-tblhead { display: flex; align-items: center; gap: 14px; font-size: 16px; font-weight: 700; color: var(--black); margin: 4px 0 8px; padding-top: 10px; border-top: 1px solid var(--border); }
   .kwm-tblwrap { max-height: 560px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
   table.kwm-tbl { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 15px; }
@@ -1490,6 +1494,8 @@
   table.kwm-tbl .gt-sun { color: #dc2626 !important; } table.kwm-tbl .gt-sat { color: #2563eb !important; }
   .kwm-chip { display: inline-block; font-size: 12.5px; font-weight: 700; color: #fff; border-radius: 4px; padding: 2px 8px; margin-right: 4px; }
   .kwm-chip.bid { background: #9333ea; } .kwm-chip.sale { background: #c2185b; }
+  /* 表のセール表示（v2.92）：セール中の日（セールのある月）は日付（月）の左にセールのピンクの縦線。名前はマウスを乗せると出る */
+  table.kwm-tbl td.kwm-salecell { box-shadow: inset 4px 0 0 #c2185b; cursor: help; }
   table.kw-table td.kw-t .kw-word { user-select: text; }
   .kw-copy { border: none; background: transparent; padding: 0 4px; margin-left: 4px; color: var(--text-tertiary); cursor: pointer; opacity: 0; font-size: 13px; vertical-align: -2px; }
   tr:hover .kw-copy { opacity: 1; }
@@ -1725,7 +1731,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.89</span>
+    <span class="version">v2.92</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -6341,7 +6347,7 @@ function renderKwModal(){
     + '<div class="kwm-sub">' + sub + '</div></div>'
     + (lastAgg && lastAgg.bid != null ? '<div class="kwm-bidnow"><span>現在の入札額</span><b>¥' + Math.round(lastAgg.bid).toLocaleString() + '</b><em>' + lastDs.replace(/-/g, '/') + ' 時点</em></div>' : '')
     + '<button type="button" class="kwm-close" id="kwm-close" title="閉じる (Esc)"><svg class="icn"><use href="#i-x"/></svg></button></div>';
-  h += '<div class="kwm-body">';
+  h += '<div class="kwm-body' + (kwm.hideChart ? ' nochart' : '') + '">';
   h += '<div class="kwm-ctrl">' + seg('kwm-period', [['daily', '日別'], ['monthly', '月別']], kwm.period);
   if (isDaily) {
     h += '<select class="kwm-select" id="kwm-month">' + dayMonths.map(m => '<option value="' + m + '"' + (m === kwm.month ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') + '</select>';
@@ -6388,27 +6394,33 @@ function renderKwModal(){
   const COLS = [['bid', '入札額'], ['imp', '表示'], ['clicks', 'クリック'], ['ctr', 'CTR'], ['cpc', 'CPC'], ['cost', '広告費'], ['orders', '注文'], ['sales', '売上'], ['cvr', 'CVR'], ['roas', 'ROAS'], ['share', '上部シェア']].filter(([k]) => bidOk || k !== 'bid');
   const hot = new Set(M === 'all' ? ['sales', 'cost', 'roas'] : [M]);
   const cell = (a, k) => { const v = kwmVal(a, k); const cls = (hot.has(k) ? ' hot' : '') + (k === 'roas' && v != null ? ' ' + kwCls(kwJudgeOf(v / 100)) : ''); return '<td class="num' + cls + '">' + (a ? kwmFmt(k, v) : '—') + '</td>'; };
-  const memo = (l, dsForSale) => { let s = ''; const c = chgAt[l]; if (c) s += '<span class="kwm-chip bid">入札 ¥' + Math.round(c.from) + '→¥' + Math.round(c.to) + '</span>'; if (dsForSale && dateInAnySale(dsForSale)) s += '<span class="kwm-chip sale" title="' + escapeHtml(saleNamesForDate(dsForSale).join(' / ')) + '">SALE</span>'; return s; };
   h += '<div class="kwm-tblhead">📋 ' + (isDaily ? '日別' : '月別') + 'データ' + (!isDaily ? '<div class="kwm-seg sm" id="kwm-yoy"><button type="button" data-v="0" class="' + (!kwm.tblYoy ? 'on blue' : '') + '">通常</button><button type="button" data-v="1" class="' + (kwm.tblYoy ? 'on blue' : '') + '">前年同月比</button></div>' : '')
     + '<button type="button" class="kwm-btn kwm-hide-btn" id="kwm-hide">' + (kwm.hideChart ? 'グラフを表示' : 'グラフを隠す') + '</button></div>';   // v2.87：表の見出しの右隣へ
-  h += '<div class="kwm-tblwrap"><table class="kwm-tbl"><thead><tr><th>' + (isDaily ? '日付' : '月') + '</th>' + (kwm.tblYoy && !isDaily ? '<th></th>' : '') + COLS.map(([k, l]) => '<th class="num' + (hot.has(k) ? ' hot' : '') + '">' + l + '</th>').join('') + '<th>メモ</th></tr></thead><tbody>';
+  // セール（v2.91）：期間に重なるセールを名前のチップで。日別はセール中の日の行をピンクに
+  const salesIn = (f, t) => (saleRanges || []).filter(sr => sr.start && sr.end && sr.start <= t && sr.end >= f).sort((a, b) => String(a.start).localeCompare(String(b.start)));
+  // v2.92：幅を取らないよう、名前の札はやめて日付（月）の左にピンクの縦線だけ。名前はマウスを乗せると出る
+  const saleTip = (f, t) => salesIn(f, t).map(sr => ((sr.label && String(sr.label).trim()) || 'セール') + '（' + sr.start.replace(/-/g, '/') + '〜' + sr.end.replace(/-/g, '/') + '）').join(' / ');
+  const saleAttr = (f, t) => { const tp = saleTip(f, t); return tp ? ' kwm-salecell" title="セール：' + escapeHtml(tp) : ''; };
+  const monthEnd = ym => ym + '-' + String(daysInMonth(ym)).padStart(2, '0');
+  h += '<div class="kwm-tblwrap"><table class="kwm-tbl"><thead><tr><th>' + (isDaily ? '日付' : '月') + '</th>' + (kwm.tblYoy && !isDaily ? '<th></th>' : '') + COLS.map(([k, l]) => '<th class="num' + (hot.has(k) ? ' hot' : '') + '">' + l + '</th>').join('') + '</tr></thead><tbody>';   // v2.90：メモ列は削除（入札変更は行の紫枠、セールはグラフで見る）
   if (!isDaily && kwm.tblYoy) {
     const lastM = labels[labels.length - 1];
     if (lastM) for (let back = 0; back < 12; back++) {
       const ym = gYmAdd(lastM, -back), pym = gYmAdd(ym, -12), grp = back % 2 ? '' : ' alt';
-      h += '<tr class="kwm-yoy-a' + grp + (chgAt[ym] ? ' kwm-chg' : '') + '"><td class="lbl" rowspan="2">' + (+ym.slice(5, 7)) + '月</td><td class="yr">' + ym.slice(0, 4) + '年</td>' + COLS.map(([k]) => cell(aggMap[ym], k)).join('') + '<td>' + memo(ym) + '</td></tr>';
-      h += '<tr class="kwm-yoy-b' + grp + '"><td class="yr">' + pym.slice(0, 4) + '年</td>' + COLS.map(([k]) => cell(aggMap[pym], k)).join('') + '<td></td></tr>';
+      h += '<tr class="kwm-yoy-a' + grp + (chgAt[ym] ? ' kwm-chg' : '') + '"><td class="lbl" rowspan="2">' + (+ym.slice(5, 7)) + '月</td><td class="yr' + saleAttr(ym + '-01', monthEnd(ym)) + '">' + ym.slice(0, 4) + '年</td>' + COLS.map(([k]) => cell(aggMap[ym], k)).join('') + '</tr>';
+      h += '<tr class="kwm-yoy-b' + grp + '"><td class="yr' + saleAttr(pym + '-01', monthEnd(pym)) + '">' + pym.slice(0, 4) + '年</td>' + COLS.map(([k]) => cell(aggMap[pym], k)).join('') + '</tr>';
     }
   } else {
     labels.slice().reverse().forEach(l => {
       const a = aggMap[l];
       let lab;
-      if (isDaily) { const dw = new Date(l + 'T00:00:00').getDay(); lab = '<td class="lbl ' + (dw === 0 ? 'gt-sun' : (dw === 6 ? 'gt-sat' : '')) + '">' + graphPeriodText(l).slice(5) + '</td>'; }
-      else lab = '<td class="lbl">' + l.replace('-', '/') + '</td>';
-      h += '<tr class="' + (a ? '' : 'nodata') + (chgAt[l] ? ' kwm-chg' : '') + '">' + lab + COLS.map(([k]) => cell(a, k)).join('') + '<td>' + memo(l, isDaily ? l : null) + '</td></tr>';
+      const inSale = isDaily && dateInAnySale(l);
+      if (isDaily) { const dw = new Date(l + 'T00:00:00').getDay(); lab = '<td class="lbl ' + (dw === 0 ? 'gt-sun' : (dw === 6 ? 'gt-sat' : '')) + (inSale ? saleAttr(l, l) : '') + '">' + graphPeriodText(l).slice(5) + '</td>'; }
+      else lab = '<td class="lbl' + saleAttr(l + '-01', monthEnd(l)) + '">' + l.replace('-', '/') + '</td>';
+      h += '<tr class="' + (a ? '' : 'nodata') + (chgAt[l] ? ' kwm-chg' : '') + '">' + lab + COLS.map(([k]) => cell(a, k)).join('') + '</tr>';
     });
   }
-  if (!labels.length) h += '<tr><td colspan="' + (COLS.length + 2) + '" class="kw-empty">データがありません</td></tr>';
+  if (!labels.length) h += '<tr><td colspan="' + (COLS.length + 1 + (kwm.tblYoy && !isDaily ? 1 : 0)) + '" class="kw-empty">データがありません</td></tr>';
   h += '</tbody></table></div></div>';
   box.innerHTML = h;
 
