@@ -1237,6 +1237,13 @@
   .with-item .spacer { flex: 1; }
   /* セール一覧：スクロール＋折りたたみ＋ポップアップ */
   .sale-scroll { max-height: 220px; overflow-y: auto; padding-right: 2px; }
+  .exp-row { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .exp-lbl { font-weight: 600; font-size: 12px; width: 44px; }
+  #exp-range-seg button.active { background: var(--teal); color: #fff; }
+  .exp-note { font-size: 12px; color: var(--text-tertiary); margin-top: 6px; }
+  .exp-checks { display: flex; flex-direction: column; gap: 8px; }
+  .exp-checks label { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .exp-checks label span { font-size: 12px; font-weight: 400; color: var(--text-tertiary); }
   .sale-part { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
   .sale-part-lbl { font-weight: 600; font-size: 12px; }
   #sale-part-seg button.active { background: var(--purple); color: #fff; }
@@ -1545,7 +1552,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.64</span>
+    <span class="version">v2.65</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1553,6 +1560,7 @@
     </div>
     <button class="utility report-add-btn" id="open-report" title="出荷数・広告・月末データのCSV/ZIPをまとめて取り込む" style="font-size:13px;background:#dc2626;border:1px solid #dc2626;color:#fff;font-weight:700;"><svg class="icn"><use href="#i-plus"/></svg> レポート追加</button>
     <button class="utility" id="open-sale" title="セール期間・対象商品を設定" style="font-size:13px;"><svg class="icn"><use href="#i-tag"/></svg> セール設定</button>
+    <button class="utility" id="open-export" title="出荷数・広告・全体収支を、ChatGPT などで分析するための Excel ファイルで書き出す" style="font-size:13px;"><svg class="icn"><use href="#i-download"/></svg> 分析用データ</button>
     <button class="utility" id="open-sync" title="GitHubにデータを同期（別PCと共有）" style="font-size:13px;"><svg class="icn"><use href="#i-upload"/></svg> 同期</button>
     <button class="utility" id="data-export" title="全データをファイルに書き出してバックアップ" style="font-size:13px;"><svg class="icn"><use href="#i-file-spreadsheet"/></svg> バックアップ</button>
     <button class="utility" id="data-import" title="バックアップファイルから復元" style="font-size:13px;"><svg class="icn"><use href="#i-plus"/></svg> 復元</button>
@@ -1958,6 +1966,42 @@
     <div class="modal-actions">
       <button id="sale-edit-cancel" class="ghost" hidden>取消</button>
       <button id="sale-done" class="primary"><svg class="icn"><use href="#i-check"/></svg> 登録</button>
+    </div>
+  </div>
+</div>
+
+<!-- 分析用データの書き出し -->
+<div class="modal-bg" id="export-modal" hidden>
+  <div class="modal" style="max-width:540px;">
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
+      <div>
+        <h3><svg class="icn" style="color:var(--teal);vertical-align:-3px;"><use href="#i-download"/></svg> 分析用データ</h3>
+        <div class="sub" style="margin-bottom:0;">ChatGPT などで分析するための Excel ファイル（.xlsx）を書き出します。1行＝1件の縦長の表で、日別・商品別・広告種類別まで一番細かい単位で入ります。先頭の「データ説明」シートに各列の意味・単位・計算式が書いてあるので、ファイルをそのまま ChatGPT に渡せます。</div>
+      </div>
+      <button id="exp-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="exp-row">
+      <span class="exp-lbl">期間</span>
+      <div class="graph-seg sm" id="exp-range-seg">
+        <button type="button" data-v="all" class="active">全期間</button>
+        <button type="button" data-v="custom">期間を指定</button>
+      </div>
+      <span id="exp-range-custom" hidden><select id="exp-from" class="graph-select" style="font-size:13px;padding:6px 8px;"></select> 〜 <select id="exp-to" class="graph-select" style="font-size:13px;padding:6px 8px;"></select></span>
+    </div>
+    <div id="exp-summary" class="exp-note"></div>
+    <div class="exp-row" style="align-items:flex-start;">
+      <span class="exp-lbl" style="padding-top:2px;">データ</span>
+      <div class="exp-checks">
+        <label><input type="checkbox" id="exp-ship" checked> 出荷数データ<span>日×商品（推計売上・セール価格つき）</span></label>
+        <label><input type="checkbox" id="exp-ad" checked> 広告データ<span>日×広告商品×SP/SB×種類（費用・売上・クリック・注文）</span></label>
+        <label><input type="checkbox" id="exp-pl" checked> 全体収支<span>月別の実額＋広告のSP/SB内訳</span></label>
+        <label><input type="checkbox" id="exp-ret" checked> 返品データ<span>月×商品×商品の状態</span></label>
+      </div>
+    </div>
+    <div class="exp-note">いつも入るシート：データ説明・日別_合計・商品マスタ・広告商品_対応表・セール期間・セール価格</div>
+    <div class="modal-actions">
+      <button id="exp-cancel" class="ghost">閉じる</button>
+      <button id="exp-go" class="primary"><svg class="icn"><use href="#i-download"/></svg> 書き出す (.xlsx)</button>
     </div>
   </div>
 </div>
@@ -2522,6 +2566,15 @@ function init(){
   window.addEventListener('resize', adjustHiddenTableHeight);
   // セール設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
+  document.getElementById('open-export').addEventListener('click', openExportModal);
+  document.getElementById('exp-close').addEventListener('click', closeExportModal);
+  document.getElementById('exp-cancel').addEventListener('click', closeExportModal);
+  document.getElementById('exp-go').addEventListener('click', downloadAnalysisData);
+  document.getElementById('export-modal').addEventListener('click', (e) => { if (e.target.id === 'export-modal') closeExportModal(); });
+  document.querySelectorAll('#exp-range-seg button').forEach(b => b.addEventListener('click', () => {
+    document.querySelectorAll('#exp-range-seg button').forEach(x => x.classList.toggle('active', x === b));
+    document.getElementById('exp-range-custom').hidden = b.dataset.v !== 'custom';
+  }));
   document.getElementById('open-report').addEventListener('click', openReportModal);
   document.getElementById('report-close').addEventListener('click', closeReportModal);
   document.getElementById('report-cancel').addEventListener('click', closeReportModal);
@@ -2604,6 +2657,7 @@ function init(){
   })();
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('ret-add-modal').hidden) closeRetAddModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('cat-modal').hidden) closeCatModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('export-modal').hidden) closeExportModal(); });
   // 全体収支 月末データ取込モーダル
   document.getElementById('pl-imp-close').addEventListener('click', closePlImport);
   document.getElementById('pl-imp-cancel').addEventListener('click', plCancelPending);
@@ -5511,6 +5565,246 @@ function setSalePartMode(on){
   const info = document.getElementById('sale-file-info'); if (info) info.hidden = !saleHasProducts;
 }
 // セール参加商品リストのテンプレート（商品マスタの商品入り。セール価格だけ空欄。編集中のセールは現在のセール価格を入れる）
+// ============================================
+// 分析用データの書き出し（ChatGPT など外部の分析向け）
+//  ・.xlsx 1ファイル。全シート「1行＝1件」の縦長（ロング形式）、1行目が列名、数値は数値型（¥やカンマなし）
+//  ・保存データで一番細かい単位：出荷＝日×商品、広告＝日×広告商品×SP/SB×種類
+//  ・先頭に「データ説明」シート（各シート・各列の意味、単位、推計か実額か、計算式）
+// ============================================
+const EXP_DOW = ['日', '月', '火', '水', '木', '金', '土'];
+const EXP_SUB = { kw: 'KW', shohin: '商品', auto: 'オート', douga: '動画', shokore: '商品コレ' };
+const expR = (v, d) => (v == null || !isFinite(v)) ? null : Math.round(v * Math.pow(10, d || 0)) / Math.pow(10, d || 0);
+function expMonthsAll(){
+  const set = new Set();
+  Object.keys(shipments).forEach(k => set.add(k));
+  Object.keys(adData).forEach(k => set.add(k.slice(0, 7)));
+  Object.keys(plData).forEach(k => { if (plMonthHasPlData(k)) set.add(k); });
+  Object.keys(returnsData || {}).forEach(k => set.add(k));
+  return Array.from(set).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
+}
+function openExportModal(){
+  const months = expMonthsAll();
+  const opts = (sel) => months.slice().reverse().map(m => '<option value="' + m + '"' + (m === sel ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('');
+  const f = document.getElementById('exp-from'), t = document.getElementById('exp-to');
+  f.innerHTML = opts(months[0]); t.innerHTML = opts(months[months.length - 1]);
+  document.querySelectorAll('#exp-range-seg button').forEach(b => b.classList.toggle('active', b.dataset.v === 'all'));
+  document.getElementById('exp-range-custom').hidden = true;
+  document.getElementById('exp-summary').textContent = months.length ? ('データのある期間：' + months[0].replace('-', '/') + '〜' + months[months.length - 1].replace('-', '/')) : 'データがありません';
+  document.getElementById('export-modal').hidden = false;
+}
+function closeExportModal(){ document.getElementById('export-modal').hidden = true; }
+
+function buildAnalysisSheets(fromYm, toYm, want){
+  const inYm = ym => (!fromYm || ym >= fromYm) && (!toYm || ym <= toYm);
+  const pMap = {}; products.forEach(p => { pMap[p.fnsku] = p; });
+  const num = v => (v === '' || v == null || isNaN(Number(v))) ? null : Number(v);
+  const sheets = [];   // { name, rows: [[...]], widths: [...] }
+  const dateList = new Set();
+
+  // ① 出荷数（日×商品）
+  if (want.ship) {
+    const rows = [['日付', '年月', '曜日', 'FNSKU', 'SKU', 'ASIN', '商品名', 'カテゴリ', 'ステータス', '出荷数', '通常価格', '適用価格', 'セール価格適用', '推計売上', '原価単価', '推計原価', 'セール期間中', 'セール名']];
+    Object.keys(shipments).filter(ym => /^\d{4}-\d{2}$/.test(ym) && inYm(ym)).sort().forEach(ym => {
+      const sh = shipments[ym];
+      const recs = [];
+      for (const fn in sh) for (const d in sh[fn]) { const q = Number(sh[fn][d]) || 0; if (q > 0) recs.push([+d, fn, q]); }
+      recs.sort((a, b) => a[0] - b[0] || String(a[1]).localeCompare(String(b[1])));
+      recs.forEach(([d, fn, q]) => {
+        const ds = ym + '-' + String(d).padStart(2, '0');
+        const p = pMap[fn] || { fnsku: fn };
+        const normal = num(p.sellingPrice);
+        const sp = pMap[fn] ? salePriceForProductOnDate(p, ds) : null;
+        const price = sp != null ? sp : (normal || 0);
+        const cost = num(p.cost);
+        const sn = saleNamesForDate(ds);
+        dateList.add(ds);
+        rows.push([ds, ym, EXP_DOW[new Date(ds + 'T00:00:00').getDay()], fn, p.sku || '', p.asin || '', p.name || '', catOf(fn), STATUS_LABELS[productStatus(p)] || '', q,
+          normal, price, sp != null ? 1 : 0, expR(q * price), cost, cost != null ? expR(q * cost) : null, sn.length ? 1 : 0, sn.join(' / ')]);
+      });
+    });
+    sheets.push({ name: '出荷数_日別', rows, widths: [11, 8, 5, 14, 16, 12, 36, 12, 9, 7, 9, 9, 8, 10, 9, 10, 8, 18] });
+  }
+
+  // ② 広告（日×広告商品×SP/SB×種類）
+  if (want.ad) {
+    const rows = [['日付', '年月', '曜日', '広告商品', '広告タイプ', '広告種類', '広告費', '広告売上', 'クリック数', '注文数', 'ROAS（倍）', 'CVR（%）', 'CPC（円）', 'セール期間中', 'セール名']];
+    Object.keys(adData).filter(ds => /^\d{4}-\d{2}-\d{2}$/.test(ds) && inYm(ds.slice(0, 7))).sort().forEach(ds => {
+      const day = adData[ds] || {};
+      const sn = saleNamesForDate(ds);
+      Object.keys(day).sort().forEach(prod => {
+        const pd = day[prod] || {};
+        [['sp', ['kw', 'shohin', 'auto']], ['sb', ['douga', 'shokore']]].forEach(([pf, subs]) => {
+          subs.forEach(st => {
+            const m = pd[pf] && pd[pf][st]; if (!m) return;
+            const cost = Number(m.cost) || 0, sales = Number(m.sales) || 0, cl = Number(m.clicks) || 0, od = Number(m.orders) || 0;
+            if (!cost && !sales && !cl && !od) return;
+            dateList.add(ds);
+            rows.push([ds, ds.slice(0, 7), EXP_DOW[new Date(ds + 'T00:00:00').getDay()], prod, pf.toUpperCase(), EXP_SUB[st], expR(cost), expR(sales), cl, od,
+              cost > 0 ? expR(sales / cost, 4) : null, cl > 0 ? expR(od / cl * 100, 2) : null, cl > 0 ? expR(cost / cl, 1) : null, sn.length ? 1 : 0, sn.join(' / ')]);
+          });
+        });
+      });
+    });
+    sheets.push({ name: '広告_日別', rows, widths: [11, 8, 5, 24, 9, 9, 9, 10, 9, 7, 9, 8, 8, 8, 18] });
+  }
+
+  // ③ 日別の合計（出荷・推計売上・広告をその日でまとめたもの）
+  if (want.ship || want.ad) {
+    const all = new Set(dateList);
+    if (!want.ship) Object.keys(shipments).forEach(ym => { if (!inYm(ym)) return; const sh = shipments[ym]; for (const fn in sh) for (const d in sh[fn]) if ((Number(sh[fn][d]) || 0) > 0) all.add(ym + '-' + String(d).padStart(2, '0')); });
+    if (!want.ad) Object.keys(adData).forEach(ds => { if (inYm(ds.slice(0, 7))) all.add(ds); });
+    const rows = [['日付', '年月', '曜日', '総出荷数', '推計総売上', '広告費', '広告売上', '推計SEO売上', 'クリック数', '注文数', 'ROAS（倍）', '広告売上比率（%）', 'セール期間中', 'セール名']];
+    Array.from(all).sort().forEach(ds => {
+      const ym = ds.slice(0, 7), d = +ds.slice(8, 10);
+      let q = 0; const sh = shipments[ym] || {}; for (const fn in sh) q += Number(sh[fn] && sh[fn][d]) || 0;
+      const total = totalSalesResolved(ds, 'all'), m = adMetricsResolved(ds, 'all');
+      const sum = (o) => o.sp.kw + o.sp.shohin + o.sp.auto + o.sb.douga + o.sb.shokore;
+      const cost = sum(m.cost), sales = sum(m.sales), cl = sum(m.clicks), od = sum(m.orders);
+      const sn = saleNamesForDate(ds);
+      rows.push([ds, ym, EXP_DOW[new Date(ds + 'T00:00:00').getDay()], q, expR(total), expR(cost), expR(sales), expR(Math.max(0, total - sales)), cl, od,
+        cost > 0 ? expR(sales / cost, 4) : null, total > 0 ? expR(sales / total * 100, 2) : null, sn.length ? 1 : 0, sn.join(' / ')]);
+    });
+    sheets.push({ name: '日別_合計', rows, widths: [11, 8, 5, 9, 11, 9, 10, 11, 9, 7, 9, 10, 8, 18] });
+  }
+
+  // ④ 全体収支（月別・実額）と ⑤ 広告内訳（月×SP/SB×種類・実額）
+  if (want.pl) {
+    const rows = [['年月', '総売上（実額）', '広告売上（実額）', 'SEO売上（実額）', '広告費（実額）', '保管費（実額）', 'FBA手数料（実額）', '販売手数料（実額）', '原価（出荷数×原価単価）', '粗利益', '実質利益', 'ROAS（倍）',
+      '出荷数合計', '推計総売上（出荷数×価格）', '広告費（日別データ合計）', '広告売上（日別データ合計）', '総売上入力済み', '広告入力済み', '保管費入力済み', 'FBA手数料入力済み']];
+    const rowsBt = [['年月', '広告タイプ', '広告種類', '広告費（実額）', '広告売上（実額）', 'ROAS（倍）']];
+    plMonthsList().filter(inYm).forEach(ym => {
+      const e = plData[ym] || {};
+      const c = plMonthCalc(ym), mn = plManual(ym);
+      const sales = num(e.sales), adC = num(e.adCost), adS = num(e.adSales);
+      const gross = sales != null ? sales - c.costSum : null;
+      const profit = gross != null ? gross - (adC || 0) - mn.storage - mn.fbaFee : null;
+      let q = 0, dAdS = 0; const sh = shipments[ym] || {}; for (const fn in sh) for (const d in sh[fn]) q += Number(sh[fn][d]) || 0;
+      for (let d = 1; d <= daysInMonth(ym); d++) { const m = adMetricsForDate(ym + '-' + String(d).padStart(2, '0'), 'all').sales; dAdS += m.sp.kw + m.sp.shohin + m.sp.auto + m.sb.douga + m.sb.shokore; }
+      rows.push([ym, sales, adS, sales != null ? sales - (adS || 0) : null, adC, num(e.storage), num(e.fbaFee), num(e.sellingFee), expR(c.costSum), expR(gross), expR(profit),
+        (adC > 0 && adS != null) ? expR(adS / adC, 4) : null, q, expR(c.total), expR(c.adCost), expR(dAdS),
+        e.sales != null ? 1 : 0, e.adCost != null ? 1 : 0, e.storage != null ? 1 : 0, e.fbaFee != null ? 1 : 0]);
+      const bt = e.adByType;
+      if (bt) [['sp', ['kw', 'shohin', 'auto']], ['sb', ['douga', 'shokore']]].forEach(([pf, subs]) => subs.forEach(st => {
+        const b = bt[pf] && bt[pf][st]; if (!b || (!b.cost && !b.sales)) return;
+        rowsBt.push([ym, pf.toUpperCase(), EXP_SUB[st], expR(b.cost), expR(b.sales), b.cost > 0 ? expR(b.sales / b.cost, 4) : null]);
+      }));
+    });
+    sheets.push({ name: '全体収支_月別', rows, widths: [8, 12, 12, 12, 11, 10, 11, 11, 13, 11, 11, 9, 9, 14, 13, 14, 8, 8, 8, 8] });
+    sheets.push({ name: '全体収支_広告内訳', rows: rowsBt, widths: [8, 9, 9, 12, 12, 9] });
+  }
+
+  // ⑥ 返品（月×商品×状態）
+  if (want.ret) {
+    const rows = [['年月', 'FNSKU', 'SKU', 'ASIN', '商品名', 'カテゴリ', '商品の状態', '返品数', 'その月の出荷数']];
+    Object.keys(returnsData || {}).filter(ym => /^\d{4}-\d{2}$/.test(ym) && inYm(ym)).sort().forEach(ym => {
+      const m = returnsData[ym] || {};
+      Object.keys(m).sort().forEach(fn => {
+        const p = pMap[fn] || {};
+        let shipQ = 0; const sh = shipments[ym] && shipments[ym][fn]; if (sh) for (const d in sh) shipQ += Number(sh[d]) || 0;
+        Object.keys(m[fn] || {}).forEach(st => { const n = Number(m[fn][st]) || 0; if (n) rows.push([ym, fn, p.sku || '', p.asin || '', p.name || '', catOf(fn), st, n, shipQ]); });
+      });
+    });
+    sheets.push({ name: '返品_月別', rows, widths: [8, 14, 16, 12, 36, 12, 16, 7, 10] });
+  }
+
+  // ⑦ 商品マスタ ⑧ 広告商品の対応表 ⑨ セール期間 ⑩ セール価格（常に付ける：シート同士をつなぐための表）
+  sheets.push({ name: '商品マスタ', rows: [['FNSKU', 'SKU', 'ASIN', '商品名', 'カテゴリ', 'ステータス', '撤退日', '販売価格', '原価単価', '販売手数料（1個あたり）', 'FBA手数料（1個あたり）']]
+    .concat(products.map(p => [p.fnsku || '', p.sku || '', p.asin || '', p.name || '', catOf(p.fnsku), STATUS_LABELS[productStatus(p)] || '', p.withdrawnDate || '', num(p.sellingPrice), num(p.cost), num(p.sellingFee), num(p.fbaFee)])),
+    widths: [14, 16, 12, 40, 12, 9, 11, 9, 9, 12, 12] });
+  sheets.push({ name: '広告商品_対応表', rows: [['広告商品', 'キャンペーン名', '広告タイプ', '実施中', '対象ASIN']]
+    .concat(adCampaigns.map(c => [campProduct(c), c.name || '', String(c.type || '').toUpperCase(), c.active ? 1 : 0, (typeof asinTokens === 'function' ? asinTokens(c.asin).join(' ') : (c.asin || ''))])),
+    widths: [24, 36, 10, 7, 40] });
+  sheets.push({ name: 'セール期間', rows: [['セール名', '開始日', '終了日', '日数', '参加商品数']]
+    .concat(saleRanges.slice().sort((a, b) => String(a.start).localeCompare(String(b.start))).map(s => [s.label || 'セール', s.start, s.end,
+      Math.round((new Date(s.end + 'T00:00:00') - new Date(s.start + 'T00:00:00')) / 86400000) + 1, (s.products || []).length])),
+    widths: [24, 11, 11, 6, 9] });
+  const spRows = [['セール名', '開始日', '終了日', 'SKU', '子ASIN', '商品名', '出品価格', 'セール価格', '割引率（%）']];
+  saleRanges.forEach(s => (s.products || []).forEach(x => spRows.push([s.label || 'セール', s.start, s.end, x.sku || '', x.asin || '', x.title || '', x.listPrice, x.salePrice,
+    (x.listPrice > 0 && x.salePrice != null) ? expR((1 - x.salePrice / x.listPrice) * 100, 1) : null])));
+  sheets.push({ name: 'セール価格', rows: spRows, widths: [24, 11, 11, 16, 12, 36, 9, 9, 9] });
+
+  // ⓪ データ説明（先頭）
+  const D = [];
+  const now = new Date();
+  D.push(['Amacheck 分析用データ（Amazon FBA 物販の売上・出荷・広告・収支）']);
+  D.push(['出力日時', now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0') + '-' + String(now.getDate()).padStart(2, '0') + ' ' + String(now.getHours()).padStart(2, '0') + ':' + String(now.getMinutes()).padStart(2, '0')]);
+  D.push(['対象期間', (fromYm || '最初') + ' 〜 ' + (toYm || '最後') + '（年月）']);
+  D.push(['通貨・単位', '金額はすべて日本円（税込・整数）。数値に¥やカンマは付けていない。率は列名に単位を記載（ROAS（倍）＝広告売上÷広告費、CVR（%）＝注文数÷クリック数×100）。']);
+  D.push(['形式', '各シートは1行目が列名、2行目以降が1行＝1件の縦長データ。値が無い（未入力・計算不可）セルは空欄。フラグ列は 1＝はい／0＝いいえ。']);
+  D.push(['重要な注意1', '「推計」と付く売上は、出荷数×販売価格（セール期間中の参加商品はセール価格）で計算した見込み値。実際の売上（Amazon 売上ダッシュボードの実額）は「全体収支_月別」の「総売上（実額）」のみ。両者は一致しない。']);
+  D.push(['重要な注意2', '日別の広告データは、配信中（有効）のキャンペーンをキャンペーン名から「広告商品」「SP/SB」「種類」に分類して合算したもの。キャンペーン単位の行は保存していない。月の広告実額（全体収支）とは集計元レポートが違うため一致しないことがある。']);
+  D.push(['重要な注意3', '全体収支の「粗利益」＝総売上（実額）−原価（出荷数×原価単価）。「実質利益」＝粗利益−広告費（実額）−保管費（実額）−FBA手数料（実額）。販売手数料（実額）は実質利益から差し引いていない（列は別に用意）。保管費・FBA手数料が未取込の月は0として計算している（「〜入力済み」列で確認できる）。']);
+  D.push(['キーの対応', '商品は SKU／ASIN／FNSKU で各シートをつなげる。広告シートの「広告商品」は「広告商品_対応表」で対象ASIN、さらに「商品マスタ」のASINへつながる。セールは「セール期間」「セール価格」を参照。']);
+  D.push([]);
+  D.push(['シート', '列', '説明']);
+  const add = (sh, col, desc) => D.push([sh, col, desc]);
+  if (want.ship) {
+    add('出荷数_日別', '（シート全体）', '1行＝1日×1商品の出荷数（0の日は行なし）。');
+    add('出荷数_日別', '出荷数', 'その日の出荷（販売）個数。');
+    add('出荷数_日別', '通常価格／適用価格', '通常価格＝商品マスタの販売価格。適用価格＝その日の価格（セール参加商品はセール価格）。');
+    add('出荷数_日別', 'セール価格適用', 'その日にセール価格が適用されたか（1/0）。');
+    add('出荷数_日別', '推計売上', '出荷数×適用価格（推計）。');
+    add('出荷数_日別', '推計原価', '出荷数×原価単価。');
+    add('出荷数_日別', 'セール期間中／セール名', 'その日がいずれかのセール期間に入っているか（自社商品の参加有無は問わない）。');
+  }
+  if (want.ad) {
+    add('広告_日別', '（シート全体）', '1行＝1日×広告商品×広告タイプ×広告種類。Amazon 広告のキャンペーンレポート（日別）から集計。');
+    add('広告_日別', '広告商品', 'キャンペーン名から取り出した商品の呼び名（「広告商品_対応表」でASINへ）。');
+    add('広告_日別', '広告タイプ／広告種類', 'SP＝スポンサープロダクト（KW＝キーワード、商品＝商品ターゲティング、オート）。SB＝スポンサーブランド（動画、商品コレ＝商品コレクション）。');
+    add('広告_日別', '広告費／広告売上／クリック数／注文数', '広告費＝合計費用、広告売上＝広告経由の売上、注文数＝広告経由の購入数。');
+  }
+  if (want.ship || want.ad) {
+    add('日別_合計', '（シート全体）', '1行＝1日。全商品の出荷・推計売上と全広告の合計。');
+    add('日別_合計', '推計総売上', 'その日の出荷数×適用価格の合計（推計）。');
+    add('日別_合計', '推計SEO売上', '推計総売上−広告売上（0未満は0）。広告以外（自然検索など）の売上の目安。');
+    add('日別_合計', '広告売上比率（%）', '広告売上÷推計総売上×100。');
+  }
+  if (want.pl) {
+    add('全体収支_月別', '（シート全体）', '1行＝1か月。「（実額）」は月末レポートから取り込んだ実際の数字（未取込は空欄）。');
+    add('全体収支_月別', '総売上（実額）', '売上ダッシュボードの注文商品の売上額。');
+    add('全体収支_月別', 'SEO売上（実額）', '総売上（実額）−広告売上（実額）。');
+    add('全体収支_月別', '原価（出荷数×原価単価）', 'その月の出荷数×商品マスタの原価単価の合計。');
+    add('全体収支_月別', '粗利益／実質利益', '上の「重要な注意3」の式。');
+    add('全体収支_月別', '推計総売上・広告費／広告売上（日別データ合計）', '比較用：日別データを月で合計した値。');
+    add('全体収支_月別', '〜入力済み', 'その月にその実額が取り込まれているか（1/0）。0の月の実額系の列は空欄。');
+    add('全体収支_広告内訳', '（シート全体）', '1行＝1か月×SP/SB×種類。月の広告レポート（実額）の内訳。');
+  }
+  if (want.ret) add('返品_月別', '（シート全体）', '1行＝1か月×1商品×商品の状態。返品数と、同じ月のその商品の出荷数。返品率＝返品数÷出荷数（Amacheck の画面では「欠陥品・不良品」の返品を使用）。');
+  add('商品マスタ', '（シート全体）', '1行＝1商品。販売価格・原価単価・1個あたりの手数料。');
+  add('セール期間／セール価格', '（シート全体）', 'セール期間の一覧と、参加商品のセール価格。参加商品数0のセールは期間の記録のみ（価格は通常のまま）。');
+  sheets.unshift({ name: 'データ説明', rows: D, widths: [22, 30, 110] });
+  return sheets;
+}
+function downloadAnalysisData(){
+  if (typeof XLSX === 'undefined') { toast('表計算ライブラリの読み込みに失敗しました（ネット接続を確認して再読み込みしてください）'); return; }
+  const custom = document.querySelector('#exp-range-seg button.active') && document.querySelector('#exp-range-seg button.active').dataset.v === 'custom';
+  let from = custom ? document.getElementById('exp-from').value : null, to = custom ? document.getElementById('exp-to').value : null;
+  if (from && to && from > to) { const t = from; from = to; to = t; }
+  const want = { ship: document.getElementById('exp-ship').checked, ad: document.getElementById('exp-ad').checked, pl: document.getElementById('exp-pl').checked, ret: document.getElementById('exp-ret').checked };
+  if (!want.ship && !want.ad && !want.pl && !want.ret) { toast('書き出すデータを1つ以上選んでください'); return; }
+  const btn = document.getElementById('exp-go'); const orig = btn.innerHTML;
+  btn.disabled = true; btn.innerHTML = '<span class="btn-spin"></span> 作成中…';
+  setTimeout(() => {
+    try {
+      const sheets = buildAnalysisSheets(from, to, want);
+      const wb = XLSX.utils.book_new();
+      sheets.forEach(sh => {
+        const ws = XLSX.utils.aoa_to_sheet(sh.rows);
+        if (sh.widths) ws['!cols'] = sh.widths.map(w => ({ wch: w }));
+        XLSX.utils.book_append_sheet(wb, ws, sh.name.slice(0, 31));
+      });
+      const d = new Date(), stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
+      const range = (from || to) ? '_' + (from || '').replace('-', '') + '-' + (to || '').replace('-', '') : '';
+      saleSaveBlob(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'Amacheck_分析用データ_' + stamp + range + '.xlsx');
+      const n = sheets.reduce((a, s) => a + Math.max(0, s.rows.length - 1), 0);
+      toast('分析用データを書き出しました（' + sheets.length + 'シート・約' + n.toLocaleString() + '行）');
+      closeExportModal();
+    } catch (e) {
+      console.error(e); toast('書き出しに失敗しました：' + (e && e.message ? e.message : e));
+    } finally { btn.disabled = false; btn.innerHTML = orig; }
+  }, 30);
+}
+
 function saleSaveBlob(blob, name){
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob); a.download = name;
