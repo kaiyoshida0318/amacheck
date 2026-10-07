@@ -1512,6 +1512,9 @@
   .kw-crumb b { color: var(--black); }
   .kw-crumb-q { color: var(--purple); font-weight: 700; }
   .kw-crumb-sep { margin: 0 6px; color: var(--text-tertiary); }
+  .adkw-hide-btns { position: absolute; right: 16px; z-index: 40; display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
+  .adkw-hide-btns[hidden] { display: none; }
+  .adkw-hide-btns button { justify-content: center; white-space: nowrap; padding: 5px 12px !important; line-height: 1.3; }
   .kw-crumb-btns { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
   .kw-clear { border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .kw-clear:hover { background: var(--purple); color: #fff; }
@@ -1691,7 +1694,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.76</span>
+    <span class="version">v2.77</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1741,6 +1744,11 @@
     </button>
   </div>
 </nav>
+<!-- 広告データ-個別：ヘッダーを隠す／①〜③まで隠す（位置は kwPlaceHideBtns） -->
+<div class="adkw-hide-btns" id="adkw-hide-btns" hidden>
+  <button type="button" class="utility toggle-header-btn" id="toggle-header-adkw" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
+  <button type="button" class="utility" id="kw-steps-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ①〜③まで隠す</button>
+</div>
 
 <div class="container">
 
@@ -2753,6 +2761,8 @@ function init(){
   document.getElementById('toggle-header').addEventListener('click', toggleHeader);
   document.getElementById('toggle-header-master').addEventListener('click', toggleHeader);
   document.getElementById('toggle-header-ad').addEventListener('click', toggleHeader);
+  document.getElementById('toggle-header-adkw').addEventListener('click', toggleHeader);
+  document.getElementById('kw-steps-toggle').addEventListener('click', kwToggleSteps);
   window.addEventListener('resize', adjustHiddenTableHeight);
   // セール設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
@@ -3017,6 +3027,7 @@ function switchView(name, fromPop){
   if (name === 'ad') { populateAdProductSelect(); renderAdTable(); }
   if (name === 'campaign') renderCampaignView();
   if (name === 'adkw') renderAdKwView();
+  kwPlaceHideBtns();
   updateActiveTab(name);
   // ブラウザ履歴に積む（popstateからの呼び出しは積まない）
   if (!fromPop) {
@@ -5933,17 +5944,14 @@ function renderAdKwView(){
   h += '<span class="graph-note">日別・月別の推移は、表の行をクリックすると開く画面で見られます</span>';
   h += '</div></div></div>';
   h += '</div>';
-  // いま見ているもの＋絞り込みを解除＋隠すボタン（選択肢を隠しても、ここは残る）
+  // いま見ているもの＋絞り込みを解除
   const filtered = kwType !== 'all' || kwKind !== 'all' || !!kwCamp || !!kwSearch.trim();
-  const hdrHidden = document.body.classList.contains('header-hidden');
   h += '<div class="kw-crumb"><span class="kw-crumb-l">いま見ているもの</span>'
     + '<b>' + typeName + '</b> › <b>' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + '</b> › <b>' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + '</b>'
     + (kwSearch.trim() ? '　<span class="kw-crumb-q">検索「' + escapeHtml(kwSearch.trim()) + '」</span>' : '')
     + '<span class="kw-crumb-sep">／</span>' + periodTxt + '<span class="kw-crumb-sep">／</span>' + GROUP_NAME[kwGroup]
     + '<span class="kw-crumb-btns">'
     + (filtered ? '<button type="button" class="kw-clear" id="kw-clear" title="①対象（タイプ・種別・キャンペーン・検索）をすべて「すべて」に戻します">✕ 絞り込みを解除</button>' : '')
-    + '<button type="button" class="utility toggle-header-btn" id="toggle-header-adkw" style="font-size:12px;" title="' + (hdrHidden ? 'ヘッダーとタブを表示' : 'ヘッダーとタブを非表示にして表を広く') + '"><svg class="icn"><use href="#i-chevron-' + (hdrHidden ? 'down' : 'up') + '"/></svg> ' + (hdrHidden ? 'ヘッダーを表示' : 'ヘッダーを隠す') + '</button>'
-    + '<button type="button" class="utility kw-steps-btn" id="kw-steps-toggle" style="font-size:12px;" title="' + (kwStepsHidden ? '①〜③の選択肢を表示' : 'ヘッダー・タブと①〜③の選択肢をまとめて隠して、表を広く') + '"><svg class="icn"><use href="#i-chevron-' + (kwStepsHidden ? 'down' : 'up') + '"/></svg> ' + (kwStepsHidden ? '選択肢を表示' : '選択肢まで隠す') + '</button>'
     + '</span></div>';
 
   // 指標カード
@@ -6023,8 +6031,6 @@ function renderAdKwView(){
   on('#kw-camp', 'change', e => { kwCamp = e.target.value; renderAdKwView(); });
   on('#kw-showzero', 'change', e => { kwHideZero = !e.target.checked; renderAdKwView(); });
   on('#kw-clear', 'click', () => { kwType = 'all'; kwKind = 'all'; kwCamp = ''; kwSearch = ''; renderAdKwView(); });
-  on('#toggle-header-adkw', 'click', toggleHeader);
-  on('#kw-steps-toggle', 'click', kwToggleSteps);
   on('#kw-search', 'input', e => {
     kwSearch = e.target.value; const pos = e.target.selectionStart;
     clearTimeout(window._kwSearchT); window._kwSearchT = setTimeout(() => { renderAdKwView(); const s = document.getElementById('kw-search'); if (s) { s.focus(); try { s.setSelectionRange(pos, pos); } catch (er) {} } }, 250);
@@ -6050,8 +6056,23 @@ function kwToggleSteps(){
   else { kwStepsHidden = false; if (hdr && !kwStepsPrevHeader) toggleHeader(); }
   renderAdKwView();
 }
+// 「ヘッダーを隠す」「①〜③まで隠す」：タブ行の右端に縦に2つ（ヘッダーを隠している間は画面の右上）。広告データ-個別のときだけ出す
+function kwPlaceHideBtns(){
+  const box = document.getElementById('adkw-hide-btns'); if (!box) return;
+  const v = document.getElementById('adkw-view');
+  const show = !!(v && !v.hidden && kwDates().length);
+  box.hidden = !show; if (!show) return;
+  const sb = document.getElementById('kw-steps-toggle');
+  sb.innerHTML = '<svg class="icn"><use href="#i-chevron-' + (kwStepsHidden ? 'down' : 'up') + '"/></svg> ' + (kwStepsHidden ? '①〜③を表示' : '①〜③まで隠す');
+  sb.title = kwStepsHidden ? '①〜③（対象・期間・まとめ方）を表示' : 'ヘッダー・タブと①〜③（対象・期間・まとめ方）をまとめて隠して、表を広く';
+  const row = document.querySelector('.tabs .tab-row');
+  let top = 8;
+  if (!document.body.classList.contains('header-hidden') && row) { const r = row.getBoundingClientRect(); top = r.top + window.scrollY + (r.height - box.firstElementChild.offsetHeight) / 2; }
+  box.style.top = Math.round(top) + 'px';
+}
 // 隠しているときは、表の下端を画面の下まで伸ばす（ページの表示倍率 zoom を考慮）
 function kwFitTable(){
+  kwPlaceHideBtns();
   const el = document.querySelector('#adkw-view:not([hidden]) .kw-wrap'); if (!el) return;
   if (!kwStepsHidden && !document.body.classList.contains('header-hidden')) { el.style.maxHeight = ''; return; }
   const z = parseFloat(document.querySelector('.container').style.zoom) || 1;
