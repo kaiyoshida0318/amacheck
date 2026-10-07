@@ -1273,7 +1273,14 @@
     display: none;
   }
   body.header-hidden .container {
-    padding-top: 8px;
+    padding-top: 44px;
+  }
+  /* ヘッダー表示切替ボタン：通常時はタブ行の右端、非表示時は画面右上に固定 */
+  .hdr-btn-inline { margin-left: auto; margin-bottom: 4px; white-space: nowrap; }
+  .hdr-btn-float { display: none; }
+  body.header-hidden .hdr-btn-float {
+    display: inline-flex; position: fixed; top: 8px; right: 16px; z-index: 900;
+    box-shadow: 0 2px 8px rgba(0,0,0,.12); white-space: nowrap;
   }
 
   /* 未保存マーカー（編集モーダルのタイトル横に出る小ドット） */
@@ -1490,8 +1497,34 @@
   .kw-copy { border: none; background: transparent; padding: 0 4px; margin-left: 4px; color: var(--text-tertiary); cursor: pointer; opacity: 0; font-size: 13px; vertical-align: -2px; }
   tr:hover .kw-copy { opacity: 1; }
   .kw-copy:hover { color: var(--purple); }
-  .kw-copy-all { font-size: 12px !important; padding: 4px 10px !important; margin-right: 10px; }
-  .kw-count { display: flex; align-items: center; }
+  .kw-steps { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 6px 16px; margin-bottom: 12px; }
+  .kw-step { display: flex; gap: 14px; padding: 10px 0; }
+  .kw-step + .kw-step { border-top: 1px dashed var(--border); }
+  .kw-step-lbl { width: 78px; flex-shrink: 0; font-weight: 800; font-size: 14px; color: var(--black); padding-top: 6px; }
+  .kw-step-lbl span { color: var(--purple); margin-right: 4px; }
+  .kw-step-lbl em { display: block; font-style: normal; font-size: 10.5px; font-weight: 600; color: var(--purple); margin-top: 2px; }
+  .kw-step-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
+  .kw-lv { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .kw-lv2 { padding-left: 18px; } .kw-lv3 { padding-left: 36px; }
+  .kw-branch { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); min-width: 84px; }
+  .kw-sublbl { font-size: 12px; font-weight: 700; color: var(--text-tertiary); margin-left: 6px; }
+  .kw-sublbl:first-child { margin-left: 0; }
+  .kw-grp { display: inline-flex; align-items: center; gap: 8px; white-space: nowrap; margin-right: 10px; }
+  .kw-grp .kw-sublbl { margin-left: 0; }
+  .kw-big button { font-size: 14px !important; padding: 7px 16px !important; }
+  .kw-steps .graph-seg button.active { background: var(--purple); color: #fff; }
+  .kw-steps .graph-seg button:disabled { opacity: 0.35; cursor: not-allowed; }
+  .kw-crumb { display: flex; align-items: center; flex-wrap: wrap; gap: 4px; font-size: 13px; color: var(--text-secondary); background: #faf5ff; border: 1px solid #ede9fe; border-radius: 9px; padding: 8px 14px; margin-bottom: 14px; }
+  .kw-crumb-l { font-size: 11.5px; font-weight: 700; color: var(--purple); margin-right: 8px; }
+  .kw-crumb b { color: var(--black); }
+  .kw-crumb-q { color: var(--purple); font-weight: 700; }
+  .kw-crumb-sep { margin: 0 6px; color: var(--text-tertiary); }
+  .kw-clear { margin-left: auto; border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .kw-clear:hover { background: var(--purple); color: #fff; }
+  .kw-count { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .kw-count .kw-dot { margin-left: 2px; margin-right: 2px; }
+  .kw-hint { margin-left: 14px; color: var(--text-tertiary); }
+  .kw-count .kw-chk { margin-left: auto; font-size: 12.5px; }
   .kw-dmode { margin: 0 0 8px; }
   .kw-dmode .graph-seg.sm button.active { background: var(--purple); color: #fff; }
   .kw-badge { display: inline-block; font-size: 10px; font-weight: 800; border-radius: 4px; padding: 1px 5px; margin-right: 6px; color: #fff; background: #2563eb; vertical-align: 1px; }
@@ -1664,7 +1697,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.74</span>
+    <span class="version">v2.76</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1712,8 +1745,10 @@
     <button class="tab" data-tab="pl">
       <svg class="icn"><use href="#i-coins"/></svg> 全体収支
     </button>
+    <button class="utility toggle-header-btn hdr-btn-inline" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
   </div>
 </nav>
+<button class="utility toggle-header-btn hdr-btn-float" id="toggle-header-float" title="ヘッダーとタブを表示" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-down"/></svg> ヘッダーを表示</button>
 
 <div class="container">
 
@@ -1761,7 +1796,6 @@
       <button class="ghost" id="open-withdrawn" title="撤退済みの商品を表示" style="font-size:13px;"><svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品 <span class="wd-count" style="color:var(--text-tertiary);"></span></button>
       <div class="spacer"></div>
       <button class="danger" id="delete-selected" disabled><svg class="icn"><use href="#i-trash"/></svg> 選択を削除 <span id="selected-count"></span></button>
-      <button class="utility toggle-header-btn" id="toggle-header-master" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div class="master-card">
       <div id="master-list-wrap"></div>
@@ -1784,7 +1818,6 @@
       </span>
       <div class="spacer toast-slot" id="ship-toast-slot"></div>
       <button class="primary report-add-btn" id="open-input" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 出荷数データを追加</button><span class="imp-badge" id="imp-badge-ship"></span>
-      <button class="utility toggle-header-btn" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div id="shipment-body"></div>
   </div>
@@ -1827,7 +1860,6 @@
       <div class="spacer"></div>
       <button class="primary report-add-btn" id="open-ad-add" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 広告データを追加</button><span class="imp-badge" id="imp-badge-ad"></span>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
-      <button class="utility toggle-header-btn" id="toggle-header-ad" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div id="ad-body"></div>
   </div>
@@ -2723,9 +2755,7 @@ function init(){
   });
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('master')));
   document.getElementById('open-input').addEventListener('click', () => openReportModal());
-  document.getElementById('toggle-header').addEventListener('click', toggleHeader);
-  document.getElementById('toggle-header-master').addEventListener('click', toggleHeader);
-  document.getElementById('toggle-header-ad').addEventListener('click', toggleHeader);
+  document.querySelectorAll('.toggle-header-btn').forEach(b => b.addEventListener('click', toggleHeader));
   window.addEventListener('resize', adjustHiddenTableHeight);
   // セール設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
@@ -5885,23 +5915,49 @@ function renderAdKwView(){
   const hasPrev = kwDates().some(d => d >= pFrom && d <= pTo);
   const seg = (id, list, cur) => '<div class="graph-seg sm" id="' + id + '">' + list.map(([v, l]) => '<button type="button" data-v="' + v + '" class="' + (v === cur ? 'active' : '') + '">' + l + '</button>').join('') + '</div>';
 
-  // 1段目：期間
-  let h = '<div class="graph-toolbar kw-toolbar">';
-  if (monthlyView) h += seg('kw-mrange', [['last12', '直近12か月'], ['all', '全期間']], kwMonthRange);
-  else h += seg('kw-range', [['last7', '直近7日'], ['last30', '直近30日'], ['thismonth', '今月'], ['lastmonth', '先月'], ['custom', '期間指定']], kwRange);
+  // ===== ①対象 → ②期間 → ③見せ方（上から順に選ぶ3段） =====
+  const allRows = all.flatMap(d => adKwData[d] || []);
+  const typeOf = r => String(r.type || '').toUpperCase();
+  const KW_KINDS = ['キーワード', '商品'];
+  allRows.forEach(r => { if (r.kind && KW_KINDS.indexOf(r.kind) < 0) KW_KINDS.push(r.kind); });
+  const hasKind = k => allRows.some(r => (kwType === 'all' || typeOf(r) === kwType) && r.kind === k);
+  const camps = Array.from(new Set(allRows.filter(r => (kwType === 'all' || typeOf(r) === kwType) && (kwKind === 'all' || r.kind === kwKind)).map(r => r.campaign))).filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'));
+  if (kwCamp && camps.indexOf(kwCamp) < 0) kwCamp = '';
+  const typeName = kwType === 'all' ? 'すべて' : kwType;
+  const segD = (id, list, cur, big) => '<div class="graph-seg sm' + (big ? ' kw-big' : '') + '" id="' + id + '">' + list.map(([v, l, dis, tip]) => '<button type="button" data-v="' + v + '" class="' + (v === cur ? 'active' : '') + '"' + (dis ? ' disabled title="' + (tip || 'データがありません') + '"' : '') + '>' + l + '</button>').join('') + '</div>';
+  let h = '<div class="kw-steps">';
+  // ① 対象
+  h += '<div class="kw-step"><div class="kw-step-lbl"><span>①</span>対象</div><div class="kw-step-body">';
+  h += '<div class="kw-lv">' + segD('kw-type', [['all', 'すべて'], ['SP', 'SP（スポンサープロダクト）'], ['SB', 'SB（スポンサーブランド）']], kwType, true) + '</div>';
+  h += '<div class="kw-lv kw-lv2"><span class="kw-branch">└ ' + (kwType === 'all' ? '種別' : typeName + ' の中') + '</span>'
+    + segD('kw-kind', [['all', 'すべて']].concat(KW_KINDS.map(k => [k, k, !hasKind(k), (kwType === 'all' ? '' : typeName + '×') + k + ' のデータはまだありません'])), kwKind) + '</div>';
+  h += '<div class="kw-lv kw-lv3"><span class="kw-branch">└ キャンペーン</span><select class="graph-select kw-sel" id="kw-camp"><option value="">すべて（' + camps.length + '件）</option>' + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwCamp ? ' selected' : '') + '>' + escapeHtml(c) + '</option>').join('') + '</select>'
+    + '<input type="search" class="graph-select kw-search" id="kw-search" placeholder="🔍 キーワード・ASIN で検索" value="' + escapeHtml(kwSearch) + '"></div>';
+  h += '</div></div>';
+  // ② 期間
+  h += '<div class="kw-step"><div class="kw-step-lbl"><span>②</span>期間' + (monthlyView ? '<em>月別表示</em>' : '') + '</div><div class="kw-step-body"><div class="kw-lv">';
+  if (monthlyView) h += segD('kw-mrange', [['last12', '直近12か月'], ['all', '全期間']], kwMonthRange);
+  else h += segD('kw-range', [['last7', '直近7日'], ['last30', '直近30日'], ['thismonth', '今月'], ['lastmonth', '先月'], ['custom', '期間指定']], kwRange);
   if (!monthlyView && kwRange === 'custom') h += '<span class="graph-range"><input type="date" class="graph-select kw-date" id="kw-from" value="' + (kwFrom || from) + '"> ～ <input type="date" class="graph-select kw-date" id="kw-to" value="' + (kwTo || to) + '"></span>';
-  h += '<span class="graph-note">' + (monthlyView ? (from.slice(0, 7).replace('-', '/') + '〜' + to.slice(0, 7).replace('-', '/') + '（' + months.length + 'か月') : (from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日')) + '・データの最終日 ' + all[all.length - 1].replace(/-/g, '/') + '）</span>';
+  const periodTxt = monthlyView ? (from.slice(0, 7).replace('-', '/') + '〜' + to.slice(0, 7).replace('-', '/') + '（' + months.length + 'か月）') : (from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）');
+  h += '<span class="graph-note">' + periodTxt + '　データの最終日 ' + all[all.length - 1].replace(/-/g, '/') + '</span></div></div></div>';
+  // ③ 見せ方
+  const GROUP_NAME = { kwmatch: 'キーワード×マッチ', kw: 'キーワード', camp: 'キャンペーン' };
+  const VIEW_NAME = { sum: '期間合計', daily: '日別', monthly: '月別' };
+  h += '<div class="kw-step"><div class="kw-step-lbl"><span>③</span>見せ方</div><div class="kw-step-body"><div class="kw-lv">';
+  h += '<span class="kw-grp"><span class="kw-sublbl">表示</span>' + segD('kw-view', [['sum', '期間合計'], ['daily', '日別（横に日付）'], ['monthly', '月別（横に月）']], kwView) + '</span>';
+  h += '<span class="kw-grp"><span class="kw-sublbl">まとめ方</span>' + segD('kw-group', [['kwmatch', 'キーワード×マッチ'], ['kw', 'キーワード'], ['camp', 'キャンペーン']], kwGroup) + '</span>';
+  if (kwView === 'daily' || kwView === 'monthly') h += '<span class="kw-grp"><span class="kw-sublbl">セルの値</span>' + segD('kw-metric', [['cost', '広告費'], ['sales', '売上'], ['roas', 'ROAS'], ['clicks', 'クリック'], ['orders', '注文'], ['imp', '表示']], kwDailyMetric) + '</span>';
+  h += '</div></div></div>';
   h += '</div>';
-  // 2段目：絞り込み
-  const camps = Array.from(new Set(all.flatMap(d => (adKwData[d] || []).map(r => r.campaign)))).filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'));
-  const kinds = Array.from(new Set(all.flatMap(d => (adKwData[d] || []).map(r => r.kind)))).filter(Boolean);
-  h += '<div class="graph-toolbar kw-toolbar">';
-  h += seg('kw-type', [['all', 'すべて'], ['SP', 'SP'], ['SB', 'SB']], kwType);
-  h += '<select class="graph-select kw-sel" id="kw-camp"><option value="">キャンペーン：すべて</option>' + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwCamp ? ' selected' : '') + '>' + escapeHtml(c) + '</option>').join('') + '</select>';
-  h += seg('kw-kind', [['all', '種別：すべて']].concat(kinds.map(k => [k, k])), kwKind);
-  h += '<input type="search" class="graph-select kw-search" id="kw-search" placeholder="🔍 キーワード・ASINで検索" value="' + escapeHtml(kwSearch) + '">';
-  h += '<label class="kw-chk"><input type="checkbox" id="kw-hidezero"' + (kwHideZero ? ' checked' : '') + '> 費用0を隠す</label>';
-  h += '</div>';
+  // いま見ているもの＋絞り込みを解除
+  const filtered = kwType !== 'all' || kwKind !== 'all' || !!kwCamp || !!kwSearch.trim();
+  h += '<div class="kw-crumb"><span class="kw-crumb-l">いま見ているもの</span>'
+    + '<b>' + typeName + '</b> › <b>' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + '</b> › <b>' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + '</b>'
+    + (kwSearch.trim() ? '　<span class="kw-crumb-q">検索「' + escapeHtml(kwSearch.trim()) + '」</span>' : '')
+    + '<span class="kw-crumb-sep">／</span>' + periodTxt + '<span class="kw-crumb-sep">／</span>' + VIEW_NAME[kwView] + '・' + GROUP_NAME[kwGroup]
+    + (filtered ? '<button type="button" class="kw-clear" id="kw-clear" title="①対象（タイプ・種別・キャンペーン・検索）をすべて「すべて」に戻します">✕ 絞り込みを解除</button>' : '')
+    + '</div>';
 
   // 指標カード
   const cmp = (cur, pv, goodUp) => {
@@ -5920,14 +5976,6 @@ function renderAdKwView(){
     + card('注文', kwNum(tot.orders), cmp(tot.orders, prev.orders, true))
     + '</div>';
 
-  // 表示切替
-  h += '<div class="graph-toolbar kw-toolbar" style="margin-bottom:10px;">';
-  h += '<span class="graph-lbl">表示</span>' + seg('kw-view', [['sum', '期間合計'], ['daily', '日別（横に日付）'], ['monthly', '月別（横に月）']], kwView);
-  h += '<span class="graph-lbl" style="margin-left:10px;">まとめ方</span>' + seg('kw-group', [['kwmatch', 'KW×マッチ'], ['kw', 'KWだけ'], ['camp', 'キャンペーン']], kwGroup);
-  if (kwView === 'daily' || kwView === 'monthly') h += '<span class="graph-lbl" style="margin-left:10px;">セルの値</span>' + seg('kw-metric', [['cost', '広告費'], ['sales', '売上'], ['roas', 'ROAS'], ['clicks', 'クリック'], ['orders', '注文'], ['imp', '表示']], kwDailyMetric);
-  h += '<span class="kw-legend">ROAS：<span class="kw-dot hi"></span> 300%以上　<span class="kw-dot mid"></span> 200〜299%　<span class="kw-dot lo"></span> 199%以下　<span class="kw-dot none"></span> 費用0</span>';
-  h += '</div>';
-
   let groups = kwAggregate(rows);
   if (kwHideZero) groups = groups.filter(gp => gp.cost > 0);
   const nHi = groups.filter(gp => gp.judge === 'hi').length, nMid = groups.filter(gp => gp.judge === 'mid').length, nLo = groups.filter(gp => gp.judge === 'lo').length;
@@ -5938,7 +5986,9 @@ function renderAdKwView(){
     if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
     return (x - y) * dir;
   });
-  h += '<div class="kw-count">' + (groups.length ? '<button type="button" class="utility kw-copy-all" id="kw-copy-all" title="表示中の' + (kwGroup === 'camp' ? 'キャンペーン名' : 'キーワード／ターゲット') + 'を、並び順のまま改行区切りでコピー"><svg class="icn"><use href="#i-copy"/></svg> 表示中の' + (kwGroup === 'camp' ? 'キャンペーン' : 'キーワード') + 'をまとめてコピー</button>' : '') + groups.length + '件（<span class="kw-r-hi">300%以上 ' + nHi + '</span>・<span class="kw-r-mid">200〜299% ' + nMid + '</span>・<span class="kw-r-lo">199%以下 ' + nLo + '</span>）' + (kwView === 'sum' ? '　行をクリックすると、そのワードの推移（グラフ・表）が開きます' : '') + '</div>';
+  h += '<div class="kw-count"><b>' + groups.length + '件</b>　ROAS：<span class="kw-dot hi"></span><span class="kw-r-hi">300%以上 ' + nHi + '</span>　<span class="kw-dot mid"></span><span class="kw-r-mid">200〜299% ' + nMid + '</span>　<span class="kw-dot lo"></span><span class="kw-r-lo">199%以下 ' + nLo + '</span>'
+    + (kwView === 'sum' ? '<span class="kw-hint">行をクリックすると、そのワードの推移（グラフ・表）が開きます</span>' : '')
+    + '<label class="kw-chk" title="選んだ期間に広告費が0円（クリックが0回）の行も一覧に出します。表示はあるのにクリックされないキーワードを探す時に"><input type="checkbox" id="kw-showzero"' + (kwHideZero ? '' : ' checked') + '> 費用0の行も出す</label></div>';
 
   const labelCells = (gp) => {
     const cp = (t) => t ? '<button type="button" class="kw-copy" data-copy="' + escapeHtml(t) + '" title="「' + escapeHtml(t) + '」をコピー"><svg class="icn"><use href="#i-copy"/></svg></button>' : '';
@@ -6029,24 +6079,20 @@ function renderAdKwView(){
   // イベント
   const segOn = (id, fn) => body.querySelectorAll('#' + id + ' button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); renderAdKwView(); }));
   segOn('kw-range', v => { kwRange = v; if (v === 'custom' && !kwFrom) { kwFrom = from; kwTo = to; } kwOpenKey = null; });
-  segOn('kw-type', v => { kwType = v; });
-  segOn('kw-kind', v => { kwKind = v; });
+  segOn('kw-type', v => { if (kwType !== v) { kwType = v; kwKind = 'all'; kwCamp = ''; } });   // 上の段を変えたら下の段は「すべて」に戻す
+  segOn('kw-kind', v => { if (kwKind !== v) { kwKind = v; kwCamp = ''; } });
+  segOn('kw-mrange', v => { kwMonthRange = v; });
   segOn('kw-view', v => { kwView = v; });
   segOn('kw-group', v => { kwGroup = v; kwOpenKey = null; if (v === 'camp' && (kwSortKey === 'target' || kwSortKey === 'match' || kwSortKey === 'bid')) kwSortKey = 'cost'; });
   segOn('kw-metric', v => { kwDailyMetric = v; });
-  segOn('kw-mrange', v => { kwMonthRange = v; });
   segOn('kw-dmode', v => { kwDetailMode = v; });
   body.querySelectorAll('.kw-copy').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); kwCopyText(b.dataset.copy, '「' + b.dataset.copy + '」をコピーしました'); }));
-  { const ca = body.querySelector('#kw-copy-all'); if (ca) ca.addEventListener('click', () => {
-    const list = []; const seen = new Set();
-    groups.forEach(gp => { const t = kwGroup === 'camp' ? gp.campaign : gp.target; if (t && !seen.has(t)) { seen.add(t); list.push(t); } });
-    kwCopyText(list.join('\n'), list.length + '件をコピーしました（改行区切り）');
-  }); }
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
   on('#kw-from', 'change', e => { kwFrom = e.target.value; renderAdKwView(); });
   on('#kw-to', 'change', e => { kwTo = e.target.value; renderAdKwView(); });
   on('#kw-camp', 'change', e => { kwCamp = e.target.value; renderAdKwView(); });
-  on('#kw-hidezero', 'change', e => { kwHideZero = e.target.checked; renderAdKwView(); });
+  on('#kw-showzero', 'change', e => { kwHideZero = !e.target.checked; renderAdKwView(); });
+  on('#kw-clear', 'click', () => { kwType = 'all'; kwKind = 'all'; kwCamp = ''; kwSearch = ''; renderAdKwView(); });
   on('#kw-search', 'input', e => {
     kwSearch = e.target.value; const pos = e.target.selectionStart;
     clearTimeout(window._kwSearchT); window._kwSearchT = setTimeout(() => { renderAdKwView(); const s = document.getElementById('kw-search'); if (s) { s.focus(); try { s.setSelectionRange(pos, pos); } catch (er) {} } }, 250);
