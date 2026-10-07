@@ -126,16 +126,16 @@
     border: 1px solid var(--border);
     border-radius: 12px;
     overflow: auto;
-    max-height: calc(100vh - 240px);
+    max-height: calc((100vh - 240px) / var(--pz, 1));
   }
   /* 出荷数データの日別：テーブル内容に幅を合わせる（右の余白を出さない）。
      内容がコンテナより広ければ画面幅いっぱいまで使い、はみ出す分だけ横スクロール */
   /* 日別表は画面幅いっぱいまで広げられる枠（.ship-breakout）に入れ、表の実幅に合わせて中央寄せ。
      画面に収まる限り横スクロールは出ない（狭い画面でのみ横スクロール） */
   .ship-breakout {
-    width: calc(100vw - 24px);
-    margin-left: calc(50% - 50vw + 12px);
-    margin-right: calc(50% - 50vw + 12px);
+    width: calc((100vw - 24px) / var(--pz, 1));
+    margin-left: calc(50% - (50vw - 12px) / var(--pz, 1));
+    margin-right: calc(50% - (50vw - 12px) / var(--pz, 1));
     display: flex;
     justify-content: center;
   }
@@ -148,7 +148,7 @@
      数字の無い列を詰めて帳尻を合わせない（max-contentで自然な全幅を取る） */
   table.ship.ship-daily { table-layout: fixed; width: max-content; }
   body.header-hidden .table-wrap {
-    max-height: calc(100vh - 120px);
+    max-height: calc((100vh - 120px) / var(--pz, 1));
   }
   table.ship { border-collapse: separate; border-spacing: 0; width: 100%; }
   table.ship th, table.ship td {
@@ -420,16 +420,16 @@
   .ad-saletip-pop.show { opacity: 1; }
   /* 広告表は画面幅いっぱいに全幅表示（横スクロールを出さない） */
   #ad-view .table-wrap {
-    width: calc(100vw - 24px);
-    margin-left: calc(50% - 50vw + 12px);
-    margin-right: calc(50% - 50vw + 12px);
+    width: calc((100vw - 24px) / var(--pz, 1));
+    margin-left: calc(50% - (50vw - 12px) / var(--pz, 1));
+    margin-right: calc(50% - (50vw - 12px) / var(--pz, 1));
     overflow-x: hidden;
   }
   /* ツールバーも全幅にして、左ブロックを左端・右ブロックを右端へ */
   #ad-view .toolbar {
-    width: calc(100vw - 24px);
-    margin-left: calc(50% - 50vw + 12px);
-    margin-right: calc(50% - 50vw + 12px);
+    width: calc((100vw - 24px) / var(--pz, 1));
+    margin-left: calc(50% - (50vw - 12px) / var(--pz, 1));
+    margin-right: calc(50% - (50vw - 12px) / var(--pz, 1));
   }
   /* クリック可能な日付セル（広告データ追加へ） */
   table.ad-table td.ad-day-clickable {
@@ -1022,10 +1022,10 @@
   /* マスタ表のスクロールラッパーとヘッダー固定 */
   .master-scroll {
     overflow: auto;
-    max-height: calc(100vh - 240px);
+    max-height: calc((100vh - 240px) / var(--pz, 1));
   }
   body.header-hidden .master-scroll {
-    max-height: calc(100vh - 120px);
+    max-height: calc((100vh - 120px) / var(--pz, 1));
   }
   table.master thead th {
     position: sticky;
@@ -1420,10 +1420,10 @@
   .kw-dot.hi { background: #1D9E75; } .kw-dot.mid { background: #BA7517; } .kw-dot.lo { background: #A32D2D; } .kw-dot.none { background: #d1d5db; width: 7px; height: 7px; vertical-align: 1px; }
   .kw-legend { margin-left: auto; font-size: 12px; color: var(--text-tertiary); }
   .kw-count { font-size: 12.5px; color: var(--text-secondary); margin: 0 0 6px; }
-  #adkw-view .kw-wrap { width: calc(100vw - 24px); margin-left: calc(50% - 50vw + 12px); max-height: calc(100vh - 340px); }
-  table.kw-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 13px; }
+  #adkw-view .kw-wrap { width: calc((100vw - 24px) / var(--pz, 1)); margin-left: calc(50% - (50vw - 12px) / var(--pz, 1)); max-height: calc((100vh - 340px) / var(--pz, 1)); }
+  table.kw-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 14.5px; }
   table.kw-table th, table.kw-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; text-align: left; }
-  table.kw-table thead th { position: sticky; top: 0; z-index: 2; background: var(--bg-secondary); color: var(--text-secondary); font-weight: 700; font-size: 12.5px; }
+  table.kw-table thead th { position: sticky; top: 0; z-index: 2; background: var(--bg-secondary); color: var(--text-secondary); font-weight: 700; font-size: 13.5px; }
   table.kw-table th.sortable { cursor: pointer; user-select: none; }
   table.kw-table th.sortable:hover, table.kw-table th.sorted { color: var(--purple); }
   table.kw-table .num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -1535,8 +1535,7 @@
   .adkw-hide-btns { position: absolute; right: 16px; z-index: 40; display: flex; flex-direction: column; align-items: stretch; gap: 5px; }
   .adkw-hide-btns[hidden] { display: none; }
   .adkw-hide-btns button { justify-content: center; white-space: nowrap; padding: 5px 12px !important; line-height: 1.3; }
-  .kw-crumb-btns { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
-  .kw-clear { border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .kw-clear { margin: 0 4px 0 10px; border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .kw-clear:hover { background: var(--purple); color: #fff; }
   .kw-count { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
   .kw-count .kw-dot { margin-left: 2px; margin-right: 2px; }
@@ -1544,7 +1543,7 @@
   .kw-count .kw-chk { margin-left: auto; font-size: 12.5px; }
   .kw-dmode { margin: 0 0 8px; }
   .kw-dmode .graph-seg.sm button.active { background: var(--purple); color: #fff; }
-  .kw-badge { display: inline-block; font-size: 10px; font-weight: 800; border-radius: 4px; padding: 1px 5px; margin-right: 6px; color: #fff; background: #2563eb; vertical-align: 1px; }
+  .kw-badge { display: inline-block; font-size: 11px; font-weight: 800; border-radius: 4px; padding: 1px 5px; margin-right: 6px; color: #fff; background: #2563eb; vertical-align: 1px; }
   .kw-badge.sb { background: #ea580c; }
   table.kw-table tr.kw-row { cursor: pointer; }
   table.kw-table tr.kw-row:hover td { background: var(--bg-secondary); }
@@ -1714,11 +1713,11 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.81</span>
+    <span class="version">v2.83</span>
     <div class="zoom-controls">
-      <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
+      <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
-      <button class="zoom-btn" id="zoom-in" title="文字を大きく">A+</button>
+      <button class="zoom-btn" id="zoom-in" title="文字を大きく（1クリック1%、押し続けると連続）">A+</button>
     </div>
     <button class="primary" id="open-add" title="商品情報（商品マスタ）を追加" style="font-size:13px;"><svg class="icn"><use href="#i-plus"/></svg> 商品情報追加</button>
     <button class="utility report-add-btn" id="open-report" title="出荷数・広告・月末データのCSV/ZIPをまとめて取り込む" style="font-size:13px;background:#dc2626;border:1px solid #dc2626;color:#fff;font-weight:700;"><svg class="icn"><use href="#i-plus"/></svg> レポート追加</button>
@@ -5742,33 +5741,41 @@ function applyShipment(){
 // ============================================
 // ズーム（文字サイズ調整）
 // ============================================
-const ZOOM_STEPS = [0.7, 0.8, 0.9, 1.0, 1.1, 1.25, 1.5, 1.75, 2.0];
-let zoomIdx = 3; // デフォルト 100%
+// v2.83：1クリック＝1%（70%〜200%）。押し続けると連続で変わる。％の数字をクリックで100%に戻す
+const ZOOM_MIN = 70, ZOOM_MAX = 200;
+let zoomPct = 100; // 整数の％で持つ（小数の誤差をためない）
 
 function initZoom(){
   const saved = parseFloat(localStorage.getItem(STORAGE_ZOOM));
-  if (!isNaN(saved)) {
-    const idx = ZOOM_STEPS.findIndex(z => Math.abs(z - saved) < 0.01);
-    if (idx >= 0) zoomIdx = idx;
-  }
+  if (!isNaN(saved)) zoomPct = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, Math.round(saved * 100)));
   applyZoom();
-  document.getElementById('zoom-in').addEventListener('click', () => {
-    if (zoomIdx < ZOOM_STEPS.length - 1) { zoomIdx++; applyZoom(); }
-  });
-  document.getElementById('zoom-out').addEventListener('click', () => {
-    if (zoomIdx > 0) { zoomIdx--; applyZoom(); }
-  });
+  const hold = (id, d) => {
+    const btn = document.getElementById(id); let t1 = null, t2 = null;
+    const step = () => { const v = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, zoomPct + d)); if (v !== zoomPct) { zoomPct = v; applyZoom(); } };
+    const stop = () => { clearTimeout(t1); clearInterval(t2); t1 = t2 = null; };
+    btn.addEventListener('pointerdown', e => { if (e.button !== 0) return; e.preventDefault(); stop(); step(); t1 = setTimeout(() => { t2 = setInterval(step, 70); }, 450); });
+    ['pointerup', 'pointerleave', 'pointercancel', 'blur'].forEach(ev => btn.addEventListener(ev, stop));
+    btn.addEventListener('click', e => { if (e.detail === 0) step(); });   // キーボード（Enter／Space）操作
+  };
+  hold('zoom-in', 1);
+  hold('zoom-out', -1);
+  const lv = document.getElementById('zoom-level');
+  lv.title = 'クリックで100%に戻す'; lv.style.cursor = 'pointer';
+  lv.addEventListener('click', () => { if (zoomPct !== 100) { zoomPct = 100; applyZoom(); } });
 }
 
 function applyZoom(){
-  const z = ZOOM_STEPS[zoomIdx];
+  const z = zoomPct / 100;
   // CSS zoom を container と modal に適用（topbar は固定サイズに保つ）
   document.querySelector('.container').style.zoom = z;
+  // 画面幅いっぱいに広げる表（100vw 基準）は zoom で一緒に拡大されてはみ出すので、--pz で割り戻す（v2.82）
+  document.querySelector('.container').style.setProperty('--pz', z);
   document.getElementById('modal').style.zoom = z;
-  document.getElementById('zoom-level').textContent = Math.round(z * 100) + '%';
-  document.getElementById('zoom-in').disabled = (zoomIdx >= ZOOM_STEPS.length - 1);
-  document.getElementById('zoom-out').disabled = (zoomIdx <= 0);
+  document.getElementById('zoom-level').textContent = zoomPct + '%';
+  document.getElementById('zoom-in').disabled = (zoomPct >= ZOOM_MAX);
+  document.getElementById('zoom-out').disabled = (zoomPct <= ZOOM_MIN);
   localStorage.setItem(STORAGE_ZOOM, z);
+  try { adjustHiddenTableHeight(); } catch (e) {}
 }
 
 // ============================================
@@ -5986,10 +5993,9 @@ function renderAdKwView(){
   h += '<div class="kw-crumb"><span class="kw-crumb-l">いま見ているもの</span>'
     + '<b>' + crumbType + '</b> › <b>' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + '</b> › <b>' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + '</b>'
     + (kwSearch.trim() ? '　<span class="kw-crumb-q">検索「' + escapeHtml(kwSearch.trim()) + '」</span>' : '')
-    + '<span class="kw-crumb-sep">／</span>' + periodTxt + '<span class="kw-crumb-sep">／</span>' + GROUP_NAME[kwGroup]
-    + '<span class="kw-crumb-btns">'
     + (filtered ? '<button type="button" class="kw-clear" id="kw-clear" title="①対象（タイプ・種別・キャンペーン・検索）をすべて「すべて」に戻します">✕ 絞り込みを解除</button>' : '')
-    + '</span></div>';
+    + '<span class="kw-crumb-sep">／</span>' + periodTxt + '<span class="kw-crumb-sep">／</span>' + GROUP_NAME[kwGroup]
+    + '</div>';
 
   // 指標カード
   const cmp = (cur, pv, goodUp) => {
