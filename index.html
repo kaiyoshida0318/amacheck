@@ -1237,6 +1237,12 @@
   .with-item .spacer { flex: 1; }
   /* セール一覧：スクロール＋折りたたみ＋ポップアップ */
   .sale-scroll { max-height: 220px; overflow-y: auto; padding-right: 2px; }
+  .sale-part { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
+  .sale-part-lbl { font-weight: 600; font-size: 12px; }
+  #sale-part-seg button.active { background: var(--purple); color: #fff; }
+  .sale-part-note { font-size: 12px; color: var(--text-tertiary); margin-top: 6px; }
+  .sale-tmpl { display: flex; align-items: center; gap: 12px; margin-top: 12px; padding: 10px 12px; border: 1px solid var(--border); border-radius: 10px; background: var(--bg-secondary); }
+  .sale-pc.none { background: var(--bg-secondary); color: var(--text-tertiary); }
   .sale-pc { font-size: 11px; background: rgba(126,34,206,0.12); color: var(--purple); border-radius: 10px; padding: 2px 8px; margin-left: 6px; white-space: nowrap; }
   .sale-ended-toggle {
     width: 100%; text-align: left; margin: 4px 0 8px;
@@ -1539,7 +1545,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.63</span>
+    <span class="version">v2.64</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1905,7 +1911,7 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-tag"/></svg> セール設定</h3>
-        <div class="sub" style="margin-bottom:0;">セール期間（開始日〜終了日）を登録すると、出荷数データ（日別）の日付の上にセール期間が表示されます。セール申請が通った商品リスト（タイムセール推奨商品リスト）を読み込むと、対象商品はセール期間中、推計総売上の計算にセール価格が使われます。</div>
+        <div class="sub" style="margin-bottom:0;">セール期間（開始日〜終了日）を登録すると、出荷数データ（日別）の日付の上にセール期間の帯が表示されます。自社の参加商品が無いセールも「参加商品：なし」で期間だけ記録できます。参加商品があって価格が変わる場合は、商品リストを読み込むと、セール期間中の推計総売上にセール価格が使われます。</div>
       </div>
       <button id="sale-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
@@ -1924,12 +1930,29 @@
         <input type="text" id="sale-label" placeholder="例: プライムデー" style="width:100%;font-size:14px;padding:8px 10px;">
       </div>
     </div>
-    <label class="upload-zone" id="sale-upzone" for="sale-file-input" style="margin-top:14px;padding:18px;">
-      <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
-      <div class="main">セール対象商品リストをアップロード（任意）</div>
-      <div class="sub">タイムセール推奨商品リスト .xlsx / .csv（SKU・セール価格）</div>
-      <input type="file" id="sale-file-input" accept=".xlsx,.xls,.csv,text/csv">
-    </label>
+    <div class="sale-part">
+      <span class="sale-part-lbl">参加商品</span>
+      <div class="graph-seg sm" id="sale-part-seg">
+        <button type="button" data-v="none" class="active">なし（期間だけ記録）</button>
+        <button type="button" data-v="some">あり（価格が変わる）</button>
+      </div>
+    </div>
+    <div id="sale-part-none-note" class="sale-part-note">帯だけ表示します。売上の計算は通常価格のままです。</div>
+    <div id="sale-part-some" hidden>
+      <div class="sale-tmpl">
+        <div>
+          <div style="font-weight:700;font-size:13px;">① テンプレートをダウンロード</div>
+          <div style="font-size:12px;color:var(--text-secondary);margin-top:2px;">商品マスタの商品（SKU・ASIN・商品名・出品価格）入り。参加する商品の「セール価格」だけ入力してください（空欄の行は対象外）。</div>
+        </div>
+        <button type="button" id="sale-tmpl-dl" class="utility" style="flex-shrink:0;"><svg class="icn"><use href="#i-download"/></svg> テンプレート (.xlsx)</button>
+      </div>
+      <label class="upload-zone" id="sale-upzone" for="sale-file-input" style="margin-top:10px;padding:16px;">
+        <svg class="icn"><use href="#i-file-spreadsheet"/></svg>
+        <div class="main">② 入力したリストをアップロード</div>
+        <div class="sub">テンプレート、またはタイムセール推奨商品リスト .xlsx / .csv（SKU・セール価格）</div>
+        <input type="file" id="sale-file-input" accept=".xlsx,.xls,.csv,text/csv">
+      </label>
+    </div>
     <div id="sale-file-info" style="margin-top:8px;font-size:13px;color:var(--text-secondary);"></div>
     <div id="sale-list" style="margin-top:18px;"></div>
     <div class="modal-actions">
@@ -2528,6 +2551,8 @@ function init(){
   document.getElementById('data-import-input').addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) importAllData(e.target.files[0]); e.target.value = ''; });
   initSaleTip();
   document.getElementById('sale-edit-cancel').addEventListener('click', cancelSaleEdit);
+  document.querySelectorAll('#sale-part-seg button').forEach(b => b.addEventListener('click', () => { setSalePartMode(b.dataset.v === 'some'); setSaleFileInfo(pendingSaleProducts); }));
+  document.getElementById('sale-tmpl-dl').addEventListener('click', downloadSaleTemplate);
   document.getElementById('sale-file-input').addEventListener('change', handleSaleFile);
   const saleDz = document.getElementById('sale-upzone');
   if (saleDz) {
@@ -5477,6 +5502,53 @@ function adjustHiddenTableHeight(){
 // ============================================
 let editingSaleId = null;
 let pendingSaleProducts = null; // 直近に読み込んだセール対象商品（保存時にセールへ付与）
+let saleHasProducts = false;     // 参加商品：false＝なし（期間だけ記録）／true＝あり（価格が変わる）
+function setSalePartMode(on){
+  saleHasProducts = !!on;
+  document.querySelectorAll('#sale-part-seg button').forEach(b => b.classList.toggle('active', (b.dataset.v === 'some') === saleHasProducts));
+  const some = document.getElementById('sale-part-some'); if (some) some.hidden = !saleHasProducts;
+  const note = document.getElementById('sale-part-none-note'); if (note) note.hidden = saleHasProducts;
+  const info = document.getElementById('sale-file-info'); if (info) info.hidden = !saleHasProducts;
+}
+// セール参加商品リストのテンプレート（商品マスタの商品入り。セール価格だけ空欄。編集中のセールは現在のセール価格を入れる）
+function saleSaveBlob(blob, name){
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob); a.download = name;
+  document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+}
+function downloadSaleTemplate(){
+  const label = document.getElementById('sale-label').value.trim();
+  const start = document.getElementById('sale-start').value, end = document.getElementById('sale-end').value;
+  const cur = pendingSaleProducts || [];
+  const curPrice = (p) => { const h = cur.find(sp => (sp.sku && p.sku && sp.sku === p.sku) || (sp.asin && p.asin && sp.asin === p.asin)); return h ? h.salePrice : ''; };
+  const header = ['SKU', '子ASIN', '親ASIN', '商品名', '出品価格', 'セール価格'];
+  const rows = visibleMasterProducts().map(p => [p.sku || '', p.asin || '', '', p.name || '', (p.sellingPrice != null && p.sellingPrice !== '') ? Number(p.sellingPrice) : '', curPrice(p)]);
+  const base = 'セール参加商品リスト_' + (label || (start ? start.replace(/-/g, '') + (end ? '-' + end.replace(/-/g, '') : '') : 'テンプレート'));
+  const fname = base.replace(/[\\/:*?"<>|\s]+/g, '_');
+  if (typeof XLSX !== 'undefined') {
+    const wb = XLSX.utils.book_new();
+    const ws = XLSX.utils.aoa_to_sheet([header].concat(rows));
+    ws['!cols'] = [{ wch: 18 }, { wch: 14 }, { wch: 14 }, { wch: 46 }, { wch: 10 }, { wch: 10 }];
+    XLSX.utils.book_append_sheet(wb, ws, 'セール価格');
+    const how = XLSX.utils.aoa_to_sheet([
+      ['使い方'],
+      ['1. 「セール価格」列に、参加する商品のセール価格（税込・円）を入力します。'],
+      ['2. 参加しない商品は「セール価格」を空欄のままにします（行を消しても構いません）。'],
+      ['3. 保存して、Amacheck のセール設定「② 入力したリストをアップロード」から読み込みます。'],
+      ['※ SKU か 子ASIN のどちらかで商品マスタと照合します。列名（1行目）は変えないでください。']
+    ]);
+    how['!cols'] = [{ wch: 80 }];
+    XLSX.utils.book_append_sheet(wb, how, '使い方');
+    const buf = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+    saleSaveBlob(new Blob([buf], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), fname + '.xlsx');
+  } else {   // 表計算ライブラリが無い時は CSV（Excel で開けるよう BOM 付き）
+    const esc = v => { const t = String(v == null ? '' : v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g, '""') + '"' : t; };
+    const csv = '\uFEFF' + [header].concat(rows).map(r => r.map(esc).join(',')).join('\r\n');
+    saleSaveBlob(new Blob([csv], { type: 'text/csv' }), fname + '.csv');
+  }
+  toast('テンプレートをダウンロードしました（' + rows.length + '商品）');
+}
 function openSaleModal(){
   cancelSaleEdit();
   renderSaleList();
@@ -5495,12 +5567,13 @@ function setSaleFileInfo(products){
   const el = document.getElementById('sale-file-info');
   if (!el) return;
   el.innerHTML = (products && products.length)
-    ? '<span style="color:var(--success)">✓ セール対象商品 ' + products.length + ' 件を読み込み済み</span>'
-    : '';
+    ? '<span style="color:var(--success)">✓ セール参加商品 ' + products.length + ' 件を読み込み済み</span>'
+    : (saleHasProducts ? '<span style="color:var(--text-tertiary)">まだリストを読み込んでいません</span>' : '');
 }
 function cancelSaleEdit(){
   editingSaleId = null;
   pendingSaleProducts = null;
+  setSalePartMode(false);
   setSaleInputs('', '', '');
   setSaleFileInfo(null);
   const fi = document.getElementById('sale-file-input'); if (fi) fi.value = '';
@@ -5522,7 +5595,7 @@ function renderSaleList(){
 
   function itemHtml(s){
     const lbl = s.label ? '<span class="lbl">' + escapeHtml(s.label) + '</span>' : '';
-    const pc = (s.products && s.products.length) ? '<span class="sale-pc" title="セール対象商品数">' + s.products.length + '商品</span>' : '';
+    const pc = (s.products && s.products.length) ? '<span class="sale-pc" title="セール参加商品数（セール価格で売上を計算）">' + s.products.length + '商品</span>' : '<span class="sale-pc none" title="参加商品なし（期間だけ記録）">参加なし</span>';
     return '<div class="sale-item">'
       + '<div class="bar"></div>'
       + '<span class="dates">' + s.start + ' 〜 ' + s.end + '</span>'
@@ -5558,23 +5631,25 @@ function saveSale(){
   const label = document.getElementById('sale-label').value.trim();
   if (!start && !end && !editingSaleId) { closeSaleModal(); return; } // 入力なし→閉じる
   if (!start || !end) { toast('開始日と終了日を選択してください'); return; }
+  if (saleHasProducts && !(pendingSaleProducts && pendingSaleProducts.length)) { toast('参加商品のリストを読み込んでください（参加商品が無い場合は「なし」を選択）'); return; }
   let s = start, e = end;
   if (s > e) { const t = s; s = e; e = t; }
   if (editingSaleId) {
     const sale = saleRanges.find(x => x.id === editingSaleId);
     if (sale) {
       sale.start = s; sale.end = e; sale.label = label;
-      if (pendingSaleProducts !== null) sale.products = pendingSaleProducts;
+      if (!saleHasProducts) delete sale.products;           // なし：期間だけ（売上は通常価格）
+      else if (pendingSaleProducts !== null) sale.products = pendingSaleProducts;
     }
   } else {
     const sale = { id: genSaleId(), start: s, end: e, label: label };
-    if (pendingSaleProducts && pendingSaleProducts.length) sale.products = pendingSaleProducts;
+    if (saleHasProducts && pendingSaleProducts && pendingSaleProducts.length) sale.products = pendingSaleProducts;
     saleRanges.push(sale);
   }
   saveSales();
   if (currentPeriod === 'daily') renderShipmentTable();
   if (!document.getElementById('ad-view').hidden) renderAdTable();
-  toast('登録しました');
+  toast(saleHasProducts ? '登録しました（参加商品 ' + pendingSaleProducts.length + ' 件）' : '登録しました（参加商品なし・期間のみ）');
   closeSaleModal();
 }
 function editSale(id){
@@ -5583,6 +5658,7 @@ function editSale(id){
   editingSaleId = id;
   setSaleInputs(s.start, s.end, s.label);
   pendingSaleProducts = s.products ? s.products.slice() : [];
+  setSalePartMode(pendingSaleProducts.length > 0);
   setSaleFileInfo(pendingSaleProducts);
   const cancel = document.getElementById('sale-edit-cancel');
   if (cancel) cancel.hidden = false;
@@ -5649,6 +5725,7 @@ function processSaleFile(f){
       const products = extractSaleProducts(rows);
       if (!products.length) { toast('セール対象商品（SKU・セール価格）が見つかりませんでした'); return; }
       pendingSaleProducts = products;
+      setSalePartMode(true);
       setSaleFileInfo(products);
       toast(products.length + ' 件のセール対象商品を読み込みました');
     } catch (err) {
