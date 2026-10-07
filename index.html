@@ -1273,14 +1273,7 @@
     display: none;
   }
   body.header-hidden .container {
-    padding-top: 44px;
-  }
-  /* ヘッダー表示切替ボタン：通常時はタブ行の右端、非表示時は画面右上に固定 */
-  .hdr-btn-inline { margin-left: auto; margin-bottom: 4px; white-space: nowrap; }
-  .hdr-btn-float { display: none; }
-  body.header-hidden .hdr-btn-float {
-    display: inline-flex; position: fixed; top: 8px; right: 16px; z-index: 900;
-    box-shadow: 0 2px 8px rgba(0,0,0,.12); white-space: nowrap;
+    padding-top: 8px;
   }
 
   /* 未保存マーカー（編集モーダルのタイトル横に出る小ドット） */
@@ -1500,7 +1493,7 @@
   .kw-steps { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 6px 16px; margin-bottom: 12px; }
   .kw-step { display: flex; gap: 14px; padding: 10px 0; }
   .kw-step + .kw-step { border-top: 1px dashed var(--border); }
-  .kw-step-lbl { width: 78px; flex-shrink: 0; font-weight: 800; font-size: 14px; color: var(--black); padding-top: 6px; }
+  .kw-step-lbl { width: 92px; white-space: nowrap; flex-shrink: 0; font-weight: 800; font-size: 14px; color: var(--black); padding-top: 6px; }
   .kw-step-lbl span { color: var(--purple); margin-right: 4px; }
   .kw-step-lbl em { display: block; font-style: normal; font-size: 10.5px; font-weight: 600; color: var(--purple); margin-top: 2px; }
   .kw-step-body { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 8px; }
@@ -1519,7 +1512,8 @@
   .kw-crumb b { color: var(--black); }
   .kw-crumb-q { color: var(--purple); font-weight: 700; }
   .kw-crumb-sep { margin: 0 6px; color: var(--text-tertiary); }
-  .kw-clear { margin-left: auto; border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .kw-crumb-btns { margin-left: auto; display: inline-flex; align-items: center; gap: 8px; }
+  .kw-clear { border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .kw-clear:hover { background: var(--purple); color: #fff; }
   .kw-count { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
   .kw-count .kw-dot { margin-left: 2px; margin-right: 2px; }
@@ -1745,10 +1739,8 @@
     <button class="tab" data-tab="pl">
       <svg class="icn"><use href="#i-coins"/></svg> 全体収支
     </button>
-    <button class="utility toggle-header-btn hdr-btn-inline" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
   </div>
 </nav>
-<button class="utility toggle-header-btn hdr-btn-float" id="toggle-header-float" title="ヘッダーとタブを表示" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-down"/></svg> ヘッダーを表示</button>
 
 <div class="container">
 
@@ -1796,6 +1788,7 @@
       <button class="ghost" id="open-withdrawn" title="撤退済みの商品を表示" style="font-size:13px;"><svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品 <span class="wd-count" style="color:var(--text-tertiary);"></span></button>
       <div class="spacer"></div>
       <button class="danger" id="delete-selected" disabled><svg class="icn"><use href="#i-trash"/></svg> 選択を削除 <span id="selected-count"></span></button>
+      <button class="utility toggle-header-btn" id="toggle-header-master" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div class="master-card">
       <div id="master-list-wrap"></div>
@@ -1818,6 +1811,7 @@
       </span>
       <div class="spacer toast-slot" id="ship-toast-slot"></div>
       <button class="primary report-add-btn" id="open-input" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 出荷数データを追加</button><span class="imp-badge" id="imp-badge-ship"></span>
+      <button class="utility toggle-header-btn" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div id="shipment-body"></div>
   </div>
@@ -1860,6 +1854,7 @@
       <div class="spacer"></div>
       <button class="primary report-add-btn" id="open-ad-add" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 広告データを追加</button><span class="imp-badge" id="imp-badge-ad"></span>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
+      <button class="utility toggle-header-btn" id="toggle-header-ad" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div id="ad-body"></div>
   </div>
@@ -2755,7 +2750,9 @@ function init(){
   });
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('master')));
   document.getElementById('open-input').addEventListener('click', () => openReportModal());
-  document.querySelectorAll('.toggle-header-btn').forEach(b => b.addEventListener('click', toggleHeader));
+  document.getElementById('toggle-header').addEventListener('click', toggleHeader);
+  document.getElementById('toggle-header-master').addEventListener('click', toggleHeader);
+  document.getElementById('toggle-header-ad').addEventListener('click', toggleHeader);
   window.addEventListener('resize', adjustHiddenTableHeight);
   // セール設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
@@ -5748,6 +5745,7 @@ function toggleHeader(){
 
 // ヘッダー非表示時、表の下端を画面いっぱいまで伸ばす
 function adjustHiddenTableHeight(){
+  kwFitTable();   // 広告データ-個別の表
   // 対象：現在表示中の表のスクロール領域
   const scrollEl = document.querySelector('#shipment-view:not([hidden]) .table-wrap')
                  || document.querySelector('#ad-view:not([hidden]) .table-wrap')
@@ -5796,21 +5794,11 @@ let kwCamp = '';                  // キャンペーン名（空＝すべて）
 let kwKind = 'all';               // 'all' | 種別（キーワード／商品 …）
 let kwSearch = '';
 let kwHideZero = true;            // 費用0を隠す
-let kwView = 'sum';               // 'sum' | 'daily'
+// v2.76：表は「期間合計」だけ。日別・月別の推移は行クリックのモーダルで見る（表の日別／月別表示・行内展開は廃止）
 let kwGroup = 'kwmatch';          // 'kwmatch' | 'kw' | 'camp'
 let kwSortKey = 'cost', kwSortDir = 'desc';
-let kwDailyMetric = 'cost';       // 'cost' | 'sales' | 'roas' | 'clicks' | 'orders' | 'imp'
-let kwOpenKey = null;             // 期間合計で日別を開いている行
-let kwMonthRange = 'last12';      // 月別表示の期間：'last12' | 'all'
-let kwDetailMode = 'daily';       // 行を開いたときの表：'daily' | 'monthly'
-function kwMonthPeriod(){
-  const ds = kwDates(); if (!ds.length) return [null, null];
-  const last = ds[ds.length - 1];
-  const first = ds[0].slice(0, 8) + '01';
-  if (kwMonthRange === 'all') return [first, last];
-  const st = gYmAdd(last.slice(0, 7), -11) + '-01';
-  return [st < first ? first : st, last];   // データの無い月は出さない
-}
+let kwStepsHidden = false;        // ①〜③（選択肢）を隠しているか
+let kwStepsPrevHeader = false;    // 「選択肢まで隠す」を押す前にヘッダーを隠していたか（表示に戻すとき元に戻す）
 function kwMonthList(from, to){ const a = []; for (let ym = from.slice(0, 7), n = 0; ym <= to.slice(0, 7) && n < 240; ym = gYmAdd(ym, 1), n++) a.push(ym); return a; }
 // クリップボードへコピー（非対応環境は execCommand で代用）
 function kwCopyText(text, msg){
@@ -5903,10 +5891,8 @@ function renderAdKwView(){
       + '</div></div>';
     return;
   }
-  const monthlyView = kwView === 'monthly';
-  const [from, to] = monthlyView ? kwMonthPeriod() : kwPeriod();
+  const [from, to] = kwPeriod();
   const days = kwDayList(from, to);
-  const months = kwMonthList(from, to);
   const rows = kwRows(from, to);
   const span = days.length;
   const pTo = gAddDays(from, -1), pFrom = gAddDays(from, -span);
@@ -5925,7 +5911,7 @@ function renderAdKwView(){
   if (kwCamp && camps.indexOf(kwCamp) < 0) kwCamp = '';
   const typeName = kwType === 'all' ? 'すべて' : kwType;
   const segD = (id, list, cur, big) => '<div class="graph-seg sm' + (big ? ' kw-big' : '') + '" id="' + id + '">' + list.map(([v, l, dis, tip]) => '<button type="button" data-v="' + v + '" class="' + (v === cur ? 'active' : '') + '"' + (dis ? ' disabled title="' + (tip || 'データがありません') + '"' : '') + '>' + l + '</button>').join('') + '</div>';
-  let h = '<div class="kw-steps">';
+  let h = '<div class="kw-steps"' + (kwStepsHidden ? ' hidden' : '') + '>';
   // ① 対象
   h += '<div class="kw-step"><div class="kw-step-lbl"><span>①</span>対象</div><div class="kw-step-body">';
   h += '<div class="kw-lv">' + segD('kw-type', [['all', 'すべて'], ['SP', 'SP（スポンサープロダクト）'], ['SB', 'SB（スポンサーブランド）']], kwType, true) + '</div>';
@@ -5935,29 +5921,30 @@ function renderAdKwView(){
     + '<input type="search" class="graph-select kw-search" id="kw-search" placeholder="🔍 キーワード・ASIN で検索" value="' + escapeHtml(kwSearch) + '"></div>';
   h += '</div></div>';
   // ② 期間
-  h += '<div class="kw-step"><div class="kw-step-lbl"><span>②</span>期間' + (monthlyView ? '<em>月別表示</em>' : '') + '</div><div class="kw-step-body"><div class="kw-lv">';
-  if (monthlyView) h += segD('kw-mrange', [['last12', '直近12か月'], ['all', '全期間']], kwMonthRange);
-  else h += segD('kw-range', [['last7', '直近7日'], ['last30', '直近30日'], ['thismonth', '今月'], ['lastmonth', '先月'], ['custom', '期間指定']], kwRange);
-  if (!monthlyView && kwRange === 'custom') h += '<span class="graph-range"><input type="date" class="graph-select kw-date" id="kw-from" value="' + (kwFrom || from) + '"> ～ <input type="date" class="graph-select kw-date" id="kw-to" value="' + (kwTo || to) + '"></span>';
-  const periodTxt = monthlyView ? (from.slice(0, 7).replace('-', '/') + '〜' + to.slice(0, 7).replace('-', '/') + '（' + months.length + 'か月）') : (from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）');
+  h += '<div class="kw-step"><div class="kw-step-lbl"><span>②</span>期間</div><div class="kw-step-body"><div class="kw-lv">';
+  h += segD('kw-range', [['last7', '直近7日'], ['last30', '直近30日'], ['thismonth', '今月'], ['lastmonth', '先月'], ['custom', '期間指定']], kwRange);
+  if (kwRange === 'custom') h += '<span class="graph-range"><input type="date" class="graph-select kw-date" id="kw-from" value="' + (kwFrom || from) + '"> ～ <input type="date" class="graph-select kw-date" id="kw-to" value="' + (kwTo || to) + '"></span>';
+  const periodTxt = from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）';
   h += '<span class="graph-note">' + periodTxt + '　データの最終日 ' + all[all.length - 1].replace(/-/g, '/') + '</span></div></div></div>';
-  // ③ 見せ方
+  // ③ まとめ方（日別・月別の推移は行クリックのモーダルで見る）
   const GROUP_NAME = { kwmatch: 'キーワード×マッチ', kw: 'キーワード', camp: 'キャンペーン' };
-  const VIEW_NAME = { sum: '期間合計', daily: '日別', monthly: '月別' };
-  h += '<div class="kw-step"><div class="kw-step-lbl"><span>③</span>見せ方</div><div class="kw-step-body"><div class="kw-lv">';
-  h += '<span class="kw-grp"><span class="kw-sublbl">表示</span>' + segD('kw-view', [['sum', '期間合計'], ['daily', '日別（横に日付）'], ['monthly', '月別（横に月）']], kwView) + '</span>';
-  h += '<span class="kw-grp"><span class="kw-sublbl">まとめ方</span>' + segD('kw-group', [['kwmatch', 'キーワード×マッチ'], ['kw', 'キーワード'], ['camp', 'キャンペーン']], kwGroup) + '</span>';
-  if (kwView === 'daily' || kwView === 'monthly') h += '<span class="kw-grp"><span class="kw-sublbl">セルの値</span>' + segD('kw-metric', [['cost', '広告費'], ['sales', '売上'], ['roas', 'ROAS'], ['clicks', 'クリック'], ['orders', '注文'], ['imp', '表示']], kwDailyMetric) + '</span>';
+  h += '<div class="kw-step"><div class="kw-step-lbl"><span>③</span>まとめ方</div><div class="kw-step-body"><div class="kw-lv">';
+  h += segD('kw-group', [['kwmatch', 'キーワード×マッチ'], ['kw', 'キーワード'], ['camp', 'キャンペーン']], kwGroup);
+  h += '<span class="graph-note">日別・月別の推移は、表の行をクリックすると開く画面で見られます</span>';
   h += '</div></div></div>';
   h += '</div>';
-  // いま見ているもの＋絞り込みを解除
+  // いま見ているもの＋絞り込みを解除＋隠すボタン（選択肢を隠しても、ここは残る）
   const filtered = kwType !== 'all' || kwKind !== 'all' || !!kwCamp || !!kwSearch.trim();
+  const hdrHidden = document.body.classList.contains('header-hidden');
   h += '<div class="kw-crumb"><span class="kw-crumb-l">いま見ているもの</span>'
     + '<b>' + typeName + '</b> › <b>' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + '</b> › <b>' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + '</b>'
     + (kwSearch.trim() ? '　<span class="kw-crumb-q">検索「' + escapeHtml(kwSearch.trim()) + '」</span>' : '')
-    + '<span class="kw-crumb-sep">／</span>' + periodTxt + '<span class="kw-crumb-sep">／</span>' + VIEW_NAME[kwView] + '・' + GROUP_NAME[kwGroup]
+    + '<span class="kw-crumb-sep">／</span>' + periodTxt + '<span class="kw-crumb-sep">／</span>' + GROUP_NAME[kwGroup]
+    + '<span class="kw-crumb-btns">'
     + (filtered ? '<button type="button" class="kw-clear" id="kw-clear" title="①対象（タイプ・種別・キャンペーン・検索）をすべて「すべて」に戻します">✕ 絞り込みを解除</button>' : '')
-    + '</div>';
+    + '<button type="button" class="utility toggle-header-btn" id="toggle-header-adkw" style="font-size:12px;" title="' + (hdrHidden ? 'ヘッダーとタブを表示' : 'ヘッダーとタブを非表示にして表を広く') + '"><svg class="icn"><use href="#i-chevron-' + (hdrHidden ? 'down' : 'up') + '"/></svg> ' + (hdrHidden ? 'ヘッダーを表示' : 'ヘッダーを隠す') + '</button>'
+    + '<button type="button" class="utility kw-steps-btn" id="kw-steps-toggle" style="font-size:12px;" title="' + (kwStepsHidden ? '①〜③の選択肢を表示' : 'ヘッダー・タブと①〜③の選択肢をまとめて隠して、表を広く') + '"><svg class="icn"><use href="#i-chevron-' + (kwStepsHidden ? 'down' : 'up') + '"/></svg> ' + (kwStepsHidden ? '選択肢を表示' : '選択肢まで隠す') + '</button>'
+    + '</span></div>';
 
   // 指標カード
   const cmp = (cur, pv, goodUp) => {
@@ -5987,7 +5974,7 @@ function renderAdKwView(){
     return (x - y) * dir;
   });
   h += '<div class="kw-count"><b>' + groups.length + '件</b>　ROAS：<span class="kw-dot hi"></span><span class="kw-r-hi">300%以上 ' + nHi + '</span>　<span class="kw-dot mid"></span><span class="kw-r-mid">200〜299% ' + nMid + '</span>　<span class="kw-dot lo"></span><span class="kw-r-lo">199%以下 ' + nLo + '</span>'
-    + (kwView === 'sum' ? '<span class="kw-hint">行をクリックすると、そのワードの推移（グラフ・表）が開きます</span>' : '')
+    + '<span class="kw-hint">行をクリックすると、そのワードの日別・月別の推移（グラフ・表）が開きます</span>'
     + '<label class="kw-chk" title="選んだ期間に広告費が0円（クリックが0回）の行も一覧に出します。表示はあるのにクリックされないキーワードを探す時に"><input type="checkbox" id="kw-showzero"' + (kwHideZero ? '' : ' checked') + '> 費用0の行も出す</label></div>';
 
   const labelCells = (gp) => {
@@ -6004,73 +5991,20 @@ function renderAdKwView(){
   };
 
   h += '<div class="table-wrap kw-wrap">';
-  if (kwView === 'sum') {
+  {
     const th = (k, l) => '<th class="sortable num' + (kwSortKey === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwSortKey === k ? (kwSortDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
     h += '<table class="kw-table"><thead><tr><th class="sortable kw-jh' + (kwSortKey === 'roas' ? '' : '') + '" data-k="roas">判定</th>' + labelHead()
       + (kwGroup === 'kwmatch' ? th('bid', '入札額') : '') + th('imp', '表示') + th('clicks', 'クリック') + th('ctr', 'CTR') + th('cpc', 'CPC') + th('cost', '広告費') + th('orders', '注文') + th('sales', '売上') + th('cvr', 'CVR') + th('roas', 'ROAS') + th('acos', 'ACOS') + th('share', '上部シェア') + th('nDays', '日数')
       + '</tr></thead><tbody>';
     const nCols = (kwGroup === 'camp' ? 3 : 4) + (kwGroup === 'kwmatch' ? 1 : 0) + 12;
     groups.forEach(gp => {
-      const open = kwOpenKey === gp.key;
-      h += '<tr class="kw-row' + (open ? ' open' : '') + ' j-' + (gp.judge || 'none') + '" data-key="' + escapeHtml(gp.key) + '">' + '<td class="kw-jc">' + kwJudge(gp.judge) + '</td>' + labelCells(gp)
+      h += '<tr class="kw-row' + ' j-' + (gp.judge || 'none') + '" data-key="' + escapeHtml(gp.key) + '">' + '<td class="kw-jc">' + kwJudge(gp.judge) + '</td>' + labelCells(gp)
         + (kwGroup === 'kwmatch' ? '<td class="num">' + kwYen(gp.bid) + '</td>' : '')
         + '<td class="num">' + kwNum(gp.imp) + '</td><td class="num">' + kwNum(gp.clicks) + '</td><td class="num">' + kwPct(gp.ctr, 2) + '</td><td class="num">' + kwYen(gp.cpc) + '</td>'
         + '<td class="num strong">' + kwYen(gp.cost) + '</td><td class="num">' + kwNum(gp.orders) + '</td><td class="num">' + kwYen(gp.sales) + '</td><td class="num">' + kwPct(gp.cvr) + '</td>'
         + '<td class="num strong ' + kwCls(gp.judge) + '">' + kwRoasTxt(gp.roas) + '</td><td class="num">' + kwPct(gp.acos) + '</td><td class="num">' + kwPct(gp.share) + '</td><td class="num">' + gp.nDays + '</td></tr>';
-      if (open) {
-        // その行の日別推移
-        const dseg = '<div class="kw-dmode">' + seg('kw-dmode', [['daily', '日別（選んだ期間）'], ['monthly', '月別（全期間）']], kwDetailMode) + '</div>';
-        if (kwDetailMode === 'monthly') {
-          const allDs = kwDates();
-          const mineAll = kwRows(allDs[0], allDs[allDs.length - 1]).filter(r => kwGroupKey(r) === gp.key);
-          const byM = {};
-          mineAll.forEach(r => { const ym = r.ds.slice(0, 7); const a = byM[ym] || (byM[ym] = { imp: 0, clicks: 0, cost: 0, orders: 0, sales: 0, bid: null, bidDate: '', days: new Set() }); a.imp += r.imp || 0; a.clicks += r.clicks || 0; a.cost += r.cost || 0; a.orders += r.orders || 0; a.sales += r.sales || 0; if (r.bid != null && r.ds >= a.bidDate) { a.bid = r.bid; a.bidDate = r.ds; } if ((r.imp || 0) > 0 || (r.cost || 0) > 0) a.days.add(r.ds); });
-          const yms = Object.keys(byM).sort().reverse();
-          let mt = '<table class="kw-sub"><thead><tr><th>月</th>' + (kwGroup === 'kwmatch' ? '<th>入札額（月末）</th>' : '') + '<th>表示</th><th>クリック</th><th>CTR</th><th>CPC</th><th>広告費</th><th>注文</th><th>売上</th><th>CVR</th><th>ROAS</th><th>日数</th></tr></thead><tbody>';
-          yms.forEach(ym => { const a = byM[ym]; const d = kwDerive(a);
-            mt += '<tr><td>' + ym.replace('-', '/') + '</td>' + (kwGroup === 'kwmatch' ? '<td>' + kwYen(a.bid) + '</td>' : '') + '<td>' + kwNum(d.imp) + '</td><td>' + kwNum(d.clicks) + '</td><td>' + kwPct(d.ctr, 2) + '</td><td>' + kwYen(d.cpc) + '</td><td>' + kwYen(d.cost) + '</td><td>' + kwNum(d.orders) + '</td><td>' + kwYen(d.sales) + '</td><td>' + kwPct(d.cvr) + '</td><td class="' + kwCls(d.judge) + '">' + kwRoasTxt(d.roas) + '</td><td>' + a.days.size + '</td></tr>'; });
-          if (!yms.length) mt += '<tr><td colspan="12" class="kw-empty">データがありません</td></tr>';
-          mt += '</tbody></table>';
-          h += '<tr class="kw-detail"><td colspan="' + nCols + '">' + dseg + mt + '</td></tr>';
-          return;
-        }
-        const mine = rows.filter(r => kwGroupKey(r) === gp.key);
-        const byD = {}; mine.forEach(r => { const a = byD[r.ds] || (byD[r.ds] = { imp: 0, clicks: 0, cost: 0, orders: 0, sales: 0, bid: null }); a.imp += r.imp || 0; a.clicks += r.clicks || 0; a.cost += r.cost || 0; a.orders += r.orders || 0; a.sales += r.sales || 0; if (r.bid != null) a.bid = r.bid; });
-        let dt = '<table class="kw-sub"><thead><tr><th>日付</th>' + (kwGroup === 'kwmatch' ? '<th>入札額</th>' : '') + '<th>表示</th><th>クリック</th><th>広告費</th><th>注文</th><th>売上</th><th>ROAS</th><th>セール</th></tr></thead><tbody>';
-        days.slice().reverse().forEach(ds => {
-          const a = byD[ds]; const d = a ? kwDerive(a) : null; const sn = saleNamesForDate(ds);
-          const dw = new Date(ds + 'T00:00:00').getDay();
-          dt += '<tr><td class="' + (dw === 0 ? 'gt-sun' : (dw === 6 ? 'gt-sat' : '')) + '">' + graphPeriodText(ds).slice(5) + '</td>' + (kwGroup === 'kwmatch' ? '<td>' + (a && a.bid != null ? kwYen(a.bid) : '—') + '</td>' : '')
-            + '<td>' + (d ? kwNum(d.imp) : '—') + '</td><td>' + (d ? kwNum(d.clicks) : '—') + '</td><td>' + (d ? kwYen(d.cost) : '—') + '</td><td>' + (d ? kwNum(d.orders) : '—') + '</td><td>' + (d ? kwYen(d.sales) : '—') + '</td>'
-            + '<td class="' + (d ? kwCls(d.judge) : '') + '">' + (d ? kwRoasTxt(d.roas) : '—') + '</td><td>' + (sn.length ? '<span class="gt-sale">SALE</span>' : '') + '</td></tr>';
-        });
-        dt += '</tbody></table>';
-        h += '<tr class="kw-detail"><td colspan="' + nCols + '">' + dseg + dt + '</td></tr>';
-      }
     });
     if (!groups.length) h += '<tr><td colspan="' + nCols + '" class="kw-empty">この期間・条件のデータがありません</td></tr>';
-    h += '</tbody></table>';
-  } else {
-    // 日別（横に日付）：行＝まとめ方の単位、列＝日付、セル＝選んだ指標
-    const m = kwDailyMetric;
-    const fmt = v => m === 'roas' ? kwRoasTxt(v) : ((m === 'cost' || m === 'sales') ? (v == null ? '' : Math.round(v).toLocaleString()) : (v == null ? '' : kwNum(v)));
-    const cellBy = {};
-    const colOf = r => monthlyView ? r.ds.slice(0, 7) : r.ds;
-    rows.forEach(r => { const k = kwGroupKey(r) + '§' + colOf(r); const a = cellBy[k] || (cellBy[k] = { imp: 0, clicks: 0, cost: 0, orders: 0, sales: 0 }); a.imp += r.imp || 0; a.clicks += r.clicks || 0; a.cost += r.cost || 0; a.orders += r.orders || 0; a.sales += r.sales || 0; });
-    h += '<table class="kw-table kw-daily"><thead><tr><th class="kw-jh">判定</th>' + labelHead();
-    if (monthlyView) months.forEach(ym => { h += '<th class="num kw-day">' + ym.slice(2, 4) + '/' + (+ym.slice(5, 7)) + '月</th>'; });
-    else days.forEach(ds => { const dw = new Date(ds + 'T00:00:00').getDay(); h += '<th class="num kw-day ' + (dw === 0 ? 'gt-sun' : (dw === 6 ? 'gt-sat' : '')) + (dateInAnySale(ds) ? ' kw-saleday' : '') + '" title="' + graphPeriodText(ds) + (dateInAnySale(ds) ? '（セール）' : '') + '">' + (+ds.slice(5, 7)) + '/' + (+ds.slice(8, 10)) + '</th>'; });
-    h += '<th class="num">期間計</th></tr></thead><tbody>';
-    groups.forEach(gp => {
-      h += '<tr class="j-' + (gp.judge || 'none') + '"><td class="kw-jc">' + kwJudge(gp.judge) + '</td>' + labelCells(gp);
-      (monthlyView ? months : days).forEach(ds => {
-        const a = cellBy[gp.key + '§' + ds]; const d = a ? kwDerive(a) : null; const v = d ? d[m] : null;
-        const cls = (m === 'roas' && d && d.judge) ? kwCls(d.judge) : '';
-        h += '<td class="num kw-day ' + cls + '">' + (d && v != null && (m === 'roas' || v) ? fmt(v) : '') + '</td>';
-      });
-      h += '<td class="num strong">' + fmt(gp[m]) + '</td></tr>';
-    });
-    if (!groups.length) h += '<tr><td colspan="' + ((monthlyView ? months.length : days.length) + 6) + '" class="kw-empty">この期間・条件のデータがありません</td></tr>';
     h += '</tbody></table>';
   }
   h += '</div>';
@@ -6078,14 +6012,10 @@ function renderAdKwView(){
 
   // イベント
   const segOn = (id, fn) => body.querySelectorAll('#' + id + ' button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); renderAdKwView(); }));
-  segOn('kw-range', v => { kwRange = v; if (v === 'custom' && !kwFrom) { kwFrom = from; kwTo = to; } kwOpenKey = null; });
+  segOn('kw-range', v => { kwRange = v; if (v === 'custom' && !kwFrom) { kwFrom = from; kwTo = to; } });
   segOn('kw-type', v => { if (kwType !== v) { kwType = v; kwKind = 'all'; kwCamp = ''; } });   // 上の段を変えたら下の段は「すべて」に戻す
   segOn('kw-kind', v => { if (kwKind !== v) { kwKind = v; kwCamp = ''; } });
-  segOn('kw-mrange', v => { kwMonthRange = v; });
-  segOn('kw-view', v => { kwView = v; });
-  segOn('kw-group', v => { kwGroup = v; kwOpenKey = null; if (v === 'camp' && (kwSortKey === 'target' || kwSortKey === 'match' || kwSortKey === 'bid')) kwSortKey = 'cost'; });
-  segOn('kw-metric', v => { kwDailyMetric = v; });
-  segOn('kw-dmode', v => { kwDetailMode = v; });
+  segOn('kw-group', v => { kwGroup = v; if (v === 'camp' && (kwSortKey === 'target' || kwSortKey === 'match' || kwSortKey === 'bid')) kwSortKey = 'cost'; });
   body.querySelectorAll('.kw-copy').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); kwCopyText(b.dataset.copy, '「' + b.dataset.copy + '」をコピーしました'); }));
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
   on('#kw-from', 'change', e => { kwFrom = e.target.value; renderAdKwView(); });
@@ -6093,6 +6023,8 @@ function renderAdKwView(){
   on('#kw-camp', 'change', e => { kwCamp = e.target.value; renderAdKwView(); });
   on('#kw-showzero', 'change', e => { kwHideZero = !e.target.checked; renderAdKwView(); });
   on('#kw-clear', 'click', () => { kwType = 'all'; kwKind = 'all'; kwCamp = ''; kwSearch = ''; renderAdKwView(); });
+  on('#toggle-header-adkw', 'click', toggleHeader);
+  on('#kw-steps-toggle', 'click', kwToggleSteps);
   on('#kw-search', 'input', e => {
     kwSearch = e.target.value; const pos = e.target.selectionStart;
     clearTimeout(window._kwSearchT); window._kwSearchT = setTimeout(() => { renderAdKwView(); const s = document.getElementById('kw-search'); if (s) { s.focus(); try { s.setSelectionRange(pos, pos); } catch (er) {} } }, 250);
@@ -6108,9 +6040,24 @@ function renderAdKwView(){
     const sel = window.getSelection && String(window.getSelection()); if (sel) return;   // 文字を選んでいる時は開閉しない（ドラッグでコピーできるように）
     openKwModal(tr.dataset.key);   // 推移（グラフ＋表）をモーダルで開く
   }));
-  body.querySelectorAll('.kw-detail').forEach(td => td.addEventListener('click', e => e.stopPropagation()));
+  kwFitTable();
 }
 window.renderAdKwView = renderAdKwView;
+// 「選択肢まで隠す」：ヘッダー・タブと①〜③をまとめて隠す／「選択肢を表示」：①〜③を出し、ヘッダーは押す前の状態に戻す
+function kwToggleSteps(){
+  const hdr = document.body.classList.contains('header-hidden');
+  if (!kwStepsHidden) { kwStepsPrevHeader = hdr; kwStepsHidden = true; if (!hdr) toggleHeader(); }
+  else { kwStepsHidden = false; if (hdr && !kwStepsPrevHeader) toggleHeader(); }
+  renderAdKwView();
+}
+// 隠しているときは、表の下端を画面の下まで伸ばす（ページの表示倍率 zoom を考慮）
+function kwFitTable(){
+  const el = document.querySelector('#adkw-view:not([hidden]) .kw-wrap'); if (!el) return;
+  if (!kwStepsHidden && !document.body.classList.contains('header-hidden')) { el.style.maxHeight = ''; return; }
+  const z = parseFloat(document.querySelector('.container').style.zoom) || 1;
+  const top = el.getBoundingClientRect().top;
+  el.style.maxHeight = Math.max(200, (window.innerHeight - top - 8) / z) + 'px';
+}
 
 
 // ============================================
