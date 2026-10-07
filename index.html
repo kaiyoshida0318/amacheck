@@ -1495,7 +1495,10 @@
   .kwm-chip { display: inline-block; font-size: 12.5px; font-weight: 700; color: #fff; border-radius: 4px; padding: 2px 8px; margin-right: 4px; }
   .kwm-chip.bid { background: #9333ea; } .kwm-chip.sale { background: #c2185b; }
   /* 表のセール表示（v2.92）：セール中の日（セールのある月）は日付（月）の左にセールのピンクの縦線。名前はマウスを乗せると出る */
-  table.kwm-tbl td.kwm-salecell { box-shadow: inset 4px 0 0 #c2185b; cursor: help; }
+  /* v2.93：日付（月）セルの左の余白の中にピンクの縦線（枠から少し離す）。続く日は上下がつながって1本の線に見える */
+  table.kwm-tbl td.lbl, table.kwm-tbl td.yr { position: relative; padding-left: 20px; }
+  table.kwm-tbl td.kwm-salecell { cursor: help; }
+  table.kwm-tbl td.kwm-salecell::before { content: ''; position: absolute; left: 7px; top: 0; bottom: -1px; width: 4px; border-radius: 2px; background: #c2185b; }
   table.kw-table td.kw-t .kw-word { user-select: text; }
   .kw-copy { border: none; background: transparent; padding: 0 4px; margin-left: 4px; color: var(--text-tertiary); cursor: pointer; opacity: 0; font-size: 13px; vertical-align: -2px; }
   tr:hover .kw-copy { opacity: 1; }
@@ -1731,7 +1734,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.92</span>
+    <span class="version">v2.93</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
