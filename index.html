@@ -1462,6 +1462,9 @@
   .kwm-tg .dot { width: 10px; height: 10px; border-radius: 50%; background: rgba(255,255,255,0.9); }
   .kwm-tg.off { background: transparent; color: var(--text-tertiary); text-decoration: line-through; opacity: 0.55; }
   .kwm-tg.off .dot { background: var(--text-tertiary); }
+  /* 共通の button:hover（薄いグレー）に負けないように：ON は同じ色のまま少し濃く、OFF は薄いグレー地に色の枠（v2.89） */
+  .kwm-tg:hover { background: var(--c); border-color: var(--c); color: #fff; filter: brightness(0.9); }
+  .kwm-tg.off:hover { background: var(--bg-secondary); border-color: var(--c); color: var(--text-secondary); filter: none; opacity: 0.85; }
   .kwm-years { display: flex; gap: 8px; justify-content: flex-end; margin: 2px 0 4px; flex-wrap: wrap; }
   .kwm-yr { font-size: 14px; font-weight: 700; border: 1px solid var(--border); background: #fff; border-radius: 6px; padding: 3px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
   .kwm-yr.off { opacity: 0.45; text-decoration: line-through; }
@@ -1722,7 +1725,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.88</span>
+    <span class="version">v2.89</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
