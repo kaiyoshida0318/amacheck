@@ -1467,6 +1467,7 @@
   .kwm-yr.off { opacity: 0.45; text-decoration: line-through; }
   .kwm-chart { position: relative; height: 400px; margin-bottom: 18px; }
   .kwm-nochart { padding: 40px; text-align: center; color: var(--text-tertiary); font-size: 13px; background: var(--bg-secondary); border-radius: 8px; }
+  .kwm-tblhead .kwm-hide-btn { font-size: 14px; padding: 6px 14px; font-weight: 600; }
   .kwm-tblhead { display: flex; align-items: center; gap: 14px; font-size: 16px; font-weight: 700; color: var(--black); margin: 4px 0 8px; padding-top: 10px; border-top: 1px solid var(--border); }
   .kwm-tblwrap { max-height: 560px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
   table.kwm-tbl { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 15px; }
@@ -1721,7 +1722,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.86</span>
+    <span class="version">v2.88</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -6346,7 +6347,7 @@ function renderKwModal(){
     h += seg('kwm-fy', [['1', '1月始まり'], ['5', '5月始まり'], ['2y', '2年横並び']], kwm.view2y ? '2y' : String(kwm.fy));
   }
   h += '<select class="kwm-select" id="kwm-metric">' + KWM_METRICS.filter(([k]) => bidOk || k !== 'bid').map(([k, l]) => '<option value="' + k + '"' + (k === kwm.metric ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>';
-  h += '<button type="button" class="kwm-btn" id="kwm-hide">' + (kwm.hideChart ? 'グラフを表示' : 'グラフを隠す') + '</button></div>';
+  h += '</div>';
   h += '<div class="kwm-note">※ <span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の縦線</span>＝入札額を変えた' + (isDaily ? '日' : '月') + (isDaily ? '／<span style="color:#c2185b;font-weight:700;">ピンクの帯</span>＝セール期間' : '') + '　ROAS の色：<span class="kw-r-hi">300%以上</span>・<span class="kw-r-mid">200〜299%</span>・<span class="kw-r-lo">199%以下</span>' + (!isDaily && labels.length && labels[labels.length - 1] === (lastDs || '').slice(0, 7) && lastDs.slice(8, 10) !== String(daysInMonth(lastDs.slice(0, 7))).padStart(2, '0') ? '　／　' + lastDs.slice(0, 7).replace('-', '/') + ' は途中の月（' + (+lastDs.slice(8, 10)) + '日まで）' : '') + '</div>';
 
   // ---- 系列 ----
@@ -6385,7 +6386,8 @@ function renderKwModal(){
   const hot = new Set(M === 'all' ? ['sales', 'cost', 'roas'] : [M]);
   const cell = (a, k) => { const v = kwmVal(a, k); const cls = (hot.has(k) ? ' hot' : '') + (k === 'roas' && v != null ? ' ' + kwCls(kwJudgeOf(v / 100)) : ''); return '<td class="num' + cls + '">' + (a ? kwmFmt(k, v) : '—') + '</td>'; };
   const memo = (l, dsForSale) => { let s = ''; const c = chgAt[l]; if (c) s += '<span class="kwm-chip bid">入札 ¥' + Math.round(c.from) + '→¥' + Math.round(c.to) + '</span>'; if (dsForSale && dateInAnySale(dsForSale)) s += '<span class="kwm-chip sale" title="' + escapeHtml(saleNamesForDate(dsForSale).join(' / ')) + '">SALE</span>'; return s; };
-  h += '<div class="kwm-tblhead">📋 ' + (isDaily ? '日別' : '月別') + 'データ' + (!isDaily ? '<div class="kwm-seg sm" id="kwm-yoy"><button type="button" data-v="0" class="' + (!kwm.tblYoy ? 'on blue' : '') + '">通常</button><button type="button" data-v="1" class="' + (kwm.tblYoy ? 'on blue' : '') + '">前年同月比</button></div>' : '') + '</div>';
+  h += '<div class="kwm-tblhead">📋 ' + (isDaily ? '日別' : '月別') + 'データ' + (!isDaily ? '<div class="kwm-seg sm" id="kwm-yoy"><button type="button" data-v="0" class="' + (!kwm.tblYoy ? 'on blue' : '') + '">通常</button><button type="button" data-v="1" class="' + (kwm.tblYoy ? 'on blue' : '') + '">前年同月比</button></div>' : '')
+    + '<button type="button" class="kwm-btn kwm-hide-btn" id="kwm-hide">' + (kwm.hideChart ? 'グラフを表示' : 'グラフを隠す') + '</button></div>';   // v2.87：表の見出しの右隣へ
   h += '<div class="kwm-tblwrap"><table class="kwm-tbl"><thead><tr><th>' + (isDaily ? '日付' : '月') + '</th>' + (kwm.tblYoy && !isDaily ? '<th></th>' : '') + COLS.map(([k, l]) => '<th class="num' + (hot.has(k) ? ' hot' : '') + '">' + l + '</th>').join('') + '<th>メモ</th></tr></thead><tbody>';
   if (!isDaily && kwm.tblYoy) {
     const lastM = labels[labels.length - 1];
@@ -6427,7 +6429,24 @@ function renderKwModal(){
   const cv = box.querySelector('#kwm-canvas');
   if (!cv || typeof Chart === 'undefined') return;
   kwmRegisterZoomFix();
-  const saleIdx = isDaily ? labels.map(l => dateInAnySale(l)) : [];
+  // セール期間（日別のみ）：セール設定の期間ごとに [開始の列, 終了の列, 名前]。名前はグラフの上の帯に出す（重なれば2段目）
+  const saleBands = [];
+  if (isDaily && !overlay && labels.length) {
+    (saleRanges || []).slice().filter(sr => sr.start && sr.end).sort((a, b) => String(a.start).localeCompare(String(b.start))).forEach(sr => {
+      let i0 = -1, i1 = -1; labels.forEach((l, i) => { if (l >= sr.start && l <= sr.end) { if (i0 < 0) i0 = i; i1 = i; } });
+      if (i0 < 0) return;
+      const nm = (sr.label && String(sr.label).trim()) || 'セール';
+      const md = d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10));
+      saleBands.push({ i0, i1, text: nm + '　' + md(sr.start) + (sr.end !== sr.start ? '〜' + md(sr.end) : '') });
+    });
+  }
+  const SALE_ROW_H = 24;
+  // 名前の段（重なるものは2段目へ）：幅はだいたいの文字数から見積もり、描画時に実測で並べ直す
+  let saleRows = 0; {
+    const colW = Math.max(4, ((cv.parentElement && cv.parentElement.clientWidth) || 1200) / Math.max(1, labels.length));   // 1日あたりのおおよその幅（canvas は描画前だと 300px なので親の幅で）
+    const ends = [];   // 段ごとに、最後のラベルの右端（列の位置）
+    saleBands.forEach(b => { const right = Math.max(b.i1 + 1, b.i0 + (b.text.length * 13 + 24) / colW); b.row = (ends[0] == null || b.i0 >= ends[0]) ? 0 : 1; ends[b.row] = Math.max(ends[b.row] || 0, right); saleRows = Math.max(saleRows, b.row + 1); });
+  }
   const tickCb = (k) => (v) => kwmUnit(k) === 'yen' ? '¥' + Math.round(v).toLocaleString() : (kwmUnit(k) === 'pct' ? (Math.abs(v) < 10 && v % 1 ? v.toFixed(1) : Math.round(v)) + '%' : (v % 1 ? '' : Math.round(v).toLocaleString()));
   const scales = {
     x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 13 }, autoSkip: true, maxRotation: 0 } },
@@ -6440,6 +6459,7 @@ function renderKwModal(){
     data: { labels: xLabels, datasets },
     options: {
       responsive: true, maintainAspectRatio: false, animation: false,
+      layout: { padding: { top: saleRows ? saleRows * SALE_ROW_H + 6 : 0 } },
       interaction: { mode: 'index', intersect: false },
       plugins: {
         legend: { display: false },
@@ -6453,11 +6473,32 @@ function renderKwModal(){
     },
     plugins: [{
       id: 'kwmOverlay',
-      beforeDatasetsDraw(chart){   // セール期間の帯（日別）
-        if (overlay || !saleIdx.some(Boolean)) return;
+      beforeDatasetsDraw(chart){   // セール期間の帯（日別）：ピンクの帯＋両端の破線
+        if (!saleBands.length) return;
         const { ctx, chartArea: ca, scales: { x } } = chart; const step = labels.length > 1 ? (x.getPixelForValue(1) - x.getPixelForValue(0)) : 20;
-        ctx.save(); ctx.fillStyle = 'rgba(194,24,91,0.08)';
-        saleIdx.forEach((s, i) => { if (s) ctx.fillRect(x.getPixelForValue(i) - step / 2, ca.top, step, ca.bottom - ca.top); });
+        ctx.save();
+        saleBands.forEach(b => {
+          const x0 = x.getPixelForValue(b.i0) - step / 2, x1 = x.getPixelForValue(b.i1) + step / 2;
+          ctx.fillStyle = 'rgba(194,24,91,0.13)'; ctx.fillRect(x0, ca.top, x1 - x0, ca.bottom - ca.top);
+          ctx.strokeStyle = 'rgba(194,24,91,0.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 3]);
+          [x0, x1].forEach(px => { ctx.beginPath(); ctx.moveTo(px, ca.top); ctx.lineTo(px, ca.bottom); ctx.stroke(); });
+          ctx.setLineDash([]);
+        });
+        ctx.restore();
+      },
+      afterDraw(chart){            // セール名：グラフの上（データに重ならない所）にピンクのラベル
+        if (!saleBands.length) return;
+        const { ctx, chartArea: ca, scales: { x } } = chart; const step = labels.length > 1 ? (x.getPixelForValue(1) - x.getPixelForValue(0)) : 20;
+        ctx.save(); ctx.font = 'bold 12.5px sans-serif'; ctx.textBaseline = 'middle';
+        saleBands.forEach(b => {
+          const x0 = x.getPixelForValue(b.i0) - step / 2, x1 = x.getPixelForValue(b.i1) + step / 2;
+          const w = Math.max(x1 - x0, ctx.measureText(b.text).width + 16), hgt = 20;
+          const bx = Math.max(ca.left, Math.min(ca.right - w, x0)), by = ca.top - saleRows * SALE_ROW_H - 2 + b.row * SALE_ROW_H;
+          ctx.fillStyle = '#c2185b'; ctx.globalAlpha = 0.92; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, w, hgt, 5); else ctx.rect(bx, by, w, hgt); ctx.fill(); ctx.globalAlpha = 1;
+          ctx.fillStyle = '#fff'; ctx.fillText(b.text, bx + 8, by + hgt / 2 + 0.5);
+          ctx.strokeStyle = 'rgba(194,24,91,0.55)'; ctx.lineWidth = 1.5; ctx.setLineDash([5, 3]);   // ラベルと帯をつなぐ
+          ctx.beginPath(); ctx.moveTo(x0, by + hgt); ctx.lineTo(x0, ca.top); ctx.stroke(); ctx.setLineDash([]);
+        });
         ctx.restore();
       },
       afterDatasetsDraw(chart){    // 入札額の変更：縦線＋バッジ（上下2段で交互）
