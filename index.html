@@ -1432,6 +1432,60 @@
   table.kw-table td.kw-c { max-width: 250px; overflow: hidden; text-overflow: ellipsis; color: var(--text-secondary); }
   table.kw-table td.kw-m { color: var(--text-secondary); }
   table.kw-table .kw-jh, table.kw-table .kw-jc { text-align: center; width: 36px; }
+  /* ===== KW推移モーダル ===== */
+  .kwm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9200; display: flex; align-items: center; justify-content: center; }
+  .kwm-bg[hidden] { display: none; }
+  .kwm-box { background: #fff; width: 96vw; max-width: 1200px; max-height: 92vh; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; }
+  .kwm-head { display: flex; align-items: center; gap: 16px; padding: 16px 22px; border-bottom: 1px solid var(--border); }
+  .kwm-title-wrap { flex: 1; min-width: 0; }
+  .kwm-title { font-size: 17px; font-weight: 800; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kwm-copy { border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; padding: 0 4px; font-size: 14px; vertical-align: -1px; }
+  .kwm-copy:hover { color: var(--purple); }
+  .kwm-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kwm-bidnow { text-align: right; line-height: 1.25; }
+  .kwm-bidnow span { display: block; font-size: 11px; color: var(--text-tertiary); }
+  .kwm-bidnow b { font-size: 18px; color: #9333ea; }
+  .kwm-bidnow em { display: block; font-size: 10.5px; font-style: normal; color: var(--text-tertiary); }
+  .kwm-close { border: none; background: var(--bg-secondary); border-radius: 50%; width: 34px; height: 34px; cursor: pointer; font-size: 16px; color: var(--text-secondary); flex-shrink: 0; }
+  .kwm-body { padding: 14px 22px 18px; overflow: auto; }
+  .kwm-ctrl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .kwm-seg { display: inline-flex; gap: 4px; }
+  .kwm-seg button { font-size: 12px; padding: 5px 14px; border-radius: 5px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; font-family: inherit; font-weight: 600; }
+  .kwm-seg button.on { background: var(--purple); border-color: var(--purple); color: #fff; }
+  .kwm-seg button.on.blue { background: #3b82f6; border-color: #3b82f6; }
+  .kwm-seg.sm button { padding: 3px 10px; font-size: 11.5px; }
+  .kwm-select { font-size: 13px; padding: 6px 12px; border-radius: 6px; border: 1px solid var(--border); background: #fff; font-family: inherit; }
+  .kwm-btn { font-size: 12px; padding: 5px 12px; border-radius: 5px; border: 1px solid var(--border); background: #fff; cursor: pointer; font-family: inherit; color: var(--text-secondary); }
+  .kwm-note { font-size: 11.5px; color: var(--text-tertiary); margin: 10px 0 6px; }
+  .kwm-toggles { display: flex; gap: 8px; margin: 4px 0 6px; flex-wrap: wrap; }
+  .kwm-tg { font-size: 12px; font-weight: 700; border-radius: 7px; border: 2px solid var(--c); background: var(--c); color: #fff; padding: 4px 12px; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; }
+  .kwm-tg .dot { width: 8px; height: 8px; border-radius: 50%; background: rgba(255,255,255,0.9); }
+  .kwm-tg.off { background: transparent; color: var(--text-tertiary); text-decoration: line-through; opacity: 0.55; }
+  .kwm-tg.off .dot { background: var(--text-tertiary); }
+  .kwm-years { display: flex; gap: 8px; justify-content: flex-end; margin: 2px 0 4px; flex-wrap: wrap; }
+  .kwm-yr { font-size: 11px; font-weight: 700; border: 1px solid var(--border); background: #fff; border-radius: 6px; padding: 3px 10px; cursor: pointer; display: inline-flex; align-items: center; gap: 6px; font-family: inherit; }
+  .kwm-yr.off { opacity: 0.45; text-decoration: line-through; }
+  .kwm-chart { position: relative; height: 360px; margin-bottom: 14px; }
+  .kwm-nochart { padding: 40px; text-align: center; color: var(--text-tertiary); font-size: 13px; background: var(--bg-secondary); border-radius: 8px; }
+  .kwm-tblhead { display: flex; align-items: center; gap: 12px; font-size: 13.5px; font-weight: 700; color: var(--black); margin: 4px 0 8px; padding-top: 10px; border-top: 1px solid var(--border); }
+  .kwm-tblwrap { max-height: 520px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table.kwm-tbl { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 12.5px; }
+  table.kwm-tbl th, table.kwm-tbl td { padding: 6px 10px; border-bottom: 1px solid var(--border); white-space: nowrap; text-align: left; }
+  table.kwm-tbl th { position: sticky; top: 0; z-index: 1; background: var(--bg-secondary); color: var(--text-secondary); font-weight: 700; }
+  table.kwm-tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+  table.kwm-tbl th.hot { background: #f3e8ff; color: var(--purple); }
+  table.kwm-tbl td.hot { background: #faf5ff; font-weight: 700; }
+  table.kwm-tbl td.lbl { font-weight: 600; color: var(--black); }
+  table.kwm-tbl td.yr { color: var(--text-tertiary); font-weight: 600; }
+  table.kwm-tbl tr.nodata td { color: #cbd5e1; }
+  table.kwm-tbl tr.nodata td.lbl { color: var(--text-tertiary); font-weight: 400; }
+  table.kwm-tbl tr.kwm-chg td { border-top: 2px dashed #9333ea; border-bottom: 2px dashed #9333ea; }
+  table.kwm-tbl tr.kwm-chg td:first-child { border-left: 2px dashed #9333ea; font-weight: 800; }
+  table.kwm-tbl tr.kwm-chg td:last-child { border-right: 2px dashed #9333ea; }
+  table.kwm-tbl tr.alt td { background: rgba(59,130,246,0.06); }
+  table.kwm-tbl .gt-sun { color: #dc2626 !important; } table.kwm-tbl .gt-sat { color: #2563eb !important; }
+  .kwm-chip { display: inline-block; font-size: 10.5px; font-weight: 700; color: #fff; border-radius: 4px; padding: 1px 6px; margin-right: 4px; }
+  .kwm-chip.bid { background: #9333ea; } .kwm-chip.sale { background: #c2185b; }
   table.kw-table td.kw-t .kw-word { user-select: text; }
   .kw-copy { border: none; background: transparent; padding: 0 4px; margin-left: 4px; color: var(--text-tertiary); cursor: pointer; opacity: 0; font-size: 13px; vertical-align: -2px; }
   tr:hover .kw-copy { opacity: 1; }
@@ -1610,12 +1664,13 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.71</span>
+    <span class="version">v2.73</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
       <button class="zoom-btn" id="zoom-in" title="文字を大きく">A+</button>
     </div>
+    <button class="primary" id="open-add" title="商品情報（商品マスタ）を追加" style="font-size:13px;"><svg class="icn"><use href="#i-plus"/></svg> 商品情報追加</button>
     <button class="utility report-add-btn" id="open-report" title="出荷数・広告・月末データのCSV/ZIPをまとめて取り込む" style="font-size:13px;background:#dc2626;border:1px solid #dc2626;color:#fff;font-weight:700;"><svg class="icn"><use href="#i-plus"/></svg> レポート追加</button>
     <button class="utility" id="open-sale" title="セール期間・対象商品を設定" style="font-size:13px;"><svg class="icn"><use href="#i-tag"/></svg> セール設定</button>
     <button class="utility" id="open-export" title="出荷数・広告・全体収支を、ChatGPT などで分析するための Excel ファイルで書き出す" style="font-size:13px;"><svg class="icn"><use href="#i-download"/></svg> 分析用データ</button>
@@ -1706,7 +1761,6 @@
       <button class="ghost" id="open-withdrawn" title="撤退済みの商品を表示" style="font-size:13px;"><svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品 <span class="wd-count" style="color:var(--text-tertiary);"></span></button>
       <div class="spacer"></div>
       <button class="danger" id="delete-selected" disabled><svg class="icn"><use href="#i-trash"/></svg> 選択を削除 <span id="selected-count"></span></button>
-      <button class="primary" id="open-add"><svg class="icn"><use href="#i-plus"/></svg> 商品情報追加</button>
       <button class="utility toggle-header-btn" id="toggle-header-master" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
     <div class="master-card">
@@ -2263,9 +2317,12 @@
 </div>
 
 <div class="toast" id="toast"></div>
+<!-- KW推移モーダル（広告データ-個別）。表示倍率（.container の zoom）の外に置く -->
+<div class="kwm-bg" id="kwm-modal" hidden><div class="kwm-box" id="kwm-box"></div></div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.4.1/papaparse.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <script>/* lz-string (embedded) */
 var LZString=function(){var r=String.fromCharCode,o="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/=",n="ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+-$",e={};function t(r,o){if(!e[r]){e[r]={};for(var n=0;n<r.length;n++)e[r][r.charAt(n)]=n}return e[r][o]}var i={compressToBase64:function(r){if(null==r)return"";var n=i._compress(r,6,function(r){return o.charAt(r)});switch(n.length%4){default:case 0:return n;case 1:return n+"===";case 2:return n+"==";case 3:return n+"="}},decompressFromBase64:function(r){return null==r?"":""==r?null:i._decompress(r.length,32,function(n){return t(o,r.charAt(n))})},compressToUTF16:function(o){return null==o?"":i._compress(o,15,function(o){return r(o+32)})+" "},decompressFromUTF16:function(r){return null==r?"":""==r?null:i._decompress(r.length,16384,function(o){return r.charCodeAt(o)-32})},compressToUint8Array:function(r){for(var o=i.compress(r),n=new Uint8Array(2*o.length),e=0,t=o.length;e<t;e++){var s=o.charCodeAt(e);n[2*e]=s>>>8,n[2*e+1]=s%256}return n},decompressFromUint8Array:function(o){if(null==o)return i.decompress(o);for(var n=new Array(o.length/2),e=0,t=n.length;e<t;e++)n[e]=256*o[2*e]+o[2*e+1];var s=[];return n.forEach(function(o){s.push(r(o))}),i.decompress(s.join(""))},compressToEncodedURIComponent:function(r){return null==r?"":i._compress(r,6,function(r){return n.charAt(r)})},decompressFromEncodedURIComponent:function(r){return null==r?"":""==r?null:(r=r.replace(/ /g,"+"),i._decompress(r.length,32,function(o){return t(n,r.charAt(o))}))},compress:function(o){return i._compress(o,16,function(o){return r(o)})},_compress:function(r,o,n){if(null==r)return"";var e,t,i,s={},u={},a="",p="",c="",l=2,f=3,h=2,d=[],m=0,v=0;for(i=0;i<r.length;i+=1)if(a=r.charAt(i),Object.prototype.hasOwnProperty.call(s,a)||(s[a]=f++,u[a]=!0),p=c+a,Object.prototype.hasOwnProperty.call(s,p))c=p;else{if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++),s[p]=f++,c=String(a)}if(""!==c){if(Object.prototype.hasOwnProperty.call(u,c)){if(c.charCodeAt(0)<256){for(e=0;e<h;e++)m<<=1,v==o-1?(v=0,d.push(n(m)),m=0):v++;for(t=c.charCodeAt(0),e=0;e<8;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}else{for(t=1,e=0;e<h;e++)m=m<<1|t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t=0;for(t=c.charCodeAt(0),e=0;e<16;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1}0==--l&&(l=Math.pow(2,h),h++),delete u[c]}else for(t=s[c],e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;0==--l&&(l=Math.pow(2,h),h++)}for(t=2,e=0;e<h;e++)m=m<<1|1&t,v==o-1?(v=0,d.push(n(m)),m=0):v++,t>>=1;for(;;){if(m<<=1,v==o-1){d.push(n(m));break}v++}return d.join("")},decompress:function(r){return null==r?"":""==r?null:i._decompress(r.length,32768,function(o){return r.charCodeAt(o)})},_decompress:function(o,n,e){var t,i,s,u,a,p,c,l=[],f=4,h=4,d=3,m="",v=[],g={val:e(0),position:n,index:1};for(t=0;t<3;t+=1)l[t]=t;for(s=0,a=Math.pow(2,2),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;c=r(s);break;case 2:return""}for(l[3]=c,i=c,v.push(c);;){if(g.index>o)return"";for(s=0,a=Math.pow(2,d),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;switch(c=s){case 0:for(s=0,a=Math.pow(2,8),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 1:for(s=0,a=Math.pow(2,16),p=1;p!=a;)u=g.val&g.position,g.position>>=1,0==g.position&&(g.position=n,g.val=e(g.index++)),s|=(u>0?1:0)*p,p<<=1;l[h++]=r(s),c=h-1,f--;break;case 2:return v.join("")}if(0==f&&(f=Math.pow(2,d),d++),l[c])m=l[c];else{if(c!==h)return null;m=i+i.charAt(0)}v.push(m),l[h++]=i+m.charAt(0),i=m,0==--f&&(f=Math.pow(2,d),d++)}}};return i}();"function"==typeof define&&define.amd?define(function(){return LZString}):"undefined"!=typeof module&&null!=module?module.exports=LZString:"undefined"!=typeof angular&&null!=angular&&angular.module("LZString",[]).factory("LZString",function(){return LZString});
 </script>
@@ -2764,6 +2821,8 @@ function init(){
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('ret-add-modal').hidden) closeRetAddModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('cat-modal').hidden) closeCatModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('export-modal').hidden) closeExportModal(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('kwm-modal').hidden) closeKwModal(); });
+  document.getElementById('kwm-modal').addEventListener('click', (e) => { if (e.target.id === 'kwm-modal') closeKwModal(); });
   // 全体収支 月末データ取込モーダル
   document.getElementById('pl-imp-close').addEventListener('click', closePlImport);
   document.getElementById('pl-imp-cancel').addEventListener('click', plCancelPending);
@@ -5879,7 +5938,7 @@ function renderAdKwView(){
     if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
     return (x - y) * dir;
   });
-  h += '<div class="kw-count">' + (groups.length ? '<button type="button" class="utility kw-copy-all" id="kw-copy-all" title="表示中の' + (kwGroup === 'camp' ? 'キャンペーン名' : 'キーワード／ターゲット') + 'を、並び順のまま改行区切りでコピー"><svg class="icn"><use href="#i-copy"/></svg> 表示中の' + (kwGroup === 'camp' ? 'キャンペーン' : 'キーワード') + 'をまとめてコピー</button>' : '') + groups.length + '件（<span class="kw-r-hi">300%以上 ' + nHi + '</span>・<span class="kw-r-mid">200〜299% ' + nMid + '</span>・<span class="kw-r-lo">199%以下 ' + nLo + '</span>）' + (kwView === 'sum' ? '　行をクリックすると日別の推移が開きます' : '') + '</div>';
+  h += '<div class="kw-count">' + (groups.length ? '<button type="button" class="utility kw-copy-all" id="kw-copy-all" title="表示中の' + (kwGroup === 'camp' ? 'キャンペーン名' : 'キーワード／ターゲット') + 'を、並び順のまま改行区切りでコピー"><svg class="icn"><use href="#i-copy"/></svg> 表示中の' + (kwGroup === 'camp' ? 'キャンペーン' : 'キーワード') + 'をまとめてコピー</button>' : '') + groups.length + '件（<span class="kw-r-hi">300%以上 ' + nHi + '</span>・<span class="kw-r-mid">200〜299% ' + nMid + '</span>・<span class="kw-r-lo">199%以下 ' + nLo + '</span>）' + (kwView === 'sum' ? '　行をクリックすると、そのワードの推移（グラフ・表）が開きます' : '') + '</div>';
 
   const labelCells = (gp) => {
     const cp = (t) => t ? '<button type="button" class="kw-copy" data-copy="' + escapeHtml(t) + '" title="「' + escapeHtml(t) + '」をコピー"><svg class="icn"><use href="#i-copy"/></svg></button>' : '';
@@ -6001,11 +6060,281 @@ function renderAdKwView(){
   body.querySelectorAll('.kw-table tr.kw-row').forEach(tr => tr.addEventListener('click', (e) => {
     if (e.target.closest('.kw-copy')) return;
     const sel = window.getSelection && String(window.getSelection()); if (sel) return;   // 文字を選んでいる時は開閉しない（ドラッグでコピーできるように）
-    kwOpenKey = (kwOpenKey === tr.dataset.key) ? null : tr.dataset.key; renderAdKwView();
+    openKwModal(tr.dataset.key);   // 推移（グラフ＋表）をモーダルで開く
   }));
   body.querySelectorAll('.kw-detail').forEach(td => td.addEventListener('click', e => e.stopPropagation()));
 }
 window.renderAdKwView = renderAdKwView;
+
+
+// ============================================
+// KW推移モーダル（広告データ-個別でワードをクリックしたときに開く）
+//  ADcheck「商品モーダル・全体情報」の仕様を Amacheck の KW データ向けに移植
+//  ・日別（30日／先月-今月／今月、月セレクト）／月別（1月始まり／5月始まり／2年横並び）
+//  ・指標セレクト＋グラフ（Chart.js）＋データ表（新しい順、月別は前年同月比も）
+//  ・変更記録の代わりに「入札額の変更」を縦線＋バッジで表示、セール期間はピンクの帯
+//  ・月別の ROAS／CVR／CTR／CPC／入札額／上部シェア は年ごとに線を重ねる（線種で年を区別）
+// ============================================
+const kwm = { key: null, period: 'daily', fy: 1, view2y: false, preset: '30', month: null, metric: 'all', hideChart: false, hiddenSeries: new Set(), hiddenYears: new Set(), tblYoy: false };
+let _kwmChart = null;
+const KWM_METRICS = [['all', '広告売上・広告費＆ROAS'], ['sales', '広告売上'], ['cost', '広告費'], ['roas', 'ROAS'], ['cvr', 'CVR'], ['ctr', 'CTR'], ['cpc', 'CPC'], ['clicks', 'クリック'], ['imp', '表示（インプレッション）'], ['orders', '注文'], ['bid', '入札額'], ['share', '検索結果上部のインプレッションシェア']];
+const KWM_LINE = new Set(['roas', 'cvr', 'ctr', 'cpc', 'bid', 'share']);   // 折れ線（月別は年ごとに重ねる）
+const KWM_COLOR = { sales: '#2563eb', cost: '#dc2626', roas: '#1D9E75', cvr: '#7c3aed', ctr: '#0891b2', cpc: '#ea580c', clicks: '#0ea5e9', imp: '#64748b', orders: '#16a34a', bid: '#9333ea', share: '#d97706' };
+const KWM_LABEL = { sales: '広告売上', cost: '広告費', roas: 'ROAS', cvr: 'CVR', ctr: 'CTR', cpc: 'CPC', clicks: 'クリック', imp: '表示', orders: '注文', bid: '入札額', share: '上部シェア' };
+const KWM_BID_COLOR = '#9333ea';
+const kwmUnit = k => (k === 'sales' || k === 'cost' || k === 'cpc' || k === 'bid') ? 'yen' : ((k === 'roas' || k === 'cvr' || k === 'ctr' || k === 'share') ? 'pct' : 'num');
+function kwmFmt(k, v){
+  if (v == null || isNaN(v)) return '—';
+  const u = kwmUnit(k);
+  if (u === 'yen') return '¥' + Math.round(v).toLocaleString();
+  if (u === 'pct') return (k === 'roas' ? Math.round(v) : v.toFixed(k === 'share' ? 1 : 2)) + '%';
+  return Math.round(v).toLocaleString();
+}
+// 集計オブジェクト → 指標の値（ROAS・CVR・CTR・上部シェアは％）
+function kwmVal(a, k){
+  if (!a) return null;
+  switch (k) {
+    case 'sales': return a.sales; case 'cost': return a.cost; case 'clicks': return a.clicks; case 'imp': return a.imp; case 'orders': return a.orders;
+    case 'roas': return a.cost > 0 ? a.sales / a.cost * 100 : null;
+    case 'cvr': return a.clicks > 0 ? a.orders / a.clicks * 100 : null;
+    case 'ctr': return a.imp > 0 ? a.clicks / a.imp * 100 : null;
+    case 'cpc': return a.clicks > 0 ? a.cost / a.clicks : null;
+    case 'bid': return a.bid;
+    case 'share': return a.shareImp > 0 ? a.shareW / a.shareImp : null;
+  }
+  return null;
+}
+function kwmAgg(rows, keyFn){
+  const m = {};
+  rows.forEach(r => {
+    const k = keyFn(r);
+    const a = m[k] || (m[k] = { imp: 0, clicks: 0, cost: 0, orders: 0, sales: 0, shareW: 0, shareImp: 0, bid: null, bidDate: '', days: new Set() });
+    a.imp += r.imp || 0; a.clicks += r.clicks || 0; a.cost += r.cost || 0; a.orders += r.orders || 0; a.sales += r.sales || 0;
+    if (r.topShare != null && (r.imp || 0) > 0) { a.shareW += r.topShare * r.imp; a.shareImp += r.imp; }
+    if (r.bid != null && r.ds >= a.bidDate) { a.bid = r.bid; a.bidDate = r.ds; }
+    a.days.add(r.ds);
+  });
+  return m;
+}
+function kwmRows(){ const ds = kwDates(); if (!ds.length || !kwm.key) return []; return kwRows(ds[0], ds[ds.length - 1]).filter(r => kwGroupKey(r) === kwm.key); }
+
+function openKwModal(key){
+  kwm.key = key; kwm.period = 'daily'; kwm.preset = '30'; kwm.month = null; kwm.hiddenSeries = new Set(); kwm.hiddenYears = new Set(); kwm.tblYoy = false;
+  if (kwm.metric === 'bid' && kwGroup !== 'kwmatch') kwm.metric = 'all';
+  document.getElementById('kwm-modal').hidden = false;
+  document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden';   // 開いている間はページのスクロールを止める
+  renderKwModal();
+}
+function closeKwModal(){
+  if (_kwmChart) { _kwmChart.destroy(); _kwmChart = null; }
+  document.getElementById('kwm-modal').hidden = true;
+  document.documentElement.style.overflow = ''; document.body.style.overflow = '';
+}
+
+function renderKwModal(){
+  const box = document.getElementById('kwm-box'); if (!box || !kwm.key) return;
+  const rows = kwmRows();
+  const bidOk = kwGroup === 'kwmatch';   // 入札額はキーワード×マッチ単位のときだけ意味がある
+  if (!bidOk && kwm.metric === 'bid') kwm.metric = 'all';
+  const first = rows[0] || {};
+  const allDs = Array.from(new Set(rows.map(r => r.ds))).sort();
+  const lastDs = allDs[allDs.length - 1];
+  const isDaily = kwm.period === 'daily';
+
+  // ---- 期間・ラベル ----
+  let labels = [], dispLabels = [], aggMap;
+  const dayMonths = Array.from(new Set(allDs.map(d => d.slice(0, 7)))).sort().reverse();
+  if (isDaily) {
+    if (!kwm.month || dayMonths.indexOf(kwm.month) < 0) kwm.month = dayMonths[0] || null;
+    if (kwm.month) {
+      const mEnd = kwm.month + '-' + String(daysInMonth(kwm.month)).padStart(2, '0');
+      const end = (lastDs && lastDs < mEnd) ? lastDs : mEnd;
+      const start = kwm.preset === 'thismonth' ? kwm.month + '-01' : (kwm.preset === '2month' ? gYmAdd(kwm.month, -1) + '-01' : gAddDays(end, -29));
+      labels = kwDayList(start, end);   // データの無い日も軸に並べる
+    }
+    aggMap = kwmAgg(rows, r => r.ds);
+    dispLabels = labels.map(d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10)));
+  } else {
+    if (allDs.length) labels = kwMonthList(allDs[0], lastDs);
+    if (kwm.view2y && labels.length > 24) labels = labels.slice(-24);
+    aggMap = kwmAgg(rows, r => r.ds.slice(0, 7));
+    dispLabels = labels.map(m => m.replace('-', '/'));
+  }
+  // 入札額の変更（変更記録の代わり）：前の値と違う日／月
+  const changes = [];
+  if (bidOk) { let prev = null; labels.forEach((l, i) => { const a = aggMap[l]; if (a && a.bid != null) { if (prev != null && a.bid !== prev) changes.push({ i, l, from: prev, to: a.bid }); prev = a.bid; } }); }
+  const chgAt = {}; changes.forEach(c => { chgAt[c.l] = c; });
+  const overlay = !isDaily && !kwm.view2y && KWM_LINE.has(kwm.metric);   // 月別・年重ね
+
+  // ---- ヘッダー・操作 ----
+  const seg = (id, list, cur) => '<div class="kwm-seg" id="' + id + '">' + list.map(([v, l]) => '<button type="button" data-v="' + v + '" class="' + (String(v) === String(cur) ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
+  const typeBadge = '<span class="kw-badge ' + String(first.type || '').toLowerCase() + '">' + escapeHtml(String(first.type || '').toUpperCase()) + '</span>';
+  const title = kwGroup === 'camp' ? (first.campaign || '') : (first.target || '');
+  let sub;
+  if (kwGroup === 'camp') sub = typeBadge + 'キャンペーン';
+  else if (kwGroup === 'kw') sub = Array.from(new Set(rows.map(r => r.match))).join('・') + '　｜　' + Array.from(new Set(rows.map(r => r.campaign))).length + 'キャンペーン';
+  else sub = escapeHtml(first.match || '') + '　｜　' + typeBadge + escapeHtml(first.campaign || '') + (first.adGroup && first.adGroup !== first.campaign ? ' ／ ' + escapeHtml(first.adGroup) : '') + '　｜　' + escapeHtml(first.kind || '');
+  const lastAgg = bidOk && lastDs ? kwmAgg(rows.filter(r => r.ds === lastDs), () => 'x').x : null;
+  let h = '<div class="kwm-head"><div class="kwm-title-wrap"><div class="kwm-title">' + escapeHtml(title || '（なし）')
+    + ' <button type="button" class="kwm-copy" data-copy="' + escapeHtml(title) + '" title="コピー"><svg class="icn"><use href="#i-copy"/></svg></button></div>'
+    + '<div class="kwm-sub">' + sub + '</div></div>'
+    + (lastAgg && lastAgg.bid != null ? '<div class="kwm-bidnow"><span>現在の入札額</span><b>¥' + Math.round(lastAgg.bid).toLocaleString() + '</b><em>' + lastDs.replace(/-/g, '/') + ' 時点</em></div>' : '')
+    + '<button type="button" class="kwm-close" id="kwm-close" title="閉じる (Esc)"><svg class="icn"><use href="#i-x"/></svg></button></div>';
+  h += '<div class="kwm-body">';
+  h += '<div class="kwm-ctrl">' + seg('kwm-period', [['daily', '日別'], ['monthly', '月別']], kwm.period);
+  if (isDaily) {
+    h += '<select class="kwm-select" id="kwm-month">' + dayMonths.map(m => '<option value="' + m + '"' + (m === kwm.month ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') + '</select>';
+    h += seg('kwm-preset', [['30', '30日'], ['2month', '先月-今月'], ['thismonth', '今月']], kwm.preset);
+  } else {
+    h += seg('kwm-fy', [['1', '1月始まり'], ['5', '5月始まり'], ['2y', '2年横並び']], kwm.view2y ? '2y' : String(kwm.fy));
+  }
+  h += '<select class="kwm-select" id="kwm-metric">' + KWM_METRICS.filter(([k]) => bidOk || k !== 'bid').map(([k, l]) => '<option value="' + k + '"' + (k === kwm.metric ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>';
+  h += '<button type="button" class="kwm-btn" id="kwm-hide">' + (kwm.hideChart ? 'グラフを表示' : 'グラフを隠す') + '</button></div>';
+  h += '<div class="kwm-note">※ <span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の縦線</span>＝入札額を変えた' + (isDaily ? '日' : '月') + (isDaily ? '／<span style="color:#c2185b;font-weight:700;">ピンクの帯</span>＝セール期間' : '') + '　ROAS の色：<span class="kw-r-hi">300%以上</span>・<span class="kw-r-mid">200〜299%</span>・<span class="kw-r-lo">199%以下</span>' + (!isDaily && labels.length && labels[labels.length - 1] === (lastDs || '').slice(0, 7) && lastDs.slice(8, 10) !== String(daysInMonth(lastDs.slice(0, 7))).padStart(2, '0') ? '　／　' + lastDs.slice(0, 7).replace('-', '/') + ' は途中の月（' + (+lastDs.slice(8, 10)) + '日まで）' : '') + '</div>';
+
+  // ---- 系列 ----
+  let datasets = [], years = null, xLabels = dispLabels;
+  const M = kwm.metric;
+  if (M === 'all') {
+    const defs = [['sales', 'bar', 'y'], ['cost', 'bar', 'y'], ['roas', 'line', 'y1']];
+    datasets = defs.map(([k, type, ax]) => ({ key: k, type, label: KWM_LABEL[k], yAxisID: ax, data: labels.map(l => kwmVal(aggMap[l], k)),
+      backgroundColor: KWM_COLOR[k] + (type === 'bar' ? 'cc' : '22'), borderColor: KWM_COLOR[k], borderWidth: type === 'line' ? 2.6 : 0, tension: 0.3, pointRadius: 3, pointHoverRadius: 6, spanGaps: true, order: type === 'line' ? 0 : 1, hidden: kwm.hiddenSeries.has(k) }));
+  } else if (overlay) {
+    const so = kwm.fy - 1;
+    const parsed = labels.map(l => { const y = +l.slice(0, 4), mi = +l.slice(5, 7) - 1; return { y, mi, fi: (mi - so + 12) % 12, fy: mi >= so ? y : y - 1 }; });
+    years = Array.from(new Set(parsed.map(p => p.fy))).sort((a, b) => a - b);
+    xLabels = Array.from({ length: 12 }, (_, k) => (((so + k) % 12) + 1) + '月');
+    datasets = years.map((yr, yi) => {
+      const rec = years.length - 1 - yi; const arr = new Array(12).fill(null);
+      parsed.forEach((p, idx) => { if (p.fy === yr) arr[p.fi] = kwmVal(aggMap[labels[idx]], M); });
+      return { key: 'y' + yr, year: yr, type: 'line', label: so === 0 ? yr + '年' : yr + '年度', data: arr, borderColor: KWM_COLOR[M], backgroundColor: KWM_COLOR[M] + '22',
+        borderDash: GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length], borderWidth: rec === 0 ? 2.6 : 1.9, tension: 0.3, pointRadius: 3, pointHoverRadius: 6, spanGaps: true, hidden: kwm.hiddenYears.has(yr), _rec: rec };
+    });   // 古い年から描き、最新年を一番上に
+  } else {
+    const line = KWM_LINE.has(M);
+    datasets = [{ key: M, type: line ? 'line' : 'bar', label: KWM_LABEL[M], yAxisID: 'y', data: labels.map(l => kwmVal(aggMap[l], M)), backgroundColor: KWM_COLOR[M] + (line ? '22' : 'cc'), borderColor: KWM_COLOR[M], borderWidth: line ? 2.4 : 0, tension: 0.3, pointRadius: 3, pointHoverRadius: 6, spanGaps: true, stepped: M === 'bid' ? 'before' : false }];
+  }
+
+  // ---- グラフ領域 ----
+  if (!kwm.hideChart) {
+    if (M === 'all') h += '<div class="kwm-toggles">' + datasets.map(d => '<button type="button" class="kwm-tg' + (d.hidden ? ' off' : '') + '" data-s="' + d.key + '" style="--c:' + KWM_COLOR[d.key] + '"><span class="dot"></span>' + d.label + '</button>').join('') + '</div>';
+    if (years) h += '<div class="kwm-years">' + years.slice().reverse().map(yr => { const rec = years.length - 1 - years.indexOf(yr); const dash = GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length];
+      return '<button type="button" class="kwm-yr' + (kwm.hiddenYears.has(yr) ? ' off' : '') + '" data-y="' + yr + '"><svg width="30" height="8"><line x1="1" y1="4" x2="29" y2="4" stroke="' + KWM_COLOR[M] + '" stroke-width="' + (rec === 0 ? 3 : 2) + '"' + (dash.length ? ' stroke-dasharray="' + dash.join(' ') + '"' : '') + '/></svg>' + (kwm.fy === 1 ? yr + '年' : yr + '年度') + '</button>'; }).join('') + '</div>';
+    h += '<div class="kwm-chart">' + (typeof Chart === 'undefined' ? '<div class="kwm-nochart">グラフの部品（Chart.js）を読み込めませんでした。ネット接続を確認して再読み込みしてください。下の表は使えます。</div>' : '<canvas id="kwm-canvas"></canvas>') + '</div>';
+  }
+
+  // ---- データ表 ----
+  const COLS = [['bid', '入札額'], ['imp', '表示'], ['clicks', 'クリック'], ['ctr', 'CTR'], ['cpc', 'CPC'], ['cost', '広告費'], ['orders', '注文'], ['sales', '売上'], ['cvr', 'CVR'], ['roas', 'ROAS'], ['share', '上部シェア']].filter(([k]) => bidOk || k !== 'bid');
+  const hot = new Set(M === 'all' ? ['sales', 'cost', 'roas'] : [M]);
+  const cell = (a, k) => { const v = kwmVal(a, k); const cls = (hot.has(k) ? ' hot' : '') + (k === 'roas' && v != null ? ' ' + kwCls(kwJudgeOf(v / 100)) : ''); return '<td class="num' + cls + '">' + (a ? kwmFmt(k, v) : '—') + '</td>'; };
+  const memo = (l, dsForSale) => { let s = ''; const c = chgAt[l]; if (c) s += '<span class="kwm-chip bid">入札 ¥' + Math.round(c.from) + '→¥' + Math.round(c.to) + '</span>'; if (dsForSale && dateInAnySale(dsForSale)) s += '<span class="kwm-chip sale" title="' + escapeHtml(saleNamesForDate(dsForSale).join(' / ')) + '">SALE</span>'; return s; };
+  h += '<div class="kwm-tblhead">📋 ' + (isDaily ? '日別' : '月別') + 'データ' + (!isDaily ? '<div class="kwm-seg sm" id="kwm-yoy"><button type="button" data-v="0" class="' + (!kwm.tblYoy ? 'on blue' : '') + '">通常</button><button type="button" data-v="1" class="' + (kwm.tblYoy ? 'on blue' : '') + '">前年同月比</button></div>' : '') + '</div>';
+  h += '<div class="kwm-tblwrap"><table class="kwm-tbl"><thead><tr><th>' + (isDaily ? '日付' : '月') + '</th>' + (kwm.tblYoy && !isDaily ? '<th></th>' : '') + COLS.map(([k, l]) => '<th class="num' + (hot.has(k) ? ' hot' : '') + '">' + l + '</th>').join('') + '<th>メモ</th></tr></thead><tbody>';
+  if (!isDaily && kwm.tblYoy) {
+    const lastM = labels[labels.length - 1];
+    if (lastM) for (let back = 0; back < 12; back++) {
+      const ym = gYmAdd(lastM, -back), pym = gYmAdd(ym, -12), grp = back % 2 ? '' : ' alt';
+      h += '<tr class="kwm-yoy-a' + grp + (chgAt[ym] ? ' kwm-chg' : '') + '"><td class="lbl" rowspan="2">' + (+ym.slice(5, 7)) + '月</td><td class="yr">' + ym.slice(0, 4) + '年</td>' + COLS.map(([k]) => cell(aggMap[ym], k)).join('') + '<td>' + memo(ym) + '</td></tr>';
+      h += '<tr class="kwm-yoy-b' + grp + '"><td class="yr">' + pym.slice(0, 4) + '年</td>' + COLS.map(([k]) => cell(aggMap[pym], k)).join('') + '<td></td></tr>';
+    }
+  } else {
+    labels.slice().reverse().forEach(l => {
+      const a = aggMap[l];
+      let lab;
+      if (isDaily) { const dw = new Date(l + 'T00:00:00').getDay(); lab = '<td class="lbl ' + (dw === 0 ? 'gt-sun' : (dw === 6 ? 'gt-sat' : '')) + '">' + graphPeriodText(l).slice(5) + '</td>'; }
+      else lab = '<td class="lbl">' + l.replace('-', '/') + '</td>';
+      h += '<tr class="' + (a ? '' : 'nodata') + (chgAt[l] ? ' kwm-chg' : '') + '">' + lab + COLS.map(([k]) => cell(a, k)).join('') + '<td>' + memo(l, isDaily ? l : null) + '</td></tr>';
+    });
+  }
+  if (!labels.length) h += '<tr><td colspan="' + (COLS.length + 2) + '" class="kw-empty">データがありません</td></tr>';
+  h += '</tbody></table></div></div>';
+  box.innerHTML = h;
+
+  // ---- イベント ----
+  const segOn = (id, fn) => box.querySelectorAll('#' + id + ' button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); renderKwModal(); }));
+  segOn('kwm-period', v => { kwm.period = v; kwm.tblYoy = false; });
+  segOn('kwm-preset', v => { kwm.preset = v; });
+  segOn('kwm-fy', v => { if (v === '2y') kwm.view2y = true; else { kwm.view2y = false; kwm.fy = +v; } });
+  segOn('kwm-yoy', v => { kwm.tblYoy = v === '1'; });
+  const on = (sel, ev, fn) => { const el = box.querySelector(sel); if (el) el.addEventListener(ev, fn); };
+  on('#kwm-month', 'change', e => { kwm.month = e.target.value; renderKwModal(); });
+  on('#kwm-metric', 'change', e => { kwm.metric = e.target.value; kwm.hiddenYears = new Set(); renderKwModal(); });
+  on('#kwm-hide', 'click', () => { kwm.hideChart = !kwm.hideChart; renderKwModal(); });
+  on('#kwm-close', 'click', closeKwModal);
+  on('.kwm-copy', 'click', e => { const b = e.currentTarget; kwCopyText(b.dataset.copy, '「' + b.dataset.copy + '」をコピーしました'); });
+  box.querySelectorAll('.kwm-tg').forEach(b => b.addEventListener('click', () => { const k = b.dataset.s; if (kwm.hiddenSeries.has(k)) kwm.hiddenSeries.delete(k); else kwm.hiddenSeries.add(k); renderKwModal(); }));
+  box.querySelectorAll('.kwm-yr').forEach(b => b.addEventListener('click', () => { const y = +b.dataset.y; if (kwm.hiddenYears.has(y)) kwm.hiddenYears.delete(y); else kwm.hiddenYears.add(y); renderKwModal(); }));
+
+  // ---- グラフ描画（毎回作り直す） ----
+  if (_kwmChart) { _kwmChart.destroy(); _kwmChart = null; }
+  const cv = box.querySelector('#kwm-canvas');
+  if (!cv || typeof Chart === 'undefined') return;
+  kwmRegisterZoomFix();
+  const saleIdx = isDaily ? labels.map(l => dateInAnySale(l)) : [];
+  const tickCb = (k) => (v) => kwmUnit(k) === 'yen' ? '¥' + Math.round(v).toLocaleString() : (kwmUnit(k) === 'pct' ? (Math.abs(v) < 10 && v % 1 ? v.toFixed(1) : Math.round(v)) + '%' : (v % 1 ? '' : Math.round(v).toLocaleString()));
+  const scales = {
+    x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 11 }, autoSkip: true, maxRotation: 0 } },
+    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 11 }, callback: tickCb(M === 'all' ? 'sales' : M) } }
+  };
+  if (M === 'roas') scales.y.suggestedMax = 300;   // ROAS は 0〜300% を最低限の目盛りに（3色の境目が見える）
+  if (M === 'all') scales.y1 = { beginAtZero: true, suggestedMax: 300, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: KWM_COLOR.roas, font: { size: 11 }, callback: tickCb('roas') } };
+  _kwmChart = new Chart(cv.getContext('2d'), {
+    type: 'bar',
+    data: { labels: xLabels, datasets },
+    options: {
+      responsive: true, maintainAspectRatio: false, animation: false,
+      interaction: { mode: 'index', intersect: false },
+      plugins: {
+        legend: { display: false },
+        tooltip: { itemSort: (a, b) => a.datasetIndex - b.datasetIndex, callbacks: {
+          title: (items) => { const i = items[0].dataIndex; return overlay ? xLabels[i] : (isDaily ? graphPeriodText(labels[i]) : labels[i].replace('-', '/')); },
+          label: (c) => { const k = overlay ? M : (c.dataset.key || M); return ' ' + c.dataset.label + '：' + kwmFmt(k, c.raw); },
+          afterBody: (items) => { if (overlay) return ''; const l = labels[items[0].dataIndex]; const c = chgAt[l]; const out = []; if (c) out.push('入札額を変更 ¥' + Math.round(c.from) + '→¥' + Math.round(c.to)); if (isDaily && dateInAnySale(l)) out.push('セール：' + saleNamesForDate(l).join(' / ')); return out; }
+        } }
+      },
+      scales
+    },
+    plugins: [{
+      id: 'kwmOverlay',
+      beforeDatasetsDraw(chart){   // セール期間の帯（日別）
+        if (overlay || !saleIdx.some(Boolean)) return;
+        const { ctx, chartArea: ca, scales: { x } } = chart; const step = labels.length > 1 ? (x.getPixelForValue(1) - x.getPixelForValue(0)) : 20;
+        ctx.save(); ctx.fillStyle = 'rgba(194,24,91,0.08)';
+        saleIdx.forEach((s, i) => { if (s) ctx.fillRect(x.getPixelForValue(i) - step / 2, ca.top, step, ca.bottom - ca.top); });
+        ctx.restore();
+      },
+      afterDatasetsDraw(chart){    // 入札額の変更：縦線＋バッジ（上下2段で交互）
+        if (overlay || !changes.length) return;
+        const { ctx, chartArea: ca, scales: { x } } = chart;
+        ctx.save();
+        changes.forEach((c, n) => {
+          const px = x.getPixelForValue(c.i);
+          ctx.strokeStyle = KWM_BID_COLOR; ctx.globalAlpha = 0.85; ctx.lineWidth = 2.5; ctx.setLineDash([6, 3]);
+          ctx.beginPath(); ctx.moveTo(px, ca.top); ctx.lineTo(px, ca.bottom); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
+          const txt = '入札 ¥' + Math.round(c.from) + '→¥' + Math.round(c.to);
+          ctx.font = 'bold 11px sans-serif'; const w = ctx.measureText(txt).width + 12, hgt = 18;
+          let bx = Math.max(ca.left, Math.min(ca.right - w, px - w / 2)); const by = ca.top + 4 + (n % 2) * 22;
+          ctx.fillStyle = KWM_BID_COLOR; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, w, hgt, 4); else ctx.rect(bx, by, w, hgt); ctx.fill();
+          ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(txt, bx + 6, by + hgt / 2 + 0.5);
+        });
+        ctx.restore();
+      }
+    }]
+  });
+}
+// ページに CSS zoom をかけてもツールチップが右側まで出るように（ADcheck 仕様 §10-1）
+function kwmRegisterZoomFix(){
+  if (window._kwmZoomFix || typeof Chart === 'undefined') return; window._kwmZoomFix = true;
+  Chart.register({ id: 'zoomEventFix', beforeEvent(chart, args){
+    const ev = args.event, ne = ev && ev.native; if (!ne || typeof ne.clientX !== 'number') return;
+    const r = chart.canvas.getBoundingClientRect(); if (!r.width || !r.height) return;
+    ev.x = (ne.clientX - r.left) / r.width * chart.width;
+    ev.y = (ne.clientY - r.top) / r.height * chart.height;
+    args.inChartArea = chart.isPointInArea(ev);
+  } });
+}
+window.openKwModal = openKwModal;
+window.closeKwModal = closeKwModal;
 
 
 // ============================================
