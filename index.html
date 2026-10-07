@@ -1694,7 +1694,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.77</span>
+    <span class="version">v2.79</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1744,10 +1744,10 @@
     </button>
   </div>
 </nav>
-<!-- 広告データ-個別：ヘッダーを隠す／①〜③まで隠す（位置は kwPlaceHideBtns） -->
+<!-- 広告データ-個別：ヘッダーを隠す／ヘッダー2まで隠す（位置は kwPlaceHideBtns） -->
 <div class="adkw-hide-btns" id="adkw-hide-btns" hidden>
   <button type="button" class="utility toggle-header-btn" id="toggle-header-adkw" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
-  <button type="button" class="utility" id="kw-steps-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ①〜③まで隠す</button>
+  <button type="button" class="utility" id="kw-steps-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダー2まで隠す</button>
 </div>
 
 <div class="container">
@@ -5798,7 +5798,7 @@ function setSalePartMode(on){
 // 表示と同じく％に丸めてから判定（199.6% は 200% と表示されるので黄土色）
 function kwJudgeOf(roas){ if (roas == null) return ''; const p = Math.round(roas * 100); return p >= 300 ? 'hi' : (p >= 200 ? 'mid' : 'lo'); }
 const kwCls = j => (j ? 'kw-r-' + j : '');
-let kwRange = 'last7';            // 'last7' | 'last30' | 'thismonth' | 'lastmonth' | 'custom'
+let kwRange = 'thismonth';        // 'thismonth' | 'lastmonth' | 'last30' | 'custom'（v2.79 で直近7日を廃止）
 let kwFrom = null, kwTo = null;   // custom 用 'YYYY-MM-DD'
 let kwType = 'all';               // 'all' | 'SP' | 'SB'
 let kwCamp = '';                  // キャンペーン名（空＝すべて）
@@ -5829,9 +5829,8 @@ function kwPeriod(){
   const last = ds[ds.length - 1];
   if (kwRange === 'custom' && kwFrom && kwTo) return kwFrom <= kwTo ? [kwFrom, kwTo] : [kwTo, kwFrom];
   if (kwRange === 'last30') return [gAddDays(last, -29), last];
-  if (kwRange === 'thismonth') return [last.slice(0, 8) + '01', last];
   if (kwRange === 'lastmonth') { const pm = gYmAdd(last.slice(0, 7), -1); return [pm + '-01', pm + '-' + String(daysInMonth(pm)).padStart(2, '0')]; }
-  return [gAddDays(last, -6), last];
+  return [last.slice(0, 8) + '01', last];   // 今月（既定）
 }
 function kwDayList(from, to){ const a = []; for (let d = from, n = 0; d && d <= to && n < 400; d = gAddDays(d, 1), n++) a.push(d); return a; }
 // 絞り込み後の行（日付つき）
@@ -5933,7 +5932,7 @@ function renderAdKwView(){
   h += '</div></div>';
   // ② 期間
   h += '<div class="kw-step"><div class="kw-step-lbl"><span>②</span>期間</div><div class="kw-step-body"><div class="kw-lv">';
-  h += segD('kw-range', [['last7', '直近7日'], ['last30', '直近30日'], ['thismonth', '今月'], ['lastmonth', '先月'], ['custom', '期間指定']], kwRange);
+  h += segD('kw-range', [['thismonth', '今月'], ['lastmonth', '先月'], ['last30', '直近30日'], ['custom', '期間指定']], kwRange);
   if (kwRange === 'custom') h += '<span class="graph-range"><input type="date" class="graph-select kw-date" id="kw-from" value="' + (kwFrom || from) + '"> ～ <input type="date" class="graph-select kw-date" id="kw-to" value="' + (kwTo || to) + '"></span>';
   const periodTxt = from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）';
   h += '<span class="graph-note">' + periodTxt + '　データの最終日 ' + all[all.length - 1].replace(/-/g, '/') + '</span></div></div></div>';
@@ -6056,15 +6055,15 @@ function kwToggleSteps(){
   else { kwStepsHidden = false; if (hdr && !kwStepsPrevHeader) toggleHeader(); }
   renderAdKwView();
 }
-// 「ヘッダーを隠す」「①〜③まで隠す」：タブ行の右端に縦に2つ（ヘッダーを隠している間は画面の右上）。広告データ-個別のときだけ出す
+// 「ヘッダーを隠す」「ヘッダー2まで隠す」：タブ行の右端に縦に2つ（ヘッダーを隠している間は画面の右上）。広告データ-個別のときだけ出す
 function kwPlaceHideBtns(){
   const box = document.getElementById('adkw-hide-btns'); if (!box) return;
   const v = document.getElementById('adkw-view');
   const show = !!(v && !v.hidden && kwDates().length);
   box.hidden = !show; if (!show) return;
   const sb = document.getElementById('kw-steps-toggle');
-  sb.innerHTML = '<svg class="icn"><use href="#i-chevron-' + (kwStepsHidden ? 'down' : 'up') + '"/></svg> ' + (kwStepsHidden ? '①〜③を表示' : '①〜③まで隠す');
-  sb.title = kwStepsHidden ? '①〜③（対象・期間・まとめ方）を表示' : 'ヘッダー・タブと①〜③（対象・期間・まとめ方）をまとめて隠して、表を広く';
+  sb.innerHTML = '<svg class="icn"><use href="#i-chevron-' + (kwStepsHidden ? 'down' : 'up') + '"/></svg> ' + (kwStepsHidden ? 'ヘッダー2を表示' : 'ヘッダー2まで隠す');
+  sb.title = kwStepsHidden ? 'ヘッダー2（①対象・②期間・③まとめ方）を表示' : 'ヘッダー・タブと、ヘッダー2（①対象・②期間・③まとめ方）をまとめて隠して、表を広く';
   const row = document.querySelector('.tabs .tab-row');
   let top = 8;
   if (!document.body.classList.contains('header-hidden') && row) { const r = row.getBoundingClientRect(); top = r.top + window.scrollY + (r.height - box.firstElementChild.offsetHeight) / 2; }
