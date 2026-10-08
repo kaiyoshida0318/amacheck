@@ -1577,6 +1577,13 @@
   .rc-j { font-size: 12.5px; font-weight: 700; white-space: normal !important; min-width: 140px; }
   .rc-j.ok { color: #15803d; } .rc-j.ng { color: #b91c1c; } .rc-j.warn { color: #b45309; } .rc-j.part { color: #64748b; } .rc-j.none { color: var(--text-tertiary); font-weight: 600; }
   .rc-sum { font-size: 14px; margin: 2px 0 4px; } .rc-sum .ng { color: #b91c1c; } .rc-sum .ok { color: #15803d; }
+  .kwc-warn.ok { border-color: var(--border); background: #fff; color: var(--text-secondary); font-weight: 600; }
+  .kwc-warn.ok:hover { border-color: var(--purple); color: var(--purple); background: #fff; }
+  .kwc-h.cut { color: var(--black); border-top: 1px solid var(--border); padding-top: 12px; margin-top: 18px; }
+  .kwc-cut { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13.5px; }
+  .kwc-cut .kwc-del { margin-top: 0; }
+  .kwc-del:disabled { opacity: 0.4; cursor: not-allowed; }
+  .kwc-cut-n { font-size: 12.5px; color: var(--text-tertiary); }
   .kwc-del { margin-top: 10px; border: 1px solid #dc2626; background: #dc2626; color: #fff; border-radius: 8px; padding: 7px 16px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
   .kwc-del:hover { background: #b91c1c; border-color: #b91c1c; color: #fff; }
   /* 表の見出しの小さい？（上部シェア） */
@@ -1799,7 +1806,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.07</span>
+    <span class="version">v3.08</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2475,7 +2482,7 @@
 <div class="modal-bg" id="kw-check-modal" hidden>
   <div class="modal adg-modal" style="max-width:820px;">
     <div class="adg-head">
-      <div><h3>⚠ KWデータの確認</h3><div class="sub" style="margin-bottom:0;">KWデータの日ごとの費用合計を、広告データ（キャンペーン単位）と比べます。</div></div>
+      <div><h3>KWデータの確認・削除</h3><div class="sub" style="margin-bottom:0;">KWデータの日ごとの費用合計を、広告データ（キャンペーン単位）と比べます。</div></div>
       <button class="icon-btn" id="close-kw-check" title="閉じる" aria-label="閉じる"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
     <div id="kw-check-body"></div>
@@ -2664,7 +2671,26 @@ function openKwCheck(){
   h += '<div class="kwc-h">費用合計が合わない日：' + diff.length + '日</div>';
   if (diff.length) h += '<p class="kwc-p">ダウンロード時の設定の違い（以前の「有効なキャンペーンだけ」など）が考えられます。KWデータは直近約5か月分なら取り直せるので、取り直して「レポート追加」で入れ直してください。</p><div class="kwc-scroll">' + tbl(diff) + '</div>';
   else h += '<p class="kwc-p">ありません。</p>';
+  // 日付を決めてまとめて削除（v3.08）：既定＝今月から5か月前の1日（Amazon がKW日別を残している範囲の始まりの目安）
+  const kd = kwDates();
+  const now = new Date(); const defCut = gYmAdd(now.getFullYear() + '-' + String(now.getMonth() + 1).padStart(2, '0'), -5) + '-01';
+  h += '<div class="kwc-h cut">日付を決めてまとめて削除</div>';
+  h += '<p class="kwc-p">入っているKWデータ：' + (kd.length ? kd[0].replace(/-/g, '/') + '〜' + kd[kd.length - 1].replace(/-/g, '/') + '（' + kd.length + '日）' : 'なし') + '<br>Amazon がキーワード単位の日別を残しているのは直近約5か月です。それより前のKWデータは不正確なことがあるので、まとめて削除できます（広告データ・全体収支・グラフには影響しません）。</p>';
+  h += '<div class="kwc-cut"><input type="date" class="graph-select" id="kwc-cut-date" value="' + defCut + '"> より前（この日は含まない）のKWデータを <button type="button" class="kwc-del" id="kwc-cut">すべて削除</button><span id="kwc-cut-n" class="kwc-cut-n"></span></div>';
   const body = document.getElementById('kw-check-body'); body.innerHTML = h;
+  const cutIn = document.getElementById('kwc-cut-date'), cutN = document.getElementById('kwc-cut-n');
+  const cutList = () => { const v = cutIn.value; return v ? kwDates().filter(d => d < v) : []; };
+  const showN = () => { const l = cutList(); cutN.textContent = l.length ? '（' + l.length + '日分：' + l[0].replace(/-/g, '/') + '〜' + l[l.length - 1].replace(/-/g, '/') + '）' : '（該当なし）'; document.getElementById('kwc-cut').disabled = !l.length; };
+  cutIn.addEventListener('change', showN); showN();
+  document.getElementById('kwc-cut').addEventListener('click', () => {
+    const l = cutList(); if (!l.length) return;
+    if (!confirm(cutIn.value.replace(/-/g, '/') + ' より前のKWデータ ' + l.length + '日分（' + l[0].replace(/-/g, '/') + '〜' + l[l.length - 1].replace(/-/g, '/') + '）を削除します。\n元に戻せないので、心配なら先に「バックアップ」で書き出してください。\n\nよろしいですか？')) return;
+    l.forEach(d => { delete adKwData[d]; });
+    saveAdKwData();
+    if (kwDay && !adKwData[kwDay]) kwDay = null;
+    renderAdKwView(); openKwCheck();
+    toast(l.length + '日分のKWデータを削除しました');
+  });
   const del = document.getElementById('kwc-del');
   if (del) del.addEventListener('click', () => {
     if (!confirm(bad.length + '日分のKWデータを削除します。よろしいですか？\n（' + bad.map(x => x.d.replace(/-/g, '/')).slice(0, 10).join('、') + (bad.length > 10 ? ' ほか' : '') + '）')) return;
@@ -6335,7 +6361,7 @@ function renderAdKwView(){
   });
   h += '<div class="kw-count"><b>' + groups.length + '件</b>　ROAS：<span class="kw-dot hi"></span><span class="kw-r-hi">300%以上 ' + nHi + '</span>　<span class="kw-dot mid"></span><span class="kw-r-mid">200〜299% ' + nMid + '</span>　<span class="kw-dot lo"></span><span class="kw-r-lo">199%以下 ' + nLo + '</span>'
     + '<span class="kw-hint">行をクリックすると、そのワードの日別・月別の推移（グラフ・表）が開きます</span>'
-    + (() => { const ck = kwCheckAll(); const n = ck.bad.length + ck.diff.length; return n ? '<button type="button" class="kwc-warn' + (ck.bad.length ? ' bad' : '') + '" id="kw-check-open" title="KWデータと広告データの費用合計を日ごとに比べた結果">⚠ KWデータを確認（' + (ck.bad.length ? '正しくない日 ' + ck.bad.length + '日' : '') + (ck.bad.length && ck.diff.length ? '・' : '') + (ck.diff.length ? '合わない日 ' + ck.diff.length + '日' : '') + '）</button>' : ''; })()
+    + (() => { const ck = kwCheckAll(); const n = ck.bad.length + ck.diff.length; return n ? '<button type="button" class="kwc-warn' + (ck.bad.length ? ' bad' : '') + '" id="kw-check-open" title="KWデータと広告データの費用合計を日ごとに比べた結果">⚠ KWデータを確認（' + (ck.bad.length ? '正しくない日 ' + ck.bad.length + '日' : '') + (ck.bad.length && ck.diff.length ? '・' : '') + (ck.diff.length ? '合わない日 ' + ck.diff.length + '日' : '') + '）</button>' : '<button type="button" class="kwc-warn ok" id="kw-check-open" title="KWデータの点検・日付を決めてまとめて削除">KWデータの確認・削除</button>'; })()
     + '<label class="kw-chk" title="選んだ期間に広告費が0円（クリックが0回）の行も一覧に出します。表示はあるのにクリックされないキーワードを探す時に"><input type="checkbox" id="kw-showzero"' + (kwHideZero ? '' : ' checked') + '> 費用0の行も出す</label></div>';
 
   const labelCells = (gp) => {
