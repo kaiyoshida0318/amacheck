@@ -1533,6 +1533,9 @@
   select.kw-month { font-weight: 700; min-width: 190px; margin-right: 6px; }
   select.kw-month.on { border-color: var(--purple); color: #fff; background-color: var(--purple); }
   select.kw-month.on option { color: var(--black); background: #fff; }
+  select.kw-day { font-weight: 700; min-width: 150px; margin-right: 6px; }
+  select.kw-day.on { border-color: var(--purple); color: #fff; background-color: var(--purple); }
+  select.kw-day.on option { color: var(--black); background: #fff; }
   .kw-help:hover { background: #eab308; border-color: #ca8a04; color: #422006; }
   .kw-step-lbl .kw-help { position: relative; top: -2px; }
   table.kwh-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -1734,7 +1737,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.93</span>
+    <span class="version">v2.94</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -5862,6 +5865,7 @@ function kwJudgeOf(roas){ if (roas == null) return ''; const p = Math.round(roas
 const kwCls = j => (j ? 'kw-r-' + j : '');
 let kwRange = 'month';            // 'month'（年月を選ぶ）| 'last30' | 'custom'（v2.86：今月・先月ボタン→年月ドロップダウン）
 let kwMonth = null;               // 'YYYY-MM'（null＝データのある最新の月）
+let kwDay = null;                 // 'YYYY-MM-DD'（kwRange='day' のとき：その1日だけ。v2.94）
 let kwFrom = null, kwTo = null;   // custom 用 'YYYY-MM-DD'
 let kwType = 'all';               // 'all' | 'SP' | 'SB'
 let kwCamp = '';                  // キャンペーン名（空＝すべて）
@@ -5892,6 +5896,7 @@ function kwPeriod(){
   const last = ds[ds.length - 1];
   if (kwRange === 'custom' && kwFrom && kwTo) return kwFrom <= kwTo ? [kwFrom, kwTo] : [kwTo, kwFrom];
   if (kwRange === 'last30') return [gAddDays(last, -29), last];
+  if (kwRange === 'day' && kwDay && adKwData[kwDay]) return [kwDay, kwDay];   // 1日だけ
   return kwMonthRangeOf(kwCurMonth());   // 年月（既定＝最新の月）
 }
 // データのある年月（新しい順）
@@ -6013,11 +6018,15 @@ function renderAdKwView(){
   h += '</div></div>';
   // ② 期間
   h += '<div class="kw-step"><div class="kw-step-lbl"><span>②</span>期間</div><div class="kw-step-body"><div class="kw-lv">';
-  const curYm = kwCurMonth();
-  h += '<select class="graph-select kw-month' + (kwRange === 'month' ? ' on' : '') + '" id="kw-month" title="年月を選ぶ（途中の月は、データのある日まで）">' + kwMonthsWithData().map(ym => '<option value="' + ym + '"' + (ym === curYm ? ' selected' : '') + '>' + kwMonthLabel(ym) + '</option>').join('') + '</select>';
+  const dayMode = kwRange === 'day' && kwDay && !!adKwData[kwDay];
+  const curYm = dayMode ? kwDay.slice(0, 7) : kwCurMonth();
+  h += '<select class="graph-select kw-month' + (kwRange === 'month' || dayMode ? ' on' : '') + '" id="kw-month" title="年月を選ぶ（途中の月は、データのある日まで）">' + kwMonthsWithData().map(ym => '<option value="' + ym + '"' + (ym === curYm ? ' selected' : '') + '>' + kwMonthLabel(ym) + '</option>').join('') + '</select>';
+  // 日：その月のデータのある日（新しい順）。「月全体」＝月で見る
+  const daysOfMonth = all.filter(d => d.slice(0, 7) === curYm).reverse();
+  h += '<select class="graph-select kw-day' + (dayMode ? ' on' : '') + '" id="kw-day" title="1日を選ぶと、その日1日分の成績を一覧で見られます"><option value="">' + (dayMode ? '月全体に戻す' : '日を選ぶ（月全体）') + '</option>' + daysOfMonth.map(d => '<option value="' + d + '"' + (dayMode && d === kwDay ? ' selected' : '') + '>' + graphPeriodText(d).slice(5) + '</option>').join('') + '</select>';
   h += segD('kw-range', [['last30', '直近30日'], ['custom', '期間指定']], kwRange);
   if (kwRange === 'custom') h += '<span class="graph-range"><input type="date" class="graph-select kw-date" id="kw-from" value="' + (kwFrom || from) + '"> ～ <input type="date" class="graph-select kw-date" id="kw-to" value="' + (kwTo || to) + '"></span>';
-  const periodTxt = kwRange === 'month' ? kwMonthLabel(curYm) : (from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）');
+  const periodTxt = dayMode ? graphPeriodText(kwDay) + '（1日）' : kwRange === 'month' ? kwMonthLabel(curYm) : (from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）');
   h += '<span class="graph-note">' + from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）　データの最終日 ' + all[all.length - 1].replace(/-/g, '/') + '</span></div></div></div>';
   // ③ まとめ方（日別・月別の推移は行クリックのモーダルで見る）
   const GROUP_NAME = { kwmatch: 'キーワード×マッチ', kw: 'キーワード', camp: 'キャンペーン' };
@@ -6114,7 +6123,8 @@ function renderAdKwView(){
   on('#kw-camp', 'change', e => { kwCamp = e.target.value; renderAdKwView(); });
   on('#kw-showzero', 'change', e => { kwHideZero = !e.target.checked; renderAdKwView(); });
   on('#kw-group-help', 'click', openKwHelp);
-  on('#kw-month', 'change', e => { kwMonth = e.target.value; kwRange = 'month'; renderAdKwView(); });
+  on('#kw-month', 'change', e => { kwMonth = e.target.value; kwRange = 'month'; kwDay = null; renderAdKwView(); });
+  on('#kw-day', 'change', e => { const v = e.target.value; if (v) { kwDay = v; kwMonth = v.slice(0, 7); kwRange = 'day'; } else { kwDay = null; kwRange = 'month'; } renderAdKwView(); });
   on('#kw-clear', 'click', () => { kwType = 'all'; kwKind = 'all'; kwCamp = ''; kwSearch = ''; renderAdKwView(); });
   on('#kw-search', 'input', e => {
     kwSearch = e.target.value; const pos = e.target.selectionStart;
