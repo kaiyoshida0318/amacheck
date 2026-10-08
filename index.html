@@ -1566,6 +1566,17 @@
   table.kwc-tbl th, table.kwc-tbl td { padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
   table.kwc-tbl th { position: sticky; top: 0; background: var(--bg-secondary); color: var(--text-secondary); }
   table.kwc-tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .rc-scroll { max-height: 60vh; overflow: auto; border: 1px solid var(--border); border-radius: 8px; margin: 8px 0; }
+  table.rc-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.rc-tbl th, table.rc-tbl td { padding: 7px 10px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+  table.rc-tbl th { position: sticky; top: 0; background: var(--bg-secondary); color: var(--text-secondary); font-size: 12.5px; z-index: 1; }
+  table.rc-tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .rc-ym { font-weight: 700; }
+  .rc-diff { display: block; font-size: 11.5px; }
+  .rc-diff.neg { color: #b91c1c; } .rc-diff.pos { color: #b45309; }
+  .rc-j { font-size: 12.5px; font-weight: 700; white-space: normal !important; min-width: 140px; }
+  .rc-j.ok { color: #15803d; } .rc-j.ng { color: #b91c1c; } .rc-j.warn { color: #b45309; } .rc-j.part { color: #64748b; } .rc-j.none { color: var(--text-tertiary); font-weight: 600; }
+  .rc-sum { font-size: 14px; margin: 2px 0 4px; } .rc-sum .ng { color: #b91c1c; } .rc-sum .ok { color: #15803d; }
   .kwc-del { margin-top: 10px; border: 1px solid #dc2626; background: #dc2626; color: #fff; border-radius: 8px; padding: 7px 16px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
   .kwc-del:hover { background: #b91c1c; border-color: #b91c1c; color: #fff; }
   /* 表の見出しの小さい？（上部シェア） */
@@ -1788,7 +1799,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.06</span>
+    <span class="version">v3.07</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1953,6 +1964,7 @@
       <span class="adg-tip" data-tip="説明を見る">
         <button class="utility" id="open-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button>
       </span>
+      <button class="utility" id="open-ad-recon" style="font-size:12px;" title="月ごとに、月末データ（B）と日別の広告データ（①）・KWデータ（③）の広告費を比べます"><svg class="icn"><use href="#i-check"/></svg> 月末データと照合</button>
       <div class="spacer"></div>
       <button class="primary report-add-btn" id="open-ad-add" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 広告データを追加</button><span class="imp-badge" id="imp-badge-ad"></span>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
@@ -2448,6 +2460,17 @@
 <div class="toast" id="toast"></div>
 <!-- KW推移モーダル（広告データ-個別）。表示倍率（.container の zoom）の外に置く -->
 <div class="kwm-bg" id="kwm-modal" hidden><div class="kwm-box" id="kwm-box"></div></div>
+<!-- 広告データの照合（v3.07）：月末B と 日別① と KW③ の広告費 -->
+<div class="modal-bg" id="ad-recon-modal" hidden>
+  <div class="modal adg-modal" style="max-width:1000px;">
+    <div class="adg-head">
+      <div><h3><svg class="icn" style="color:var(--teal);vertical-align:-3px;"><use href="#i-check"/></svg> 月末データと照合</h3>
+        <div class="sub" style="margin-bottom:0;">月ごとの広告費を比べて、入れ直しが必要な月を探します。月末データ（B）は全キャンペーンが入っているので、これを正しい値として比べます。</div></div>
+      <button class="icon-btn" id="close-ad-recon" title="閉じる" aria-label="閉じる"><svg class="icn"><use href="#i-x"/></svg></button>
+    </div>
+    <div id="ad-recon-body"></div>
+  </div>
+</div>
 <!-- KWデータの点検（v3.06） -->
 <div class="modal-bg" id="kw-check-modal" hidden>
   <div class="modal adg-modal" style="max-width:820px;">
@@ -2654,6 +2677,52 @@ function openKwCheck(){
   document.getElementById('kw-check-modal').hidden = false;
 }
 function closeKwCheck(){ document.getElementById('kw-check-modal').hidden = true; }
+// ===== 広告データの照合（v3.07）=====
+// 月末データ（B：plData[ym].adCost＝その月に費用が出た全キャンペーン）を正として、
+// 日別①（adData の月合計）と KW③（adKwData の月合計）の広告費を比べる。
+function reconMonthSum(src, ym, costOf){
+  let c = 0, n = 0; Object.keys(src || {}).forEach(d => { if (d.slice(0, 7) !== ym) return; const v = costOf(d); if (v == null) return; c += v; n++; });
+  return { cost: c, days: n };
+}
+function reconJudge(val, days, dim, B, isKw){
+  if (!days) return { cls: 'none', txt: 'データなし' };
+  if (B == null) return { cls: 'none', txt: '月末データなし（比べられない）' };
+  const diff = val - B, tol = Math.max(500, B * 0.01);
+  const partial = days < dim;
+  if (Math.abs(diff) <= tol) return { cls: 'ok', txt: '✓ 一致' + (partial ? '（' + days + '日分）' : '') };
+  if (partial && diff < 0) return { cls: 'part', txt: days + '日分のみ（' + dim + '日中）' + (isKw ? '' : '→ 足りない日を入れる') };
+  if (diff < 0) return { cls: 'ng', txt: '少ない → ' + (isKw ? '③を入れ直し' : '①を入れ直し') };
+  return { cls: 'warn', txt: '多い → 重複などを確認' };
+}
+function openAdRecon(){
+  const yms = new Set();
+  Object.keys(plData || {}).forEach(ym => { if (/^\d{4}-\d{2}$/.test(ym) && plData[ym] && plData[ym].adCost != null) yms.add(ym); });
+  Object.keys(adData || {}).forEach(d => yms.add(d.slice(0, 7)));
+  Object.keys(adKwData || {}).forEach(d => yms.add(d.slice(0, 7)));
+  const list = Array.from(yms).filter(ym => /^\d{4}-\d{2}$/.test(ym)).sort().reverse();
+  const yen = v => v == null ? '—' : '¥' + Math.round(v).toLocaleString();
+  const dif = (v, B) => (v == null || B == null) ? '' : '<span class="rc-diff ' + (v - B < 0 ? 'neg' : 'pos') + '">' + (v - B >= 0 ? '+' : '−') + '¥' + Math.abs(Math.round(v - B)).toLocaleString() + '</span>';
+  let nNg1 = 0, nNg3 = 0;
+  let h = '<div class="rc-scroll"><table class="rc-tbl"><thead><tr><th>月</th><th class="num">月末データ（B）</th><th class="num">日別の広告データ（①）</th><th>①の判定</th><th class="num">KWデータ（③）</th><th>③の判定</th></tr></thead><tbody>';
+  list.forEach(ym => {
+    const dim = daysInMonth(ym), B = plActualAdCost(ym);
+    const a = reconMonthSum(adData, ym, adDayCost), k = reconMonthSum(adKwData, ym, d => kwRowsCost(adKwData[d]));
+    const j1 = reconJudge(a.cost, a.days, dim, B, false), j3 = reconJudge(k.cost, k.days, dim, B, true);
+    if (j1.cls === 'ng') nNg1++; if (j3.cls === 'ng') nNg3++;
+    h += '<tr><td class="rc-ym">' + ym.replace('-', '/') + (isAdMonthClosed(ym) ? ' <span class="rc-lock" title="確定済み：取り込む前に確定を解除">🔒</span>' : '') + '</td>'
+      + '<td class="num">' + yen(B) + '</td>'
+      + '<td class="num">' + (a.days ? yen(a.cost) + dif(a.cost, B) : '—') + '</td><td class="rc-j ' + j1.cls + '">' + j1.txt + '</td>'
+      + '<td class="num">' + (k.days ? yen(k.cost) + dif(k.cost, B) : '—') + '</td><td class="rc-j ' + j3.cls + '">' + j3.txt + '</td></tr>';
+  });
+  if (!list.length) h += '<tr><td colspan="6" class="kw-empty">データがありません</td></tr>';
+  h += '</tbody></table></div>';
+  const sum = '<div class="rc-sum">' + (nNg1 ? '<b class="ng">①を入れ直す月：' + nNg1 + 'か月</b>' : '<b class="ok">①はすべて一致または比べられない月です</b>') + '　' + (nNg3 ? '<b class="ng">③を入れ直す月：' + nNg3 + 'か月</b>' : '') + '</div>';
+  const note = '<p class="kwc-p">・一致の目安：差が ¥500 または 1% 以内。・「〇日分のみ」＝その月の日別データが全日そろっていない（途中の月や、取り込んでいない日がある）。'
+    + '<br>・KWデータ（③）は Amazon が約5か月分しか残さないため、それより前の月は取り直せません。・🔒＝確定済みの月（取り込む前に「この月を確定」を解除してください）。</p>';
+  document.getElementById('ad-recon-body').innerHTML = sum + h + note;
+  document.getElementById('ad-recon-modal').hidden = false;
+}
+function closeAdRecon(){ document.getElementById('ad-recon-modal').hidden = true; }
 // KWデータ（日付・キーワード/ターゲット・マッチタイプ の列を持つ CSV）か
 function isKwCsvText(text){ const head = String(text).replace(/^\uFEFF/, '').split(/\r?\n/, 1)[0] || ''; return head.indexOf('日付') > -1 && head.indexOf('キーワード/ターゲット') > -1 && head.indexOf('マッチタイプ') > -1; }
 function parseKwCsv(text){
@@ -3085,6 +3154,10 @@ function init(){
   });
   document.getElementById('close-share-help').addEventListener('click', closeShareHelp);
   document.getElementById('close-kw-check').addEventListener('click', closeKwCheck);
+  document.getElementById('open-ad-recon').addEventListener('click', openAdRecon);
+  document.getElementById('close-ad-recon').addEventListener('click', closeAdRecon);
+  document.getElementById('ad-recon-modal').addEventListener('click', e => { if (e.target.id === 'ad-recon-modal') closeAdRecon(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('ad-recon-modal').hidden) closeAdRecon(); });
   document.getElementById('kw-check-modal').addEventListener('click', e => { if (e.target.id === 'kw-check-modal') closeKwCheck(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('kw-check-modal').hidden) closeKwCheck(); });
   document.getElementById('kw-share-help').addEventListener('click', e => { if (e.target.id === 'kw-share-help') closeShareHelp(); });
