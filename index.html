@@ -1554,6 +1554,20 @@
   .kw-more-reset { margin-left: auto; border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .kw-more-reset:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
   .kw-lbl2 .kw-help { margin-left: 6px; }
+  .kwc-warn { margin-left: 14px; border: 1px solid #f59e0b; background: #fffbeb; color: #b45309; border-radius: 7px; padding: 3px 10px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .kwc-warn:hover { background: #fef3c7; border-color: #d97706; color: #92400e; }
+  .kwc-warn.bad { border-color: #dc2626; background: #fef2f2; color: #b91c1c; }
+  .kwc-warn.bad:hover { background: #fee2e2; border-color: #b91c1c; color: #991b1b; }
+  .kwc-p { font-size: 13px; color: var(--text-secondary); line-height: 1.7; margin: 4px 0 8px; }
+  .kwc-h { font-weight: 800; font-size: 14.5px; color: #b45309; margin: 14px 0 4px; }
+  .kwc-h.bad { color: #b91c1c; margin-top: 6px; }
+  .kwc-scroll { max-height: 260px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+  table.kwc-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
+  table.kwc-tbl th, table.kwc-tbl td { padding: 6px 10px; border-bottom: 1px solid var(--border); text-align: left; white-space: nowrap; }
+  table.kwc-tbl th { position: sticky; top: 0; background: var(--bg-secondary); color: var(--text-secondary); }
+  table.kwc-tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
+  .kwc-del { margin-top: 10px; border: 1px solid #dc2626; background: #dc2626; color: #fff; border-radius: 8px; padding: 7px 16px; font-weight: 700; font-size: 13px; cursor: pointer; font-family: inherit; }
+  .kwc-del:hover { background: #b91c1c; border-color: #b91c1c; color: #fff; }
   /* 表の見出しの小さい？（上部シェア） */
   .kw-help.kw-qs { width: 17px; height: 17px; min-width: 17px; font-size: 11px; margin-left: 4px; top: 0; vertical-align: 1px; box-shadow: none; }
   .kwsh-body { font-size: 14px; line-height: 1.8; color: var(--text-secondary); }
@@ -1774,7 +1788,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.04</span>
+    <span class="version">v3.06</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2434,6 +2448,16 @@
 <div class="toast" id="toast"></div>
 <!-- KW推移モーダル（広告データ-個別）。表示倍率（.container の zoom）の外に置く -->
 <div class="kwm-bg" id="kwm-modal" hidden><div class="kwm-box" id="kwm-box"></div></div>
+<!-- KWデータの点検（v3.06） -->
+<div class="modal-bg" id="kw-check-modal" hidden>
+  <div class="modal adg-modal" style="max-width:820px;">
+    <div class="adg-head">
+      <div><h3>⚠ KWデータの確認</h3><div class="sub" style="margin-bottom:0;">KWデータの日ごとの費用合計を、広告データ（キャンペーン単位）と比べます。</div></div>
+      <button class="icon-btn" id="close-kw-check" title="閉じる" aria-label="閉じる"><svg class="icn"><use href="#i-x"/></svg></button>
+    </div>
+    <div id="kw-check-body"></div>
+  </div>
+</div>
 <!-- 上部シェアの説明（一覧・KW推移モーダルの「上部シェア ?」）。KW推移モーダルより手前に出す -->
 <div class="modal-bg" id="kw-share-help" hidden style="z-index:9400;">
   <div class="modal adg-modal" style="max-width:600px;">
@@ -2577,6 +2601,59 @@ function saveAdCampData(){ return persistKey(STORAGE_ADCAMP, adCampData); }
 // ③KWデータ：{ 'YYYY-MM-DD': [ {type,campaign,adGroup,kind,target,match,product,status,bid,imp,clicks,cost,orders,sales,topShare,campaignId,adGroupId,targetId}, ... ] }
 let adKwData = {};
 function saveAdKwData(){ return persistKey(STORAGE_ADKW, adKwData); }
+// ===== KWデータの点検（v3.06）=====
+// Amazon はキーワード単位の日別データを約5か月分しか残さない。それより前の日を取ると、
+//  ・ふつうの日 → 全行の費用が ¥0、・月の1日 → その月全体の合計が1日分として返る。
+// 同じ日の①広告データ（キャンペーン単位）の費用合計と比べて、この2つの形を「正しくない日」と判定する。
+function kwRowsCost(rows){ let c = 0; (rows || []).forEach(r => { c += Number(r.cost) || 0; }); return c; }
+function adDayCost(d){
+  const day = adData[d]; if (!day) return null;
+  let c = 0; Object.values(day).forEach(pf => Object.values(pf || {}).forEach(st => Object.values(st || {}).forEach(v => { c += Number(v && v.cost) || 0; })));
+  return c;
+}
+// 'bad'＝Amazon の保存期間切れの形（取り込まない・削除をすすめる）／'diff'＝合計が合わない（取り直しをすすめる）／''＝問題なし・比べられない
+function kwDayCheck(d, rows){
+  const ad = adDayCost(d); if (ad == null) return { kind: '', kw: kwRowsCost(rows), ad: null };
+  const kw = kwRowsCost(rows);
+  if (ad >= 100 && kw < ad * 0.05) return { kind: 'bad', why: 'KWの費用がほぼ0', kw, ad };
+  if (kw > ad * 3 && kw - ad > 1000) return { kind: 'bad', why: 'KWの費用が広告データの3倍以上（1か月分が入っている形）', kw, ad };
+  if (Math.abs(kw - ad) > Math.max(100, ad * 0.02)) return { kind: 'diff', why: 'KWと広告データの費用合計が合わない', kw, ad };
+  return { kind: '', kw, ad };
+}
+function kwCheckAll(){
+  const bad = [], diff = [];
+  Object.keys(adKwData || {}).sort().forEach(d => { const c = kwDayCheck(d, adKwData[d]); if (c.kind === 'bad') bad.push(Object.assign({ d }, c)); else if (c.kind === 'diff') diff.push(Object.assign({ d }, c)); });
+  return { bad, diff };
+}
+function openKwCheck(){
+  const { bad, diff } = kwCheckAll();
+  const yen = v => v == null ? '—' : '¥' + Math.round(v).toLocaleString();
+  const tbl = (list) => '<table class="kwc-tbl"><thead><tr><th>日付</th><th class="num">KWデータの費用</th><th class="num">広告データの費用</th><th>判定</th></tr></thead><tbody>'
+    + list.map(x => '<tr><td>' + graphPeriodText(x.d) + '</td><td class="num">' + yen(x.kw) + '</td><td class="num">' + yen(x.ad) + '</td><td>' + x.why + '</td></tr>').join('') + '</tbody></table>';
+  let h = '';
+  h += '<p class="kwc-p">同じ日の「KWデータ」と「広告データ（キャンペーン単位）」の費用合計を比べています。広告データがない日は比べられないので出ません。</p>';
+  h += '<div class="kwc-h bad">正しくないKWデータの日：' + bad.length + '日</div>';
+  if (bad.length) {
+    h += '<p class="kwc-p">Amazon はキーワード単位の日別データを約5か月分しか残していません。それより前の日を取ると、費用が ¥0 になったり、月の1日に1か月分が入ったりします。これらの日のKWデータは削除をおすすめします（広告データ・全体収支には影響しません）。</p>';
+    h += '<div class="kwc-scroll">' + tbl(bad) + '</div>';
+    h += '<button type="button" class="kwc-del" id="kwc-del">この ' + bad.length + '日分のKWデータを削除</button>';
+  } else h += '<p class="kwc-p">ありません。</p>';
+  h += '<div class="kwc-h">費用合計が合わない日：' + diff.length + '日</div>';
+  if (diff.length) h += '<p class="kwc-p">ダウンロード時の設定の違い（以前の「有効なキャンペーンだけ」など）が考えられます。KWデータは直近約5か月分なら取り直せるので、取り直して「レポート追加」で入れ直してください。</p><div class="kwc-scroll">' + tbl(diff) + '</div>';
+  else h += '<p class="kwc-p">ありません。</p>';
+  const body = document.getElementById('kw-check-body'); body.innerHTML = h;
+  const del = document.getElementById('kwc-del');
+  if (del) del.addEventListener('click', () => {
+    if (!confirm(bad.length + '日分のKWデータを削除します。よろしいですか？\n（' + bad.map(x => x.d.replace(/-/g, '/')).slice(0, 10).join('、') + (bad.length > 10 ? ' ほか' : '') + '）')) return;
+    bad.forEach(x => { delete adKwData[x.d]; });
+    saveAdKwData();
+    if (kwDay && !adKwData[kwDay]) kwDay = null;
+    renderAdKwView(); openKwCheck();
+    toast(bad.length + '日分のKWデータを削除しました');
+  });
+  document.getElementById('kw-check-modal').hidden = false;
+}
+function closeKwCheck(){ document.getElementById('kw-check-modal').hidden = true; }
 // KWデータ（日付・キーワード/ターゲット・マッチタイプ の列を持つ CSV）か
 function isKwCsvText(text){ const head = String(text).replace(/^\uFEFF/, '').split(/\r?\n/, 1)[0] || ''; return head.indexOf('日付') > -1 && head.indexOf('キーワード/ターゲット') > -1 && head.indexOf('マッチタイプ') > -1; }
 function parseKwCsv(text){
@@ -2602,6 +2679,29 @@ function parseKwCsv(text){
   const dates = Object.keys(byDate).sort();
   if (!dates.length) return { ok: false, msg: '「日付」列から日付を読み取れません' };
   return { ok: true, byDate, dates, count };
+}
+// v3.05：キャンペーン別の行（adCampData）のうち、以前は合計から外していた行（inTotal=0：ダウンロード時点で有効でなかったキャンペーン）を
+//        日別の合計（adData）に足して inTotal=1 にする。inTotal を 1 にするので何度呼んでも二重には足さない。
+function adIncludeInactiveCamps(){
+  let days = 0, rows = 0;
+  Object.keys(adCampData || {}).forEach(d => {
+    const list = adCampData[d]; if (!Array.isArray(list)) return;
+    let changed = false;
+    list.forEach(c => {
+      if (!c || c.inTotal !== 0) return;
+      const pr = c.product || '', pf = c.platform || '', st = c.subtype || '';
+      if (!adData[d]) adData[d] = {};
+      if (!adData[d][pr]) adData[d][pr] = {};
+      if (!adData[d][pr][pf]) adData[d][pr][pf] = {};
+      if (!adData[d][pr][pf][st]) adData[d][pr][pf][st] = { sales: 0, cost: 0, clicks: 0, orders: 0 };
+      const a = adData[d][pr][pf][st];
+      a.sales += Number(c.sales) || 0; a.cost += Number(c.cost) || 0; a.clicks += Number(c.clicks) || 0; a.orders += Number(c.orders) || 0;
+      c.inTotal = 1; changed = true; rows++;
+    });
+    if (changed) days++;
+  });
+  if (days) { saveAdData(); saveAdCampData(); }
+  return { days, rows };
 }
 function setAdCampDay(date, camps){ if (camps && camps.length) adCampData[date] = camps; else delete adCampData[date]; }
 // 確定（締め）済みの月のスナップショット { 'YYYY-MM': { filter: { day: {total, m} } } }
@@ -2762,10 +2862,12 @@ async function bootstrap(){
   if (!adKwData || typeof adKwData !== 'object' || Array.isArray(adKwData)) adKwData = {};
   adCampaigns = await load(STORAGE_CAMPAIGNS, []);
   adClose = await load(STORAGE_ADCLOSE, {});
+  const _adFix = adIncludeInactiveCamps();   // v3.05：以前に外していた停止中キャンペーンの分を合計に足す（1回だけ・何度呼んでも二重にならない）
   plData = await load(STORAGE_PL, {});
   returnsData = await load(STORAGE_RETURNS, {});
   categories = await load(STORAGE_CAT, {});
   init();
+  if (_adFix.days) setTimeout(() => toast('一時停止などのキャンペーンの広告データを ' + _adFix.days + '日分 合計に追加しました（確定済みの月は、確定を解除して確定し直すと反映されます）'), 800);
   _syncArmed = true; // 初回ロード後に自動同期を有効化（起動時の無駄アップロードを防止）
 }
 
@@ -2982,6 +3084,9 @@ function init(){
     if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && tag !== 'SELECT' && tag !== 'INPUT') { e.preventDefault(); kwmGo(e.key === 'ArrowUp' ? -1 : 1); }
   });
   document.getElementById('close-share-help').addEventListener('click', closeShareHelp);
+  document.getElementById('close-kw-check').addEventListener('click', closeKwCheck);
+  document.getElementById('kw-check-modal').addEventListener('click', e => { if (e.target.id === 'kw-check-modal') closeKwCheck(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('kw-check-modal').hidden) closeKwCheck(); });
   document.getElementById('kw-share-help').addEventListener('click', e => { if (e.target.id === 'kw-share-help') closeShareHelp(); });
   document.getElementById('kwm-modal').addEventListener('click', (e) => { if (e.target.id === 'kwm-modal') closeKwModal(); });
   // 全体収支 月末データ取込モーダル
@@ -5578,7 +5683,9 @@ function applyReportAll(){
       if (_rpt.ad.length) saveAdCampData();
       // ③ KWデータ（日ごとに上書き）
       const kwDays = new Set();
-      _rpt.kw.forEach(k => k.dates.forEach(d => { adKwData[d] = k.byDate[d]; kwDays.add(d); lastYm = lastYm || d.slice(0, 7); }));
+      // v3.06：同じ日の広告データと比べて、Amazon の保存期間切れの形（費用ほぼ0／1か月分）の日は取り込まない
+      const kwSkipped = [];
+      _rpt.kw.forEach(k => k.dates.forEach(d => { const c = kwDayCheck(d, k.byDate[d]); if (c.kind === 'bad') { kwSkipped.push(d); return; } adKwData[d] = k.byDate[d]; kwDays.add(d); lastYm = lastYm || d.slice(0, 7); }));
       if (kwDays.size) saveAdKwData();
       // ③ 月末データ（ファイルごとの月へ）
       if (mePlan) Object.keys(mePlan).sort().forEach(ym => {
@@ -5614,6 +5721,7 @@ function applyReportAll(){
       if (_rpt.ret && _rpt.ret.count) parts.push('返品' + _rpt.ret.count + '件');
       try { if (typeof renderReturnsView === 'function') renderReturnsView(); } catch (e) {}
       toast(parts.join(' / ') + ' を反映しました', { label: '元に戻す', onClick: () => { undo(); if (plUndoSnapshot) plUndoApply(); } });
+      if (kwSkipped.length) { const ks = Array.from(new Set(kwSkipped)).sort(); setTimeout(() => alert('次の ' + ks.length + '日はKWデータを取り込みませんでした。\n同じ日の広告データと費用合計が大きく違い、Amazon の保存期間（約5か月）切れのデータの形でした（費用がほぼ0、または1か月分）。\n\n' + ks.map(d => d.replace(/-/g, '/')).slice(0, 30).join('、') + (ks.length > 30 ? ' ほか' : '')), 300); }
     } finally {
       btn.disabled = false; btn.classList.remove('is-loading'); btn.innerHTML = orig;
     }
@@ -6154,6 +6262,7 @@ function renderAdKwView(){
   });
   h += '<div class="kw-count"><b>' + groups.length + '件</b>　ROAS：<span class="kw-dot hi"></span><span class="kw-r-hi">300%以上 ' + nHi + '</span>　<span class="kw-dot mid"></span><span class="kw-r-mid">200〜299% ' + nMid + '</span>　<span class="kw-dot lo"></span><span class="kw-r-lo">199%以下 ' + nLo + '</span>'
     + '<span class="kw-hint">行をクリックすると、そのワードの日別・月別の推移（グラフ・表）が開きます</span>'
+    + (() => { const ck = kwCheckAll(); const n = ck.bad.length + ck.diff.length; return n ? '<button type="button" class="kwc-warn' + (ck.bad.length ? ' bad' : '') + '" id="kw-check-open" title="KWデータと広告データの費用合計を日ごとに比べた結果">⚠ KWデータを確認（' + (ck.bad.length ? '正しくない日 ' + ck.bad.length + '日' : '') + (ck.bad.length && ck.diff.length ? '・' : '') + (ck.diff.length ? '合わない日 ' + ck.diff.length + '日' : '') + '）</button>' : ''; })()
     + '<label class="kw-chk" title="選んだ期間に広告費が0円（クリックが0回）の行も一覧に出します。表示はあるのにクリックされないキーワードを探す時に"><input type="checkbox" id="kw-showzero"' + (kwHideZero ? '' : ' checked') + '> 費用0の行も出す</label></div>';
 
   const labelCells = (gp) => {
@@ -6202,6 +6311,7 @@ function renderAdKwView(){
   on('#kw-from', 'change', e => { kwFrom = e.target.value; renderAdKwView(); });
   on('#kw-to', 'change', e => { kwTo = e.target.value; renderAdKwView(); });
   on('#kw-camp', 'change', e => { kwCamp = e.target.value; renderAdKwView(); });
+  on('#kw-check-open', 'click', openKwCheck);
   on('#kw-showzero', 'change', e => { kwHideZero = !e.target.checked; renderAdKwView(); });
   on('#kw-group-help', 'click', openKwHelp);
   body.querySelectorAll('.kw-qs').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openShareHelp(); }));
@@ -6857,7 +6967,7 @@ function buildAnalysisSheets(fromYm, toYm, want){
   D.push(['通貨・単位', '金額はすべて日本円（税込・整数）。数値に¥やカンマは付けていない。率は列名に単位を記載（ROAS（倍）＝広告売上÷広告費、CVR（%）＝注文数÷クリック数×100）。']);
   D.push(['形式', '各シートは1行目が列名、2行目以降が1行＝1件の縦長データ。値が無い（未入力・計算不可）セルは空欄。フラグ列は 1＝はい／0＝いいえ。']);
   D.push(['重要な注意1', '「推計」と付く売上は、出荷数×販売価格（セール期間中の参加商品はセール価格）で計算した見込み値。実際の売上（Amazon 売上ダッシュボードの実額）は「全体収支_月別」の「総売上（実額）」のみ。両者は一致しない。']);
-  D.push(['重要な注意2', '日別の広告データは、配信中（有効）のキャンペーンをキャンペーン名から「広告商品」「SP/SB」「種類」に分類して合算したもの。キャンペーン単位の行は保存していない。月の広告実額（全体収支）とは集計元レポートが違うため一致しないことがある。']);
+  D.push(['重要な注意2', '日別の広告データは、全キャンペーン（状態が有効・一時停止などに関係なく、その日に動きのあったもの）をキャンペーン名から「広告商品」「SP/SB」「種類」に分類して合算したもの。キャンペーン単位の行は保存していない。月の広告実額（全体収支）とは集計元レポートが違うため一致しないことがある。']);
   D.push(['重要な注意3', '全体収支の「粗利益」＝総売上（実額）−原価（出荷数×原価単価）。「実質利益」＝粗利益−広告費（実額）−保管費（実額）−FBA手数料（実額）−販売手数料（実額）。保管費・FBA手数料・販売手数料が未取込の月は0として計算している（「〜入力済み」列で確認できる）。']);
   D.push(['キーの対応', '商品は SKU／ASIN／FNSKU で各シートをつなげる。広告シートの「広告商品」は「広告商品_対応表」で対象ASIN、さらに「商品マスタ」のASINへつながる。セールは「セール期間」「セール価格」を参照。']);
   D.push([]);
@@ -6881,7 +6991,7 @@ function buildAnalysisSheets(fromYm, toYm, want){
     add('広告_KW別_日別', '種別／マッチタイプ', '種別＝キーワード・商品など。マッチタイプ＝部分一致・フレーズ一致・完全一致、商品ターゲティングは ASIN／ASIN(拡張) など。');
     add('広告_KW別_日別', 'ACOS（%）', '広告費÷広告売上×100（ROAS の逆数）。');
     add('広告_キャンペーン別_日別', '（シート全体）', '1行＝1日×1キャンペーン。広告レポート（日別）の行をそのまま残したもの。2026年10月（Amacheck v2.67）以降に取り込んだ日だけ入っている。それより前の日は「広告_日別」の合計のみ。');
-    add('広告_キャンペーン別_日別', '合計に含む', '1＝状態が「有効」で「広告_日別」の合計に入っている行。0＝一時停止などで合計に入っていない行（その日に費用などが出ていれば記録している）。');
+    add('広告_キャンペーン別_日別', '合計に含む', '1＝「広告_日別」の合計に入っている行（v3.05 以降は状態に関係なくすべて 1）。');
     add('広告_キャンペーン別_日別', '広告商品／広告タイプ／広告種類', 'キャンペーン名から判定した分類（「広告_日別」と同じ分類）。');
     add('広告_キャンペーン別_日別', '予算（日）／インプレッション／検索結果上部のインプレッションシェア', 'レポートに列がある場合のみ。無い列は空欄。');
   }
@@ -7399,23 +7509,23 @@ function parseAdCsv(text){
   const isActive = (v) => { v = (v || '').trim(); return v === '有効' || /ENABLED/i.test(v); };
 
   const agg = {};
-  const camps = [];   // キャンペーン別の行（動きのあった行はすべて。合計に入るのは有効のみ＝inTotal）
+  const camps = [];   // キャンペーン別の行（動きのあった行はすべて）。v3.05：状態（有効／一時停止など）に関係なく合計に入れる（inTotal=1）
   let count = 0;
   res.data.forEach(row => {
     {
-      const active = !stateCol || isActive(row[stateCol]);
       const cc = classifyCampaign({ 'キャンペーン名': row[nameCol] || '', 'タイプ': typeCol ? (row[typeCol] || '') : '', 'ターゲティング': tgtCol ? (row[tgtCol] || '') : '' });
       const v = { sales: adParsePrice(salesCol ? row[salesCol] : 0), cost: adParsePrice(costCol ? row[costCol] : 0), clicks: adParsePrice(clicksCol ? row[clicksCol] : 0), orders: adParsePrice(ordersCol ? row[ordersCol] : 0), impressions: impCol ? adParsePrice(row[impCol]) : null };
       if (v.sales || v.cost || v.clicks || v.orders || v.impressions) camps.push({
         id: idCol ? String(row[idCol] || '').trim() : '', name: String(row[nameCol] || '').trim(),
         state: stateCol ? String(row[stateCol] || '').trim() : '', status: statusCol ? String(row[statusCol] || '').trim() : '',
         type: typeCol ? String(row[typeCol] || '').trim() : '', tgt: tgtCol ? String(row[tgtCol] || '').trim() : '',
-        platform: cc.platform, subtype: cc.subtype, product: cc.product, inTotal: active ? 1 : 0,
+        platform: cc.platform, subtype: cc.subtype, product: cc.product, inTotal: 1,
         budget: budgetCol ? adParsePrice(row[budgetCol]) : null, impressions: v.impressions, clicks: v.clicks, cost: v.cost, orders: v.orders, sales: v.sales,
         topShare: topCol ? String(row[topCol] || '').trim() : ''
       });
     }
-    if (stateCol && !isActive(row[stateCol])) return; // 有効/ENABLED のみ
+    // v3.05：以前は「有効/ENABLED のみ」合計していたが、レポートの状態はダウンロード時点のものなので、
+    //        過去の日に配信していて今は停止中のキャンペーンが漏れていた。状態に関係なく合計する（動きのない行は 0 なので影響なし）
     const c = classifyCampaign({
       'キャンペーン名': row[nameCol] || '',
       'タイプ': typeCol ? (row[typeCol] || '') : '',
@@ -7434,7 +7544,7 @@ function parseAdCsv(text){
     agg[c.product][c.platform][c.subtype].orders += orders;
     count++;
   });
-  if (!count) return { ok: false, msg: '「有効」のキャンペーンなし' };
+  if (!count) return { ok: false, msg: 'キャンペーンの行がありません' };
   return { ok: true, agg, count, prods: Object.keys(agg), camps };
 }
 // ファイル名から日付(YYYY-MM-DD)を推測。取れなければ ''
