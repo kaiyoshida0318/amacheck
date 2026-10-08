@@ -1486,6 +1486,7 @@
   table.kwm-tbl td.yr { color: var(--text-tertiary); font-weight: 600; }
   table.kwm-tbl tr.nodata td { color: #cbd5e1; }
   table.kwm-tbl tr.nodata td.lbl { color: var(--text-tertiary); font-weight: 400; }
+  table.kwm-tbl tr.kwm-mbreak td { border-top: 2px solid rgba(100,116,139,0.35); }   /* 日別：月の境目（入札変更の紫枠があればそちらが優先） */
   table.kwm-tbl tr.kwm-chg td { border-top: 2px dashed #9333ea; border-bottom: 2px dashed #9333ea; }
   table.kwm-tbl tr.kwm-chg td:first-child { border-left: 2px dashed #9333ea; font-weight: 800; }
   table.kwm-tbl tr.kwm-chg td:last-child { border-right: 2px dashed #9333ea; }
@@ -1773,7 +1774,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.02</span>
+    <span class="version">v3.03</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -6521,13 +6522,15 @@ function renderKwModal(){
       h += '<tr class="kwm-yoy-b' + grp + '"><td class="yr' + saleAttr(pym + '-01', monthEnd(pym)) + '">' + pym.slice(0, 4) + '年</td>' + COLS.map(([k]) => cell(aggMap[pym], k)).join('') + '</tr>';
     }
   } else {
+    let prevYm = null;   // 日別：月が変わる行（新しい順なので、前の月の最終日の行）の上に薄い区切り線（v3.03）
     labels.slice().reverse().forEach(l => {
+      const mBreak = isDaily && prevYm && l.slice(0, 7) !== prevYm; prevYm = l.slice(0, 7);
       const a = aggMap[l];
       let lab;
       const inSale = isDaily && dateInAnySale(l);
       if (isDaily) { const dw = new Date(l + 'T00:00:00').getDay(); lab = '<td class="lbl ' + (dw === 0 ? 'gt-sun' : (dw === 6 ? 'gt-sat' : '')) + (inSale ? saleAttr(l, l) : '') + '">' + graphPeriodText(l).slice(5) + '</td>'; }
       else lab = '<td class="lbl' + saleAttr(l + '-01', monthEnd(l)) + '">' + l.replace('-', '/') + '</td>';
-      h += '<tr class="' + (a ? '' : 'nodata') + (chgAt[l] ? ' kwm-chg' : '') + '">' + lab + COLS.map(([k]) => cell(a, k)).join('') + '</tr>';
+      h += '<tr class="' + (a ? '' : 'nodata') + (mBreak ? ' kwm-mbreak' : '') + (chgAt[l] ? ' kwm-chg' : '') + '">' + lab + COLS.map(([k]) => cell(a, k)).join('') + '</tr>';
     });
   }
   if (!labels.length) h += '<tr><td colspan="' + (COLS.length + 1 + (kwm.tblYoy && !isDaily ? 1 : 0)) + '" class="kw-empty">データがありません</td></tr>';
