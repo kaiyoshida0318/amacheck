@@ -1806,7 +1806,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.08</span>
+    <span class="version">v3.09</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2453,6 +2453,7 @@
           <div class="me-card" id="report-ret-card"><div class="h"><span class="me-badge" style="background:#dc2626;">返</span> 返品データ（FBA返品レポート）</div><div class="d">返品日からFNSKU・月へ自動振り分け。返品率は「欠陥品・不良品」を使用（他の状態も保存）。同じ月は上書き。</div><div class="me-status off">未取込</div></div>
         </div>
       </div>
+      <div id="report-notes" style="margin-top:10px;font-size:13px;color:#166534;line-height:1.6;"></div>
       <div id="report-unknown" style="margin-top:10px;font-size:12px;color:var(--danger);"></div>
     </div>
     <div style="flex-shrink:0;border-top:1px solid var(--border);margin-top:12px;padding-top:12px;display:flex;align-items:center;gap:10px;">
@@ -5421,7 +5422,7 @@ function buildReportFileTypePanel(){
     + '</div></div></div>';
 }
 let _rpt = null;
-function rptReset(){ _rpt = { ship: [], ad: [], kw: [], meFiles: [], ret: null, unknown: [], errors: [], meMonth: null, allowPartial: false }; }
+function rptReset(){ _rpt = { ship: [], ad: [], kw: [], meFiles: [], ret: null, unknown: [], errors: [], notes: [], meMonth: null, allowPartial: false }; }
 function openReportModal(){
   if (!products.length) { toast('先に商品情報を登録してください'); return; }
   rptReset();
@@ -5436,6 +5437,7 @@ function openReportModal(){
   document.getElementById('report-calendar').innerHTML = '<div style="font-size:13px;color:var(--text-tertiary);padding:6px 2px;">ファイルをドロップすると、日別の取込状況（◯＝あり／✕＝なし）が表示されます。</div>';
   document.getElementById('report-notice').innerHTML = '';
   document.getElementById('report-unknown').textContent = '';
+  { const rn = document.getElementById('report-notes'); if (rn) rn.innerHTML = ''; }
   document.querySelectorAll('#report-me-grid .me-card').forEach(c => { c.classList.remove('hit'); c.querySelector('.me-status').className = 'me-status off'; c.querySelector('.me-status').textContent = '未取込'; });
   rptFillMonthSelect();
   document.getElementById('report-status').textContent = '';
@@ -5487,6 +5489,18 @@ async function rptStage(files){
       const kr = parseKwCsv(text);
       if (kr.ok) _rpt.kw.push({ name: fname, byDate: kr.byDate, dates: kr.dates, count: kr.count });
       else _rpt.errors.push(fname + '：' + kr.msg);
+      return;
+    }
+    // v3.09：Amazon の日別キャンペーンレポート（「日付」列あり・複数日）→ ① を日ごとに。今の数字と同じ日はそのまま
+    if (isDailyCampReportText(text)) {
+      const br = parseAdCsvByDate(text);
+      if (!br.ok) { _rpt.errors.push(fname + '：' + br.msg); return; }
+      const pk = adReportPickDays(br);
+      pk.use.forEach(d => { const r = br.byDate[d]; _rpt.ad.push({ name: fname, date: d, agg: r.agg, count: r.count, camps: r.camps, fix: 1 }); });
+      const fmt = d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10));
+      _rpt.notes.push('📄 ' + fname + '（Amazon の日別キャンペーンレポート・' + br.dates.length + '日分）：'
+        + (pk.use.length ? '今の数字と違う <b>' + pk.use.length + '日（' + pk.use.map(fmt).join('・') + '）</b>を入れ替えます。' : '<b>すべて今の数字と同じ</b>なので、入れ替える日はありません。')
+        + (pk.same.length && pk.use.length ? '同じ ' + pk.same.length + '日はそのままにします。' : ''));
       return;
     }
     // ① ファイル名で優先判別：「広告データ」→広告(日別) / 「出荷数データ」→出荷
@@ -5668,6 +5682,7 @@ function rptRender(){
 
   // カレンダー（広告・出荷）
   const adDates = new Set(_rpt.ad.map(a => a.date));
+  const adPair = new Set(_rpt.ad.filter(a => !a.fix).map(a => a.date));   // 日別レポートでの入れ替え日は出荷数と対にしなくてよい
   const shipDates = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => shipDates.add(d)));
   const kwDates = new Set(); _rpt.kw.forEach(k => k.dates.forEach(d => kwDates.add(d)));
   const calBox = document.getElementById('report-calendar');
@@ -5694,7 +5709,7 @@ function rptRender(){
     };
     calBox.innerHTML = '<div class="rcal-wrap"><table class="rcal"><thead>' + head + '</thead><tbody>'
       + rowHtml('① 広告データ', 'キャンペーンレポート', adDates, shipDates)
-      + rowHtml('② 出荷数データ', '注文数量', shipDates, adDates)
+      + rowHtml('② 出荷数データ', '注文数量', shipDates, adPair)
       + (kwDates.size ? rowHtml('③ KWデータ', 'キーワード／ターゲット別', kwDates, new Set()) : '')
       + '</tbody></table></div>';
     // 対になっていない日
@@ -5702,6 +5717,7 @@ function rptRender(){
     for (let d = 1; d <= nd; d++) {
       const ymd = dom + '-' + String(d).padStart(2, '0');
       const a = adDates.has(ymd), s = shipDates.has(ymd);
+      if (a && !s && !adPair.has(ymd)) continue;
       if (a !== s) miss.push({ d, which: a ? '出荷数' : '広告' });
     }
     if (miss.length) {
@@ -5713,6 +5729,8 @@ function rptRender(){
   }
   // 未判別
   document.getElementById('report-unknown').textContent = _rpt.unknown.length ? ('判別できないファイル：' + _rpt.unknown.join(', ')) : '';
+  const notesEl = document.getElementById('report-notes');
+  if (notesEl) notesEl.innerHTML = (_rpt.notes || []).map(t => '<div style="margin-top:6px;">' + t + '</div>').join('');
   // 月末データの「対象月」を、取り込んだファイルから自動推定して既定にセット（誤って別の月へ入るのを防止）
   // 月が読めないファイル用の「対象月」は自動で決めず、選んでもらう（日別データの月に引っ張られて別の月へ入る事故を防ぐ）
   if (hasMe) {
@@ -5726,7 +5744,7 @@ function rptRender(){
   rptUpdateApply();
 }
 function rptMismatchExists(){
-  const adDates = new Set(_rpt.ad.map(a => a.date));
+  const adDates = new Set(_rpt.ad.filter(a => !a.fix).map(a => a.date));
   const shipDates = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => shipDates.add(d)));
   if (!adDates.size && !shipDates.size) return false;
   const all = new Set([...adDates, ...shipDates]);
@@ -7604,6 +7622,9 @@ function parseAdCsv(text){
   const budgetCol = exact('キャンペーン予算額', 'budget', 'campaignBudgetAmount') || find('予算額');
   const impCol = exact('インプレッション', 'impressions', 'インプレッション数');
   const topCol = find('検索結果上部のインプレッションシェア') || exact('topOfSearchImpressionShare');
+  const prodCol = find('広告プロダクト');   // v3.09：Amazon の新しいレポート（Sponsored Products / Sponsored Brands）
+  const prodType = (v) => { v = String(v || ''); return /brand/i.test(v) ? 'SB' : (/display/i.test(v) ? 'SD' : (/product/i.test(v) ? 'SP' : '')); };
+  const cleanId = (v) => String(v == null ? '' : v).replace(/^="?|"$/g, '').trim();
   if (!nameCol) return { ok: false, msg: 'キャンペーン名の列なし' };
   const isActive = (v) => { v = (v || '').trim(); return v === '有効' || /ENABLED/i.test(v); };
 
@@ -7612,12 +7633,12 @@ function parseAdCsv(text){
   let count = 0;
   res.data.forEach(row => {
     {
-      const cc = classifyCampaign({ 'キャンペーン名': row[nameCol] || '', 'タイプ': typeCol ? (row[typeCol] || '') : '', 'ターゲティング': tgtCol ? (row[tgtCol] || '') : '' });
+      const cc = classifyCampaign({ 'キャンペーン名': row[nameCol] || '', 'タイプ': typeCol ? (row[typeCol] || '') : '', 'ターゲティング': tgtCol ? (row[tgtCol] || '') : '', '広告プロダクト': prodCol ? (row[prodCol] || '') : '' });
       const v = { sales: adParsePrice(salesCol ? row[salesCol] : 0), cost: adParsePrice(costCol ? row[costCol] : 0), clicks: adParsePrice(clicksCol ? row[clicksCol] : 0), orders: adParsePrice(ordersCol ? row[ordersCol] : 0), impressions: impCol ? adParsePrice(row[impCol]) : null };
       if (v.sales || v.cost || v.clicks || v.orders || v.impressions) camps.push({
-        id: idCol ? String(row[idCol] || '').trim() : '', name: String(row[nameCol] || '').trim(),
+        id: idCol ? cleanId(row[idCol]) : '', name: String(row[nameCol] || '').trim(),
         state: stateCol ? String(row[stateCol] || '').trim() : '', status: statusCol ? String(row[statusCol] || '').trim() : '',
-        type: typeCol ? String(row[typeCol] || '').trim() : '', tgt: tgtCol ? String(row[tgtCol] || '').trim() : '',
+        type: typeCol ? String(row[typeCol] || '').trim() : (prodCol ? prodType(row[prodCol]) : ''), tgt: tgtCol ? String(row[tgtCol] || '').trim() : '',
         platform: cc.platform, subtype: cc.subtype, product: cc.product, inTotal: 1,
         budget: budgetCol ? adParsePrice(row[budgetCol]) : null, impressions: v.impressions, clicks: v.clicks, cost: v.cost, orders: v.orders, sales: v.sales,
         topShare: topCol ? String(row[topCol] || '').trim() : ''
@@ -7628,7 +7649,8 @@ function parseAdCsv(text){
     const c = classifyCampaign({
       'キャンペーン名': row[nameCol] || '',
       'タイプ': typeCol ? (row[typeCol] || '') : '',
-      'ターゲティング': tgtCol ? (row[tgtCol] || '') : ''
+      'ターゲティング': tgtCol ? (row[tgtCol] || '') : '',
+      '広告プロダクト': prodCol ? (row[prodCol] || '') : ''
     });
     const sales = adParsePrice(salesCol ? row[salesCol] : 0);
     const cost = adParsePrice(costCol ? row[costCol] : 0);
@@ -7645,6 +7667,47 @@ function parseAdCsv(text){
   });
   if (!count) return { ok: false, msg: 'キャンペーンの行がありません' };
   return { ok: true, agg, count, prods: Object.keys(agg), camps };
+}
+// v3.09：Amazon の「レポートを作成」で作る日別キャンペーンレポート（1ファイルに複数日・「日付」列あり）
+//   例）日付,キャンペーン名,キャンペーンID,広告プロダクト,予算の通貨,合計費用,売上,クリック数,商品購入数
+function isDailyCampReportText(text){
+  const head = String(text).replace(/^\uFEFF/, '').split(/\r?\n/, 1)[0] || '';
+  const cols = head.split(',').map(c => c.replace(/^"|"$/g, '').trim());
+  return cols.indexOf('日付') > -1 && cols.indexOf('キャンペーン名') > -1 && cols.indexOf('合計費用') > -1 && head.indexOf('キーワード/ターゲット') < 0;
+}
+// 日付ごとに分けて parseAdCsv で集計。{ ok, byDate: { 'YYYY-MM-DD': {agg,count,prods,camps,cost} }, dates }
+function parseAdCsvByDate(text){
+  text = String(text).replace(/^\uFEFF/, '');
+  let res;
+  try { res = Papa.parse(text, { header: true, skipEmptyLines: true }); } catch (e) { return { ok: false, msg: '解析エラー' }; }
+  const fields = (res.meta && res.meta.fields) || [];
+  const dateCol = fields.find(c => c.trim() === '日付');
+  if (!dateCol) return { ok: false, msg: '「日付」列がありません' };
+  const groups = {};
+  (res.data || []).forEach(r => {
+    const m = String(r[dateCol] == null ? '' : r[dateCol]).match(/(\d{4})[-\/.](\d{1,2})[-\/.](\d{1,2})/); if (!m) return;
+    const d = m[1] + '-' + m[2].padStart(2, '0') + '-' + m[3].padStart(2, '0');
+    (groups[d] = groups[d] || []).push(r);
+  });
+  const byDate = {};
+  Object.keys(groups).forEach(d => {
+    const r = parseAdCsv(Papa.unparse(groups[d], { columns: fields }));
+    if (!r.ok) return;
+    let cost = 0; Object.values(r.agg).forEach(pf => Object.values(pf).forEach(st => Object.values(st).forEach(v => { cost += v.cost || 0; })));
+    r.cost = cost; byDate[d] = r;
+  });
+  const dates = Object.keys(byDate).sort();
+  if (!dates.length) return { ok: false, msg: '日付の入った行がありません' };
+  return { ok: true, byDate, dates };
+}
+// 取り込み候補を「今の数字と違う日だけ」に絞る（同じ日は今のまま＝拡張ツールで入れた細かい情報を残す）
+function adReportPickDays(br){
+  const use = [], same = [];
+  br.dates.forEach(d => {
+    const cur = adDayCost(d);
+    if (cur != null && adCampData[d] && Math.abs(cur - br.byDate[d].cost) < 1) same.push(d); else use.push(d);
+  });
+  return { use, same };
 }
 // ファイル名から日付(YYYY-MM-DD)を推測。取れなければ ''
 function detectDateFromName(name){
@@ -8272,6 +8335,15 @@ async function processAdFiles(files){
   units.forEach(u => {
     const text = decodeAdBytes(u.bytes);
     let entry;
+    if (text != null && isDailyCampReportText(text)) {   // v3.09：日別キャンペーンレポート → 日ごとに（今の数字と同じ日は除く）
+      const br = parseAdCsvByDate(text);
+      if (!br.ok) { pendingAdImports.push({ id: ++adImportSeq, fileName: u.name, date: '', agg: null, count: 0, prods: [], error: br.msg }); return; }
+      let days = adReportPickDays(br).use;
+      if (adImportMode === 'fixed') days = br.byDate[adFixedDate] ? [adFixedDate] : [];
+      if (!days.length) { pendingAdImports.push({ id: ++adImportSeq, fileName: u.name, date: '', agg: null, count: 0, prods: [], error: adImportMode === 'fixed' ? 'この日付の行がありません' : 'すべて今の数字と同じです（入れ替え不要）' }); return; }
+      days.forEach(d => { const r = br.byDate[d]; pendingAdImports.push({ id: ++adImportSeq, fileName: u.name + '（' + d.slice(5).replace('-', '/') + '）', date: d, agg: r.agg, count: r.count, prods: r.prods, camps: r.camps, error: '' }); });
+      return;
+    }
     if (text == null) {
       entry = { id: ++adImportSeq, fileName: u.name, date: '', agg: null, count: 0, prods: [], error: '文字コード判別不可' };
     } else {
