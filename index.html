@@ -1502,6 +1502,10 @@
   table.kw-table td.kw-t .kw-word { user-select: text; }
   .kw-copy { border: none; background: transparent; padding: 0 4px; margin-left: 4px; color: var(--text-tertiary); cursor: pointer; opacity: 0; font-size: 13px; vertical-align: -2px; }
   tr:hover .kw-copy { opacity: 1; }
+  .kw-find { border: none; background: transparent; padding: 0 4px; margin-left: 0; color: var(--text-tertiary); cursor: pointer; opacity: 0; font-size: 13px; vertical-align: -2px; }
+  tr:hover .kw-find { opacity: 1; }
+  .kw-find:hover { color: var(--purple); background: transparent; }
+  input.kw-search { min-width: 420px; }
   .kw-copy:hover { color: var(--purple); }
   .kw-steps { background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; padding: 6px 16px; margin-bottom: 12px; }
   .kw-step { display: flex; gap: 14px; padding: 10px 0; }
@@ -1758,7 +1762,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.95</span>
+    <span class="version">v2.97</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -5911,6 +5915,31 @@ function kwCopyFallback(text, done){
   document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { toast('コピーできませんでした'); } ta.remove();
 }
 
+// 検索（v2.97）：空白で区切った言葉をすべて含む行（キーワード・マッチ・キャンペーン・広告グループのどれかに）。
+//  "…" で囲む＝キーワードがぴったり同じ、[…] で囲む＝マッチがぴったり同じ。例：耐火バッグ 部分一致 ／ "耐火バッグ" [部分一致]
+function kwSearchParse(text){
+  const t = String(text || '').replace(/[\u3000]/g, ' ').replace(/[“”「」『』]/g, '"').replace(/［/g, '[').replace(/］/g, ']').trim();
+  const o = { exact: [], match: [], words: [] }; const re = /"([^"]*)"|\[([^\]]*)\]|(\S+)/g; let m;
+  while ((m = re.exec(t))) { if (m[1] != null) { if (m[1].trim()) o.exact.push(m[1].trim().toLowerCase()); } else if (m[2] != null) { if (m[2].trim()) o.match.push(m[2].trim().toLowerCase()); } else o.words.push(m[3].toLowerCase()); }
+  return o;
+}
+function kwSearchHit(r, o){
+  const tg = String(r.target || '').toLowerCase(), mt = String(r.match || '').toLowerCase();
+  if (o.exact.some(x => x !== tg)) return false;
+  if (o.match.some(x => x !== mt)) return false;
+  // 言葉はまずキーワード・マッチから探す。どの行のキーワード・マッチにも無い言葉だけ、キャンペーン名・広告グループ名から探す
+  const km = tg + ' ' + mt, cg = String(r.campaign || '').toLowerCase() + ' ' + String(r.adGroup || '').toLowerCase();
+  return o.words.every(w => (o.campWords && o.campWords.has(w)) ? cg.indexOf(w) >= 0 : km.indexOf(w) >= 0);
+}
+// 検索語のうち、どの行のキーワード・マッチにも出てこない言葉（＝キャンペーン名などで探す言葉）を調べておく
+function kwSearchPrep(o){
+  o.campWords = new Set();
+  if (!o.words.length) return o;
+  const left = new Set(o.words);
+  kwDates().some(d => { (adKwData[d] || []).forEach(r => { if (!left.size) return; const km = String(r.target || '').toLowerCase() + ' ' + String(r.match || '').toLowerCase(); left.forEach(w => { if (km.indexOf(w) >= 0) left.delete(w); }); }); return !left.size; });
+  left.forEach(w => o.campWords.add(w));
+  return o;
+}
 function kwDates(){ return Object.keys(adKwData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort(); }
 // 選んだ期間 → [from, to]（基準はデータの最終日）
 function kwPeriod(){
@@ -5939,14 +5968,14 @@ function kwMonthLabel(ym){
 function kwDayList(from, to){ const a = []; for (let d = from, n = 0; d && d <= to && n < 400; d = gAddDays(d, 1), n++) a.push(d); return a; }
 // 絞り込み後の行（日付つき）
 function kwRows(from, to){
-  const out = [], q = kwSearch.trim().toLowerCase();
+  const out = [], q = kwSearch.trim().toLowerCase(), qm = kwSearchPrep(kwSearchParse(kwSearch));
   kwDates().forEach(ds => {
     if (ds < from || ds > to) return;
     (adKwData[ds] || []).forEach(r => {
       if (kwType !== 'all' && String(r.type).toUpperCase() !== kwType) return;
       if (kwCamp && r.campaign !== kwCamp) return;
       if (kwKind !== 'all' && r.kind !== kwKind) return;
-      if (q && (String(r.target) + ' ' + String(r.campaign) + ' ' + String(r.adGroup)).toLowerCase().indexOf(q) < 0) return;
+      if (q && !kwSearchHit(r, qm)) return;
       out.push(Object.assign({ ds }, r));
     });
   });
@@ -6053,7 +6082,7 @@ function renderAdKwView(){
   // キャンペーン＋検索＋詳しい条件ボタン
   h += '<div class="kw-row2"><div class="kw-lbl2">キャンペーン</div><div class="kw-lv kw-lv-grow">';
   h += '<select class="graph-select kw-sel kw-camp2" id="kw-camp"><option value="">すべて（' + camps.length + '件）</option>' + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwCamp ? ' selected' : '') + '>' + escapeHtml(c) + '</option>').join('') + '</select>';
-  h += '<input type="search" class="graph-select kw-search" id="kw-search" placeholder="🔍 キーワード・ASIN で検索" value="' + escapeHtml(kwSearch) + '">';
+  h += '<input type="search" class="graph-select kw-search" id="kw-search" placeholder="🔍 キーワード・ASIN で検索（例：耐火バッグ 部分一致）" title="空白で区切ると全部を含む行だけ。マッチ名も入れられます（例：耐火バッグ 部分一致）。&quot;…&quot; はキーワードがぴったり同じ、[…] はマッチがぴったり同じ" value="' + escapeHtml(kwSearch) + '">';
   h += '<button type="button" class="kw-more-btn' + (kwMoreOpen ? ' open' : '') + (moreChanged.length ? ' changed' : '') + '" id="kw-more" title="広告タイプ・種別・まとめ方を変えるとき">'
     + '<span class="kw-more-arw">' + (kwMoreOpen ? '▲' : '▼') + '</span> 詳しい条件' + (moreChanged.length ? '<span class="kw-more-sum">（' + escapeHtml(moreChanged.join('・')) + '）</span>' : '') + '</button>';
   h += '</div></div>';
@@ -6111,8 +6140,10 @@ function renderAdKwView(){
 
   const labelCells = (gp) => {
     const cp = (t) => t ? '<button type="button" class="kw-copy" data-copy="' + escapeHtml(t) + '" title="「' + escapeHtml(t) + '」をコピー"><svg class="icn"><use href="#i-copy"/></svg></button>' : '';
+    // 🔍＝このキーワード（×マッチ）だけを表示。検索欄に入るので、日や期間を変えても残る（v2.97）
+    const fd = (gp2) => { if (!gp2.target) return ''; const f = '"' + gp2.target + '"' + (kwGroup === 'kwmatch' && gp2.match ? ' [' + gp2.match + ']' : ''); const lbl = '「' + gp2.target + '」' + (kwGroup === 'kwmatch' && gp2.match ? '（' + gp2.match + '）' : ''); return '<button type="button" class="kw-find" data-find="' + escapeHtml(f) + '" data-lbl="' + escapeHtml(lbl) + '" title="' + escapeHtml(lbl) + 'だけを表示（日や期間を変えても残ります）"><svg class="icn"><use href="#i-search"/></svg></button>'; };
     if (kwGroup === 'camp') return '<td class="kw-t"><span class="kw-badge ' + gp.type.toLowerCase() + '">' + gp.type + '</span><span class="kw-word">' + escapeHtml(gp.campaign) + '</span>' + cp(gp.campaign) + '</td><td class="kw-m">' + gp.camps.size + '</td>';
-    const tgt = '<td class="kw-t" title="' + escapeHtml(gp.target) + '"><span class="kw-word">' + escapeHtml(gp.target || '（なし）') + '</span>' + cp(gp.target) + '</td>';
+    const tgt = '<td class="kw-t" title="' + escapeHtml(gp.target) + '"><span class="kw-word">' + escapeHtml(gp.target || '（なし）') + '</span>' + cp(gp.target) + fd(gp) + '</td>';
     if (kwGroup === 'kw') return tgt + '<td class="kw-m">' + Array.from(gp.matches).join('・') + '</td><td class="kw-c">' + (gp.camps.size === 1 ? '<span class="kw-badge ' + gp.type.toLowerCase() + '">' + gp.type + '</span>' + escapeHtml(Array.from(gp.camps)[0]) : gp.camps.size + 'キャンペーン') + '</td>';
     return tgt + '<td class="kw-m">' + escapeHtml(gp.match) + '</td><td class="kw-c" title="' + escapeHtml(gp.campaign + ' / ' + gp.adGroup) + '"><span class="kw-badge ' + gp.type.toLowerCase() + '">' + gp.type + '</span>' + escapeHtml(gp.campaign) + '</td>';
   };
@@ -6149,6 +6180,7 @@ function renderAdKwView(){
   segOn('kw-type', v => { if (kwType !== v) { kwType = v; if (kwKind !== 'all' && !allRows.some(r => (v === 'all' || typeOf(r) === v) && r.kind === kwKind)) kwKind = 'all'; } });
   segOn('kw-kind', v => { kwKind = v; });
   segOn('kw-group', v => { kwGroup = v; if (v === 'camp' && (kwSortKey === 'target' || kwSortKey === 'match' || kwSortKey === 'bid')) kwSortKey = 'cost'; });
+  body.querySelectorAll('.kw-find').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); kwSearch = b.dataset.find; renderAdKwView(); toast(b.dataset.lbl + ' だけを表示中（日を変えても残ります）'); }));
   body.querySelectorAll('.kw-copy').forEach(b => b.addEventListener('click', (e) => { e.stopPropagation(); kwCopyText(b.dataset.copy, '「' + b.dataset.copy + '」をコピーしました'); }));
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
   on('#kw-from', 'change', e => { kwFrom = e.target.value; renderAdKwView(); });
@@ -6173,7 +6205,7 @@ function renderAdKwView(){
     renderAdKwView();
   }));
   body.querySelectorAll('.kw-table tr.kw-row').forEach(tr => tr.addEventListener('click', (e) => {
-    if (e.target.closest('.kw-copy')) return;
+    if (e.target.closest('.kw-copy') || e.target.closest('.kw-find')) return;
     const sel = window.getSelection && String(window.getSelection()); if (sel) return;   // 文字を選んでいる時は開閉しない（ドラッグでコピーできるように）
     openKwModal(tr.dataset.key);   // 推移（グラフ＋表）をモーダルで開く
   }));
@@ -6480,7 +6512,7 @@ function renderKwModal(){
   segOn('kwm-fy', v => { if (v === '2y') kwm.view2y = true; else { kwm.view2y = false; kwm.fy = +v; } });
   segOn('kwm-yoy', v => { kwm.tblYoy = v === '1'; });
   const on = (sel, ev, fn) => { const el = box.querySelector(sel); if (el) el.addEventListener(ev, fn); };
-  on('#kwm-month', 'change', e => { kwm.month = e.target.value; renderKwModal(); });
+  on('#kwm-month', 'change', e => { kwm.month = e.target.value; kwm.preset = 'thismonth'; renderKwModal(); });   // v2.96：月を選んだらその月の1日〜末日（30日だと31日ある月の1日が外れる）
   on('#kwm-metric', 'change', e => { kwm.metric = e.target.value; kwm.hiddenYears = new Set(); renderKwModal(); });
   on('#kwm-hide', 'click', () => { kwm.hideChart = !kwm.hideChart; renderKwModal(); });
   on('#kwm-close', 'click', closeKwModal);
