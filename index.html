@@ -1774,7 +1774,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.03</span>
+    <span class="version">v3.04</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -6383,19 +6383,21 @@ function kwmAgg(rows, keyFn){
 }
 function kwmRows(){ const ds = kwDates(); if (!ds.length || !kwm.key) return []; return kwRows(ds[0], ds[ds.length - 1]).filter(r => kwGroupKey(r) === kwm.key); }
 
+// 推移モーダルの最初の表示：一覧の期間が「月別」なら月別、それ以外（日別・直近30日・期間指定）は日別（v3.04）
+function kwmStartPeriod(){ return kwRange === 'month' ? 'monthly' : 'daily'; }
 function openKwModal(key){
-  kwm.key = key; kwm.period = 'daily'; kwm.preset = '30'; kwm.month = null; kwm.hiddenSeries = new Set(); kwm.hiddenYears = new Set(); kwm.tblYoy = false;
+  kwm.key = key; kwm.period = kwmStartPeriod(); kwm.preset = '30'; kwm.month = null; kwm.hiddenSeries = new Set(); kwm.hiddenYears = new Set(); kwm.tblYoy = false;
   if (kwm.metric === 'bid' && kwGroup !== 'kwmatch') kwm.metric = 'all';
   document.getElementById('kwm-modal').hidden = false;
   document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden';   // 開いている間はページのスクロールを止める
   renderKwModal();
 }
-// 表の上／下のワードへ。新しく開いたときと同じく日別（30日）から始める（v3.02）。指標・グラフを隠す・系列の ON/OFF はそのまま
+// 表の上／下のワードへ。新しく開いたときと同じ表示（一覧が月別なら月別、それ以外は日別・30日）から始める。指標・グラフを隠す・系列の ON/OFF はそのまま
 function kwmGo(d){
   const i = kwRowKeys.indexOf(kwm.key), j = i + d;
   if (i < 0 || j < 0 || j >= kwRowKeys.length) return;
   kwm.key = kwRowKeys[j];
-  kwm.period = 'daily'; kwm.preset = '30'; kwm.month = null; kwm.hiddenYears = new Set(); kwm.tblYoy = false;
+  kwm.period = kwmStartPeriod(); kwm.preset = '30'; kwm.month = null; kwm.hiddenYears = new Set(); kwm.tblYoy = false;
   renderKwModal();
 }
 // 上部シェアの説明
