@@ -1806,7 +1806,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.09</span>
+    <span class="version">v3.10</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2729,13 +2729,13 @@ function openAdRecon(){
   const list = Array.from(yms).filter(ym => /^\d{4}-\d{2}$/.test(ym)).sort().reverse();
   const yen = v => v == null ? '—' : '¥' + Math.round(v).toLocaleString();
   const dif = (v, B) => (v == null || B == null) ? '' : '<span class="rc-diff ' + (v - B < 0 ? 'neg' : 'pos') + '">' + (v - B >= 0 ? '+' : '−') + '¥' + Math.abs(Math.round(v - B)).toLocaleString() + '</span>';
-  let nNg1 = 0, nNg3 = 0;
+  let nNg1 = 0, nNg3 = 0, nWarn1 = 0;
   let h = '<div class="rc-scroll"><table class="rc-tbl"><thead><tr><th>月</th><th class="num">月末データ（B）</th><th class="num">日別の広告データ（①）</th><th>①の判定</th><th class="num">KWデータ（③）</th><th>③の判定</th></tr></thead><tbody>';
   list.forEach(ym => {
     const dim = daysInMonth(ym), B = plActualAdCost(ym);
     const a = reconMonthSum(adData, ym, adDayCost), k = reconMonthSum(adKwData, ym, d => kwRowsCost(adKwData[d]));
     const j1 = reconJudge(a.cost, a.days, dim, B, false), j3 = reconJudge(k.cost, k.days, dim, B, true);
-    if (j1.cls === 'ng') nNg1++; if (j3.cls === 'ng') nNg3++;
+    if (j1.cls === 'ng') nNg1++; if (j1.cls === 'warn') nWarn1++; if (j3.cls === 'ng') nNg3++;
     h += '<tr><td class="rc-ym">' + ym.replace('-', '/') + (isAdMonthClosed(ym) ? ' <span class="rc-lock" title="確定済み：取り込む前に確定を解除">🔒</span>' : '') + '</td>'
       + '<td class="num">' + yen(B) + '</td>'
       + '<td class="num">' + (a.days ? yen(a.cost) + dif(a.cost, B) : '—') + '</td><td class="rc-j ' + j1.cls + '">' + j1.txt + '</td>'
@@ -2743,7 +2743,7 @@ function openAdRecon(){
   });
   if (!list.length) h += '<tr><td colspan="6" class="kw-empty">データがありません</td></tr>';
   h += '</tbody></table></div>';
-  const sum = '<div class="rc-sum">' + (nNg1 ? '<b class="ng">①を入れ直す月：' + nNg1 + 'か月</b>' : '<b class="ok">①はすべて一致または比べられない月です</b>') + '　' + (nNg3 ? '<b class="ng">③を入れ直す月：' + nNg3 + 'か月</b>' : '') + '</div>';
+  const sum = '<div class="rc-sum">' + ((nNg1 || nWarn1) ? ((nNg1 ? '<b class="ng">①を入れ直す月：' + nNg1 + 'か月</b>' : '') + (nWarn1 ? (nNg1 ? '　' : '') + '<b class="warn" style="color:#c2410c;">①が多すぎる月：' + nWarn1 + 'か月</b>' : '')) : '<b class="ok">①はすべて一致または比べられない月です</b>') + '　' + (nNg3 ? '<b class="ng">③を入れ直す月：' + nNg3 + 'か月</b>' : '') + '</div>';
   const note = '<p class="kwc-p">・一致の目安：差が ¥500 または 1% 以内。・「〇日分のみ」＝その月の日別データが全日そろっていない（途中の月や、取り込んでいない日がある）。'
     + '<br>・KWデータ（③）は Amazon が約5か月分しか残さないため、それより前の月は取り直せません。・🔒＝確定済みの月（取り込む前に「この月を確定」を解除してください）。</p>';
   document.getElementById('ad-recon-body').innerHTML = sum + h + note;
