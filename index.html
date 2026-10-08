@@ -1536,6 +1536,27 @@
   select.kw-day { font-weight: 700; min-width: 150px; margin-right: 6px; }
   select.kw-day.on { border-color: var(--purple); color: #fff; background-color: var(--purple); }
   select.kw-day.on option { color: var(--black); background: #fff; }
+  /* v2.95：期間・キャンペーンを上に、詳しい条件は畳む */
+  .kw-steps2 { padding: 10px 18px; }
+  .kw-row2 { display: flex; align-items: center; gap: 14px; padding: 6px 0; }
+  .kw-lbl2 { width: 96px; flex-shrink: 0; font-weight: 800; font-size: 14px; color: var(--black); white-space: nowrap; display: flex; align-items: center; }
+  .kw-lbl2.sub { font-size: 13px; color: var(--text-secondary); }
+  .kw-lv-grow { flex: 1; min-width: 0; }
+  select.kw-camp2 { min-width: 320px; max-width: 520px; }
+  .kw-more-btn { margin-left: auto; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .kw-more-btn:hover { border-color: var(--purple); color: var(--purple); background: #fff; }
+  .kw-more-btn.open { border-color: var(--purple); color: var(--purple); background: #faf5ff; }
+  .kw-more-btn.changed { border-color: var(--purple); color: #fff; background: var(--purple); }
+  .kw-more-btn.changed:hover { color: #fff; background: #6b21a8; border-color: #6b21a8; }
+  .kw-more-arw { font-size: 10px; margin-right: 2px; }
+  .kw-more-sum { font-weight: 600; margin-left: 2px; }
+  .kw-more-box { margin: 6px 0 4px; padding: 6px 14px; background: #faf5ff; border: 1px dashed #d8b4fe; border-radius: 10px; }
+  .kw-more-reset { margin-left: auto; border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .kw-more-reset:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
+  .kw-lbl2 .kw-help { margin-left: 6px; }
+  .kw-sub2 { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); margin-left: 4px; }
+  .kw-sub2:first-child { margin-left: 0; }
+  select.kw-day { min-width: 170px; }
   .kw-help:hover { background: #eab308; border-color: #ca8a04; color: #422006; }
   .kw-step-lbl .kw-help { position: relative; top: -2px; }
   table.kwh-tbl { width: 100%; border-collapse: collapse; font-size: 13px; }
@@ -1737,7 +1758,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.94</span>
+    <span class="version">v2.95</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2402,7 +2423,7 @@
   <div class="modal adg-modal" style="max-width:920px;">
     <div class="adg-head">
       <div><h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-info"/></svg> まとめ方とマッチの説明</h3>
-        <div class="sub" style="margin-bottom:0;">広告データ-個別の「③まとめ方」と、表の「マッチ」列の意味です。</div></div>
+        <div class="sub" style="margin-bottom:0;">広告データ-個別の「詳しい条件」にある「まとめ方」と、表の「マッチ」列の意味です。</div></div>
       <button class="icon-btn" id="close-kw-help" title="閉じる" aria-label="閉じる"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
     <div class="adg-body" id="kw-help-body"></div>
@@ -5863,9 +5884,9 @@ function setSalePartMode(on){
 // 表示と同じく％に丸めてから判定（199.6% は 200% と表示されるので黄土色）
 function kwJudgeOf(roas){ if (roas == null) return ''; const p = Math.round(roas * 100); return p >= 300 ? 'hi' : (p >= 200 ? 'mid' : 'lo'); }
 const kwCls = j => (j ? 'kw-r-' + j : '');
-let kwRange = 'month';            // 'month'（年月を選ぶ）| 'last30' | 'custom'（v2.86：今月・先月ボタン→年月ドロップダウン）
+let kwRange = 'day';              // 'day'（日別・既定）| 'month'（月別）| 'last30' | 'custom'（v2.95：既定は日別の最新日）
 let kwMonth = null;               // 'YYYY-MM'（null＝データのある最新の月）
-let kwDay = null;                 // 'YYYY-MM-DD'（kwRange='day' のとき：その1日だけ。v2.94）
+let kwDay = null;                 // 'YYYY-MM-DD'（kwRange='day' のとき。null＝データの最新日に自動で合わせる）
 let kwFrom = null, kwTo = null;   // custom 用 'YYYY-MM-DD'
 let kwType = 'all';               // 'all' | 'SP' | 'SB'
 let kwCamp = '';                  // キャンペーン名（空＝すべて）
@@ -5875,7 +5896,8 @@ let kwHideZero = true;            // 費用0を隠す
 // v2.76：表は「期間合計」だけ。日別・月別の推移は行クリックのモーダルで見る（表の日別／月別表示・行内展開は廃止）
 let kwGroup = 'kwmatch';          // 'kwmatch' | 'kw' | 'camp'
 let kwSortKey = 'cost', kwSortDir = 'desc';
-let kwStepsHidden = false;        // ①〜③（選択肢）を隠しているか
+let kwStepsHidden = false;
+let kwMoreOpen = false;           // 「詳しい条件」（広告タイプ・種別・まとめ方）を開いているか（v2.95）        // ①〜③（選択肢）を隠しているか
 let kwStepsPrevHeader = false;    // 「選択肢まで隠す」を押す前にヘッダーを隠していたか（表示に戻すとき元に戻す）
 function kwMonthList(from, to){ const a = []; for (let ym = from.slice(0, 7), n = 0; ym <= to.slice(0, 7) && n < 240; ym = gYmAdd(ym, 1), n++) a.push(ym); return a; }
 // クリップボードへコピー（非対応環境は execCommand で代用）
@@ -5896,7 +5918,7 @@ function kwPeriod(){
   const last = ds[ds.length - 1];
   if (kwRange === 'custom' && kwFrom && kwTo) return kwFrom <= kwTo ? [kwFrom, kwTo] : [kwTo, kwFrom];
   if (kwRange === 'last30') return [gAddDays(last, -29), last];
-  if (kwRange === 'day' && kwDay && adKwData[kwDay]) return [kwDay, kwDay];   // 1日だけ
+  if (kwRange === 'day') { const d = (kwDay && adKwData[kwDay]) ? kwDay : last; return [d, d]; }   // 日別：1日だけ（既定＝最新日）
   return kwMonthRangeOf(kwCurMonth());   // 年月（既定＝最新の月）
 }
 // データのある年月（新しい順）
@@ -5983,7 +6005,7 @@ function renderAdKwView(){
       + '</div></div>';
     return;
   }
-  // ===== ①対象：選べる種別・キャンペーンを先に確定（無効になったキャンペーンは表の集計前に「すべて」へ） =====
+  // ===== 対象：選べる種別・キャンペーンを先に確定（無効になったキャンペーンは表の集計前に「すべて」へ） =====
   const allRows = all.flatMap(d => adKwData[d] || []);
   const typeOf = r => String(r.type || '').toUpperCase();
   const KW_KINDS = ['キーワード', '商品'];
@@ -6001,44 +6023,55 @@ function renderAdKwView(){
   const hasPrev = kwDates().some(d => d >= pFrom && d <= pTo);
   const seg = (id, list, cur) => '<div class="graph-seg sm" id="' + id + '">' + list.map(([v, l]) => '<button type="button" data-v="' + v + '" class="' + (v === cur ? 'active' : '') + '">' + l + '</button>').join('') + '</div>';
 
-  // ===== ①対象 → ②期間 → ③まとめ方（上から順に選ぶ3段） =====
   const typeName = kwType === 'all' ? 'すべて' : kwType;
   // キャンペーンだけ選んだときは「いま見ているもの」にそのキャンペーンのタイプ（SP／SB）を出す
   const campTypes = kwCamp ? Array.from(new Set(allRows.filter(r => r.campaign === kwCamp).map(typeOf).filter(Boolean))).sort() : [];
   const crumbType = (kwType === 'all' && campTypes.length) ? campTypes.join('・') : typeName;
   const segD = (id, list, cur, big) => '<div class="graph-seg sm' + (big ? ' kw-big' : '') + '" id="' + id + '">' + list.map(([v, l, dis, tip]) => '<button type="button" data-v="' + v + '" class="' + (v === cur ? 'active' : '') + '"' + (dis ? ' disabled title="' + (tip || 'データがありません') + '"' : '') + '>' + l + '</button>').join('') + '</div>';
-  let h = '<div class="kw-steps"' + (kwStepsHidden ? ' hidden' : '') + '>';
-  // ① 対象
-  h += '<div class="kw-step"><div class="kw-step-lbl"><span>①</span>対象</div><div class="kw-step-body">';
-  h += '<div class="kw-lv">' + segD('kw-type', [['all', 'すべて'], ['SP', 'SP（スポンサープロダクト）'], ['SB', 'SB（スポンサーブランド）']], kwType, true) + '</div>';
-  h += '<div class="kw-lv kw-lv2"><span class="kw-branch">└ ' + (kwType === 'all' ? '種別' : typeName + ' の中') + '</span>'
-    + segD('kw-kind', [['all', 'すべて']].concat(KW_KINDS.map(k => [k, k, !hasKind(k), (kwType === 'all' ? '' : typeName + '×') + k + ' のデータはまだありません'])), kwKind) + '</div>';
-  h += '<div class="kw-lv kw-lv3"><span class="kw-branch">└ キャンペーン</span><select class="graph-select kw-sel" id="kw-camp"><option value="">すべて（' + camps.length + '件）</option>' + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwCamp ? ' selected' : '') + '>' + escapeHtml(c) + '</option>').join('') + '</select>'
-    + '<input type="search" class="graph-select kw-search" id="kw-search" placeholder="🔍 キーワード・ASIN で検索" value="' + escapeHtml(kwSearch) + '"></div>';
-  h += '</div></div>';
-  // ② 期間
-  h += '<div class="kw-step"><div class="kw-step-lbl"><span>②</span>期間</div><div class="kw-step-body"><div class="kw-lv">';
-  const dayMode = kwRange === 'day' && kwDay && !!adKwData[kwDay];
-  const curYm = dayMode ? kwDay.slice(0, 7) : kwCurMonth();
-  h += '<select class="graph-select kw-month' + (kwRange === 'month' || dayMode ? ' on' : '') + '" id="kw-month" title="年月を選ぶ（途中の月は、データのある日まで）">' + kwMonthsWithData().map(ym => '<option value="' + ym + '"' + (ym === curYm ? ' selected' : '') + '>' + kwMonthLabel(ym) + '</option>').join('') + '</select>';
-  // 日：その月のデータのある日（新しい順）。「月全体」＝月で見る
-  const daysOfMonth = all.filter(d => d.slice(0, 7) === curYm).reverse();
-  h += '<select class="graph-select kw-day' + (dayMode ? ' on' : '') + '" id="kw-day" title="1日を選ぶと、その日1日分の成績を一覧で見られます"><option value="">' + (dayMode ? '月全体に戻す' : '日を選ぶ（月全体）') + '</option>' + daysOfMonth.map(d => '<option value="' + d + '"' + (dayMode && d === kwDay ? ' selected' : '') + '>' + graphPeriodText(d).slice(5) + '</option>').join('') + '</select>';
+  // ===== v2.95：上＝期間、次＝キャンペーン＋検索（いつも使う）。広告タイプ・種別・まとめ方は「詳しい条件」に畳む =====
+  const GROUP_NAME = { kwmatch: 'キーワード×マッチ', kw: 'キーワード', camp: 'キャンペーン' };
+  const dayMode = kwRange === 'day';
+  const curDay = dayMode ? ((kwDay && adKwData[kwDay]) ? kwDay : all[all.length - 1]) : null;
+  const curYm = kwCurMonth();
+  const periodTxt = dayMode ? graphPeriodText(curDay) + '（1日）' : kwRange === 'month' ? kwMonthLabel(curYm) : (from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）');
+  // 畳んでいる条件のうち、初期（すべて／すべて／キーワード×マッチ）から変えているもの
+  const moreChanged = [];
+  if (kwType !== 'all') moreChanged.push(kwType);
+  if (kwKind !== 'all') moreChanged.push(kwKind);
+  if (kwGroup !== 'kwmatch') moreChanged.push('まとめ方：' + GROUP_NAME[kwGroup]);
+  let h = '<div class="kw-steps kw-steps2"' + (kwStepsHidden ? ' hidden' : '') + '>';
+  // 期間
+  h += '<div class="kw-row2"><div class="kw-lbl2">期間</div><div class="kw-lv">';
+  // 日別（左・既定＝最新日）：データのある日を新しい順、月ごとにまとめる
+  const dayOpts = (() => { let o = '', cur = ''; all.slice().reverse().forEach(d => { const ym = d.slice(0, 7); if (ym !== cur) { if (cur) o += '</optgroup>'; o += '<optgroup label="' + (+ym.slice(0, 4)) + '年' + (+ym.slice(5, 7)) + '月">'; cur = ym; } o += '<option value="' + d + '"' + (d === curDay ? ' selected' : '') + '>' + graphPeriodText(d).slice(5) + (d === all[all.length - 1] ? '　最新' : '') + '</option>'; }); return o + (cur ? '</optgroup>' : ''); })();
+  h += '<span class="kw-sub2">日別</span><select class="graph-select kw-day' + (dayMode ? ' on' : '') + '" id="kw-day" title="1日を選ぶと、その日1日分の成績を一覧で見られます（最初はデータの最新日）">' + (dayMode ? '' : '<option value="" selected>日を選ぶ</option>') + dayOpts + '</select>';
+  // 月別（右）
+  h += '<span class="kw-sub2">月別</span><select class="graph-select kw-month' + (kwRange === 'month' ? ' on' : '') + '" id="kw-month" title="年月を選ぶ（途中の月は、データのある日まで）">' + (kwRange === 'month' ? '' : '<option value="" selected>月を選ぶ</option>') + kwMonthsWithData().map(ym => '<option value="' + ym + '"' + (kwRange === 'month' && ym === curYm ? ' selected' : '') + '>' + kwMonthLabel(ym) + '</option>').join('') + '</select>';
   h += segD('kw-range', [['last30', '直近30日'], ['custom', '期間指定']], kwRange);
   if (kwRange === 'custom') h += '<span class="graph-range"><input type="date" class="graph-select kw-date" id="kw-from" value="' + (kwFrom || from) + '"> ～ <input type="date" class="graph-select kw-date" id="kw-to" value="' + (kwTo || to) + '"></span>';
-  const periodTxt = dayMode ? graphPeriodText(kwDay) + '（1日）' : kwRange === 'month' ? kwMonthLabel(curYm) : (from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）');
-  h += '<span class="graph-note">' + from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）　データの最終日 ' + all[all.length - 1].replace(/-/g, '/') + '</span></div></div></div>';
-  // ③ まとめ方（日別・月別の推移は行クリックのモーダルで見る）
-  const GROUP_NAME = { kwmatch: 'キーワード×マッチ', kw: 'キーワード', camp: 'キャンペーン' };
-  h += '<div class="kw-step"><div class="kw-step-lbl"><span>③</span>まとめ方<button type="button" class="kw-help" id="kw-group-help" title="まとめ方とマッチの説明" aria-label="まとめ方とマッチの説明">?</button></div><div class="kw-step-body"><div class="kw-lv">';
-  h += segD('kw-group', [['kwmatch', 'キーワード×マッチ'], ['kw', 'キーワード'], ['camp', 'キャンペーン']], kwGroup);
-  h += '<span class="graph-note">日別・月別の推移は、表の行をクリックすると開く画面で見られます</span>';
-  h += '</div></div></div>';
+  h += '<span class="graph-note">' + from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）　データの最終日 ' + all[all.length - 1].replace(/-/g, '/') + '</span></div></div>';
+  // キャンペーン＋検索＋詳しい条件ボタン
+  h += '<div class="kw-row2"><div class="kw-lbl2">キャンペーン</div><div class="kw-lv kw-lv-grow">';
+  h += '<select class="graph-select kw-sel kw-camp2" id="kw-camp"><option value="">すべて（' + camps.length + '件）</option>' + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwCamp ? ' selected' : '') + '>' + escapeHtml(c) + '</option>').join('') + '</select>';
+  h += '<input type="search" class="graph-select kw-search" id="kw-search" placeholder="🔍 キーワード・ASIN で検索" value="' + escapeHtml(kwSearch) + '">';
+  h += '<button type="button" class="kw-more-btn' + (kwMoreOpen ? ' open' : '') + (moreChanged.length ? ' changed' : '') + '" id="kw-more" title="広告タイプ・種別・まとめ方を変えるとき">'
+    + '<span class="kw-more-arw">' + (kwMoreOpen ? '▲' : '▼') + '</span> 詳しい条件' + (moreChanged.length ? '<span class="kw-more-sum">（' + escapeHtml(moreChanged.join('・')) + '）</span>' : '') + '</button>';
+  h += '</div></div>';
+  // 詳しい条件（畳める）
+  if (kwMoreOpen) {
+    h += '<div class="kw-more-box">';
+    h += '<div class="kw-row2"><div class="kw-lbl2 sub">広告タイプ</div><div class="kw-lv">' + segD('kw-type', [['all', 'すべて'], ['SP', 'SP（スポンサープロダクト）'], ['SB', 'SB（スポンサーブランド）']], kwType) + '</div></div>';
+    h += '<div class="kw-row2"><div class="kw-lbl2 sub">種別</div><div class="kw-lv">' + segD('kw-kind', [['all', 'すべて']].concat(KW_KINDS.map(k => [k, k, !hasKind(k), (kwType === 'all' ? '' : typeName + '×') + k + ' のデータはまだありません'])), kwKind) + '</div></div>';
+    h += '<div class="kw-row2"><div class="kw-lbl2 sub">まとめ方<button type="button" class="kw-help" id="kw-group-help" title="まとめ方とマッチの説明" aria-label="まとめ方とマッチの説明">?</button></div><div class="kw-lv">' + segD('kw-group', [['kwmatch', 'キーワード×マッチ'], ['kw', 'キーワード'], ['camp', 'キャンペーン']], kwGroup)
+      + '<span class="graph-note">日別・月別の推移は、表の行をクリックすると開く画面で見られます</span>'
+      + (moreChanged.length ? '<button type="button" class="kw-more-reset" id="kw-more-reset" title="広告タイプ＝すべて、種別＝すべて、まとめ方＝キーワード×マッチ に戻します">初期の条件に戻す</button>' : '') + '</div></div>';
+    h += '</div>';
+  }
   h += '</div>';
   // いま見ているもの＋絞り込みを解除
   const filtered = kwType !== 'all' || kwKind !== 'all' || !!kwCamp || !!kwSearch.trim();
   h += '<div class="kw-crumb">'
-    + (filtered ? '<button type="button" class="kw-clear" id="kw-clear" title="①対象（タイプ・種別・キャンペーン・検索）をすべて「すべて」に戻します">✕ 絞り込みを解除</button>' : '')
+    + (filtered ? '<button type="button" class="kw-clear" id="kw-clear" title="キャンペーン・検索・広告タイプ・種別をすべて「すべて」に戻します">✕ 絞り込みを解除</button>' : '')
     + '<span class="kw-crumb-l">いま見ているもの</span>'
     + '<b>' + crumbType + '</b> › <b>' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + '</b> › <b>' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + '</b>'
     + (kwSearch.trim() ? '　<span class="kw-crumb-q">検索「' + escapeHtml(kwSearch.trim()) + '」</span>' : '')
@@ -6123,8 +6156,11 @@ function renderAdKwView(){
   on('#kw-camp', 'change', e => { kwCamp = e.target.value; renderAdKwView(); });
   on('#kw-showzero', 'change', e => { kwHideZero = !e.target.checked; renderAdKwView(); });
   on('#kw-group-help', 'click', openKwHelp);
-  on('#kw-month', 'change', e => { kwMonth = e.target.value; kwRange = 'month'; kwDay = null; renderAdKwView(); });
-  on('#kw-day', 'change', e => { const v = e.target.value; if (v) { kwDay = v; kwMonth = v.slice(0, 7); kwRange = 'day'; } else { kwDay = null; kwRange = 'month'; } renderAdKwView(); });
+  on('#kw-more', 'click', () => { kwMoreOpen = !kwMoreOpen; renderAdKwView(); });
+  on('#kw-more-reset', 'click', () => { kwType = 'all'; kwKind = 'all'; if (kwGroup !== 'kwmatch') { kwGroup = 'kwmatch'; } renderAdKwView(); });
+  on('#kw-month', 'change', e => { const v = e.target.value; if (!v) return; kwMonth = v; kwRange = 'month'; renderAdKwView(); });
+  // 最新日を選んだときは null（＝あとでデータを足しても最新日に付いていく）
+  on('#kw-day', 'change', e => { const v = e.target.value; if (!v) return; kwDay = (v === all[all.length - 1]) ? null : v; kwRange = 'day'; renderAdKwView(); });
   on('#kw-clear', 'click', () => { kwType = 'all'; kwKind = 'all'; kwCamp = ''; kwSearch = ''; renderAdKwView(); });
   on('#kw-search', 'input', e => {
     kwSearch = e.target.value; const pos = e.target.selectionStart;
@@ -6144,7 +6180,7 @@ function renderAdKwView(){
   kwFitTable();
 }
 window.renderAdKwView = renderAdKwView;
-// ===== まとめ方・マッチの説明（③まとめ方の「？」→モーダル）=====
+// ===== まとめ方・マッチの説明（詳しい条件の「まとめ方」の「？」→モーダル）=====
 // マッチタイプの説明は Amazon 広告の公式ページ（2026-10-07 確認）の記述をもとにまとめた
 const KW_MATCH_HELP = [
   { grp: 'キーワード', names: ['完全一致'], range: 'いちばん狭い',
@@ -6230,7 +6266,7 @@ function kwPlaceHideBtns(){
   box.hidden = !show; if (!show) return;
   const sb = document.getElementById('kw-steps-toggle');
   sb.innerHTML = '<svg class="icn"><use href="#i-chevron-' + (kwStepsHidden ? 'down' : 'up') + '"/></svg> ' + (kwStepsHidden ? 'ヘッダー2を表示' : 'ヘッダー2まで隠す');
-  sb.title = kwStepsHidden ? 'ヘッダー2（①対象・②期間・③まとめ方）を表示' : 'ヘッダー・タブと、ヘッダー2（①対象・②期間・③まとめ方）をまとめて隠して、表を広く';
+  sb.title = kwStepsHidden ? 'ヘッダー2（期間・キャンペーン・詳しい条件）を表示' : 'ヘッダー・タブと、ヘッダー2（期間・キャンペーン・詳しい条件）をまとめて隠して、表を広く';
   const row = document.querySelector('.tabs .tab-row');
   let top = 8;
   if (!document.body.classList.contains('header-hidden') && row) { const r = row.getBoundingClientRect(); top = r.top + window.scrollY + (r.height - box.firstElementChild.offsetHeight) / 2; }
