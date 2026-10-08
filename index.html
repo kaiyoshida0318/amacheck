@@ -1438,7 +1438,8 @@
   .kwm-box { background: #fff; width: 79vw; min-width: min(1100px, 96vw); max-width: 1560px; height: 96vh; max-height: 96vh; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; }
   .kwm-head { display: flex; align-items: center; gap: 18px; padding: 20px 30px; border-bottom: 1px solid var(--border); }
   .kwm-title-wrap { flex: 1; min-width: 0; }
-  .kwm-title { font-size: 21px; font-weight: 800; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kwm-titlerow { display: flex; align-items: center; gap: 14px; min-width: 0; }
+  .kwm-title { font-size: 21px; font-weight: 800; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; min-width: 0; }
   .kwm-sub { font-size: 14px; color: var(--text-tertiary); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kwm-bidnow { text-align: right; line-height: 1.25; }
   .kwm-bidnow span { display: block; font-size: 13px; color: var(--text-tertiary); }
@@ -1564,7 +1565,7 @@
   .kwsh-note a { color: var(--purple); }
   /* KW推移モーダル：上／下のワードへ */
   .kwm-nav { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
-  .kwm-navbtn { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+  .kwm-navbtn { width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
   .kwm-navbtn:hover:not(:disabled) { border-color: var(--purple); color: var(--purple); background: #faf5ff; }
   .kwm-navbtn:disabled { opacity: 0.3; cursor: default; }
   .kwm-navpos { font-size: 13px; color: var(--text-tertiary); min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; }
@@ -1772,7 +1773,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.00</span>
+    <span class="version">v3.01</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -6448,11 +6449,12 @@ function renderKwModal(){
   else if (kwGroup === 'kw') sub = Array.from(new Set(rows.map(r => r.match))).join('・') + '　｜　' + Array.from(new Set(rows.map(r => r.campaign))).length + 'キャンペーン';
   else sub = escapeHtml(first.match || '') + '　｜　' + typeBadge + escapeHtml(first.campaign || '') + (first.adGroup && first.adGroup !== first.campaign ? ' ／ ' + escapeHtml(first.adGroup) : '') + '　｜　' + escapeHtml(first.kind || '');
   const lastAgg = bidOk && lastDs ? kwmAgg(rows.filter(r => r.ds === lastDs), () => 'x').x : null;
-  let h = '<div class="kwm-head"><div class="kwm-title-wrap"><div class="kwm-title">' + escapeHtml(title || '（なし）')
+  let h = '<div class="kwm-head"><div class="kwm-title-wrap"><div class="kwm-titlerow"><div class="kwm-title">' + escapeHtml(title || '（なし）')
     + '</div>'   // v3.00：コピーボタンは廃止
+    + (() => { const i = kwRowKeys.indexOf(kwm.key), n = kwRowKeys.length; if (i < 0 || n < 2) return ''; return '<div class="kwm-nav"><button type="button" class="kwm-navbtn" id="kwm-prev" title="上のワード（↑キー）"' + (i <= 0 ? ' disabled' : '') + '>▲</button><span class="kwm-navpos">' + (i + 1) + ' / ' + n + '</span><button type="button" class="kwm-navbtn" id="kwm-next" title="下のワード（↓キー）"' + (i >= n - 1 ? ' disabled' : '') + '>▼</button></div>'; })()   // v3.01：上／下のワードへ（ワード名の右）
+    + '</div>'
     + '<div class="kwm-sub">' + sub + '</div></div>'
     + (lastAgg && lastAgg.bid != null ? '<div class="kwm-bidnow"><span>現在の入札額</span><b>¥' + Math.round(lastAgg.bid).toLocaleString() + '</b><em>' + lastDs.replace(/-/g, '/') + ' 時点</em></div>' : '')
-    + (() => { const i = kwRowKeys.indexOf(kwm.key), n = kwRowKeys.length; if (i < 0 || n < 2) return ''; return '<div class="kwm-nav"><button type="button" class="kwm-navbtn" id="kwm-prev" title="上のワード（↑キー）"' + (i <= 0 ? ' disabled' : '') + '>▲</button><span class="kwm-navpos">' + (i + 1) + ' / ' + n + '</span><button type="button" class="kwm-navbtn" id="kwm-next" title="下のワード（↓キー）"' + (i >= n - 1 ? ' disabled' : '') + '>▼</button></div>'; })()
     + '<button type="button" class="kwm-close" id="kwm-close" title="閉じる (Esc)"><svg class="icn"><use href="#i-x"/></svg></button></div>';
   h += '<div class="kwm-body' + (kwm.hideChart ? ' nochart' : '') + '">';
   h += '<div class="kwm-ctrl">' + seg('kwm-period', [['daily', '日別'], ['monthly', '月別']], kwm.period);
