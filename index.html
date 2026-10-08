@@ -1439,8 +1439,6 @@
   .kwm-head { display: flex; align-items: center; gap: 18px; padding: 20px 30px; border-bottom: 1px solid var(--border); }
   .kwm-title-wrap { flex: 1; min-width: 0; }
   .kwm-title { font-size: 21px; font-weight: 800; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
-  .kwm-copy { border: none; background: transparent; color: var(--text-tertiary); cursor: pointer; padding: 0 4px; font-size: 17px; vertical-align: -1px; }
-  .kwm-copy:hover { color: var(--purple); }
   .kwm-sub { font-size: 14px; color: var(--text-tertiary); margin-top: 3px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
   .kwm-bidnow { text-align: right; line-height: 1.25; }
   .kwm-bidnow span { display: block; font-size: 13px; color: var(--text-tertiary); }
@@ -1554,6 +1552,22 @@
   .kw-more-reset { margin-left: auto; border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .kw-more-reset:hover { background: var(--purple); color: #fff; border-color: var(--purple); }
   .kw-lbl2 .kw-help { margin-left: 6px; }
+  /* 表の見出しの小さい？（上部シェア） */
+  .kw-help.kw-qs { width: 17px; height: 17px; min-width: 17px; font-size: 11px; margin-left: 4px; top: 0; vertical-align: 1px; box-shadow: none; }
+  .kwsh-body { font-size: 14px; line-height: 1.8; color: var(--text-secondary); }
+  .kwsh-body p { margin: 0 0 8px; } .kwsh-body b { color: var(--black); }
+  .kwsh-formula { background: #faf5ff; border: 1px solid #ede9fe; border-radius: 8px; padding: 8px 14px; font-weight: 700; color: var(--purple); margin: 4px 0 6px; text-align: center; }
+  .kwsh-ex { font-size: 13px; color: var(--text-tertiary); }
+  .kwsh-h { font-weight: 800; color: var(--black); margin-top: 10px; }
+  .kwsh-body ul { margin: 4px 0 10px; padding-left: 20px; }
+  .kwsh-note { font-size: 12px; color: var(--text-tertiary); border-top: 1px solid var(--border); padding-top: 8px; margin-top: 6px !important; }
+  .kwsh-note a { color: var(--purple); }
+  /* KW推移モーダル：上／下のワードへ */
+  .kwm-nav { display: inline-flex; align-items: center; gap: 6px; flex-shrink: 0; }
+  .kwm-navbtn { width: 40px; height: 40px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
+  .kwm-navbtn:hover:not(:disabled) { border-color: var(--purple); color: var(--purple); background: #faf5ff; }
+  .kwm-navbtn:disabled { opacity: 0.3; cursor: default; }
+  .kwm-navpos { font-size: 13px; color: var(--text-tertiary); min-width: 52px; text-align: center; font-variant-numeric: tabular-nums; }
   .kw-sub2 { font-size: 12.5px; font-weight: 700; color: var(--text-secondary); margin-left: 4px; }
   .kw-sub2:first-child { margin-left: 0; }
   select.kw-day { min-width: 170px; }
@@ -1758,7 +1772,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v2.98</span>
+    <span class="version">v3.00</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2418,6 +2432,27 @@
 <div class="toast" id="toast"></div>
 <!-- KW推移モーダル（広告データ-個別）。表示倍率（.container の zoom）の外に置く -->
 <div class="kwm-bg" id="kwm-modal" hidden><div class="kwm-box" id="kwm-box"></div></div>
+<!-- 上部シェアの説明（一覧・KW推移モーダルの「上部シェア ?」）。KW推移モーダルより手前に出す -->
+<div class="modal-bg" id="kw-share-help" hidden style="z-index:9400;">
+  <div class="modal adg-modal" style="max-width:600px;">
+    <div class="adg-head">
+      <div><h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-info"/></svg> 上部シェアとは</h3>
+        <div class="sub" style="margin-bottom:0;">正式名：検索結果上部のインプレッションシェア</div></div>
+      <button class="icon-btn" id="close-share-help" title="閉じる" aria-label="閉じる"><svg class="icn"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="kwsh-body">
+      <p>検索結果1ページ目の<b>いちばん上の広告枠</b>に、自分の広告が出られた<b>割合</b>です。</p>
+      <div class="kwsh-formula">上部に出た回数 ÷ 上部に出られる可能性があった回数</div>
+      <p class="kwsh-ex">例）20%＝上部に出るチャンス100回のうち20回。残り80回は他社の広告など。</p>
+      <div class="kwsh-h">見方の目安</div>
+      <ul>
+        <li>低いのに ROAS が良い → 入札を上げると、上部に出る回数を増やせる余地あり</li>
+        <li>高いのに ROAS が悪い → 上部に出るために高く払っている可能性あり</li>
+      </ul>
+      <p class="kwsh-note">この表の値は、期間中の毎日の値を表示回数で重み付けした平均です。<br>出典：<a href="https://advertising.amazon.com/resources/whats-new/top-of-search-impression-share-metric" target="_blank" rel="noopener">Amazon Ads 公式</a></p>
+    </div>
+  </div>
+</div>
 <!-- 広告データ-個別：まとめ方・マッチの説明（openKwHelp） -->
 <div class="modal-bg" id="kw-help-modal" hidden>
   <div class="modal adg-modal" style="max-width:920px;">
@@ -2936,7 +2971,16 @@ function init(){
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('ret-add-modal').hidden) closeRetAddModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('cat-modal').hidden) closeCatModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('export-modal').hidden) closeExportModal(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('kwm-modal').hidden) closeKwModal(); });
+  document.addEventListener('keydown', (e) => {
+    const sh = document.getElementById('kw-share-help');
+    if (!sh.hidden) { if (e.key === 'Escape') closeShareHelp(); return; }   // 説明が開いているときはそちらだけ閉じる
+    if (document.getElementById('kwm-modal').hidden) return;
+    if (e.key === 'Escape') { closeKwModal(); return; }
+    const tag = (document.activeElement && document.activeElement.tagName) || '';
+    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && tag !== 'SELECT' && tag !== 'INPUT') { e.preventDefault(); kwmGo(e.key === 'ArrowUp' ? -1 : 1); }
+  });
+  document.getElementById('close-share-help').addEventListener('click', closeShareHelp);
+  document.getElementById('kw-share-help').addEventListener('click', e => { if (e.target.id === 'kw-share-help') closeShareHelp(); });
   document.getElementById('kwm-modal').addEventListener('click', (e) => { if (e.target.id === 'kwm-modal') closeKwModal(); });
   // 全体収支 月末データ取込モーダル
   document.getElementById('pl-imp-close').addEventListener('click', closePlImport);
@@ -5897,7 +5941,8 @@ let kwHideZero = true;            // 費用0を隠す
 let kwGroup = 'kwmatch';          // 'kwmatch' | 'kw' | 'camp'
 let kwSortKey = 'cost', kwSortDir = 'desc';
 let kwStepsHidden = false;
-let kwMoreOpen = false;           // 「詳しい条件」（広告タイプ・種別・まとめ方）を開いているか（v2.95）        // ①〜③（選択肢）を隠しているか
+let kwMoreOpen = false;
+let kwRowKeys = [];               // 表に出ている行の key（上から順）。モーダルの前後移動に使う（v2.99）           // 「詳しい条件」（広告タイプ・種別・まとめ方）を開いているか（v2.95）        // ①〜③（選択肢）を隠しているか
 let kwStepsPrevHeader = false;    // 「選択肢まで隠す」を押す前にヘッダーを隠していたか（表示に戻すとき元に戻す）
 function kwMonthList(from, to){ const a = []; for (let ym = from.slice(0, 7), n = 0; ym <= to.slice(0, 7) && n < 240; ym = gYmAdd(ym, 1), n++) a.push(ym); return a; }
 // クリップボードへコピー（非対応環境は execCommand で代用）
@@ -6126,9 +6171,10 @@ function renderAdKwView(){
   {
     const th = (k, l) => '<th class="sortable num' + (kwSortKey === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwSortKey === k ? (kwSortDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
     h += '<table class="kw-table"><thead><tr><th class="sortable kw-jh' + (kwSortKey === 'roas' ? '' : '') + '" data-k="roas">判定</th>' + labelHead()
-      + (kwGroup === 'kwmatch' ? th('bid', '入札額') : '') + th('imp', '表示') + th('clicks', 'クリック') + th('ctr', 'CTR') + th('cpc', 'CPC') + th('cost', '広告費') + th('orders', '注文') + th('sales', '売上') + th('cvr', 'CVR') + th('roas', 'ROAS') + th('acos', 'ACOS') + th('share', '上部シェア')
+      + (kwGroup === 'kwmatch' ? th('bid', '入札額') : '') + th('imp', '表示') + th('clicks', 'クリック') + th('ctr', 'CTR') + th('cpc', 'CPC') + th('cost', '広告費') + th('orders', '注文') + th('sales', '売上') + th('cvr', 'CVR') + th('roas', 'ROAS') + th('acos', 'ACOS') + th('share', '上部シェア' + '<button type="button" class="kw-help kw-qs" data-help="share" title="上部シェアとは？" aria-label="上部シェアとは？">?</button>')
       + '</tr></thead><tbody>';
     const nCols = (kwGroup === 'camp' ? 3 : 4) + (kwGroup === 'kwmatch' ? 1 : 0) + 11;
+    kwRowKeys = groups.map(g => g.key);   // KW推移モーダルの「上のワード／下のワード」用（表の並び順）
     groups.forEach(gp => {
       h += '<tr class="kw-row' + ' j-' + (gp.judge || 'none') + '" data-key="' + escapeHtml(gp.key) + '">' + '<td class="kw-jc">' + kwJudge(gp.judge) + '</td>' + labelCells(gp)
         + (kwGroup === 'kwmatch' ? '<td class="num">' + kwYen(gp.bid) + '</td>' : '')
@@ -6156,6 +6202,7 @@ function renderAdKwView(){
   on('#kw-camp', 'change', e => { kwCamp = e.target.value; renderAdKwView(); });
   on('#kw-showzero', 'change', e => { kwHideZero = !e.target.checked; renderAdKwView(); });
   on('#kw-group-help', 'click', openKwHelp);
+  body.querySelectorAll('.kw-qs').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openShareHelp(); }));
   on('#kw-more', 'click', () => { kwMoreOpen = !kwMoreOpen; renderAdKwView(); });
   on('#kw-more-reset', 'click', () => { kwType = 'all'; kwKind = 'all'; if (kwGroup !== 'kwmatch') { kwGroup = 'kwmatch'; } renderAdKwView(); });
   on('#kw-month', 'change', e => { const v = e.target.value; if (!v) return; kwMonth = v; kwRange = 'month'; renderAdKwView(); });
@@ -6341,6 +6388,16 @@ function openKwModal(key){
   document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden';   // 開いている間はページのスクロールを止める
   renderKwModal();
 }
+// 表の上／下のワードへ（期間・指標・グラフの表示などはそのまま）
+function kwmGo(d){
+  const i = kwRowKeys.indexOf(kwm.key), j = i + d;
+  if (i < 0 || j < 0 || j >= kwRowKeys.length) return;
+  kwm.key = kwRowKeys[j];
+  renderKwModal();
+}
+// 上部シェアの説明
+function openShareHelp(){ document.getElementById('kw-share-help').hidden = false; }
+function closeShareHelp(){ document.getElementById('kw-share-help').hidden = true; }
 function closeKwModal(){
   if (_kwmChart) { _kwmChart.destroy(); _kwmChart = null; }
   document.getElementById('kwm-modal').hidden = true;
@@ -6392,9 +6449,10 @@ function renderKwModal(){
   else sub = escapeHtml(first.match || '') + '　｜　' + typeBadge + escapeHtml(first.campaign || '') + (first.adGroup && first.adGroup !== first.campaign ? ' ／ ' + escapeHtml(first.adGroup) : '') + '　｜　' + escapeHtml(first.kind || '');
   const lastAgg = bidOk && lastDs ? kwmAgg(rows.filter(r => r.ds === lastDs), () => 'x').x : null;
   let h = '<div class="kwm-head"><div class="kwm-title-wrap"><div class="kwm-title">' + escapeHtml(title || '（なし）')
-    + ' <button type="button" class="kwm-copy" data-copy="' + escapeHtml(title) + '" title="コピー"><svg class="icn"><use href="#i-copy"/></svg></button></div>'
+    + '</div>'   // v3.00：コピーボタンは廃止
     + '<div class="kwm-sub">' + sub + '</div></div>'
     + (lastAgg && lastAgg.bid != null ? '<div class="kwm-bidnow"><span>現在の入札額</span><b>¥' + Math.round(lastAgg.bid).toLocaleString() + '</b><em>' + lastDs.replace(/-/g, '/') + ' 時点</em></div>' : '')
+    + (() => { const i = kwRowKeys.indexOf(kwm.key), n = kwRowKeys.length; if (i < 0 || n < 2) return ''; return '<div class="kwm-nav"><button type="button" class="kwm-navbtn" id="kwm-prev" title="上のワード（↑キー）"' + (i <= 0 ? ' disabled' : '') + '>▲</button><span class="kwm-navpos">' + (i + 1) + ' / ' + n + '</span><button type="button" class="kwm-navbtn" id="kwm-next" title="下のワード（↓キー）"' + (i >= n - 1 ? ' disabled' : '') + '>▼</button></div>'; })()
     + '<button type="button" class="kwm-close" id="kwm-close" title="閉じる (Esc)"><svg class="icn"><use href="#i-x"/></svg></button></div>';
   h += '<div class="kwm-body' + (kwm.hideChart ? ' nochart' : '') + '">';
   h += '<div class="kwm-ctrl">' + seg('kwm-period', [['daily', '日別'], ['monthly', '月別']], kwm.period);
@@ -6451,7 +6509,7 @@ function renderKwModal(){
   const saleTip = (f, t) => salesIn(f, t).map(sr => ((sr.label && String(sr.label).trim()) || 'セール') + '（' + sr.start.replace(/-/g, '/') + '〜' + sr.end.replace(/-/g, '/') + '）').join(' / ');
   const saleAttr = (f, t) => { const tp = saleTip(f, t); return tp ? ' kwm-salecell" title="セール：' + escapeHtml(tp) : ''; };
   const monthEnd = ym => ym + '-' + String(daysInMonth(ym)).padStart(2, '0');
-  h += '<div class="kwm-tblwrap"><table class="kwm-tbl"><thead><tr><th>' + (isDaily ? '日付' : '月') + '</th>' + (kwm.tblYoy && !isDaily ? '<th></th>' : '') + COLS.map(([k, l]) => '<th class="num' + (hot.has(k) ? ' hot' : '') + '">' + l + '</th>').join('') + '</tr></thead><tbody>';   // v2.90：メモ列は削除（入札変更は行の紫枠、セールはグラフで見る）
+  h += '<div class="kwm-tblwrap"><table class="kwm-tbl"><thead><tr><th>' + (isDaily ? '日付' : '月') + '</th>' + (kwm.tblYoy && !isDaily ? '<th></th>' : '') + COLS.map(([k, l]) => '<th class="num' + (hot.has(k) ? ' hot' : '') + '">' + l + (k === 'share' ? '<button type="button" class="kw-help kw-qs" data-help="share" title="上部シェアとは？" aria-label="上部シェアとは？">?</button>' : '') + '</th>').join('') + '</tr></thead><tbody>';   // v2.90：メモ列は削除（入札変更は行の紫枠、セールはグラフで見る）
   if (!isDaily && kwm.tblYoy) {
     const lastM = labels[labels.length - 1];
     if (lastM) for (let back = 0; back < 12; back++) {
@@ -6484,7 +6542,9 @@ function renderKwModal(){
   on('#kwm-metric', 'change', e => { kwm.metric = e.target.value; kwm.hiddenYears = new Set(); renderKwModal(); });
   on('#kwm-hide', 'click', () => { kwm.hideChart = !kwm.hideChart; renderKwModal(); });
   on('#kwm-close', 'click', closeKwModal);
-  on('.kwm-copy', 'click', e => { const b = e.currentTarget; kwCopyText(b.dataset.copy, '「' + b.dataset.copy + '」をコピーしました'); });
+  on('#kwm-prev', 'click', () => kwmGo(-1));
+  on('#kwm-next', 'click', () => kwmGo(1));
+  box.querySelectorAll('.kw-qs').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openShareHelp(); }));
   box.querySelectorAll('.kwm-tg').forEach(b => b.addEventListener('click', () => { const k = b.dataset.s; if (kwm.hiddenSeries.has(k)) kwm.hiddenSeries.delete(k); else kwm.hiddenSeries.add(k); renderKwModal(); }));
   box.querySelectorAll('.kwm-yr').forEach(b => b.addEventListener('click', () => { const y = +b.dataset.y; if (kwm.hiddenYears.has(y)) kwm.hiddenYears.delete(y); else kwm.hiddenYears.add(y); renderKwModal(); }));
 
