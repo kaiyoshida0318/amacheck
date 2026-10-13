@@ -1806,7 +1806,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.10</span>
+    <span class="version">v3.12</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -6169,6 +6169,26 @@ let kwGroup = 'kwmatch';          // 'kwmatch' | 'kw' | 'camp'
 let kwSortKey = 'cost', kwSortDir = 'desc';
 let kwStepsHidden = false;
 let kwMoreOpen = false;
+let kwShowPaused = false;
+let kwCampAllow = null;            // v3.11：「すべて」のとき表に入れるキャンペーン（null＝絞らない）          // v3.11：キャンペーン一覧に停止中のキャンペーンも出す（既定は有効だけ）
+// v3.11：いま有効なキャンペーン名の集合。①のキャンペーン別データ（adCampData）の最新日の「状態」で決める
+//   状態の列が無い日は、その日に動き（費用・クリック・表示）があったキャンペーンを有効とみなす。データが無ければ null（絞らない）
+function kwActiveCampSet(){
+  const ds = Object.keys(adCampData || {}).sort();
+  for (let i = ds.length - 1; i >= 0; i--) {
+    const list = adCampData[ds[i]]; if (!Array.isArray(list) || !list.length) continue;
+    const hasState = list.some(c => c && c.state);
+    const set = new Set();
+    list.forEach(c => {
+      if (!c || !c.name) return;
+      const st = String(c.state || '').trim();
+      const act = hasState ? (st === '有効' || st === '配信中' || /ENABLED/i.test(st)) : ((+c.cost || 0) + (+c.clicks || 0) + (+c.impressions || 0) > 0);
+      if (act) set.add(String(c.name).trim());
+    });
+    return { set, date: ds[i] };
+  }
+  return null;
+}
 let kwRowKeys = [];               // 表に出ている行の key（上から順）。モーダルの前後移動に使う（v2.99）           // 「詳しい条件」（広告タイプ・種別・まとめ方）を開いているか（v2.95）        // ①〜③（選択肢）を隠しているか
 let kwStepsPrevHeader = false;    // 「選択肢まで隠す」を押す前にヘッダーを隠していたか（表示に戻すとき元に戻す）
 function kwMonthList(from, to){ const a = []; for (let ym = from.slice(0, 7), n = 0; ym <= to.slice(0, 7) && n < 240; ym = gYmAdd(ym, 1), n++) a.push(ym); return a; }
@@ -6217,6 +6237,7 @@ function kwRows(from, to){
     (adKwData[ds] || []).forEach(r => {
       if (kwType !== 'all' && String(r.type).toUpperCase() !== kwType) return;
       if (kwCamp && r.campaign !== kwCamp) return;
+      if (!kwCamp && kwCampAllow && !kwCampAllow.has(r.campaign)) return;
       if (kwKind !== 'all' && r.kind !== kwKind) return;
       if (q && (String(r.target) + ' ' + String(r.campaign) + ' ' + String(r.adGroup)).toLowerCase().indexOf(q) < 0) return;
       out.push(Object.assign({ ds }, r));
@@ -6283,8 +6304,14 @@ function renderAdKwView(){
   const KW_KINDS = ['キーワード', '商品'];
   allRows.forEach(r => { if (r.kind && KW_KINDS.indexOf(r.kind) < 0) KW_KINDS.push(r.kind); });
   const hasKind = k => allRows.some(r => (kwType === 'all' || typeOf(r) === kwType) && r.kind === k);
-  const camps = Array.from(new Set(allRows.filter(r => (kwType === 'all' || typeOf(r) === kwType) && (kwKind === 'all' || r.kind === kwKind)).map(r => r.campaign))).filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'));
+  const campsAll = Array.from(new Set(allRows.filter(r => (kwType === 'all' || typeOf(r) === kwType) && (kwKind === 'all' || r.kind === kwKind)).map(r => r.campaign))).filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'));
+  // v3.11：既定は有効なキャンペーンだけ（停止中は「詳しい条件」で出せる）。名前が1つも合わない時は絞らない
+  const act = kwActiveCampSet();
+  const campsAct = act ? campsAll.filter(c => act.set.has(String(c).trim())) : campsAll;
+  const nPaused = (act && campsAct.length) ? campsAll.length - campsAct.length : 0;
+  const camps = (kwShowPaused || !nPaused) ? campsAll : campsAct;
   if (kwCamp && camps.indexOf(kwCamp) < 0) kwCamp = '';
+  kwCampAllow = (kwShowPaused || !nPaused) ? null : new Set(campsAct);
   const [from, to] = kwPeriod();
   const days = kwDayList(from, to);
   const rows = kwRows(from, to);
@@ -6311,6 +6338,7 @@ function renderAdKwView(){
   if (kwType !== 'all') moreChanged.push(kwType);
   if (kwKind !== 'all') moreChanged.push(kwKind);
   if (kwGroup !== 'kwmatch') moreChanged.push('まとめ方：' + GROUP_NAME[kwGroup]);
+  if (kwShowPaused && nPaused) moreChanged.push('停止中も表示');
   let h = '<div class="kw-steps kw-steps2"' + (kwStepsHidden ? ' hidden' : '') + '>';
   // 期間
   h += '<div class="kw-row2"><div class="kw-lbl2">期間</div><div class="kw-lv">';
@@ -6324,7 +6352,7 @@ function renderAdKwView(){
   h += '<span class="graph-note">' + from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）　データの最終日 ' + all[all.length - 1].replace(/-/g, '/') + '</span></div></div>';
   // キャンペーン＋検索＋詳しい条件ボタン
   h += '<div class="kw-row2"><div class="kw-lbl2">キャンペーン</div><div class="kw-lv kw-lv-grow">';
-  h += '<select class="graph-select kw-sel kw-camp2" id="kw-camp"><option value="">すべて（' + camps.length + '件）</option>' + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwCamp ? ' selected' : '') + '>' + escapeHtml(c) + '</option>').join('') + '</select>';
+  h += '<select class="graph-select kw-sel kw-camp2" id="kw-camp"><option value="">すべて（' + camps.length + '件）</option>' + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwCamp ? ' selected' : '') + '>' + escapeHtml(c) + ((kwShowPaused && act && !act.set.has(String(c).trim())) ? '（停止中）' : '') + '</option>').join('') + '</select>';
   h += '<input type="search" class="graph-select kw-search" id="kw-search" placeholder="🔍 キーワード・ASIN で検索" value="' + escapeHtml(kwSearch) + '">';
   h += '<button type="button" class="kw-more-btn' + (kwMoreOpen ? ' open' : '') + (moreChanged.length ? ' changed' : '') + '" id="kw-more" title="広告タイプ・種別・まとめ方を変えるとき">'
     + '<span class="kw-more-arw">' + (kwMoreOpen ? '▲' : '▼') + '</span> 詳しい条件' + (moreChanged.length ? '<span class="kw-more-sum">（' + escapeHtml(moreChanged.join('・')) + '）</span>' : '') + '</button>';
@@ -6334,6 +6362,7 @@ function renderAdKwView(){
     h += '<div class="kw-more-box">';
     h += '<div class="kw-row2"><div class="kw-lbl2 sub">広告タイプ</div><div class="kw-lv">' + segD('kw-type', [['all', 'すべて'], ['SP', 'SP（スポンサープロダクト）'], ['SB', 'SB（スポンサーブランド）']], kwType) + '</div></div>';
     h += '<div class="kw-row2"><div class="kw-lbl2 sub">種別</div><div class="kw-lv">' + segD('kw-kind', [['all', 'すべて']].concat(KW_KINDS.map(k => [k, k, !hasKind(k), (kwType === 'all' ? '' : typeName + '×') + k + ' のデータはまだありません'])), kwKind) + '</div></div>';
+    if (nPaused) h += '<div class="kw-row2"><div class="kw-lbl2 sub">キャンペーン</div><div class="kw-lv">' + segD('kw-paused', [['0', '有効なものだけ'], ['1', '停止中も出す（' + nPaused + '件）']], kwShowPaused ? '1' : '0') + '<span class="graph-note">有効・停止中は ①広告データの最新日（' + act.date.replace(/-/g, '/') + '）の状態で判定</span></div></div>';
     h += '<div class="kw-row2"><div class="kw-lbl2 sub">まとめ方<button type="button" class="kw-help" id="kw-group-help" title="まとめ方とマッチの説明" aria-label="まとめ方とマッチの説明">?</button></div><div class="kw-lv">' + segD('kw-group', [['kwmatch', 'キーワード×マッチ'], ['kw', 'キーワード'], ['camp', 'キャンペーン']], kwGroup)
       + '<span class="graph-note">日別・月別の推移は、表の行をクリックすると開く画面で見られます</span>'
       + (moreChanged.length ? '<button type="button" class="kw-more-reset" id="kw-more-reset" title="広告タイプ＝すべて、種別＝すべて、まとめ方＝キーワード×マッチ に戻します">初期の条件に戻す</button>' : '') + '</div></div>';
@@ -6433,7 +6462,8 @@ function renderAdKwView(){
   on('#kw-group-help', 'click', openKwHelp);
   body.querySelectorAll('.kw-qs').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openShareHelp(); }));
   on('#kw-more', 'click', () => { kwMoreOpen = !kwMoreOpen; renderAdKwView(); });
-  on('#kw-more-reset', 'click', () => { kwType = 'all'; kwKind = 'all'; if (kwGroup !== 'kwmatch') { kwGroup = 'kwmatch'; } renderAdKwView(); });
+  document.querySelectorAll('#kw-paused button').forEach(b => b.addEventListener('click', () => { kwShowPaused = b.dataset.v === '1'; renderAdKwView(); }));
+  on('#kw-more-reset', 'click', () => { kwShowPaused = false; kwType = 'all'; kwKind = 'all'; if (kwGroup !== 'kwmatch') { kwGroup = 'kwmatch'; } renderAdKwView(); });
   on('#kw-month', 'change', e => { const v = e.target.value; if (!v) return; kwMonth = v; kwRange = 'month'; renderAdKwView(); });
   // 最新日を選んだときは null（＝あとでデータを足しても最新日に付いていく）
   on('#kw-day', 'change', e => { const v = e.target.value; if (!v) return; kwDay = (v === all[all.length - 1]) ? null : v; kwRange = 'day'; renderAdKwView(); });
@@ -7580,7 +7610,8 @@ function classifyCampaign(row){
     subtype = name.indexOf('動画') > -1 ? 'douga' : 'shokore';
   } else {
     const lname = name.toLowerCase();
-    if (tgt === 'AUTOMATIC' || name.indexOf('オート') > -1 || lname.indexOf('auto') > -1) subtype = 'auto';
+    const tgtRaw = String(row['ターゲティング'] || '');
+    if (/^AUTO/.test(tgt) || tgtRaw.indexOf('オート') > -1 || tgtRaw.indexOf('自動') > -1 || name.indexOf('オート') > -1 || lname.indexOf('auto') > -1) subtype = 'auto';
     else if (name.indexOf('商品') > -1) subtype = 'shohin';
     else subtype = 'kw';
   }
@@ -7610,7 +7641,7 @@ function parseAdCsv(text){
   const exact = (...names) => cols.find(c => names.indexOf(c.trim()) > -1);
   const nameCol = find('キャンペーン名') || exact('campaignName');
   const stateCol = find('状態') || exact('state');
-  const typeCol = find('タイプ') || exact('campaignType', 'programType');
+  const typeCol = cols.find(c => c.indexOf('タイプ') > -1 && c.indexOf('ターゲティング') < 0) || exact('campaignType', 'programType');   // v3.12：「ターゲティングタイプ」は広告タイプではない
   const tgtCol = find('ターゲティング') || exact('campaignTargetingType');
   const salesCol = exact('売上', 'sales') || find('売上');
   const costCol = exact('合計費用', 'spend') || find('費用');
