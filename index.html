@@ -1543,6 +1543,16 @@
   .kw-lbl2.sub { font-size: 13px; color: var(--text-secondary); }
   .kw-lv-grow { flex: 1; min-width: 0; }
   select.kw-camp2 { min-width: 320px; max-width: 520px; }
+  .kw-camp-link { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: -2px 0 6px 0; font-size: 13px; }
+  .kw-camp-link a.kw-cl-go { display: inline-flex; align-items: center; gap: 6px; color: #fff; background: #ff9900; border: 1px solid #e88b00; border-radius: 8px; padding: 5px 12px; font-weight: 700; text-decoration: none; }
+  .kw-camp-link a.kw-cl-go:hover { background: #e88b00; }
+  .kw-camp-link .kw-cl-url { color: var(--text-tertiary); font-size: 12px; max-width: 520px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kw-camp-link .kw-cl-none { color: var(--text-tertiary); }
+  .kw-camp-link button.kw-cl-edit { border: 1px solid var(--border); background: #fff; color: var(--text-secondary); border-radius: 7px; padding: 3px 10px; font-size: 12px; cursor: pointer; font-family: inherit; }
+  .kw-camp-link button.kw-cl-edit:hover { background: #f1f5f9; color: var(--black); }
+  .kw-camp-link input.kw-cl-input { flex: 1; min-width: 320px; max-width: 640px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 7px; font-size: 13px; font-family: inherit; }
+  .kw-camp-link button.kw-cl-save { border: 1px solid var(--teal); background: var(--teal); color: #fff; border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
+  .kw-camp-link button.kw-cl-save:hover { filter: brightness(0.92); background: var(--teal); }
   .kw-more-btn { margin-left: auto; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
   .kw-more-btn:hover { border-color: var(--purple); color: var(--purple); background: #fff; }
   .kw-more-btn.open { border-color: var(--purple); color: var(--purple); background: #faf5ff; }
@@ -1806,7 +1816,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.13</span>
+    <span class="version">v3.14</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2545,6 +2555,7 @@ const STORAGE_ADCLOSE = 'amacheck_adclose_v1';
 const STORAGE_PL = 'amacheck_pl_v1';
 const STORAGE_RETURNS = 'amacheck_returns_v1';
 const STORAGE_CAT = 'amacheck_categories_v1';
+const STORAGE_CAMPURL = 'amacheck_campurl_v1';   // v3.14：キャンペーン名 → 広告管理画面のURL
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
 let _lsQuotaWarned = false;
@@ -2812,8 +2823,18 @@ function saveReturns(){ return persistKey(STORAGE_RETURNS, returnsData); }
 // 商品カテゴリ： { FNSKU: 'カテゴリ名' }
 let categories = {};
 function saveCategories(){ return persistKey(STORAGE_CAT, categories); }
+// v3.14：キャンペーン名 → 広告管理画面（キャンペーンマネージャー）のURL。広告データ-個別でキャンペーンを選ぶとリンクが出る
+let campUrls = {};
+const CAMP_URL_DEFAULTS = {
+  '【SB】耐火バッグ-商品コレ-KW': 'https://advertising-japan.amazon.com/cm/sb/campaigns/A00578012DSFUZ1DX6ADX?entityId=ENTITY15N4IW58E6FGF',
+  '【SB】耐火バッグ-動画-KW': 'https://advertising-japan.amazon.com/cm/sb/campaigns/A0845429323S94OSSQHJU/ad-groups?entityId=ENTITY15N4IW58E6FGF',
+  '23-05-耐火バッグ-kw': 'https://advertising-japan.amazon.com/cm/sp/campaigns/A07766381NLEGRFQQ1NRQ?entityId=ENTITY15N4IW58E6FGF',
+  '23-05-耐火バッグ-商品': 'https://advertising-japan.amazon.com/cm/sp/campaigns/A01578201KUAR9J2CODWR?entityId=ENTITY15N4IW58E6FGF'
+};
+function saveCampUrls(){ return persistKey(STORAGE_CAMPURL, campUrls); }
+function campUrlOf(name){ const u = campUrls && campUrls[String(name || '').trim()]; return (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : ''; }
 
-const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS];
+const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL];
 
 // ==== 永続化: IndexedDB（大容量）優先。使えない時は localStorage(圧縮) にフォールバック ====
 function idbOpen(){
@@ -2843,7 +2864,7 @@ function persistKey(key, obj){
   const r = lzSet(key, obj); scheduleSync(); return r;
 }
 function amacheckStateMap(){
-  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns };
+  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls };
 }
 
 // ================= GitHub クラウド同期 =================
@@ -2962,6 +2983,8 @@ async function bootstrap(){
   plData = await load(STORAGE_PL, {});
   returnsData = await load(STORAGE_RETURNS, {});
   categories = await load(STORAGE_CAT, {});
+  campUrls = await load(STORAGE_CAMPURL, null);
+  if (!campUrls || typeof campUrls !== 'object' || Array.isArray(campUrls)) { campUrls = Object.assign({}, CAMP_URL_DEFAULTS); saveCampUrls(); }
   init();
   if (_adFix.days) setTimeout(() => toast('一時停止などのキャンペーンの広告データを ' + _adFix.days + '日分 合計に追加しました（確定済みの月は、確定を解除して確定し直すと反映されます）'), 800);
   _syncArmed = true; // 初回ロード後に自動同期を有効化（起動時の無駄アップロードを防止）
@@ -6170,6 +6193,7 @@ let kwSortKey = 'cost', kwSortDir = 'desc';
 let kwStepsHidden = false;
 let kwMoreOpen = false;
 let kwShowPaused = false;
+let kwCampUrlEdit = false;         // v3.14：キャンペーンの管理画面URLを編集中
 let kwCampAllow = null;            // v3.11：「すべて」のとき表に入れるキャンペーン（null＝絞らない）          // v3.11：キャンペーン一覧に停止中のキャンペーンも出す（既定は有効だけ）
 // v3.11：いま有効なキャンペーン名の集合。①のキャンペーン別データ（adCampData）の最新日の「状態」で決める
 //   状態の列が無い日は、その日に動き（費用・クリック・表示）があったキャンペーンを有効とみなす。データが無ければ null（絞らない）
@@ -6357,6 +6381,23 @@ function renderAdKwView(){
   h += '<button type="button" class="kw-more-btn' + (kwMoreOpen ? ' open' : '') + (moreChanged.length ? ' changed' : '') + '" id="kw-more" title="広告タイプ・種別・まとめ方を変えるとき">'
     + '<span class="kw-more-arw">' + (kwMoreOpen ? '▲' : '▼') + '</span> 詳しい条件' + (moreChanged.length ? '<span class="kw-more-sum">（' + escapeHtml(moreChanged.join('・')) + '）</span>' : '') + '</button>';
   h += '</div></div>';
+  // v3.14：選んだキャンペーンの広告管理画面へのリンク
+  if (kwCamp) {
+    const cu = campUrlOf(kwCamp);
+    h += '<div class="kw-row2"><div class="kw-lbl2"></div><div class="kw-lv kw-lv-grow"><div class="kw-camp-link">';
+    if (kwCampUrlEdit) {
+      h += '<input type="url" class="kw-cl-input" id="kw-cl-input" placeholder="https://advertising-japan.amazon.com/cm/..." value="' + escapeHtml(cu) + '">'
+        + '<button type="button" class="kw-cl-save" id="kw-cl-save">保存</button><button type="button" class="kw-cl-edit" id="kw-cl-cancel">やめる</button>'
+        + (cu ? '<button type="button" class="kw-cl-edit" id="kw-cl-del" title="このキャンペーンのURLを消す">URLを消す</button>' : '');
+    } else if (cu) {
+      h += '<a class="kw-cl-go" href="' + escapeHtml(cu) + '" target="_blank" rel="noopener" title="' + escapeHtml(cu) + '">広告管理画面でこのキャンペーンを開く ↗</a>'
+        + '<span class="kw-cl-url" title="' + escapeHtml(cu) + '">' + escapeHtml(cu) + '</span>'
+        + '<button type="button" class="kw-cl-edit" id="kw-cl-edit">URLを変更</button>';
+    } else {
+      h += '<span class="kw-cl-none">広告管理画面のURLが未登録です</span><button type="button" class="kw-cl-edit" id="kw-cl-edit">URLを登録</button>';
+    }
+    h += '</div></div></div>';
+  }
   // 詳しい条件（畳める）
   if (kwMoreOpen) {
     h += '<div class="kw-more-box">';
@@ -6456,7 +6497,19 @@ function renderAdKwView(){
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
   on('#kw-from', 'change', e => { kwFrom = e.target.value; renderAdKwView(); });
   on('#kw-to', 'change', e => { kwTo = e.target.value; renderAdKwView(); });
-  on('#kw-camp', 'change', e => { kwCamp = e.target.value; renderAdKwView(); });
+  on('#kw-camp', 'change', e => { kwCamp = e.target.value; kwCampUrlEdit = false; renderAdKwView(); });
+  on('#kw-cl-edit', 'click', () => { kwCampUrlEdit = true; renderAdKwView(); const i = document.getElementById('kw-cl-input'); if (i) { i.focus(); i.select(); } });
+  on('#kw-cl-cancel', 'click', () => { kwCampUrlEdit = false; renderAdKwView(); });
+  on('#kw-cl-del', 'click', () => { delete campUrls[String(kwCamp).trim()]; saveCampUrls(); kwCampUrlEdit = false; renderAdKwView(); toast('URLを消しました'); });
+  const clSave = () => {
+    const i = document.getElementById('kw-cl-input'); if (!i) return;
+    const v = i.value.trim();
+    if (v && !/^https:\/\/[^\s]+$/i.test(v)) { toast('https:// で始まるURLを入れてください'); return; }
+    if (v) campUrls[String(kwCamp).trim()] = v; else delete campUrls[String(kwCamp).trim()];
+    saveCampUrls(); kwCampUrlEdit = false; renderAdKwView(); toast(v ? 'URLを保存しました' : 'URLを消しました');
+  };
+  on('#kw-cl-save', 'click', clSave);
+  on('#kw-cl-input', 'keydown', e => { if (e.key === 'Enter') clSave(); if (e.key === 'Escape') { kwCampUrlEdit = false; renderAdKwView(); } });
   on('#kw-check-open', 'click', openKwCheck);
   on('#kw-showzero', 'change', e => { kwHideZero = !e.target.checked; renderAdKwView(); });
   on('#kw-group-help', 'click', openKwHelp);
@@ -6467,7 +6520,7 @@ function renderAdKwView(){
   on('#kw-month', 'change', e => { const v = e.target.value; if (!v) return; kwMonth = v; kwRange = 'month'; renderAdKwView(); });
   // 最新日を選んだときは null（＝あとでデータを足しても最新日に付いていく）
   on('#kw-day', 'change', e => { const v = e.target.value; if (!v) return; kwDay = (v === all[all.length - 1]) ? null : v; kwRange = 'day'; renderAdKwView(); });
-  on('#kw-clear', 'click', () => { kwType = 'all'; kwKind = 'all'; kwCamp = ''; kwSearch = ''; renderAdKwView(); });
+  on('#kw-clear', 'click', () => { kwCampUrlEdit = false; kwType = 'all'; kwKind = 'all'; kwCamp = ''; kwSearch = ''; renderAdKwView(); });
   on('#kw-search', 'input', e => {
     kwSearch = e.target.value; const pos = e.target.selectionStart;
     clearTimeout(window._kwSearchT); window._kwSearchT = setTimeout(() => { renderAdKwView(); const s = document.getElementById('kw-search'); if (s) { s.focus(); try { s.setSelectionRange(pos, pos); } catch (er) {} } }, 250);
