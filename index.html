@@ -755,7 +755,7 @@
   .gt-sort:hover { background: var(--bg-secondary); border-color: var(--blue); color: var(--blue); }
   .graph-table th:first-child, .graph-table td:first-child { text-align: left; }
   .graph-table .yr-sub { text-align: left; color: var(--text-tertiary); font-weight: 600; }
-  .graph-table thead th { background: var(--bg-secondary); font-weight: 700; position: sticky; top: 0; font-size: 15px; }
+  .graph-table thead th { background: var(--bg-secondary); font-weight: 700; position: sticky; top: 0; z-index: 2; font-size: 15px; }
   .graph-table tbody tr:nth-child(even) { background: rgba(37,99,235,0.03); }
   .graph-table tbody tr.grp-recent { background: rgba(37,99,235,0.08); }
   .graph-table tbody tr.grp-recent-end td { border-bottom: 2px solid var(--blue); }
@@ -1825,7 +1825,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.25</span>
+    <span class="version">v3.26</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -11179,7 +11179,7 @@ function renderGraphView(){
   // 表の切り替え
   const yoy = !daily && graphTableMode === 'yoy';
   h += '<div class="graph-toolbar" style="margin-top:' + (graphHideChart ? 6 : 18) + 'px;">';
-  h += '<button type="button" class="graph-hide-btn" id="graph-hide">' + (graphHideChart ? 'グラフを表示' : 'グラフを隠す') + '</button>';   // v3.18：グラフの下・表の上
+  // v3.26：「グラフを隠す」は廃止（下へスクロールすると表の列名が画面の上で止まる）
   if (!daily) h += seg('graph-tmode', 'blue', [['normal', '通常'], ['yoy', '前年同月比']], yoy ? 'yoy' : 'normal');
   if (!yoy) {
     h += '<div style="flex:1"></div>';
@@ -11188,7 +11188,7 @@ function renderGraphView(){
       : seg('graph-group', 'blue', [['recent1y', '直近12か月'], ['fiscal', '年度区切り'], ['calendar', '年区切り'], ['none', 'なし']], graphTableGroup);
   }
   h += '</div>';
-  h += '<div style="overflow:auto;max-height:' + (graphHideChart ? 'calc(78vh / var(--pz, 1))' : '520px') + ';">' + buildGraphTable(model) + '</div>';
+  h += '<div class="graph-tblwrap">' + buildGraphTable(model) + '</div>';   // v3.26：表の中でスクロールせず、ページごとスクロール
 
   body.innerHTML = h;
 
@@ -11208,7 +11208,6 @@ function renderGraphView(){
   on('#graph-dfrom', 'change', e => { if (!e.target.value) return; graphDateFrom = e.target.value; graphDayPreset = null; graphQuickActive = null; renderGraphView(); });
   on('#graph-dto', 'change', e => { if (!e.target.value) return; graphDateTo = e.target.value; graphQuickActive = null; graphApplyDayPreset(); renderGraphView(); });   // to を変えたらプリセットを再適用
   on('#graph-sale', 'click', () => { graphShowSale = !graphShowSale; renderGraphView(); });
-  on('#graph-hide', 'click', () => { graphHideChart = !graphHideChart; renderGraphView(); });
   on('#graph-ad-guide', 'click', () => { document.getElementById('ad-guide-modal').hidden = false; });
   body.querySelectorAll('#graph-items button').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.k;
