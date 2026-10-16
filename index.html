@@ -1825,7 +1825,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.20</span>
+    <span class="version">v3.21</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -9230,6 +9230,10 @@ const GRAPH_CATEGORIES = {
     { key: 'profitActual', label: '実質利益', color: '#15803d' },
     { key: 'adCostActual', label: '広告費', color: '#dc2626' },
   ] },
+  salesShare: { label: '売上-割合(SEO/広告)', yen: false, pct: true, fixed100: true, items: [   // v3.21：総売上のうち SEO と 広告 の割合
+    { key: 'seoShare', label: 'SEO売上 割合', color: '#9333ea' },
+    { key: 'adSalesShare', label: '広告売上 割合', color: '#ea580c' },
+  ] },
   adcost: { label: '広告費', yen: true, items: [
     { key: 'adcActualTotal',    label: '合計',              color: '#dc2626' },
     { key: 'adcActualSp',       label: 'SP広告',            color: '#2563eb' },
@@ -9288,6 +9292,7 @@ function graphAllItems(){
   if (graphCategory === 'roas') return GRAPH_CATEGORIES.roas.items;
   if (graphCategory === 'cvr') return GRAPH_CATEGORIES.cvr.items;
   if (graphCategory === 'adcost') return GRAPH_CATEGORIES.adcost.items;
+  if (graphCategory === 'salesShare') return GRAPH_CATEGORIES.salesShare.items;
   if (graphCategory === 'adshareSpSb') return GRAPH_CATEGORIES.adshareSpSb.items;
   if (graphCategory === 'adshareSpKwSh') return GRAPH_CATEGORIES.adshareSpKwSh.items;
   if (graphCategory === 'adshareSbDgSk') return GRAPH_CATEGORIES.adshareSbDgSk.items;
@@ -9412,6 +9417,7 @@ function graphMonthMetrics(ym){
   const adcActualSb = _bt ? (_bt.sb.douga.cost + _bt.sb.shokore.cost) : null;
   const r = { total, seo, adSales, jisseki, grossProfit, roas, totalQty, adQty, seoQty, fbaFee, storage,
     salesActual: aSales, adCostActual: aAdCost, adSalesActual: aAdSales, seoActual: aSeo, grossActual: aGross, profitActual: aProfit, roasActual: aRoas,
+    seoShare: (aSales > 0 && aSeo != null) ? aSeo / aSales * 100 : null, adSalesShare: (aSales > 0 && aAdSales != null) ? aAdSales / aSales * 100 : null,   // v3.21：総売上に対する割合
     roasActualSpKw, roasActualSpShohin, roasActualSbDouga, roasActualSbShokore,
     adcActualTotal, adcActualSp, adcActualSb, adcActualSpKw, adcActualSpShohin, adcActualSbDouga, adcActualSbShokore,
     adcSpTotal, adcSpKw: cSpKw, adcSpShohin: cSpShohin, adcSbTotal, adcSbDouga: cSbDouga, adcSbShokore: cSbShokore,
@@ -10783,6 +10789,7 @@ function graphDerive(z, sales, qty, cogs){
   return {
     salesActual: sales, adSalesActual: adSales, adCostActual: adCost,
     seoActual: Math.max(0, sales - adSales),          // ★差分（総売上−広告売上）は負にしない
+    seoShare: sales > 0 ? Math.max(0, sales - adSales) / sales * 100 : null, adSalesShare: sales > 0 ? Math.min(adSales, sales) / sales * 100 : null,   // v3.21（推計の総売上より広告売上が多い日は 広告100%）
     grossActual: sales - cogs, profitActual: null, storage: null, fbaFee: null,
     roasActual: div(adSales, adCost),
     roasActualSpKw: div(s.sp.kw, c.sp.kw), roasActualSpShohin: div(s.sp.shohin, c.sp.shohin),
@@ -11045,7 +11052,7 @@ function graphSaleOverlay(keys, xOf, n, padT, plotH, W){
 // ---- 画面 ----
 function renderGraphView(){
   graphResetCache();
-  const catKeys = ['sales', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'cvr', 'fees', 'shipment'];
+  const catKeys = ['sales', 'salesShare', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'cvr', 'fees', 'shipment'];
   if (!catKeys.includes(graphCategory)) graphCategory = 'sales';
   if (graphGrain === 'daily' && graphCategory === 'fees') graphCategory = 'sales';   // 諸費用は月単位のみ
   if (!_graphInited) { graphHiddenItems = graphDefaultHidden(graphCategory); _graphInited = true; }
