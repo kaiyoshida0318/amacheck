@@ -1481,11 +1481,11 @@
   .kwm-nochart { padding: 40px; text-align: center; color: var(--text-tertiary); font-size: 13px; background: var(--bg-secondary); border-radius: 8px; }
   .kwm-tblhead .kwm-hide-btn { font-size: 14px; padding: 6px 14px; font-weight: 600; background: var(--teal); border-color: var(--teal); color: #fff; }   /* 「ヘッダーを隠す」と同じ色 */
   .kwm-tblhead .kwm-hide-btn:hover { background: var(--teal-hover); border-color: var(--teal-hover); color: #fff; }
-  .kwm-tblhead { display: flex; align-items: center; gap: 14px; font-size: 16px; font-weight: 700; color: var(--black); margin: 4px 0 8px; padding-top: 10px; border-top: 1px solid var(--border); }
-  .kwm-tblwrap { max-height: 560px; overflow: auto; border: 1px solid var(--border); border-radius: 8px; }
+  .kwm-tblhead { display: flex; align-items: center; gap: 14px; font-size: 16px; font-weight: 700; color: var(--black); margin: 4px 0 0; padding: 10px 0 8px; border-top: 1px solid var(--border); position: sticky; top: 0; z-index: 3; background: #fff; }
+  .kwm-tblwrap { border: 1px solid var(--border); border-radius: 8px; }   /* v3.22：表の中でスクロールせず、画面ごとスクロール（見出しと列名は上で止まる） */
   table.kwm-tbl { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 15px; }
   table.kwm-tbl th, table.kwm-tbl td { padding: 9px 14px; border-bottom: 1px solid var(--border); white-space: nowrap; text-align: left; }
-  table.kwm-tbl th { position: sticky; top: 0; z-index: 1; background: var(--bg-secondary); color: var(--text-secondary); font-weight: 700; }
+  table.kwm-tbl th { position: sticky; top: 0; z-index: 2; background: var(--bg-secondary); color: var(--text-secondary); font-weight: 700; }
   table.kwm-tbl .num { text-align: right; font-variant-numeric: tabular-nums; }
   table.kwm-tbl th.hot { background: #f3e8ff; color: var(--purple); }
   table.kwm-tbl td.hot { background: #faf5ff; font-weight: 700; }
@@ -1825,7 +1825,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.21</span>
+    <span class="version">v3.22</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -6766,6 +6766,9 @@ function closeKwModal(){
 
 function renderKwModal(){
   const box = document.getElementById('kwm-box'); if (!box || !kwm.key) return;
+  // v3.22：同じワードを描き直す時はスクロール位置を残す（表の見出しのボタンを押しても上へ戻らない）
+  const _prevBody = box.querySelector('.kwm-body'), _keepScroll = (_prevBody && box.dataset.key === kwm.key) ? _prevBody.scrollTop : 0;
+  box.dataset.key = kwm.key;
   const rows = kwmRows();
   const bidOk = kwGroup === 'kwmatch';   // 入札額はキーワード×マッチ単位のときだけ意味がある
   if (!bidOk && kwm.metric === 'bid') kwm.metric = 'all';
@@ -6872,7 +6875,7 @@ function renderKwModal(){
   const hot = new Set(M === 'all' ? ['sales', 'cost', 'roas'] : [M]);
   const cell = (a, k) => { const v = kwmVal(a, k); const cls = (hot.has(k) ? ' hot' : '') + (k === 'roas' && v != null ? ' ' + kwCls(kwJudgeOf(v / 100)) : ''); return '<td class="num' + cls + '">' + (a ? kwmFmt(k, v) : '—') + '</td>'; };
   h += '<div class="kwm-tblhead">📋 ' + (isDaily ? '日別' : '月別') + 'データ' + (!isDaily ? '<div class="kwm-seg sm" id="kwm-yoy"><button type="button" data-v="0" class="' + (!kwm.tblYoy ? 'on blue' : '') + '">通常</button><button type="button" data-v="1" class="' + (kwm.tblYoy ? 'on blue' : '') + '">前年同月比</button></div>' : '')
-    + '<button type="button" class="kwm-btn kwm-hide-btn" id="kwm-hide">' + (kwm.hideChart ? 'グラフを表示' : 'グラフを隠す') + '</button></div>';   // v2.87：表の見出しの右隣へ
+    + '</div>';   // v3.22：「グラフを隠す」は廃止（下へスクロールすると、この見出しと表の列名が上で止まる）
   // セール（v2.91）：期間に重なるセールを名前のチップで。日別はセール中の日の行をピンクに
   const salesIn = (f, t) => (saleRanges || []).filter(sr => sr.start && sr.end && sr.start <= t && sr.end >= f).sort((a, b) => String(a.start).localeCompare(String(b.start)));
   // v2.92：幅を取らないよう、名前の札はやめて日付（月）の左にピンクの縦線だけ。名前はマウスを乗せると出る
@@ -6912,7 +6915,11 @@ function renderKwModal(){
   const on = (sel, ev, fn) => { const el = box.querySelector(sel); if (el) el.addEventListener(ev, fn); };
   on('#kwm-month', 'change', e => { kwm.month = e.target.value; kwm.preset = 'thismonth'; renderKwModal(); });   // v2.96：月を選んだらその月の1日〜末日（30日だと31日ある月の1日が外れる）
   on('#kwm-metric', 'change', e => { kwm.metric = e.target.value; kwm.hiddenYears = new Set(); renderKwModal(); });
-  on('#kwm-hide', 'click', () => { kwm.hideChart = !kwm.hideChart; renderKwModal(); });
+  { // v3.22：表の見出し（📋 日別データ）が上に着いたら止め、その下に表の列名を止める
+    const bodyEl = box.querySelector('.kwm-body'), th = box.querySelector('.kwm-tblhead');
+    if (bodyEl && th) { const padTop = parseFloat(getComputedStyle(bodyEl).paddingTop) || 0; th.style.top = (-padTop) + 'px'; box.querySelectorAll('table.kwm-tbl thead th').forEach(c => { c.style.top = (th.offsetHeight - padTop) + 'px'; }); }
+    if (bodyEl && _keepScroll) bodyEl.scrollTop = _keepScroll;
+  }
   on('#kwm-close', 'click', closeKwModal);
   on('#kwm-prev', 'click', () => kwmGo(-1));
   on('#kwm-next', 'click', () => kwmGo(1));
