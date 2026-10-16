@@ -1825,7 +1825,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.22</span>
+    <span class="version">v3.23</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -10907,12 +10907,28 @@ function graphBuildModel(){
   const visItems = allItems.filter(it => !graphHiddenItems.has(it.key));
   const val = (r, k) => { if (!r.m) return null; const v = r.m[k]; return (v == null || isNaN(v)) ? null : v; };
   const meta = rows.map(r => ({ key: r.key, synth: r.synth }));
+  // v3.23：「売上・利益」は SEO売上（下）＋広告売上（上）の積み上げ棒＝総売上。月は横に並べる（年重ねにしない）
+  const barMode = graphCategory === 'sales';
+  const showSeo = barMode && !graphHiddenItems.has('seoActual'), showAd = barMode && !graphHiddenItems.has('adSalesActual');
+  const lineItems = barMode ? visItems.filter(it => it.key !== 'seoActual' && it.key !== 'adSalesActual' && !(it.key === 'salesActual' && showSeo && showAd)) : visItems;
   let chart = {
     labels, keys: rows.map(r => r.key), years: null,
-    datasets: visItems.map(it => ({ label: it.label, seriesLabel: it.label, color: it.color, data: rows.map(r => val(r, it.key)), meta, dash: [], width: 3, rec: 0 })),
+    datasets: lineItems.map(it => ({ label: it.label, seriesLabel: it.label, color: it.color, data: rows.map(r => val(r, it.key)), meta, dash: [], width: 3, rec: 0 })),
   };
+  if (barMode && (showSeo || showAd)) {
+    const col = k => (GRAPH_CATEGORIES.sales.items.find(i => i.key === k) || {}).color;
+    chart.bar = { showSeo, showAd, seoColor: col('seoActual'), adColor: col('adSalesActual'), meta,
+      seo: rows.map(r => val(r, 'seoActual')), ad: rows.map(r => val(r, 'adSalesActual')), total: rows.map(r => val(r, 'salesActual')) };
+  }
   if (graphGrain === 'monthly') {
-    if (graphView2y) {
+    if (barMode) {
+      if (graphView2y) {   // 2年：直近24か月
+        const keep = Math.min(24, labels.length), st = labels.length - keep;
+        chart.labels = labels.slice(st); chart.keys = chart.keys.slice(st);
+        chart.datasets.forEach(ds => { ds.data = ds.data.slice(st); ds.meta = ds.meta.slice(st); });
+        if (chart.bar) ['seo', 'ad', 'total', 'meta'].forEach(k => { chart.bar[k] = chart.bar[k].slice(st); });
+      }
+    } else if (graphView2y) {
       const keep = Math.min(24, labels.length), st = labels.length - keep;
       chart.labels = labels.slice(st); chart.keys = chart.keys.slice(st);
       chart.datasets.forEach(ds => { ds.data = ds.data.slice(st); ds.meta = ds.meta.slice(st); });
@@ -10967,6 +10983,9 @@ function graphSvg(chart, cat){
   const vis = chart.datasets.filter(d => !d.hidden);
   let maxV = 0, minV = 0, any = false;
   vis.forEach(d => d.data.forEach(v => { if (v == null) return; any = true; if (v > maxV) maxV = v; if (v < minV) minV = v; }));
+  const bar = chart.bar || null;   // v3.23：積み上げ棒（SEO売上＋広告売上）
+  const barSeg = i => { const sv = bar.showSeo ? Math.max(0, bar.seo[i] || 0) : 0, av = bar.showAd ? Math.max(0, bar.ad[i] || 0) : 0; return { sv, av, has: (bar.showSeo && bar.seo[i] != null) || (bar.showAd && bar.ad[i] != null) }; };
+  if (bar) for (let i = 0; i < n; i++) { const b = barSeg(i); if (!b.has) continue; any = true; if (b.sv + b.av > maxV) maxV = b.sv + b.av; }
   // 目盛りは「きりの良い刻み×5本前後」。マイナスがある時は0を含めて下側へ伸ばす
   let top, bot, tickStep;
   if (cat.fixed100) { top = 100; bot = 0; tickStep = 20; }
@@ -10977,7 +10996,7 @@ function graphSvg(chart, cat){
     bot = Math.floor(lo / tickStep + 1e-9) * tickStep;
     if (top <= bot) top = bot + tickStep;
   }
-  const xOf = i => padL + (n <= 1 ? plotW / 2 : plotW * i / (n - 1));
+  const xOf = bar ? (i => padL + plotW * (i + 0.5) / Math.max(1, n)) : (i => padL + (n <= 1 ? plotW / 2 : plotW * i / (n - 1)));   // 棒の時は各月の帯の中央
   const yOf = v => padT + plotH * (1 - (v - bot) / (top - bot));
   let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;" preserveAspectRatio="xMidYMid meet" font-family="inherit">';
   if (chart.keys && graphShowSale) svg += graphSaleOverlay(chart.keys, xOf, n, padT, plotH, W);
@@ -11001,6 +11020,19 @@ function graphSvg(chart, cat){
   const pr = n > 62 ? 2.2 : (n > 31 ? 3 : 4);
   const hitR = Math.max(5, Math.min(12, plotW / Math.max(1, n) / 2));
   let hits = '';
+  if (bar) {   // v3.23：積み上げ棒（下＝SEO売上、上＝広告売上、全体の高さ＝総売上）。日別集計の月は薄く・破線枠
+    const bw = Math.max(3, Math.min(64, plotW / Math.max(1, n) * 0.62)), y0 = yOf(0), yen = v => v == null ? '—' : '¥' + Math.round(v).toLocaleString();
+    for (let i = 0; i < n; i++) {
+      const b = barSeg(i); if (!b.has) continue;
+      const mt = bar.meta[i] || {}, x = xOf(i) - bw / 2, op = mt.synth ? 0.45 : 0.88;
+      const ySeoTop = yOf(b.sv), yTop = yOf(b.sv + b.av);
+      if (b.sv > 0) svg += '<rect x="' + x.toFixed(1) + '" y="' + ySeoTop.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (y0 - ySeoTop).toFixed(1) + '" fill="' + bar.seoColor + '" opacity="' + op + '"/>';
+      if (b.av > 0) svg += '<rect x="' + x.toFixed(1) + '" y="' + yTop.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (ySeoTop - yTop).toFixed(1) + '" fill="' + bar.adColor + '" opacity="' + op + '"/>';
+      if (mt.synth && yTop < y0) svg += '<rect x="' + x.toFixed(1) + '" y="' + yTop.toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + (y0 - yTop).toFixed(1) + '" fill="none" stroke="#6b7280" stroke-width="1.5" stroke-dasharray="5 3"/>';
+      const txt = (mt.key ? graphPeriodText(mt.key) : '') + (mt.synth ? '（日別集計）' : '') + '　総売上 ' + yen(bar.total[i]) + '（SEO売上 ' + yen(bar.seo[i]) + '／広告売上 ' + yen(bar.ad[i]) + '）';
+      hits += '<rect class="gpt" x="' + x.toFixed(1) + '" y="' + Math.min(yTop, y0 - 6).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(6, y0 - yTop).toFixed(1) + '" fill="transparent" style="cursor:pointer" data-tip="' + escapeHtml(txt) + '"/>';
+    }
+  }
   vis.forEach(d => {
     let path = '', started = false;
     d.data.forEach((v, i) => { if (v == null) return; path += (started ? ' L' : 'M') + xOf(i).toFixed(1) + ' ' + yOf(v).toFixed(1); started = true; });   // 欠測は跨いで繋ぐ（spanGaps）
@@ -11101,7 +11133,9 @@ function renderGraphView(){
   h += '<div class="graph-toolbar graph-toolbar2">';
   if (!daily) {
     h += '<span class="graph-lbl">表示</span>'
-      + seg('graph-fy', 'alt', [['jan', '1月始まり', '1〜12月の軸に年ごとの線を重ねる'], ['may', '5月始まり', '5〜4月の軸に年度ごとの線を重ねる'], ['2y', '2年', '直近24か月を横一列で表示']], graphView2y ? '2y' : graphPeriodStart);
+      + (graphCategory === 'sales'   // v3.23：売上・利益は棒なので年重ねはしない（月を横に並べる）
+        ? seg('graph-fy', 'alt', [['jan', '選んだ期間', '上で選んだ期間の月を横一列で表示'], ['2y', '2年', '直近24か月を横一列で表示']], graphView2y ? '2y' : 'jan') + '<span class="graph-note">棒＝SEO売上（下）＋広告売上（上）＝総売上</span>'
+        : seg('graph-fy', 'alt', [['jan', '1月始まり', '1〜12月の軸に年ごとの線を重ねる'], ['may', '5月始まり', '5〜4月の軸に年度ごとの線を重ねる'], ['2y', '2年', '直近24か月を横一列で表示']], graphView2y ? '2y' : graphPeriodStart));
   } else {
     h += '<span class="graph-lbl">期間</span>'
       + seg('graph-dpreset', 'alt', [['30', '直近30日'], ['thismonth', '今月'], ['2month', '2か月']], graphDayPreset);
