@@ -1819,7 +1819,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.16</span>
+    <span class="version">v3.17</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -6818,15 +6818,17 @@ function renderKwModal(){
   }
   h += '<select class="kwm-select" id="kwm-metric">' + KWM_METRICS.filter(([k]) => bidOk || k !== 'bid').map(([k, l]) => '<option value="' + k + '"' + (k === kwm.metric ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>';
   h += '</div>';
-  h += '<div class="kwm-note">※ <span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の縦線</span>＝入札額を変えた' + (isDaily ? '日' : '月') + (isDaily ? '／<span style="color:#c2185b;font-weight:700;">ピンクの帯</span>＝セール期間' : '') + '　ROAS の色：<span class="kw-r-hi">300%以上</span>・<span class="kw-r-mid">200〜299%</span>・<span class="kw-r-lo">199%以下</span>' + (!isDaily && labels.length && labels[labels.length - 1] === (lastDs || '').slice(0, 7) && lastDs.slice(8, 10) !== String(daysInMonth(lastDs.slice(0, 7))).padStart(2, '0') ? '　／　' + lastDs.slice(0, 7).replace('-', '/') + ' は途中の月（' + (+lastDs.slice(8, 10)) + '日まで）' : '') + '</div>';
+  const bidLineOn = kwm.metric === 'all' && bidOk && !kwm.hiddenSeries.has('bid');
+  h += '<div class="kwm-note">※ ' + (bidLineOn ? '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の階段の線</span>＝入札額（右端の紫の目盛り）。札は変えた' + (isDaily ? '日' : '月') : '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の縦線</span>＝入札額を変えた' + (isDaily ? '日' : '月')) + (isDaily ? '／<span style="color:#c2185b;font-weight:700;">ピンクの帯</span>＝セール期間' : '') + '　ROAS の色：<span class="kw-r-hi">300%以上</span>・<span class="kw-r-mid">200〜299%</span>・<span class="kw-r-lo">199%以下</span>' + (!isDaily && labels.length && labels[labels.length - 1] === (lastDs || '').slice(0, 7) && lastDs.slice(8, 10) !== String(daysInMonth(lastDs.slice(0, 7))).padStart(2, '0') ? '　／　' + lastDs.slice(0, 7).replace('-', '/') + ' は途中の月（' + (+lastDs.slice(8, 10)) + '日まで）' : '') + '</div>';
 
   // ---- 系列 ----
   let datasets = [], years = null, xLabels = dispLabels;
   const M = kwm.metric;
   if (M === 'all') {
-    const defs = [['sales', 'bar', 'y'], ['cost', 'bar', 'y'], ['roas', 'line', 'y1']];
+    const defs = [['sales', 'bar', 'y'], ['cost', 'bar', 'y'], ['roas', 'line', 'y1']].concat(bidOk ? [['bid', 'line', 'y2']] : []);   // v3.17：入札額は自分の目盛り（右端・紫）で階段の線
     datasets = defs.map(([k, type, ax]) => ({ key: k, type, label: KWM_LABEL[k], yAxisID: ax, data: labels.map(l => kwmVal(aggMap[l], k)),
-      backgroundColor: KWM_COLOR[k] + (type === 'bar' ? 'cc' : '22'), borderColor: KWM_COLOR[k], borderWidth: type === 'line' ? 2.6 : 0, tension: 0.3, pointRadius: 3, pointHoverRadius: 6, spanGaps: true, order: type === 'line' ? 0 : 1, hidden: kwm.hiddenSeries.has(k) }));
+      backgroundColor: KWM_COLOR[k] + (type === 'bar' ? 'cc' : '22'), borderColor: KWM_COLOR[k], borderWidth: type === 'line' ? (k === 'bid' ? 2.4 : 2.6) : 0, tension: k === 'bid' ? 0 : 0.3,
+      stepped: k === 'bid' ? 'before' : false, borderDash: k === 'bid' ? [] : undefined, pointRadius: k === 'bid' ? 0 : 3, pointHoverRadius: k === 'bid' ? 4 : 6, spanGaps: true, order: type === 'line' ? 0 : 1, hidden: kwm.hiddenSeries.has(k) }));
   } else if (overlay) {
     const so = kwm.fy - 1;
     const parsed = labels.map(l => { const y = +l.slice(0, 4), mi = +l.slice(5, 7) - 1; return { y, mi, fi: (mi - so + 12) % 12, fy: mi >= so ? y : y - 1 }; });
@@ -6934,6 +6936,13 @@ function renderKwModal(){
   };
   if (M === 'roas') scales.y.suggestedMax = 300;   // ROAS は 0〜300% を最低限の目盛りに（3色の境目が見える）
   if (M === 'all') scales.y1 = { beginAtZero: true, suggestedMax: 300, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: KWM_COLOR.roas, font: { size: 13 }, callback: tickCb('roas') } };
+  const bidLine = M === 'all' && bidOk && !kwm.hiddenSeries.has('bid');
+  if (M === 'all' && bidOk) {   // v3.17：入札額の目盛り。売上（数万円）と同じ目盛りだと一番下を這うので、入札額の幅に合わせる（変化が見える）
+    const bv = datasets.find(d => d.key === 'bid').data.filter(v => v != null);
+    const lo = bv.length ? Math.min.apply(null, bv) : 0, hi = bv.length ? Math.max.apply(null, bv) : 100, pad = Math.max(10, (hi - lo) * 0.25);
+    scales.y2 = { display: bidLine, position: 'right', min: Math.max(0, Math.floor((lo - pad * 2) / 10) * 10), max: Math.ceil((hi + pad) / 10) * 10, grid: { drawOnChartArea: false },
+      ticks: { color: KWM_BID_COLOR, font: { size: 13 }, callback: v => '¥' + Math.round(v) }, title: { display: true, text: '入札額', color: KWM_BID_COLOR, font: { size: 12, weight: 'bold' } } };
+  }
   _kwmChart = new Chart(cv.getContext('2d'), {
     type: 'bar',
     data: { labels: xLabels, datasets },
@@ -6984,6 +6993,18 @@ function renderKwModal(){
       afterDatasetsDraw(chart){    // 入札額の変更：縦線＋バッジ（上下2段で交互）
         if (overlay || !changes.length) return;
         const { ctx, chartArea: ca, scales: { x } } = chart;
+        if (bidLine && chart.scales.y2) {   // v3.17：入札額の線を出している時は、縦線はやめて、変えた所に小さな札だけ
+          const y2 = chart.scales.y2; ctx.save(); ctx.font = 'bold 12px sans-serif'; ctx.textBaseline = 'middle';
+          changes.forEach(c => {
+            const px = x.getPixelForValue(c.i), py = y2.getPixelForValue(c.to);
+            ctx.fillStyle = KWM_BID_COLOR; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
+            const txt = '¥' + Math.round(c.from) + '→¥' + Math.round(c.to), w = ctx.measureText(txt).width + 12, hgt = 19;
+            const bx = Math.max(ca.left, Math.min(ca.right - w, px - w / 2)), by = Math.max(ca.top + 2, py - hgt - 8);
+            ctx.fillStyle = '#fff'; ctx.strokeStyle = KWM_BID_COLOR; ctx.lineWidth = 1.5; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, w, hgt, 4); else ctx.rect(bx, by, w, hgt); ctx.fill(); ctx.stroke();
+            ctx.fillStyle = KWM_BID_COLOR; ctx.fillText(txt, bx + 6, by + hgt / 2 + 0.5);
+          });
+          ctx.restore(); return;
+        }
         ctx.save();
         changes.forEach((c, n) => {
           const px = x.getPixelForValue(c.i);
