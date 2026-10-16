@@ -226,8 +226,8 @@
   table.ship th.sale-corner, table.ship th.sale-gap { background: var(--bg-secondary); border-bottom: 2px solid var(--bg-secondary); }
   table.ship th.day.sale-day { box-shadow: inset 0 3px 0 var(--sale); }
   /* 上位/下位ランクの数字色（日別: 上位5日=青 / 下位5日=赤） */
-  table.ship td.day.rank-hi { color: #2563eb; font-weight: 700; }
-  table.ship td.day.rank-lo { color: #d32f2f; font-weight: 700; }
+  table.ship td.day.rank-hi { color: #2563eb; }
+  table.ship td.day.rank-lo { color: #d32f2f; }
   /* セール対象商品×セール期間：薄いセール色で連続した細い枠（上下は全セル、左右は範囲の端のみ） */
   table.ship td.day.sale-target { box-shadow: inset 0 1px 0 rgba(194,24,91,0.45), inset 0 -1px 0 rgba(194,24,91,0.45); }
   table.ship td.day.sale-target.sale-start { box-shadow: inset 0 1px 0 rgba(194,24,91,0.45), inset 0 -1px 0 rgba(194,24,91,0.45), inset 1px 0 0 rgba(194,24,91,0.45); }
@@ -360,8 +360,8 @@
   table.ship td.month.zero.current { background: var(--amber-light); color: var(--amber); }
   table.ship th.month.current { background: #f2e3d0; color: var(--amber); }
   /* 上位/下位ランクの数字色（月別: 上位3月=青 / 下位3月=赤） */
-  table.ship td.month.rank-hi { color: #2563eb; font-weight: 700; }
-  table.ship td.month.rank-lo { color: #d32f2f; font-weight: 700; }
+  table.ship td.month.rank-hi { color: #2563eb; }
+  table.ship td.month.rank-lo { color: #d32f2f; }
 
   /* 広告キャンペーン管理 */
   .switch { position: relative; display: inline-block; width: 42px; height: 22px; vertical-align: middle; }
@@ -499,6 +499,8 @@
   /* ===== 月日別グラフ ===== */
   #graph-view { width: 80vw; margin-left: calc(50% - 40vw); }
   #graph-chart { position: relative; }
+  .graph-hide-btn { font-size: 14px; padding: 6px 14px; font-weight: 600; border-radius: 6px; border: 1px solid var(--teal); background: var(--teal); color: #fff; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .graph-hide-btn:hover { background: var(--teal-hover); border-color: var(--teal-hover); color: #fff; }
   .graph-tip { position: absolute; display: none; pointer-events: none; background: rgba(17,24,39,0.92); color: #fff; font-size: 13px; font-weight: 600; padding: 6px 10px; border-radius: 7px; white-space: nowrap; z-index: 20; transform: translateY(-115%); box-shadow: 0 2px 8px rgba(0,0,0,0.25); }
   .graph-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 24px; }
   .graph-seg { display: inline-flex; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 9px; padding: 3px; }
@@ -538,10 +540,10 @@
   .pl-table tr:hover td { background: var(--bg-secondary); }
   .pl-table td.pl-profit { font-weight: 700; color: var(--black); }
   .pl-table td.pl-neg { color: var(--danger); }
-  .pl-table tbody td.t-hi10 { color: #1d4ed8; font-weight: 700; }
-  .pl-table tbody td.t-hi20 { color: #16a34a; font-weight: 700; }
-  .pl-table tbody td.t-lo20 { color: #d97706; font-weight: 700; }
-  .pl-table tbody td.t-lo10 { color: #c0392b; font-weight: 700; }
+  .pl-table tbody td.t-hi10 { color: #1d4ed8; }   /* v3.19：太さは周りと同じ（色だけ） */
+  .pl-table tbody td.t-hi20 { color: #16a34a; }   /* v3.19：太さは周りと同じ（色だけ） */
+  .pl-table tbody td.t-lo20 { color: #d97706; }   /* v3.19：太さは周りと同じ（色だけ） */
+  .pl-table tbody td.t-lo10 { color: #c0392b; }   /* v3.19：太さは周りと同じ（色だけ） */
   /* 列の色分け：ヘッダーは色付き背景＋文字色、本文は淡い背景。実質利益本文は％ティアの文字色を活かすため背景なし */
   .pl-table thead th.pl-c-sales { background: #dbe9fe; color: #1e40af; }
   .pl-table thead th.pl-c-gross { background: #d3f1f7; color: #0e7490; }
@@ -763,10 +765,14 @@
   .graph-table .grp-start td { border-top: 2px solid var(--border-strong); }
   .graph-table .gt-adsep { border-right: 1px solid #cbd5e1; }
   /* 数字の4色分け（列ごとの順位）：上位10%=濃青 / 上位20%=青 / 下位20%=橙 / 下位10%=赤。中間は通常色 */
-  table.ad-table tbody td.t-hi10, .graph-table td.t-hi10, .ad-legend .lg-hi10 { color: #1d4ed8; font-weight: 700; }
-  table.ad-table tbody td.t-hi20, .graph-table td.t-hi20, .ad-legend .lg-hi20 { color: #16a34a; font-weight: 700; }
-  table.ad-table tbody td.t-lo20, .graph-table td.t-lo20, .ad-legend .lg-lo20 { color: #d97706; font-weight: 700; }
-  table.ad-table tbody td.t-lo10, .graph-table td.t-lo10, .ad-legend .lg-lo10 { color: #c0392b; font-weight: 700; }
+  table.ad-table tbody td.t-hi10, .graph-table td.t-hi10, .ad-legend .lg-hi10 { color: #1d4ed8; }
+  .ad-legend .lg-hi10 { font-weight: 700; }
+  table.ad-table tbody td.t-hi20, .graph-table td.t-hi20, .ad-legend .lg-hi20 { color: #16a34a; }
+  .ad-legend .lg-hi20 { font-weight: 700; }
+  table.ad-table tbody td.t-lo20, .graph-table td.t-lo20, .ad-legend .lg-lo20 { color: #d97706; }
+  .ad-legend .lg-lo20 { font-weight: 700; }
+  table.ad-table tbody td.t-lo10, .graph-table td.t-lo10, .ad-legend .lg-lo10 { color: #c0392b; }
+  .ad-legend .lg-lo10 { font-weight: 700; }
   .ad-legend { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-tertiary); white-space: nowrap; }
   .ad-legend .lg-mid { color: var(--text-secondary); }
   .ship-legend .lg-shhi { color: #2563eb; font-weight: 700; }
@@ -1049,9 +1055,9 @@
   /* 値ありセル（編集可能）：出荷数表のhasセルと同様の緑 */
   table.master td.price.editable.has { background: var(--accent-light); color: var(--black); font-weight: 600; }
   /* 計算列の値あり：少し薄い緑＋斜体気味で計算であることを示す */
-  table.master td.price.calculated.has { background: var(--amber-light); color: var(--amber); font-weight: 700; }
+  table.master td.price.calculated.has { background: var(--amber-light); color: var(--amber); font-weight: 600; }
   /* 利益マイナス：赤系 */
-  table.master td.price.calculated.has.negative { background: rgba(211, 47, 47, 0.12); color: var(--danger); font-weight: 700; }
+  table.master td.price.calculated.has.negative { background: rgba(211, 47, 47, 0.12); color: var(--danger); font-weight: 600; }
   /* hover */
   table.master td.price.editable { cursor: cell; }
   table.master td.price.editable:hover.zero { background: var(--blue-light); }
@@ -1819,7 +1825,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.17</span>
+    <span class="version">v3.19</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -10689,6 +10695,7 @@ let graphDateTo = null;
 let graphDayPreset = '30';         // '30' | 'thismonth' | '2month' | null（手動指定）
 let graphDailyGroup = 'month';     // 日別表の色分け 'month' | 'none'
 let graphShowSale = true;          // セール期間の重ね表示
+let graphHideChart = false;        // v3.18：グラフを隠す（表だけ見る）
 let graphQuickActive = null;       // 押されたクイック期間ボタン
 let _graphInited = false;
 let _graphDayCache = {};
@@ -11091,7 +11098,7 @@ function renderGraphView(){
   });
   h += '</div>';
   // 年度トグル（年度重ねの時だけ）
-  if (chart.years) {
+  if (chart.years && !graphHideChart) {   // v3.18：年の切り替えはグラフだけに効くので、隠している時は出さない
     h += '<div class="graph-years" id="graph-years"><span class="graph-lbl">' + (graphPeriodStart === 'may' ? '年度' : '年') + '</span>';
     chart.years.forEach((yr, yi) => {
       const rec = chart.years.length - 1 - yi;
@@ -11105,14 +11112,15 @@ function renderGraphView(){
   }
 
   // チャート
-  h += '<div id="graph-chart">' + graphSvg(chart, cat) + '<div id="graph-tip" class="graph-tip"></div></div>';
-  h += '<div class="graph-foot-note">' + (daily
+  if (!graphHideChart) h += '<div id="graph-chart">' + graphSvg(chart, cat) + '<div id="graph-tip" class="graph-tip"></div></div>';
+  if (!graphHideChart) h += '<div class="graph-foot-note">' + (daily
     ? '※日別の総売上は「出荷数×販売価格（セール価格反映）」の推計、広告は広告データの集計です。実質利益・保管費・FBA手数料は月単位のため日別には出ません。'
     : '※月別は全体収支（実額）を優先し、全体収支が未入力の月は日別データからの集計値（表の「日別集計」、グラフの白抜き点）で表示します。') + '</div>';
 
   // 表の切り替え
   const yoy = !daily && graphTableMode === 'yoy';
-  h += '<div class="graph-toolbar" style="margin-top:18px;">';
+  h += '<div class="graph-toolbar" style="margin-top:' + (graphHideChart ? 6 : 18) + 'px;">';
+  h += '<button type="button" class="graph-hide-btn" id="graph-hide">' + (graphHideChart ? 'グラフを表示' : 'グラフを隠す') + '</button>';   // v3.18：グラフの下・表の上
   if (!daily) h += seg('graph-tmode', 'blue', [['normal', '通常'], ['yoy', '前年同月比']], yoy ? 'yoy' : 'normal');
   if (!yoy) {
     h += '<div style="flex:1"></div>';
@@ -11121,7 +11129,7 @@ function renderGraphView(){
       : seg('graph-group', 'blue', [['recent1y', '直近12か月'], ['fiscal', '年度区切り'], ['calendar', '年区切り'], ['none', 'なし']], graphTableGroup);
   }
   h += '</div>';
-  h += '<div style="overflow:auto;max-height:520px;">' + buildGraphTable(model) + '</div>';
+  h += '<div style="overflow:auto;max-height:' + (graphHideChart ? 'calc(78vh / var(--pz, 1))' : '520px') + ';">' + buildGraphTable(model) + '</div>';
 
   body.innerHTML = h;
 
@@ -11141,6 +11149,7 @@ function renderGraphView(){
   on('#graph-dfrom', 'change', e => { if (!e.target.value) return; graphDateFrom = e.target.value; graphDayPreset = null; graphQuickActive = null; renderGraphView(); });
   on('#graph-dto', 'change', e => { if (!e.target.value) return; graphDateTo = e.target.value; graphQuickActive = null; graphApplyDayPreset(); renderGraphView(); });   // to を変えたらプリセットを再適用
   on('#graph-sale', 'click', () => { graphShowSale = !graphShowSale; renderGraphView(); });
+  on('#graph-hide', 'click', () => { graphHideChart = !graphHideChart; renderGraphView(); });
   on('#graph-ad-guide', 'click', () => { document.getElementById('ad-guide-modal').hidden = false; });
   body.querySelectorAll('#graph-items button').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.k;
