@@ -1825,7 +1825,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.23</span>
+    <span class="version">v3.25</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -7020,7 +7020,10 @@ function renderKwModal(){
             const px = x.getPixelForValue(c.i), py = y2.getPixelForValue(c.to);
             ctx.fillStyle = KWM_BID_COLOR; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
             const txt = '¥' + Math.round(c.from) + '→¥' + Math.round(c.to), w = ctx.measureText(txt).width + 12, hgt = 19;
-            const bx = Math.max(ca.left, Math.min(ca.right - w, px - w / 2)), by = Math.max(ca.top + 2, py - hgt - 8);
+            // v3.25：札は階段の90度の角（前の入札額の高さ）に。下げた時は角の上、上げた時は角の下。横は変えた点を中心に
+            const pyOld = y2.getPixelForValue(c.from), down = c.to < c.from;
+            const bx = Math.max(ca.left, Math.min(ca.right - w, px - w / 2));
+            const by = down ? Math.max(ca.top + 2, pyOld - hgt - 6) : Math.min(ca.bottom - hgt - 2, pyOld + 6);
             ctx.fillStyle = '#fff'; ctx.strokeStyle = KWM_BID_COLOR; ctx.lineWidth = 1.5; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, w, hgt, 4); else ctx.rect(bx, by, w, hgt); ctx.fill(); ctx.stroke();
             ctx.fillStyle = KWM_BID_COLOR; ctx.fillText(txt, bx + 6, by + hgt / 2 + 0.5);
           });
