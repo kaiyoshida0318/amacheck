@@ -1825,7 +1825,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.19</span>
+    <span class="version">v3.20</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2834,7 +2834,14 @@ let categories = {};
 function saveCategories(){ return persistKey(STORAGE_CAT, categories); }
 // v3.14：キャンペーン名 → 広告管理画面（キャンペーンマネージャー）のURL。広告データ-個別でキャンペーンを選ぶとリンクが出る
 let campUrls = {};
-const CAMP_URL_DEFAULTS = {
+const CAMP_URL_DEFAULTS = {   // v3.20：広告グループのターゲティング（キーワード）ページへ
+  '【SB】耐火バッグ-商品コレ-KW': 'https://advertising-japan.amazon.com/cm/sb/campaigns/A00578012DSFUZ1DX6ADX/ad-groups/A05392487P887FOUI33P/targeting?entityId=ENTITY15N4IW58E6FGF',
+  '【SB】耐火バッグ-動画-KW': 'https://advertising-japan.amazon.com/cm/sb/campaigns/A0845429323S94OSSQHJU/ad-groups/A03203352LXXNF8ZN7K29/targeting?entityId=ENTITY15N4IW58E6FGF',
+  '23-05-耐火バッグ-kw': 'https://advertising-japan.amazon.com/cm/sp/campaigns/A07766381NLEGRFQQ1NRQ/ad-groups/A07843213TEBHTEX9DBLK/targeting?entityId=ENTITY15N4IW58E6FGF',
+  '23-05-耐火バッグ-商品': 'https://advertising-japan.amazon.com/cm/sp/campaigns/A01578201KUAR9J2CODWR/ad-groups/A07361811SKU4A2MJ57DJ/targeting?entityId=ENTITY15N4IW58E6FGF'
+};
+// v3.14 の初期URL（v3.20 で上のURLへ置き換える。自分で変えたURLはそのまま）
+const CAMP_URL_OLD = {
   '【SB】耐火バッグ-商品コレ-KW': 'https://advertising-japan.amazon.com/cm/sb/campaigns/A00578012DSFUZ1DX6ADX?entityId=ENTITY15N4IW58E6FGF',
   '【SB】耐火バッグ-動画-KW': 'https://advertising-japan.amazon.com/cm/sb/campaigns/A0845429323S94OSSQHJU/ad-groups?entityId=ENTITY15N4IW58E6FGF',
   '23-05-耐火バッグ-kw': 'https://advertising-japan.amazon.com/cm/sp/campaigns/A07766381NLEGRFQQ1NRQ?entityId=ENTITY15N4IW58E6FGF',
@@ -2994,6 +3001,7 @@ async function bootstrap(){
   categories = await load(STORAGE_CAT, {});
   campUrls = await load(STORAGE_CAMPURL, null);
   if (!campUrls || typeof campUrls !== 'object' || Array.isArray(campUrls)) { campUrls = Object.assign({}, CAMP_URL_DEFAULTS); saveCampUrls(); }
+  else { let ch = false; Object.keys(CAMP_URL_OLD).forEach(n => { if (campUrls[n] === CAMP_URL_OLD[n]) { campUrls[n] = CAMP_URL_DEFAULTS[n]; ch = true; } }); if (ch) saveCampUrls(); }
   init();
   if (_adFix.days) setTimeout(() => toast('一時停止などのキャンペーンの広告データを ' + _adFix.days + '日分 合計に追加しました（確定済みの月は、確定を解除して確定し直すと反映されます）'), 800);
   _syncArmed = true; // 初回ロード後に自動同期を有効化（起動時の無駄アップロードを防止）
