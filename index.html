@@ -1405,6 +1405,23 @@
   .tab[data-tab="ad"] svg { color: var(--purple); }
   .tab[data-tab="adkw"] svg { color: var(--purple); }
   /* ===== 広告データ-個別（KW） ===== */
+  /* v3.27：日別データ欠けの通知（ADcheck v1.1438 と同じ光り方）と「不足日を確認」 */
+  #daily-gap-btn { margin-left: 12px; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 6px; border: 1px solid #b71c1c; background: #b71c1c; color: #fff; cursor: pointer; white-space: nowrap; font-family: inherit; animation: dailyGapAlarm 1.3s ease-in-out infinite; }
+  #daily-gap-btn:hover { background: #8e1515; border-color: #8e1515; color: #fff; }
+  @keyframes dailyGapAlarm { 0%,100% { box-shadow: 0 0 0 0 rgba(183,28,28,.55); } 50% { box-shadow: 0 0 0 6px rgba(183,28,28,0); } }
+  @media (prefers-reduced-motion: reduce) { #daily-gap-btn { animation: none; } }
+  .miss-box { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
+  .miss-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; background: var(--bg-secondary); font-size: 13.5px; font-weight: 700; color: var(--text-secondary); user-select: none; }
+  .miss-head:hover { background: #eef2f6; }
+  .miss-head .miss-arrow { font-size: 11px; color: var(--text-tertiary); }
+  .miss-body { padding: 10px 14px 12px; font-size: 13px; }
+  .miss-chip { display: inline-block; font-family: ui-monospace, Menlo, monospace; font-size: 11.5px; color: #fff; padding: 1px 7px; border-radius: 4px; margin: 2px 3px 2px 0; }
+  .miss-cal { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+  .miss-cal .w { text-align: center; font-size: 11.5px; font-weight: 700; padding: 2px 0; color: var(--text-tertiary); }
+  .miss-cal .d { border: 1px solid var(--border); border-radius: 6px; padding: 3px 0; text-align: center; }
+  .miss-cal .d .n { font-size: 11.5px; }
+  .miss-cal .d .m { font-size: 15px; font-weight: 700; line-height: 1.15; }
+  .miss-legend { margin-top: 7px; font-size: 11.5px; color: var(--text-tertiary); }
   .rft-group { margin: 14px 0 0; padding: 4px 0 4px 10px; border-left: 4px solid var(--teal); font-size: 13px; font-weight: 800; color: #0f172a; }
   .rft-group:first-child { margin-top: 6px; }
   .rft-group span { margin-left: 10px; font-size: 11px; font-weight: 500; color: var(--text-tertiary); }
@@ -1824,8 +1841,9 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
+  <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.26</span>
+    <span class="version">v3.27</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2435,6 +2453,16 @@
       <p class="sub" style="margin:4px 0 0;">CSV / ZIP をドロップ →「🔍 チェック」で内容を確認 →「✅ 反映する」で取り込みます。ZIPでまとめて入れてもOK。</p>
     </div>
     <div style="overflow-y:auto;flex:1 1 auto;min-height:0;margin-top:12px;">
+      <div class="miss-box">
+        <div class="miss-head" id="miss-head"><span>📅 不足日を確認（取込済みの日別データで欠けている日）</span><span class="miss-arrow">▶</span></div>
+        <div class="miss-body" id="miss-body" hidden>
+          <div id="miss-result"></div>
+          <div id="miss-calbox" hidden style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px;">
+            <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;"><span style="font-size:12.5px;font-weight:700;color:var(--text-secondary);">月を選択：</span><select id="miss-month" class="graph-select" style="font-size:13px;padding:4px 10px;"></select></div>
+            <div id="miss-grid"></div>
+          </div>
+        </div>
+      </div>
       <div id="report-filetypes"></div>
       <label class="upload-zone pl-drop-all" id="report-drop" style="margin-top:0;">
         <svg class="icn" style="font-size:22px;"><use href="#i-file-spreadsheet"/></svg>
@@ -3005,6 +3033,7 @@ async function bootstrap(){
   init();
   if (_adFix.days) setTimeout(() => toast('一時停止などのキャンペーンの広告データを ' + _adFix.days + '日分 合計に追加しました（確定済みの月は、確定を解除して確定し直すと反映されます）'), 800);
   _syncArmed = true; // 初回ロード後に自動同期を有効化（起動時の無駄アップロードを防止）
+  dailyGapWatch(); setInterval(dailyGapWatch, 1500);   // v3.27：日別データの欠けを見張る
 }
 
 // 全データのエクスポート（読める素のJSONで書き出し）
@@ -3137,6 +3166,9 @@ function init(){
   {
     const inp = document.getElementById('report-file-input');
     inp.addEventListener('change', (e) => { rptStage(e.target.files); e.target.value = ''; });
+    document.getElementById('miss-head').addEventListener('click', missToggle);
+    document.getElementById('miss-month').addEventListener('change', e => missRenderCal(e.target.value));
+    document.getElementById('daily-gap-btn').addEventListener('click', dailyGapOpen);
     const z = document.getElementById('report-drop');
     ['dragover', 'dragenter'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.add('dragover'); }));
     ['dragleave', 'drop'].forEach(ev => z.addEventListener(ev, e => { e.preventDefault(); z.classList.remove('dragover'); }));
@@ -5463,9 +5495,132 @@ function buildReportFileTypePanel(){
 }
 let _rpt = null;
 function rptReset(){ _rpt = { ship: [], ad: [], kw: [], meFiles: [], ret: null, unknown: [], errors: [], notes: [], meMonth: null, allowPartial: false }; }
+// ============================================
+// v3.27：日別データの欠け（ADcheck v1.1438「日別データ欠け通知＋不足日を確認」を移植）
+//  ・種類ごとに、その種類の最初の日〜最後の日の間で取り込んでいない日＝欠け。最新日より後（まだ取り込んでいない昨日など）は数えない
+//  ・種類ごとに始まりが違う（KW は 2026/05〜など）ので、始まる前の日はその種類の欠けにしない
+// ============================================
+const MISS_SOURCES = [
+  { key: 'ad',   label: '広告', name: '①広告データ', color: '#1565c0', bg: '#e8f1fb', days: () => Object.keys(adData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)) },
+  { key: 'ship', label: '出荷', name: '②出荷数データ', color: '#e65100', bg: '#fff4e5', days: () => { const out = []; Object.keys(shipments || {}).forEach(ym => { if (!/^\d{4}-\d{2}$/.test(ym)) return; const set = new Set(); const sh = shipments[ym] || {}; Object.keys(sh).forEach(fn => Object.keys(sh[fn] || {}).forEach(d => set.add(+d))); set.forEach(d => { if (d >= 1 && d <= 31) out.push(ym + '-' + String(d).padStart(2, '0')); }); }); return out; } },
+  { key: 'kw',   label: 'KW',   name: '③KWデータ', color: '#6d28d9', bg: '#f3e8ff', days: () => Object.keys(adKwData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)) }
+];
+const missPad = n => String(n).padStart(2, '0');
+const missToDate = s => { const a = s.split('-').map(Number); return new Date(a[0], a[1] - 1, a[2]); };   // ローカル時刻で日を進める（UTC だと日本時間の朝に前日になる）
+const missDs = d => d.getFullYear() + '-' + missPad(d.getMonth() + 1) + '-' + missPad(d.getDate());
+// 種類ごとの日の集合と期間
+function missSources(){
+  return MISS_SOURCES.map(src => { const set = new Set(src.days()); const ks = Array.from(set).sort(); return Object.assign({}, src, { set, first: ks[0] || '', last: ks[ks.length - 1] || '' }); }).filter(x => x.first);
+}
+// ヘッダーの通知：種類ごとに「その種類の最初〜最後の日（最後は含まない）」で無い日。{ 'YYYY-MM-DD': [label…] }
+function dailyGapMap(){
+  const map = {};
+  missSources().forEach(src => {
+    for (let d = missToDate(src.first), i = 0; i < 4000; d.setDate(d.getDate() + 1), i++) {
+      const ds = missDs(d); if (ds >= src.last) break;
+      if (!src.set.has(ds)) (map[ds] = map[ds] || []).push(src.label);
+    }
+  });
+  return map;
+}
+let _gapLast = [];
+function renderDailyGapAlert(){
+  const b = document.getElementById('daily-gap-btn'); if (!b) return;
+  const map = dailyGapMap(), days = Object.keys(map).sort(); _gapLast = days;
+  if (!days.length) { b.hidden = true; b.textContent = ''; return; }
+  const sl = d => d.replace(/-/g, '/');
+  b.hidden = false;
+  b.textContent = '🚨 日別データ欠け（' + sl(days[0]) + (days.length > 1 ? ' ほか' + (days.length - 1) + '日' : '') + '）';
+  b.title = '次の日のデータは取り込まれているのに、この日のデータが入っていません。\n欠けている日（' + days.length + '日）：\n'
+    + days.slice(0, 31).map(d => sl(d) + '（' + map[d].join('・') + '）').join('\n') + (days.length > 31 ? '\n…' : '')
+    + '\n\nその日のデータを取り込むと、このボタンは消えます。クリックで「レポート追加」の不足日の確認を開きます';
+}
+function dailyGapOpen(){
+  openReportModal(); if (document.getElementById('report-modal').hidden) return;
+  const body = document.getElementById('miss-body');
+  if (body.hidden) missToggle(); else missCheck();
+  const g = _gapLast[0] || '', ym = g.slice(0, 7), sel = document.getElementById('miss-month');
+  if (ym && sel && Array.from(sel.options).some(o => o.value === ym)) { sel.value = ym; missRenderCal(ym); }
+  setTimeout(() => { const h = document.getElementById('miss-head'); if (h) h.scrollIntoView({ block: 'start', behavior: 'smooth' }); }, 60);
+}
+// データが入れ替わったら判定し直す（取り込み・削除・復元・同期のどこを通っても拾える）
+let _gapSig = null;
+function dailyGapWatch(){
+  try {
+    let n = 0; Object.keys(shipments || {}).forEach(ym => { const sh = shipments[ym] || {}; Object.keys(sh).forEach(fn => { n += Object.keys(sh[fn] || {}).length; }); });
+    const ak = Object.keys(adData || {}), kk = Object.keys(adKwData || {});
+    const sig = ak.length + '|' + kk.length + '|' + n + '|' + ak.sort()[0] + '|' + kk.sort()[0];
+    if (sig !== _gapSig) { _gapSig = sig; renderDailyGapAlert(); const mb = document.getElementById('miss-body'); if (mb && !mb.hidden && !document.getElementById('report-modal').hidden) missCheck(); }
+  } catch (e) {}
+}
+// 「不足日を確認」（レポート追加の中）
+let _miss = { srcs: [], first: '', last: '' };
+function missToggle(){
+  const body = document.getElementById('miss-body'), ar = document.querySelector('#miss-head .miss-arrow');
+  body.hidden = !body.hidden; if (ar) ar.textContent = body.hidden ? '▶' : '▼';
+  if (!body.hidden) missCheck();
+}
+// その日に欠けている種類（その種類の期間の中だけ）。null＝全体の期間外
+function missLackOn(ds){
+  if (!_miss.first || ds < _miss.first || ds > _miss.last) return null;
+  const app = _miss.srcs.filter(s => ds >= s.first);
+  return { app, lack: app.filter(s => !s.set.has(ds)) };
+}
+function missColor(o){ return !o.lack.length ? null : (o.lack.length === 1 && o.app.length > 1 ? o.lack[0] : { color: '#c62828', bg: '#fdecec' }); }
+function missCheck(){
+  const el = document.getElementById('miss-result'); if (!el) return;
+  const srcs = missSources(), box = document.getElementById('miss-calbox');
+  if (!srcs.length) { el.innerHTML = '<div style="color:var(--text-tertiary);">日別データがまだありません。</div>'; box.hidden = true; return; }
+  const first = srcs.map(s => s.first).sort()[0], last = srcs.map(s => s.last).sort().pop();
+  _miss = { srcs, first, last };
+  const months = {};
+  for (let d = missToDate(first), end = missToDate(last), i = 0; d <= end && i < 4000; d.setDate(d.getDate() + 1), i++) {
+    const ds = missDs(d), o = missLackOn(ds);
+    if (o && o.lack.length) (months[ds.slice(0, 7)] = months[ds.slice(0, 7)] || []).push({ day: d.getDate(), o });
+  }
+  const range = srcs.map(s => '<span style="color:' + s.color + ';font-weight:700;">' + s.name + '</span> ' + s.first + '〜' + s.last).join('　');
+  const yms = Object.keys(months).sort();
+  let h;
+  if (!yms.length) h = '<div style="color:#2e7d32;font-weight:700;">✅ 欠けている日はありません（' + first + '〜' + last + '）</div>';
+  else {
+    h = '<div style="margin-bottom:8px;color:#c62828;font-weight:700;">⚠️ 欠けている日があります（対象：' + first + '〜' + last + '）</div>';
+    yms.forEach(ym => {
+      const arr = months[ym];
+      h += '<div style="margin-bottom:7px;"><div style="font-weight:700;font-size:12.5px;margin-bottom:2px;">' + ym + ' <span style="color:var(--text-tertiary);font-weight:400;">（' + arr.length + '日不足）</span></div><div>'
+        + arr.map(x => { const c = missColor(x.o), all = x.o.lack.length === x.o.app.length; return '<span class="miss-chip" style="background:' + c.color + ';" title="欠けている：' + x.o.lack.map(s => s.name).join('・') + '">' + missPad(x.day) + (all ? '' : '(' + x.o.lack.map(s => s.label).join('・') + ')') + '</span>'; }).join('') + '</div></div>';
+    });
+    h += '<div class="miss-legend">赤＝全部欠け（または2種類以上）／' + srcs.map(s => '<span style="color:' + s.color + ';">' + s.label + 'のみ</span>').join('／') + '。最新日（' + last + '）より後は対象外です。</div>';
+  }
+  h += '<div class="miss-legend" style="margin-top:4px;">期間：' + range + '（始まる前の日は欠けに数えません）</div>';
+  el.innerHTML = h;
+  // 月セレクト（最初の月〜最後の月）
+  const sel = document.getElementById('miss-month'), keep = sel.value, ms = [];
+  for (let ym = first.slice(0, 7), i = 0; ym <= last.slice(0, 7) && i < 600; ym = gYmAdd(ym, 1), i++) ms.push(ym);
+  sel.innerHTML = ms.map(ym => '<option value="' + ym + '">' + ym + '</option>').join('');
+  const def = (keep && ms.indexOf(keep) >= 0) ? keep : ms[ms.length - 1];
+  sel.value = def; box.hidden = false; missRenderCal(def);
+}
+function missRenderCal(ym){
+  const grid = document.getElementById('miss-grid'); if (!grid || !ym) return;
+  const Y = +ym.slice(0, 4), M = +ym.slice(5, 7), dim = new Date(Y, M, 0).getDate(), dow0 = new Date(Y, M - 1, 1).getDay();
+  let h = '<div class="miss-cal">' + ['日', '月', '火', '水', '木', '金', '土'].map((w, i) => '<div class="w" style="' + (i === 0 ? 'color:#c62828;' : i === 6 ? 'color:#1565c0;' : '') + '">' + w + '</div>').join('');
+  for (let b = 0; b < dow0; b++) h += '<div></div>';
+  for (let d = 1; d <= dim; d++) {
+    const ds = ym + '-' + missPad(d), o = missLackOn(ds);
+    let mark, col, bg, tcol = 'var(--black)', tip = '';
+    if (!o || !o.app.length) { mark = '·'; col = 'var(--text-tertiary)'; bg = 'var(--bg-secondary)'; tcol = 'var(--text-tertiary)'; }
+    else if (!o.lack.length) { mark = '◯'; col = '#2e7d32'; bg = '#eafaf0'; tip = 'すべてあり'; }
+    else { const c = missColor(o); mark = '×'; col = c.color; bg = c.bg; tip = '欠けている：' + o.lack.map(s => s.name).join('・'); }
+    h += '<div class="d" style="background:' + bg + ';"' + (tip ? ' title="' + tip + '"' : '') + '><div class="n" style="color:' + tcol + ';">' + d + '</div><div class="m" style="color:' + col + ';">' + mark + '</div></div>';
+  }
+  h += '</div><div class="miss-legend">◯＝すべてあり／' + _miss.srcs.map(s => '<span style="color:' + s.color + ';">×' + s.label + 'のみ欠け</span>').join('／') + '／<span style="color:#c62828;">×赤＝全部・2種類以上欠け</span>／·＝対象期間外</div>';
+  grid.innerHTML = h;
+}
+
 function openReportModal(){
   if (!products.length) { toast('先に商品情報を登録してください'); return; }
   rptReset();
+  { const mb = document.getElementById('miss-body'); if (mb) mb.hidden = true; const ar = document.querySelector('#miss-head .miss-arrow'); if (ar) ar.textContent = '▶'; }
   document.getElementById('report-filetypes').innerHTML = buildReportFileTypePanel();
   document.getElementById('report-cal-section').hidden = true;
   document.getElementById('report-me-section').hidden = true;
