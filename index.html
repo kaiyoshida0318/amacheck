@@ -1546,14 +1546,14 @@
   .kw-lbl2.sub { font-size: 13px; color: var(--text-secondary); }
   .kw-lv-grow { flex: 1; min-width: 0; }
   select.kw-camp2 { min-width: 320px; max-width: 520px; }
-  .kw-camp-link { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin: -2px 0 6px 0; font-size: 13px; }
+  .kw-camp-link { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; min-width: 0; }
   .kw-camp-link a.kw-cl-go { display: inline-flex; align-items: center; gap: 6px; color: #fff; background: #ff9900; border: 1px solid #e88b00; border-radius: 8px; padding: 5px 12px; font-weight: 700; text-decoration: none; }
   .kw-camp-link a.kw-cl-go:hover { background: #e88b00; }
   .kw-camp-link .kw-cl-url { color: var(--text-tertiary); font-size: 12px; max-width: 520px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   .kw-camp-link .kw-cl-none { color: var(--text-tertiary); }
   .kw-camp-link button.kw-cl-edit { border: 1px solid var(--border); background: #fff; color: var(--text-secondary); border-radius: 7px; padding: 3px 10px; font-size: 12px; cursor: pointer; font-family: inherit; }
   .kw-camp-link button.kw-cl-edit:hover { background: #f1f5f9; color: var(--black); }
-  .kw-camp-link input.kw-cl-input { flex: 1; min-width: 320px; max-width: 640px; padding: 5px 8px; border: 1px solid var(--border); border-radius: 7px; font-size: 13px; font-family: inherit; }
+  .kw-camp-link input.kw-cl-input { width: 460px; max-width: 46vw; padding: 5px 8px; border: 1px solid var(--border); border-radius: 7px; font-size: 13px; font-family: inherit; }
   .kw-camp-link button.kw-cl-save { border: 1px solid var(--teal); background: var(--teal); color: #fff; border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .kw-camp-link button.kw-cl-save:hover { filter: brightness(0.92); background: var(--teal); }
   .kw-more-btn { margin-left: auto; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); border-radius: 8px; padding: 6px 14px; font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
@@ -1819,7 +1819,7 @@
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <div class="header-tools">
-    <span class="version">v3.15</span>
+    <span class="version">v3.16</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -6405,27 +6405,25 @@ function renderAdKwView(){
   // キャンペーン＋検索＋詳しい条件ボタン
   h += '<div class="kw-row2"><div class="kw-lbl2">キャンペーン</div><div class="kw-lv kw-lv-grow">';
   h += '<select class="graph-select kw-sel kw-camp2" id="kw-camp"><option value="">すべて（' + camps.length + '件）</option>' + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwCamp ? ' selected' : '') + '>' + escapeHtml(c) + ((kwShowPaused && act && !act.set.has(String(c).trim())) ? '（停止中）' : '') + '</option>').join('') + '</select>';
-  h += '<input type="search" class="graph-select kw-search" id="kw-search" placeholder="🔍 キーワード・ASIN で検索" value="' + escapeHtml(kwSearch) + '">';
-  h += '<button type="button" class="kw-more-btn' + (kwMoreOpen ? ' open' : '') + (moreChanged.length ? ' changed' : '') + '" id="kw-more" title="広告タイプ・種別・まとめ方を変えるとき">'
-    + '<span class="kw-more-arw">' + (kwMoreOpen ? '▲' : '▼') + '</span> 詳しい条件' + (moreChanged.length ? '<span class="kw-more-sum">（' + escapeHtml(moreChanged.join('・')) + '）</span>' : '') + '</button>';
-  h += '</div></div>';
-  // v3.14：選んだキャンペーンの広告管理画面へのリンク
+  // v3.16：検索欄は廃止。その場所に、選んだキャンペーンのページへのリンク
   if (kwCamp) {
     const cu = campUrlOf(kwCamp);
-    h += '<div class="kw-row2"><div class="kw-lbl2"></div><div class="kw-lv kw-lv-grow"><div class="kw-camp-link">';
+    h += '<div class="kw-camp-link">';
     if (kwCampUrlEdit) {
       h += '<input type="url" class="kw-cl-input" id="kw-cl-input" placeholder="https://advertising-japan.amazon.com/cm/..." value="' + escapeHtml(cu) + '">'
         + '<button type="button" class="kw-cl-save" id="kw-cl-save">保存</button><button type="button" class="kw-cl-edit" id="kw-cl-cancel">やめる</button>'
         + (cu ? '<button type="button" class="kw-cl-edit" id="kw-cl-del" title="このキャンペーンのURLを消す">URLを消す</button>' : '');
     } else if (cu) {
-      h += '<a class="kw-cl-go" href="' + escapeHtml(cu) + '" target="_blank" rel="noopener" title="' + escapeHtml(cu) + '">広告管理画面でこのキャンペーンを開く ↗</a>'
-        + '<span class="kw-cl-url" title="' + escapeHtml(cu) + '">' + escapeHtml(cu) + '</span>'
-        + '<button type="button" class="kw-cl-edit" id="kw-cl-edit">URLを変更</button>';
+      h += '<a class="kw-cl-go" href="' + escapeHtml(cu) + '" target="_blank" rel="noopener" title="' + escapeHtml(cu) + '">ページを開く ↗</a>'
+        + '<button type="button" class="kw-cl-edit" id="kw-cl-edit" title="' + escapeHtml(cu) + '">URLを変更</button>';
     } else {
-      h += '<span class="kw-cl-none">広告管理画面のURLが未登録です</span><button type="button" class="kw-cl-edit" id="kw-cl-edit">URLを登録</button>';
+      h += '<span class="kw-cl-none">キャンペーンページのURLが未登録です</span><button type="button" class="kw-cl-edit" id="kw-cl-edit">URLを登録</button>';
     }
-    h += '</div></div></div>';
+    h += '</div>';
   }
+  h += '<button type="button" class="kw-more-btn' + (kwMoreOpen ? ' open' : '') + (moreChanged.length ? ' changed' : '') + '" id="kw-more" title="広告タイプ・種別・まとめ方を変えるとき">'
+    + '<span class="kw-more-arw">' + (kwMoreOpen ? '▲' : '▼') + '</span> 詳しい条件' + (moreChanged.length ? '<span class="kw-more-sum">（' + escapeHtml(moreChanged.join('・')) + '）</span>' : '') + '</button>';
+  h += '</div></div>';
   // 詳しい条件（畳める）
   if (kwMoreOpen) {
     h += '<div class="kw-more-box">';
@@ -6558,10 +6556,6 @@ function renderAdKwView(){
   // 最新日を選んだときは null（＝あとでデータを足しても最新日に付いていく）
   on('#kw-day', 'change', e => { const v = e.target.value; if (!v) return; kwDay = (v === all[all.length - 1]) ? null : v; kwRange = 'day'; renderAdKwView(); });
   on('#kw-clear', 'click', () => { kwCampUrlEdit = false; kwType = 'all'; kwKind = 'all'; kwCamp = ''; kwSearch = ''; renderAdKwView(); });
-  on('#kw-search', 'input', e => {
-    kwSearch = e.target.value; const pos = e.target.selectionStart;
-    clearTimeout(window._kwSearchT); window._kwSearchT = setTimeout(() => { renderAdKwView(); const s = document.getElementById('kw-search'); if (s) { s.focus(); try { s.setSelectionRange(pos, pos); } catch (er) {} } }, 250);
-  });
   body.querySelectorAll('.kw-table th.sortable').forEach(th => th.addEventListener('click', () => {
     const k = th.dataset.k;
     if (kwSortKey === k) kwSortDir = (kwSortDir === 'desc' ? 'asc' : 'desc');
