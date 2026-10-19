@@ -1676,6 +1676,12 @@
   .kw-badge.sb { background: #ea580c; }
   table.kw-table tr.kw-row { cursor: pointer; }
   table.kw-table tr.kw-row:hover td { background: var(--bg-secondary); }
+  /* v3.28：最後に推移画面で見ていた行（閉じたあとも分かるように）：薄い黄色＋左に紫の帯。閉じた直後は一瞬濃く光る */
+  table.kw-table tr.kw-last td { background: #fef9c3; }
+  table.kw-table tr.kw-last:hover td { background: #fef08a; }
+  table.kw-table tr.kw-last td:first-child { box-shadow: inset 4px 0 0 #7c3aed; }
+  table.kw-table tr.kw-flash td { animation: kwLastFlash 1.4s ease-out; }
+  @keyframes kwLastFlash { 0%, 35% { background: #fde047; } 100% { background: #fef9c3; } }
   table.kw-table tr.kw-row.open td { background: #f3e8ff; }
   table.kw-table tr.kw-detail td { background: #faf5ff; padding: 8px 18px 14px; }
   table.kw-sub { border-collapse: collapse; font-size: 12.5px; background: #fff; border: 1px solid var(--border); border-radius: 8px; }
@@ -1843,7 +1849,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.27</span>
+    <span class="version">v3.28</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -6678,7 +6684,7 @@ function renderAdKwView(){
     const nCols = (kwGroup === 'camp' ? 3 : 4) + (kwGroup === 'kwmatch' ? 1 : 0) + 11;
     kwRowKeys = groups.map(g => g.key);   // KW推移モーダルの「上のワード／下のワード」用（表の並び順）
     groups.forEach(gp => {
-      h += '<tr class="kw-row' + (stopOf(gp) ? ' kw-stopped' : '') + ' j-' + (gp.judge || 'none') + '" data-key="' + escapeHtml(gp.key) + '">' + '<td class="kw-jc">' + kwJudge(gp.judge) + '</td>' + labelCells(gp)
+      h += '<tr class="kw-row' + (stopOf(gp) ? ' kw-stopped' : '') + (gp.key === kwLastKey ? ' kw-last' : '') + ' j-' + (gp.judge || 'none') + '" data-key="' + escapeHtml(gp.key) + '"' + (gp.key === kwLastKey ? ' title="さっき推移の画面で見ていた行"' : '') + '>' + '<td class="kw-jc">' + kwJudge(gp.judge) + '</td>' + labelCells(gp)
         + (kwGroup === 'kwmatch' ? '<td class="num">' + kwYen(gp.bid) + '</td>' : '')
         + '<td class="num">' + kwNum(gp.imp) + '</td><td class="num">' + kwNum(gp.clicks) + '</td><td class="num">' + kwPct(gp.ctr, 2) + '</td><td class="num">' + kwYen(gp.cpc) + '</td>'
         + '<td class="num strong">' + kwYen(gp.cost) + '</td><td class="num">' + kwNum(gp.orders) + '</td><td class="num">' + kwYen(gp.sales) + '</td><td class="num">' + kwPct(gp.cvr) + '</td>'
@@ -6913,10 +6919,19 @@ function kwmGo(d){
 // 上部シェアの説明
 function openShareHelp(){ document.getElementById('kw-share-help').hidden = false; }
 function closeShareHelp(){ document.getElementById('kw-share-help').hidden = true; }
+let kwLastKey = null;   // v3.28：最後に推移画面で見ていた行（↑↓で移った時は、閉じた時のワード）
 function closeKwModal(){
   if (_kwmChart) { _kwmChart.destroy(); _kwmChart = null; }
   document.getElementById('kwm-modal').hidden = true;
   document.documentElement.style.overflow = ''; document.body.style.overflow = '';
+  kwLastKey = kwm.key || null;
+  let hit = null;
+  document.querySelectorAll('#adkw-body tr.kw-row').forEach(tr => {
+    const on = tr.dataset.key === kwLastKey;
+    tr.classList.toggle('kw-last', on); tr.classList.remove('kw-flash');
+    if (on) { hit = tr; tr.title = 'さっき推移の画面で見ていた行'; } else if (tr.title === 'さっき推移の画面で見ていた行') tr.removeAttribute('title');
+  });
+  if (hit) { void hit.offsetWidth; hit.classList.add('kw-flash'); try { hit.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
 }
 
 function renderKwModal(){
