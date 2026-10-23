@@ -431,6 +431,9 @@
     margin-left: calc(50% - (50vw - 12px) / var(--pz, 1));
     margin-right: calc(50% - (50vw - 12px) / var(--pz, 1));
   }
+  /* 1920px で1行に収めるため、広告データ-全体のツールバーは少し詰める */
+  #ad-view .toolbar { gap: 10px; }
+  #ad-view .toolbar #open-ad-guide, #ad-view .toolbar #open-ad-recon { padding-left: 11px; padding-right: 11px; }
   /* クリック可能な日付セル（広告データ追加へ） */
   table.ad-table td.ad-day-clickable {
     cursor: pointer;
@@ -773,7 +776,7 @@
   .ad-legend .lg-lo20 { font-weight: 700; }
   table.ad-table tbody td.t-lo10, .graph-table td.t-lo10, .ad-legend .lg-lo10 { color: #c0392b; }
   .ad-legend .lg-lo10 { font-weight: 700; }
-  .ad-legend { display: inline-flex; align-items: center; gap: 7px; font-size: 12.5px; color: var(--text-tertiary); white-space: nowrap; }
+  .ad-legend { display: inline-flex; align-items: center; gap: 6px; font-size: 12px; color: var(--text-tertiary); white-space: nowrap; }
   .ad-legend .lg-mid { color: var(--text-secondary); }
   .ship-legend .lg-shhi { color: #2563eb; font-weight: 700; }
   .ship-legend .lg-shlo { color: #d32f2f; font-weight: 700; }
@@ -835,6 +838,22 @@
     color: var(--black);
   }
   .period-btn:hover:not(.active) { color: var(--black); }
+  /* 広告データ-全体（月別）：月全体／月途中 のペアボタン（2つをくっつけたセグメント型・選択は緑） */
+  .ad-daymode { display: inline-flex; gap: 0; }
+  .ad-daymode[hidden] { display: none; }
+  .ad-daymode button { font-family: inherit; font-size: 13px; font-weight: 600; padding: 7px 11px; cursor: pointer; white-space: nowrap;
+    border: 1px solid var(--border-strong); background: var(--bg-secondary); color: var(--text-secondary); }
+  .ad-daymode button:first-child { border-radius: 8px 0 0 8px; }
+  .ad-daymode button:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
+  .ad-daymode button:hover:not(.on) { color: var(--black); }
+  .ad-daymode button.on { background: #0f766e; border-color: #0f766e; color: #fff; position: relative; z-index: 1; }
+  /* 月途中の帯（表のすぐ上）・見出しのラベル・月の列 */
+  .ad-day-banner { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #0f766e; color: #fff; font-size: 17px; font-weight: 800; letter-spacing: .4px; border-radius: 11px 11px 0 0; }
+  .ad-day-banner .adb-tag { background: #fff; color: #0f766e; border-radius: 5px; padding: 2px 11px; font-size: 15px; }
+  .ad-day-banner button { margin-left: auto; font-family: inherit; font-size: 14px; font-weight: 800; padding: 5px 13px; border-radius: 7px; border: 1.5px solid #fff; background: transparent; color: #fff; cursor: pointer; }
+  .ad-day-banner button:hover { background: rgba(255,255,255,.15); }
+  table.ad-table .ad-daycut-lbl { display: inline-block; margin-top: 4px; background: #0f766e; color: #fff; font-size: 12.5px; font-weight: 800; padding: 2px 8px; border-radius: 5px; white-space: nowrap; }
+  table.ad-table td.ad-daycol.ad-daycut { background: #e6f4f1; color: #0f766e; }
 
   /* 商品マスタ画面 */
   .master-card {
@@ -1849,7 +1868,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.28</span>
+    <span class="version">v3.30</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1999,8 +2018,10 @@
           <input type="date" id="ad-range-end" style="font-size:13px;padding:5px 8px;">
         </label>
       </span>
-      <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);">
-        キャンペーン
+      <div class="ad-daymode" id="ad-daymode" hidden>
+        <button type="button" data-ad-daymode="full">月全体</button><button type="button" data-ad-daymode="same">月途中</button>
+      </div>
+      <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);" title="キャンペーン（広告商品）で絞り込み">
         <select id="ad-product-select" style="font-size:13px;padding:6px 8px;"></select>
       </label>
       <span class="ad-legend">配色:
@@ -2011,11 +2032,11 @@
         <span class="lg-lo10">下位10%</span>
         <span class="lg-mid" style="margin-left:6px;">※広告費は安いほど青</span>
       </span>
+      <div class="spacer"></div>
       <span class="adg-tip" data-tip="説明を見る">
         <button class="utility" id="open-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button>
       </span>
       <button class="utility" id="open-ad-recon" style="font-size:12px;" title="月ごとに、月末データ（B）と日別の広告データ（①）・KWデータ（③）の広告費を比べます"><svg class="icn"><use href="#i-check"/></svg> 月末データと照合</button>
-      <div class="spacer"></div>
       <button class="primary report-add-btn" id="open-ad-add" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 広告データを追加</button><span class="imp-badge" id="imp-badge-ad"></span>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
       <button class="utility toggle-header-btn" id="toggle-header-ad" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
@@ -2610,6 +2631,7 @@ let adData = {};
 let adCampaigns = [];
 let campaignDrafts = [];
 let adPeriod = 'daily';
+let adDayMode = 'full';   // 月別のとき：'full'＝月全体／'same'＝月途中（各月 1〜N日だけ）。画面を開いている間だけ（保存しない）
 let adRangeEnd = null; // 直近2ヶ月（約60日連続）ローリング表示の最終日(YYYY-MM-DD)
 let adMonth = ymKey(new Date());
 let adYear = String(new Date().getFullYear());
@@ -3311,6 +3333,7 @@ function init(){
   document.getElementById('ad-month-select').addEventListener('change', (e) => { adMonth = e.target.value; renderAdTable(); });
   document.getElementById('ad-year-select').addEventListener('change', (e) => { adYear = e.target.value; renderAdTable(); });
   document.getElementById('ad-product-select').addEventListener('change', (e) => { adProduct = e.target.value; renderAdTable(); });
+  document.querySelectorAll('[data-ad-daymode]').forEach(btn => btn.addEventListener('click', () => setAdDayMode(btn.dataset.adDaymode)));
   document.querySelectorAll('[data-ad-period]').forEach(btn => {
     btn.addEventListener('click', () => {
       adPeriod = btn.dataset.adPeriod;
@@ -8183,10 +8206,10 @@ function totalSalesForDate(dateStr, productFilter){
   });
   return total;
 }
-function totalSalesForMonth(prefix, productFilter){
+function totalSalesForMonth(prefix, productFilter, upToDay){
   let total = 0;
   const ym = prefix; // YYYY-MM
-  const dim = daysInMonth(ym);
+  const dim = upToDay ? Math.min(upToDay, daysInMonth(ym)) : daysInMonth(ym);   // upToDay＝月途中（1〜N日だけ）
   for (let d = 1; d <= dim; d++) {
     total += totalSalesResolved(ym + '-' + String(d).padStart(2, '0'), productFilter);
   }
@@ -8303,7 +8326,7 @@ function populateAdProductSelect(){
     if (campaignVisibleForMonth(c, refYm)) visMap.set(prod, true);
   });
   const products = [...visMap.entries()].filter(e => e[1]).map(e => e[0]).sort();
-  let html = '<option value="all">全体</option>';
+  let html = '<option value="all">全キャンペーン</option>';
   products.forEach(p => { html += '<option value="' + escapeHtml(p) + '">' + escapeHtml(p) + '</option>'; });
   sel.innerHTML = html;
   if (adProduct !== 'all' && products.indexOf(adProduct) < 0) adProduct = 'all';
@@ -8311,6 +8334,43 @@ function populateAdProductSelect(){
 }
 function yen(n){ return n ? '¥' + Math.round(n).toLocaleString() : ''; }
 function yen0(n){ return '¥' + Math.round(n || 0).toLocaleString(); }
+
+// 月途中の N：日別の広告データの最新日の「日」。最新日が月末なら 0（＝月途中ではない）
+function adLatestDayCut(){
+  let mx = '';
+  Object.keys(adData).forEach(k => { if (/^\d{4}-\d{2}-\d{2}$/.test(k) && k > mx) mx = k; });
+  if (!mx) return 0;
+  const d = +mx.slice(8, 10);
+  return d >= daysInMonth(mx.slice(0, 7)) ? 0 : d;
+}
+// 表に出す最後の日：日別データ（広告・出荷）の最新日と「昨日」の遅い方。これより後の日・月は行を出さない（新しい行が上なので空行が上に並ばないように）
+function adRowsEndDate(){
+  let mx = '';
+  Object.keys(adData).forEach(k => { if (/^\d{4}-\d{2}-\d{2}$/.test(k) && k > mx) mx = k; });
+  Object.keys(shipments || {}).forEach(ym => {
+    if (!/^\d{4}-\d{2}$/.test(ym)) return;
+    const sh = shipments[ym];
+    for (const fn in sh) for (const d in sh[fn]) { if ((Number(sh[fn][d]) || 0) > 0) { const ds = ym + '-' + String(d).padStart(2, '0'); if (ds > mx) mx = ds; } }
+  });
+  const y = new Date(); y.setDate(y.getDate() - 1);
+  const yd = ymdKey(y);
+  return mx > yd ? mx : yd;
+}
+function setAdDayMode(m){ adDayMode = (m === 'same') ? 'same' : 'full'; renderAdTable(); }
+window.setAdDayMode = setAdDayMode;
+// ペアボタンの見た目（月別で、今月が途中のときだけ出す）
+function updateAdDayModeUI(cut){
+  const box = document.getElementById('ad-daymode');
+  if (!box) return;
+  box.hidden = !(adPeriod === 'monthly' && cut > 0);
+  box.querySelectorAll('button').forEach(b => {
+    const m = b.dataset.adDaymode;
+    b.classList.toggle('on', m === adDayMode);
+    if (m === 'same') b.textContent = '月途中（1〜' + cut + '日）';
+  });
+  const fb = box.querySelector('[data-ad-daymode="full"]'); if (fb) fb.title = '各月の月全体の合計';
+  const sb = box.querySelector('[data-ad-daymode="same"]'); if (sb) sb.title = '今月と同じ日数（各月 1〜' + cut + '日）だけを合計して比べます';
+}
 
 function renderAdTable(){
   const body = document.getElementById('ad-body');
@@ -8327,11 +8387,18 @@ function renderAdTable(){
     return;
   }
 
+  const dayCutAvail = adLatestDayCut();
+  if (!dayCutAvail) adDayMode = 'full';
+  const dayCut = (adPeriod === 'monthly' && adDayMode === 'same') ? dayCutAvail : 0;   // 0＝月全体
+  updateAdDayModeUI(dayCutAvail);
+
+  const rowsEnd = adRowsEndDate();
   let rows = [];
   if (adPeriod === 'daily') {
     const days = daysInMonth(adMonth);
     for (let d = 1; d <= days; d++) {
       const dateStr = adMonth + '-' + String(d).padStart(2, '0');
+      if (dateStr > rowsEnd) break;
       rows.push({ label: d, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr), saleNames: saleNamesForDate(dateStr) });
     }
   } else if (adPeriod === 'last2m') {
@@ -8343,20 +8410,24 @@ function renderAdTable(){
   } else {
     for (let mo = 1; mo <= 12; mo++) {
       const prefix = adYear + '-' + String(mo).padStart(2, '0');
+      if (prefix > rowsEnd.slice(0, 7)) break;
       const agg = {
         sales: { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } },
         cost:  { sp: { kw: 0, shohin: 0, auto: 0 }, sb: { douga: 0, shokore: 0 } }
       };
       Object.keys(adData).forEach(dateStr => {
         if (dateStr.indexOf(prefix) === 0) {
+          if (dayCut && +dateStr.slice(8, 10) > dayCut) return;   // 月途中：1〜N日だけ
           const mm = adMetricsResolved(dateStr, adProduct);
           ['kw', 'shohin', 'auto'].forEach(k => { agg.sales.sp[k] += mm.sales.sp[k]; agg.cost.sp[k] += mm.cost.sp[k]; });
           ['douga', 'shokore'].forEach(k => { agg.sales.sb[k] += mm.sales.sb[k]; agg.cost.sb[k] += mm.cost.sb[k]; });
         }
       });
-      rows.push({ label: mo + '月', m: agg, total: totalSalesForMonth(prefix, adProduct), sale: monthOverlapsSale(prefix) });
+      rows.push({ label: mo + '月', m: agg, total: totalSalesForMonth(prefix, adProduct, dayCut), sale: monthOverlapsSale(prefix) });
     }
   }
+
+  rows.reverse();   // 月日別グラフに合わせて、新しい行が上
 
   let html = '';
   if (adPeriod === 'daily' && isAdMonthClosed(adMonth)) {
@@ -8370,11 +8441,14 @@ function renderAdTable(){
       + '<button onclick="dismissClosePrompt()">あとで</button>'
       + '</div></div>';
   }
-  html += '<div class="table-wrap"><table class="ad-table">'
+  html += '<div class="table-wrap">'
+    + (dayCut ? ('<div class="ad-day-banner"><span class="adb-tag">月途中</span>各月 1〜' + dayCut + '日 だけの合計です（月全体の数字ではありません）'
+      + '<button type="button" onclick="setAdDayMode(\'full\')">月全体に戻す</button></div>') : '')
+    + '<table class="ad-table">'
     + adColgroup()
     + '<thead>'
     + '<tr>'
-    + '<th rowspan="3" class="ad-daycol">' + (adPeriod === 'monthly' ? '月' : (adPeriod === 'last2m' ? '日付' : '日')) + '</th>'
+    + '<th rowspan="3" class="ad-daycol">' + (adPeriod === 'monthly' ? ('月' + (dayCut ? '<br><span class="ad-daycut-lbl">1〜' + dayCut + '日</span>' : '')) : (adPeriod === 'last2m' ? '日付' : '日')) + '</th>'
     + '<th colspan="5" class="adg adg-sales">全体</th>'
     + '<th colspan="9" class="adg adg-sp">スポンサープロダクト広告</th>'
     + '<th colspan="9" class="adg adg-sb">スポンサーブランド広告</th>'
@@ -8480,7 +8554,7 @@ function renderAdTable(){
         + rcell(sales, cost, cls, idR);
     };
     const dayClickable = (adPeriod === 'daily') && !isAdMonthClosed(adMonth);
-    const dayCls = 'ad-daycol' + (r.sale ? ' ad-sale' : '') + (dayClickable ? ' ad-day-clickable' : '');
+    const dayCls = 'ad-daycol' + (r.sale ? ' ad-sale' : '') + (dayClickable ? ' ad-day-clickable' : '') + (dayCut ? ' ad-daycut' : '');
     const saleLabel = (r.saleNames && r.saleNames.length) ? ('🏷 セール：' + r.saleNames.join(' / ')) : 'セール期間';
     const saleTip = r.sale ? (saleLabel + (dayClickable ? '｜クリックで広告データを追加' : '')) : '';
     const nonSaleTitle = (!r.sale && dayClickable) ? ('クリックで' + r.label + '日の広告データを追加') : '';
@@ -10320,6 +10394,8 @@ function renderPlView(){
     });
   }
 
+  data.reverse();   // 月日別グラフに合わせて、新しい行が上
+
   // 実質利益の配色しきい値（未入力=nullは除外）
   const tiers = plProfitTiers(data.map(d => d.profit));
 
@@ -10386,15 +10462,7 @@ function renderPlView(){
       + roasCell
       + '</tr>';
   });
-  const footRoas = (sA > 0) ? (Math.round(sAS / sA * 100) + '%') : '<span class="pl-empty">—</span>';
-  const seoFoot = sTany ? (sT - sAS) : null;
-  h += '</tbody><tfoot><tr>'
-    + '<td>合計</td><td class="pl-c-sales">' + (sTany ? plYen(sT) : NA) + '</td><td class="pl-c-sales">' + yenOrAuto(seoFoot) + '</td>'
-    + '<td class="pl-c-sales">' + plYen(sAS) + '</td><td class="pl-c-gross">' + (sGany ? plYen(sG) : AUTO) + '</td><td class="pl-c-warm">' + plYen(sA) + '</td>'
-    + '<td class="pl-c-warm">' + plYen(sS) + '</td><td class="pl-c-warm">' + plYen(sF) + '</td><td class="pl-c-warm">' + plYen(sSF) + '</td>'
-    + '<td class="' + (sPany && sP < 0 ? 'pl-neg' : '') + '">' + (sPany ? plYen(sP) : AUTO) + '</td>'
-    + '<td class="pl-c-roas">' + footRoas + '</td>'
-    + '</tr></tfoot></table></div>';
+  h += '</tbody></table></div>';   // v3.30：最下部の合計行は廃止
 
   body.innerHTML = h;
   body.querySelectorAll('#pl-mode button').forEach(b => b.addEventListener('click', () => { plMode = b.dataset.v; renderPlView(); }));
