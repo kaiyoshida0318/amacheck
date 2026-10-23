@@ -1868,7 +1868,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.30</span>
+    <span class="version">v3.31</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2009,6 +2009,11 @@
       <div class="period-toggle">
         <button class="period-btn active" data-ad-period="daily">日別</button>
         <button class="period-btn" data-ad-period="monthly">月別</button>
+      </div>
+      <div class="ad-daymode" id="ad-daymode" hidden>
+        <button type="button" data-ad-daymode="full">月全体</button><button type="button" data-ad-daymode="same">月途中</button>
+      </div>
+      <div class="period-toggle" title="最終日から遡って約2ヶ月（60日）を日別で表示">
         <button class="period-btn" data-ad-period="last2m">直近2ヶ月</button>
       </div>
       <select id="ad-month-select"></select>
@@ -2018,9 +2023,6 @@
           <input type="date" id="ad-range-end" style="font-size:13px;padding:5px 8px;">
         </label>
       </span>
-      <div class="ad-daymode" id="ad-daymode" hidden>
-        <button type="button" data-ad-daymode="full">月全体</button><button type="button" data-ad-daymode="same">月途中</button>
-      </div>
       <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);" title="キャンペーン（広告商品）で絞り込み">
         <select id="ad-product-select" style="font-size:13px;padding:6px 8px;"></select>
       </label>
@@ -3140,10 +3142,10 @@ function init(){
   ys.addEventListener('change', () => { currentYear = ys.value; renderShipmentTable(); });
 
   // 日別/月別 切り替えトグル
-  document.querySelectorAll('.period-btn').forEach(btn => {
+  document.querySelectorAll('.period-btn[data-period]').forEach(btn => {   // 出荷数データのボタンだけ（広告データのボタンは data-ad-period で別処理）
     btn.addEventListener('click', () => {
       currentPeriod = btn.dataset.period;
-      document.querySelectorAll('.period-btn').forEach(b => b.classList.toggle('active', b === btn));
+      document.querySelectorAll('.period-btn[data-period]').forEach(b => b.classList.toggle('active', b === btn));
       ms.hidden = (currentPeriod !== 'daily');
       ys.hidden = (currentPeriod !== 'monthly');
       renderShipmentTable();
