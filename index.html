@@ -1445,6 +1445,8 @@
   .ps-filter .ps-clear { border-color: var(--border-strong); background: transparent; color: var(--text-tertiary); opacity: .5; cursor: default; }
   .ps-filter .ps-clear.on { border-color: #475569; background: #475569; color: #fff; opacity: 1; cursor: pointer; }
   .ps-colwrap { position: relative; }
+  #psales-view .ps-btn { font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 6px 14px; border-radius: 8px; border: 1px solid var(--border-strong); background: #fff; color: var(--text-secondary); cursor: pointer; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+  #psales-view .ps-btn:hover { border-color: var(--text-secondary); color: var(--black); background: var(--bg-secondary); }
   .ps-colpanel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; background: #fff; border: 1px solid var(--border-strong); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 10px 14px; width: 640px; font-size: 12.5px; }
   .ps-cp-note { font-size: 11px; color: var(--text-tertiary); flex: 3 !important; font-weight: 500; }
   .ps-cp-scroll { max-height: min(62vh, 560px); overflow-y: auto; border: 1px solid var(--border); border-radius: 6px; }
@@ -1978,7 +1980,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.48</span>
+    <span class="version">v3.50</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2136,8 +2138,8 @@
       </span>
       <span class="ps-filter" id="ps-filter"></span>
       <div class="spacer"></div>
-      <span class="ps-colwrap"><button type="button" class="ghost" id="ps-colbtn" style="font-size:12px;">項目調整</button><div class="ps-colpanel" id="ps-colpanel" hidden></div></span>
-      <button type="button" class="ghost" id="ps-csv" style="font-size:12px;">CSV出力</button>
+      <span class="ps-colwrap"><button type="button" class="ps-btn" id="ps-colbtn">項目調整</button><div class="ps-colpanel" id="ps-colpanel" hidden></div></span>
+      <button type="button" class="ps-btn" id="ps-csv">CSV出力</button>
       <span class="imp-badge" id="imp-badge-psales"></span>
       <button class="utility toggle-header-btn" id="toggle-header-psales" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
     </div>
@@ -3261,6 +3263,7 @@ async function bootstrap(){
   if (!purchData || typeof purchData !== 'object' || Array.isArray(purchData)) purchData = { day: {}, month: {} };
   if (!purchData.day || typeof purchData.day !== 'object') purchData.day = {};
   if (!purchData.month || typeof purchData.month !== 'object') purchData.month = {};
+  setTimeout(() => { try { const a = purchAutoRegister(); if (a.length) toast('購入商品データにある商品マスタに無い商品 ' + a.length + '件を、撤退済み商品に登録しました'); } catch (e) {} }, 0);
   campUrls = await load(STORAGE_CAMPURL, null);
   if (!campUrls || typeof campUrls !== 'object' || Array.isArray(campUrls)) { campUrls = Object.assign({}, CAMP_URL_DEFAULTS); saveCampUrls(); }
   else { let ch = false; Object.keys(CAMP_URL_OLD).forEach(n => { if (campUrls[n] === CAMP_URL_OLD[n]) { campUrls[n] = CAMP_URL_DEFAULTS[n]; ch = true; } }); if (ch) saveCampUrls(); }
@@ -6314,6 +6317,7 @@ function applyReportAll(){
       const pdD = _rpt.pd.filter(x => x.kind === 'day'), pdM = _rpt.pd.filter(x => x.kind === 'month');
       _rpt.pd.forEach(x => { if (x.kind === 'day') purchData.day[x.key] = x.rows; else purchData.month[x.key] = x.rows; });
       if (_rpt.pd.length) savePurchData();
+      const pdAuto = _rpt.pd.length ? purchAutoRegister() : [];
       // 返品データ（月単位で上書き）
       if (_rpt.ret && _rpt.ret.count) { for (const ym in _rpt.ret.agg) { returnsData[ym] = _rpt.ret.agg[ym]; lastYm = lastYm || ym; } saveReturns(); }
       _graphMetricCache = {};
@@ -6330,6 +6334,7 @@ function applyReportAll(){
       if (_rpt.ret && _rpt.ret.count) parts.push('返品' + _rpt.ret.count + '件');
       if (pdD.length) parts.push('購入商品' + pdD.length + '日');
       if (pdM.length) parts.push('購入商品（月別）' + pdM.length + 'か月');
+      if (pdAuto.length) parts.push('商品マスタに無い商品 ' + pdAuto.length + '件を撤退済み商品に登録');
       try { if (!document.getElementById('psales-view').hidden) renderPsalesView(); } catch (e) {}
       try { if (typeof renderReturnsView === 'function') renderReturnsView(); } catch (e) {}
       toast(parts.join(' / ') + ' を反映しました', { label: '元に戻す', onClick: () => { undo(); if (plUndoSnapshot) plUndoApply(); } });
@@ -8922,6 +8927,25 @@ function purchDays(){
   Object.keys(purchData.month || {}).forEach(ym => { const dim = daysInMonth(ym); for (let d = 1; d <= dim; d++) { const k = ym + '-' + String(d).padStart(2, '0'); if (k >= first) set.add(k); } });
   return Array.from(set);
 }
+// v3.49：購入商品データにだけ出てくる ASIN（商品マスタに無い商品）は、撤退済み商品として自動で登録する
+function purchAutoRegister(){
+  const have = new Set(products.map(p => String(p.asin || '').toUpperCase()).filter(Boolean));
+  const found = new Set();
+  const scan = list => (list || []).forEach(r => { const a = String(r.a || '').toUpperCase(); if (a && !have.has(a)) found.add(a); });
+  Object.keys(purchData.day || {}).forEach(d => scan(purchData.day[d]));
+  Object.keys(purchData.month || {}).forEach(m => scan(purchData.month[m]));
+  if (!found.size) return [];
+  const used = new Set(products.map(p => p.fnsku));
+  const added = [];
+  found.forEach(a => {
+    let fn = 'AUTO-' + a; while (used.has(fn)) fn += '_'; used.add(fn);
+    products.push({ sku: '', asin: a, fnsku: fn, name: '（購入商品データから自動登録）' + a, color: PALETTE[products.length % PALETTE.length], status: 'withdrawn', withdrawnDate: todayStr(), autoFromPurchase: 1 });
+    added.push(a);
+  });
+  saveProducts();
+  try { updateTabCounts(); updateWithdrawnButton(); } catch (e) {}
+  return added;
+}
 function purchLatestYm(){
   const a = Object.keys(purchData.day || {}).map(d => d.slice(0, 7)).concat(Object.keys(purchData.month || {})).sort();
   return a.length ? a[a.length - 1] : null;
@@ -8941,8 +8965,8 @@ function psA(k, def){ const v = psColw['a_' + k]; return (v === 'left' || v === 
 const PS_BLOCKS = [
   { g: 'all', label: '全体', cls: 'adg-sales', cols: [
     { k: 'ship', label: '出荷数', w: 52, cls: 'adc-sales', t: 'int', tip: '②出荷数データの合計（個）' },
-    { k: 'total', label: '推計総売上', w: 86, cls: 'adc-sales', t: 'yen', tip: '出荷数 × 販売価格（セール中はセール価格）' },
-    { k: 'sroas', label: '売上ROAS', w: 62, cls: 'adc-sales-l1', t: 'sroas', tip: '推計総売上 ÷ 広告費' },
+    { k: 'total', label: '推計\n総売上', w: 86, cls: 'adc-sales', t: 'yen', tip: '出荷数 × 販売価格（セール中はセール価格）' },
+    { k: 'sroas', label: '売上\nROAS', w: 62, cls: 'adc-sales-l1', t: 'sroas', tip: '推計総売上 ÷ 広告費' },
     { k: 'seo', label: 'SEO売上', w: 86, cls: 'adc-sales-l1', t: 'yen', pct: 'seoP', tip: '推計総売上 − 広告売上（推計。0未満は0）。下の％は SEO売上と広告売上の割合' },
     { k: 'ad', label: '広告売上', w: 86, cls: 'adc-sales-l2', t: 'yen', pct: 'adP', tip: 'この商品が買われた広告売上（SP・SB の合計。宣伝商品＋Halo）' },
     { k: 'cost', label: '広告費', w: 78, cls: 'adc-sales-l3', t: 'cost', tip: '広告費（直接／配賦の切り替えで変わる）' },
@@ -8975,7 +8999,7 @@ function psLeafCols(){
   return out;
 }
 function psVisibleCols(){
-  return psLeafCols().filter(c => !psHidden.has(c.k)).map(c => Object.assign({}, c, { w0: c.w, label0: c.label, w: psW(c.k, c.w), al: psA(c.k, 'right'), label: (psColw['l_' + c.k] || c.label) }));
+  return psLeafCols().filter(c => !psHidden.has(c.k)).map(c => Object.assign({}, c, { w0: c.w, label0: c.label, w: psW(c.k, c.w), al: psA(c.k, 'right'), label: (psColw['l_' + c.k] ? String(psColw['l_' + c.k]).replace(/\//g, '\n') : c.label) }));
 }
 
 // ---------- 集計 ----------
@@ -9211,19 +9235,19 @@ function renderPsalesTable(){
   const imgW = psW('img', 40), nameW = psW('name', 170), nameA = psA('name', 'left'), nameL = psColw.l_name || '商品名';
   let cg = '<colgroup><col style="width:' + imgW + 'px"><col style="width:' + nameW + 'px">' + cols.map(c => '<col style="width:' + c.w + 'px">').join('') + '</colgroup>';
   const stick1 = 'left:' + imgW + 'px;';
-  let h1 = '<tr><th rowspan="3" class="ps-img ps-stick0">' + escapeHtml(psColw.l_img || '画像') + '</th><th rowspan="3" class="ps-name ps-stick1 ps-sortable' + sortCls('name') + '" data-k="name" style="' + stick1 + 'text-align:' + nameA + '" title="クリックで並べ替え（降順→昇順→商品マスタの並び）">' + escapeHtml(nameL) + '<br><span class="ps-sub">SKU</span></th>';
+  let h1 = '<tr><th rowspan="3" class="ps-img ps-stick0">' + escapeHtml(psColw.l_img || '画像') + '</th><th rowspan="3" class="ps-name ps-stick1 ps-sortable' + sortCls('name') + '" data-k="name" style="' + stick1 + 'text-align:' + nameA + '" title="クリックで並べ替え（降順→昇順→商品マスタの並び）">' + escapeHtml(nameL) + '<br><span class="ps-sub">ASIN</span></th>';
   let h2 = '<tr>', h3 = '<tr>';
   const tw = imgW + nameW + cols.reduce((s, c) => s + c.w, 0);
   groups.forEach((G, i) => {
     h1 += '<th colspan="' + G.n + '" class="adg ' + G.cls + '">' + G.label + '</th>';
     if (G.g === 'all') {
-      cols.filter(c => c.g === 'all').forEach((c, ci) => { h2 += '<th rowspan="2" class="adh ' + c.cls + (ci === 0 ? ' adc-gstart' : '') + ' ps-sortable' + sortCls(c.k) + '" data-k="' + c.k + '" title="' + escapeHtml(c.tip || '') + '｜クリックで並べ替え">' + escapeHtml(c.label) + '</th>'; });
+      cols.filter(c => c.g === 'all').forEach((c, ci) => { h2 += '<th rowspan="2" class="adh ' + c.cls + (ci === 0 ? ' adc-gstart' : '') + ' ps-sortable' + sortCls(c.k) + '" data-k="' + c.k + '" title="' + escapeHtml(c.tip || '') + '｜クリックで並べ替え">' + escapeHtml(c.label).replace(/\n/g, '<br>') + '</th>'; });
     } else {
       G.blocks.forEach((B, bi) => { h2 += '<th colspan="' + B.n + '" class="adh ' + B.cls + (bi === 0 ? ' adc-gstart' : ' adc-bstart') + '">' + B.label + '</th>'; });
       let lb = null;
       cols.filter(c => c.g === G.g).forEach((c, ci) => {
         const st = ci === 0 ? ' adc-gstart' : (c.b !== lb ? ' adc-bstart' : ''); lb = c.b;
-        h3 += '<th class="adh ' + c.cls + st + ' ps-sortable' + sortCls(c.k) + '" data-k="' + c.k + '" title="' + escapeHtml(c.tip || '') + '｜クリックで並べ替え">' + escapeHtml(c.label) + '</th>';
+        h3 += '<th class="adh ' + c.cls + st + ' ps-sortable' + sortCls(c.k) + '" data-k="' + c.k + '" title="' + escapeHtml(c.tip || '') + '｜クリックで並べ替え">' + escapeHtml(c.label).replace(/\n/g, '<br>') + '</th>';
       });
     }
   });
@@ -9251,7 +9275,7 @@ function renderPsalesTable(){
     const p = r.p;
     tb += '<tr' + (p && productStatus(p) === 'withdrawn' ? ' class="ps-withdrawn"' : '') + '>'
       + '<td class="ps-img ps-stick0" style="text-align:' + psA('img', 'center') + '">' + (p ? productImageHtml(p, 30) : '') + '</td>'
-      + '<td class="ps-name ps-stick1" style="' + stick1 + 'text-align:' + nameA + '" title="' + escapeHtml(r.name + '\n' + (r.sku ? 'SKU ' + r.sku + '　' : '') + 'ASIN ' + r.asin) + '"><div class="ps-nm">' + escapeHtml(r.name) + '</div><div class="ps-sub">' + escapeHtml(r.sku || r.asin) + '</div></td>';
+      + '<td class="ps-name ps-stick1" style="' + stick1 + 'text-align:' + nameA + '" title="' + escapeHtml(r.name + '\n' + (r.sku ? 'SKU ' + r.sku + '　' : '') + 'ASIN ' + r.asin) + '"><div class="ps-nm">' + escapeHtml(r.name) + '</div><div class="ps-sub">' + escapeHtml(r.asin) + '</div></td>';
     let lastG = null, lastB = null;
     cols.forEach(c => { const fg = c.g !== lastG, fb = c.b && c.b !== lastB; tb += cell(r, c, fg, fb); lastG = c.g; lastB = c.b || null; });
     tb += '</tr>';
@@ -9277,7 +9301,7 @@ function psRenderColPanel(){
   const row = (k, grp, defLabel, defW, defA, canHide) => '<tr' + (canHide && psHidden.has(k) ? ' class="off"' : '') + '>'
     + '<td class="c">' + (canHide ? '<input type="checkbox" data-k="' + k + '"' + (psHidden.has(k) ? '' : ' checked') + ' title="表示する／しない">' : '') + '</td>'
     + '<td class="g">' + escapeHtml(grp) + '</td>'
-    + '<td><input type="text" data-l="' + k + '" value="' + escapeHtml(psColw['l_' + k] || '') + '" placeholder="' + escapeHtml(defLabel) + '"></td>'
+    + '<td><input type="text" data-l="' + k + '" value="' + escapeHtml(psColw['l_' + k] || '') + '" placeholder="' + escapeHtml(String(defLabel).replace(/\n/g, '')) + '" title="空欄＝初期の名前。半角の「/」で改行できます"></td>'
     + '<td class="w"><button type="button" data-wd="' + k + '" data-d="-10" title="10px 狭く">−</button><input type="number" data-w="' + k + '" min="20" max="600" step="1" value="' + psW(k, defW) + '" data-def="' + defW + '"><button type="button" data-wd="' + k + '" data-d="10" title="10px 広く">＋</button></td>'
     + '<td>' + alSel(k, defA) + '</td></tr>';
   let h = '<div class="ps-cp-head"><b>項目調整</b><span class="ps-cp-note">幅（px）・揃え・見出し名を変えられます。すぐ表に反映し、このブラウザに保存します</span>'
@@ -9298,7 +9322,7 @@ function psRenderColPanel(){
 // CSV出力（今の期間・検索・絞り込み・並びのまま。数字は数字で）
 function psExportCsv(){
   const cmp = _psLast || psCompute(); const rows = psRowsShown(cmp); const cols = psVisibleCols();
-  const head = ['商品名', 'SKU', 'ASIN'].concat(cols.map(c => (c.blabel ? (c.g === 'sp' ? 'SP-' : 'SB-') + c.blabel + '-' : '') + c.label + (c.t === 'roas' || c.t === 'sroas' ? '（%）' : (c.t === 'int' ? '（個）' : '（円）'))));
+  const head = ['商品名', 'SKU', 'ASIN'].concat(cols.map(c => (c.blabel ? (c.g === 'sp' ? 'SP-' : 'SB-') + c.blabel + '-' : '') + c.label.replace(/\n/g, '') + (c.t === 'roas' || c.t === 'sroas' ? '（%）' : (c.t === 'int' ? '（個）' : '（円）'))));
   if (cols.some(c => c.k === 'ad')) head.push('広告売上_宣伝商品（円）', '広告売上_Halo（円）');
   const q = v => { const s = String(v == null ? '' : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const lines = [head.map(q).join(',')];
