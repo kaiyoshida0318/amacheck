@@ -1420,7 +1420,7 @@
   .tab:hover { color: var(--black); background: var(--bg-secondary); }
   .tab.active {
     color: var(--blue);
-    border-bottom-color: var(--blue);
+    border-bottom-color: transparent;   /* v3.40：選択中の下線は出さない（文字色だけ） */
     background: transparent;
   }
   .tab svg { font-size: 18px; }
@@ -1881,7 +1881,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.39</span>
+    <span class="version">v3.40</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
