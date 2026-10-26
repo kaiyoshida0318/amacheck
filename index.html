@@ -1396,6 +1396,62 @@
     padding: 0 2px; white-space: nowrap; user-select: none;
   }
   .tab-group-gap { margin-left: 12px; }
+  /* ===== v3.41：商品-売上データ ===== */
+  #psales-view .toolbar, #psales-view .ps-summary, #psales-view .table-wrap {
+    width: calc((100vw - 24px) / var(--pz, 1));
+    margin-left: calc(50% - (50vw - 12px) / var(--pz, 1));
+    margin-right: calc(50% - (50vw - 12px) / var(--pz, 1));
+  }
+  #psales-view .toolbar { gap: 10px; margin-bottom: 8px; }
+  #psales-view .toolbar select { font-size: 13px; padding: 6px 8px; }
+  .ps-search { font-size: 13px; padding: 6px 10px; width: 210px; border: 1px solid var(--border-strong); border-radius: 8px; }
+  .ps-cm-wrap { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); font-weight: 600; }
+  .ps-cm { display: inline-flex; }
+  .ps-cm button { font-family: inherit; font-size: 12.5px; font-weight: 600; padding: 6px 11px; cursor: pointer; white-space: nowrap; border: 1px solid var(--border-strong); background: var(--bg-secondary); color: var(--text-secondary); }
+  .ps-cm button:first-child { border-radius: 8px 0 0 8px; }
+  .ps-cm button:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
+  .ps-cm button.on { background: #7c3aed; border-color: #7c3aed; color: #fff; position: relative; z-index: 1; }
+  .ps-filter { display: inline-flex; align-items: center; gap: 4px; }
+  .ps-filter .ps-flbl { font-size: 11px; color: var(--text-tertiary); margin-right: 2px; white-space: nowrap; }
+  .ps-filter button { font-family: inherit; font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap; border: 1.5px solid; }
+  .ps-filter .ps-clear { border-color: var(--border-strong); background: transparent; color: var(--text-tertiary); opacity: .5; cursor: default; }
+  .ps-filter .ps-clear.on { border-color: #475569; background: #475569; color: #fff; opacity: 1; cursor: pointer; }
+  .ps-colwrap { position: relative; }
+  .ps-colpanel { position: absolute; right: 0; top: calc(100% + 6px); z-index: 60; background: #fff; border: 1px solid var(--border-strong); border-radius: 10px; box-shadow: 0 10px 30px rgba(0,0,0,.18); padding: 10px 14px; width: 560px; font-size: 12.5px; }
+  .ps-colpanel[hidden] { display: none; }
+  .ps-cp-head { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; } .ps-cp-head b { flex: 1; }
+  .ps-cp-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+  .ps-cp-gl { font-weight: 800; margin-bottom: 4px; }
+  .ps-cp-g label { display: block; white-space: nowrap; padding: 1px 0; cursor: pointer; }
+  .ps-summary { display: flex; flex-wrap: wrap; align-items: center; gap: 6px 16px; font-size: 12.5px; color: var(--text-secondary); margin-bottom: 8px; padding: 0 2px; }
+  .ps-summary b { color: var(--black); }
+  .ps-summary .ps-cnt { margin-left: auto; color: var(--text-tertiary); }
+  .ps-summary .ps-un { color: #b45309; text-decoration: underline dotted; cursor: help; }
+  .ps-src { font-size: 11.5px; font-weight: 800; padding: 2px 9px; border-radius: 999px; }
+  .ps-src-e { background: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .ps-src-d { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
+  .ps-src-n { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
+  #psales-view .ps-wrap { overflow: auto; }
+  table.ps-table { table-layout: fixed; }
+  table.ps-table td { font-size: 13px; padding: 5px 4px 13px; position: relative; vertical-align: middle; font-variant-numeric: tabular-nums; }
+  table.ps-table .ps-v { line-height: 1.2; }
+  table.ps-table .ps-pct { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font-size: 9.5px; font-weight: 700; }
+  table.ps-table .ps-na { color: #c0c4cc; }
+  table.ps-table .ps-img, table.ps-table .ps-name { background: #fff; text-align: left; }
+  table.ps-table thead th.ps-img, table.ps-table thead th.ps-name { background: var(--bg-secondary); vertical-align: middle; }
+  table.ps-table td.ps-img { padding: 3px 4px; text-align: center; }
+  table.ps-table td.ps-img .ph { border-radius: 6px; }
+  table.ps-table .ps-stick0 { position: sticky; left: 0; z-index: 3; }
+  table.ps-table .ps-stick1 { position: sticky; left: 40px; z-index: 3; box-shadow: inset -2px 0 0 rgba(0,0,0,0.25); }
+  table.ps-table thead th.ps-stick0, table.ps-table thead th.ps-stick1 { z-index: 7; }
+  table.ps-table td.ps-name { padding: 4px 8px; }
+  table.ps-table .ps-nm { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  table.ps-table .ps-sub { font-size: 10.5px; color: var(--text-tertiary); font-weight: 500; font-family: ui-monospace, Menlo, monospace; overflow: hidden; text-overflow: ellipsis; }
+  table.ps-table tr.ps-withdrawn td.ps-name .ps-nm { color: var(--text-tertiary); }
+  table.ps-table th.ps-sortable { cursor: pointer; user-select: none; }
+  table.ps-table th.ps-sortable:hover { filter: brightness(0.95); }
+  table.ps-table th.ps-sort-desc, table.ps-table th.ps-sort-asc { color: #b91c1c; }
+  table.ps-table th.ps-sort-desc::after { content: ' ↓'; } table.ps-table th.ps-sort-asc::after { content: ' ↑'; }
   /* v3.38：くくりの見出しの色（基本＝青／全体＝赤／広告調整＝緑／基礎情報＝茶） */
   .tab-group.tg-basic { color: #2563eb; }
   .tab-group.tg-all   { color: #dc2626; }
@@ -1881,7 +1937,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.40</span>
+    <span class="version">v3.41</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1904,6 +1960,9 @@
     <span class="tab-group tg-basic">【基本】</span>
     <button class="tab" data-tab="shipment">
       商品-出荷数データ
+    </button>
+    <button class="tab" data-tab="psales">
+      商品-売上データ
     </button>
     <span class="tab-group tab-group-gap tg-all">【全体】</span>
     <button class="tab" data-tab="ad">
@@ -2022,6 +2081,26 @@
   <!-- 商品-KWデータ（③KWデータ） -->
   <div id="adkw-view" hidden>
     <div id="adkw-body"></div>
+  </div>
+
+  <!-- v3.41：商品-売上データ（④／E 購入商品データ × ②出荷数 × ①広告費） -->
+  <div id="psales-view" hidden>
+    <div class="toolbar ps-toolbar">
+      <select id="ps-month" title="月を選ぶ（確定＝E 月別あり／速報＝④日別の合計）"></select>
+      <select id="ps-day"></select>
+      <input type="search" id="ps-search" class="ps-search" placeholder="商品名・SKU・ASIN で検索">
+      <span class="ps-cm-wrap" title="広告費を商品にどう割り当てるか&#10;直接：キャンペーンの費用を、宣伝した商品に全額（SB は宣伝商品が1つに決まらないので割り当てない）&#10;配賦（参考）：キャンペーンの費用を、そのキャンペーン経由で買われた商品の売上の比率で割り振る">広告費
+        <span class="ps-cm" id="ps-costmode"><button type="button" data-v="direct">直接</button><button type="button" data-v="alloc">配賦（参考）</button></span>
+      </span>
+      <span class="ps-filter" id="ps-filter"></span>
+      <div class="spacer"></div>
+      <span class="ps-colwrap"><button type="button" class="ghost" id="ps-colbtn" style="font-size:12px;">項目調整</button><div class="ps-colpanel" id="ps-colpanel" hidden></div></span>
+      <button type="button" class="ghost" id="ps-csv" style="font-size:12px;">CSV出力</button>
+      <button class="primary report-add-btn" id="ps-add" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> レポート追加</button><span class="imp-badge" id="imp-badge-psales"></span>
+      <button class="utility toggle-header-btn" id="toggle-header-psales" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
+    </div>
+    <div class="ps-summary" id="ps-summary"></div>
+    <div id="psales-body"></div>
   </div>
 
   <div id="ad-view" hidden>
@@ -2513,7 +2592,7 @@
       <label class="upload-zone pl-drop-all" id="report-drop" style="margin-top:0;">
         <svg class="icn" style="font-size:22px;"><use href="#i-file-spreadsheet"/></svg>
         <div class="main">CSV / ZIP をクリック、またはここにドラッグ&ドロップ（複数可）</div>
-        <div class="sub">広告データ / 出荷数データ / KWデータ / 月末データ4種 を自動で判別して振り分けます（広告は「広告データ-日付」、出荷は「出荷数データ-日付」のファイル名）</div>
+        <div class="sub">広告データ / 出荷数データ / KWデータ / 購入商品データ / 月末データ5種 を自動で判別して振り分けます（広告は「広告データ-日付」、出荷は「出荷数データ-日付」のファイル名）</div>
         <input type="file" id="report-file-input" accept=".csv,.txt,.zip,text/csv,text/plain,application/zip" multiple>
       </label>
 
@@ -2639,6 +2718,7 @@ const STORAGE_PL = 'amacheck_pl_v1';
 const STORAGE_RETURNS = 'amacheck_returns_v1';
 const STORAGE_CAT = 'amacheck_categories_v1';
 const STORAGE_CAMPURL = 'amacheck_campurl_v1';   // v3.14：キャンペーン名 → 広告管理画面のURL
+const STORAGE_PURCH = 'amacheck_purchase_v1';   // v3.41：④／E 購入商品データ（買われた商品別の広告売上）
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
 let _lsQuotaWarned = false;
@@ -2728,6 +2808,10 @@ function saveAdCampData(){ return persistKey(STORAGE_ADCAMP, adCampData); }
 // ③KWデータ：{ 'YYYY-MM-DD': [ {type,campaign,adGroup,kind,target,match,product,status,bid,imp,clicks,cost,orders,sales,topShare,campaignId,adGroupId,targetId}, ... ] }
 let adKwData = {};
 function saveAdKwData(){ return persistKey(STORAGE_ADKW, adKwData); }
+// v3.41：④／E 購入商品データ：{ day: { 'YYYY-MM-DD': [行] }, month: { 'YYYY-MM': [行] } }
+//   行 = { t:'SP'|'SB', c:キャンペーン名, id, adv:広告対象ASIN, a:購入ASIN, r:'p'(宣伝商品)|'h'(Halo), n:商品購入数, u:注文点数, s:売上 }
+let purchData = { day: {}, month: {} };
+function savePurchData(){ return persistKey(STORAGE_PURCH, purchData); }
 // ===== KWデータの点検（v3.06）=====
 // Amazon はキーワード単位の日別データを約5か月分しか残さない。それより前の日を取ると、
 //  ・ふつうの日 → 全行の費用が ¥0、・月の1日 → その月全体の合計が1日分として返る。
@@ -2926,7 +3010,7 @@ const CAMP_URL_OLD = {
 function saveCampUrls(){ return persistKey(STORAGE_CAMPURL, campUrls); }
 function campUrlOf(name){ const u = campUrls && campUrls[String(name || '').trim()]; return (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : ''; }
 
-const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL];
+const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH];
 
 // ==== 永続化: IndexedDB（大容量）優先。使えない時は localStorage(圧縮) にフォールバック ====
 function idbOpen(){
@@ -2956,7 +3040,7 @@ function persistKey(key, obj){
   const r = lzSet(key, obj); scheduleSync(); return r;
 }
 function amacheckStateMap(){
-  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls };
+  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData };
 }
 
 // ================= GitHub クラウド同期 =================
@@ -3075,6 +3159,10 @@ async function bootstrap(){
   plData = await load(STORAGE_PL, {});
   returnsData = await load(STORAGE_RETURNS, {});
   categories = await load(STORAGE_CAT, {});
+  purchData = await load(STORAGE_PURCH, null);
+  if (!purchData || typeof purchData !== 'object' || Array.isArray(purchData)) purchData = { day: {}, month: {} };
+  if (!purchData.day || typeof purchData.day !== 'object') purchData.day = {};
+  if (!purchData.month || typeof purchData.month !== 'object') purchData.month = {};
   campUrls = await load(STORAGE_CAMPURL, null);
   if (!campUrls || typeof campUrls !== 'object' || Array.isArray(campUrls)) { campUrls = Object.assign({}, CAMP_URL_DEFAULTS); saveCampUrls(); }
   else { let ch = false; Object.keys(CAMP_URL_OLD).forEach(n => { if (campUrls[n] === CAMP_URL_OLD[n]) { campUrls[n] = CAMP_URL_DEFAULTS[n]; ch = true; } }); if (ch) saveCampUrls(); }
@@ -3134,6 +3222,7 @@ let adCloseDismissed = new Set(); // このセッション中「あとで」に�
 function init(){
   // ズーム初期化
   initZoom();
+  try { initPsalesView(); } catch (e) { console.error(e); }
 
   const now = new Date();
   const ms = document.getElementById('month-select');
@@ -3460,6 +3549,7 @@ function switchView(name, fromPop){
   document.getElementById('add-view').hidden = (name !== 'add');
   document.getElementById('master-view').hidden = (name !== 'master');
   document.getElementById('shipment-view').hidden = (name !== 'shipment');
+  document.getElementById('psales-view').hidden = (name !== 'psales');
   document.getElementById('withdrawn-view').hidden = (name !== 'withdrawn');
   document.getElementById('ad-view').hidden = (name !== 'ad' && name !== 'addaily');
   document.getElementById('adkw-view').hidden = (name !== 'adkw');
@@ -3471,6 +3561,7 @@ function switchView(name, fromPop){
   if (name === 'pl') renderPlView();
   if (name === 'returns') renderReturnsView();
   if (name === 'shipment') renderShipmentTable();
+  if (name === 'psales') renderPsalesView();
   if (name === 'master') renderMasterList();
   if (name === 'withdrawn') renderWithdrawnList();
   if (name === 'ad' || name === 'addaily') {   // v3.33：月別タブ＝monthly、日別タブ＝daily／last2m
@@ -5521,10 +5612,12 @@ const REPORT_FILE_TYPES = [
   { group: '日別データ', badge: '①', pattern: '広告データ-2026-0916.csv', label: '広告データ（日別）', key: 'ファイル名の日付', dest: 'カレンダー①・全-月日別グラフ／全-月別データ・全-日別データ', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
   { badge: '②', pattern: '出荷数データ-26-0915.csv', label: '出荷数データ（日別）', key: 'SKU / ASIN（＋各行の日付）', dest: 'カレンダー②・商品-出荷数データ', url: 'https://sellercentral-japan.amazon.com/reportcentral/BUSINESS_REPORTS' },
   { badge: '③', pattern: 'KWデータ-2026-1005.csv（中身で自動判別）', label: 'KWデータ（日別・キーワード／ターゲット別）', key: '中の「日付」列', dest: '商品-KWデータ（分析用データにも出力）', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
+  { badge: '④', pattern: '購入商品データ-2026-1025.csv', label: '購入商品データ（日別・買われた商品別の広告売上）', key: 'ファイル名の日付', dest: '商品-売上データ（速報）', url: 'https://advertising-japan.amazon.com/reporting?ephemeralAdvertiser=true' },
   { group: '月別データ', badge: 'A', pattern: 'トランザクション レポート .csv', label: '月末：FBA手数料・販売手数料・出荷数', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（FBA手数料・販売手数料）', url: 'https://sellercentral-japan.amazon.com/payments/reports-repository' },
   { badge: 'B', pattern: '広告レポート（月合計）.csv', label: '月末：広告費・広告売上', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（広告費・広告売上・ROAS）', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
   { badge: 'C', pattern: '月次保管料レポート .csv', label: '月末：保管費', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（保管費）', url: 'https://sellercentral-japan.amazon.com/reportcentral/STORAGE_FEE_CHARGES/1' },
   { badge: 'D', pattern: '売上ダッシュボード .csv', label: '月末：総売上', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（総売上）', url: 'https://sellercentral-japan.amazon.com/gp/site-metrics/report.html' },
+  { badge: 'E', pattern: 'E-購入商品データ-2026-09.csv', label: '月末：購入商品データ（買われた商品別の広告売上）', key: 'ファイル名の年月（例 2025-01）', dest: '商品-売上データ（確定）', url: 'https://advertising-japan.amazon.com/reporting?ephemeralAdvertiser=true' },
   { badge: '返', pattern: '167067020635.csv（数字でOK）', label: '返品データ（FBA返品レポート）', key: 'FNSKU（＋返品日で月へ）', dest: '返品率（欠陥品・不良品を使用）', url: 'https://sellercentral-japan.amazon.com/reportcentral/CUSTOMER_RETURNS/1' }
 ];
 const REPORT_FILE_TIP = '①②（広告データ・出荷数データ）を同じ日付でそろえて入れると、その日が対で取り込まれます。片方だけの日は取り込み時に確認が出ます（チェックを入れれば取込可）。ファイル名に「広告データ」「出荷数データ」を入れると確実に振り分けられます。';
@@ -5548,7 +5641,7 @@ function buildReportFileTypePanel(){
     + '</div></div></div>';
 }
 let _rpt = null;
-function rptReset(){ _rpt = { ship: [], ad: [], kw: [], meFiles: [], ret: null, unknown: [], errors: [], notes: [], meMonth: null, allowPartial: false }; }
+function rptReset(){ _rpt = { ship: [], ad: [], kw: [], pd: [], meFiles: [], ret: null, unknown: [], errors: [], notes: [], meMonth: null, allowPartial: false }; }
 // ============================================
 // v3.27：日別データの欠け（ADcheck v1.1438「日別データ欠け通知＋不足日を確認」を移植）
 //  ・種類ごとに、その種類の最初の日〜最後の日の間で取り込んでいない日＝欠け。最新日より後（まだ取り込んでいない昨日など）は数えない
@@ -5557,7 +5650,8 @@ function rptReset(){ _rpt = { ship: [], ad: [], kw: [], meFiles: [], ret: null, 
 const MISS_SOURCES = [
   { key: 'ad',   label: '広告', name: '①広告データ', color: '#1565c0', bg: '#e8f1fb', days: () => Object.keys(adData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)) },
   { key: 'ship', label: '出荷', name: '②出荷数データ', color: '#e65100', bg: '#fff4e5', days: () => { const out = []; Object.keys(shipments || {}).forEach(ym => { if (!/^\d{4}-\d{2}$/.test(ym)) return; const set = new Set(); const sh = shipments[ym] || {}; Object.keys(sh).forEach(fn => Object.keys(sh[fn] || {}).forEach(d => set.add(+d))); set.forEach(d => { if (d >= 1 && d <= 31) out.push(ym + '-' + String(d).padStart(2, '0')); }); }); return out; } },
-  { key: 'kw',   label: 'KW',   name: '③KWデータ', color: '#6d28d9', bg: '#f3e8ff', days: () => Object.keys(adKwData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)) }
+  { key: 'kw',   label: 'KW',   name: '③KWデータ', color: '#6d28d9', bg: '#f3e8ff', days: () => Object.keys(adKwData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)) },
+  { key: 'pd',   label: '購入', name: '④購入商品データ', color: '#0f766e', bg: '#e6f4f1', days: () => purchDays() }
 ];
 const missPad = n => String(n).padStart(2, '0');
 const missToDate = s => { const a = s.split('-').map(Number); return new Date(a[0], a[1] - 1, a[2]); };   // ローカル時刻で日を進める（UTC だと日本時間の朝に前日になる）
@@ -5711,6 +5805,7 @@ function updateImportBadges(){
   setImpBadge('imp-badge-ad', adYms.length ? adYms.sort()[adYms.length - 1] : null);
   setImpBadge('imp-badge-pl', latestMonthKey(plData, v => v && (v.sales != null || v.adCost != null || v.storage != null || v.fbaFee != null)));
   setImpBadge('imp-badge-ret', latestMonthKey(returnsData));
+  setImpBadge('imp-badge-psales', purchLatestYm());
 }
 function rptFillMonthSelect(){
   const sel = document.getElementById('report-me-month'); if (!sel) return;
@@ -5733,6 +5828,19 @@ async function rptStage(files){
     const text = decodeAdBytes(u.bytes);
     if (text == null) { _rpt.errors.push(u.name + '：文字コード不明'); return; }
     const fname = u.name;
+    // v3.41：④購入商品データ（日別）／E 購入商品データ（月別）。ファイル名に「購入商品データ」か、中身の列（購入ASIN・関連性）で判別。①より先に見る
+    if (fname.indexOf('購入商品データ') > -1 || isPurchCsvText(text)) {
+      const pk = purchKeyFromName(fname);
+      if (!pk) { _rpt.errors.push(fname + '：ファイル名から日付を読み取れません（例：購入商品データ-2026-1025.csv／E-購入商品データ-2026-09.csv）'); return; }
+      const pr = parsePurchCsv(text);
+      if (!pr.ok) { _rpt.errors.push(fname + '：' + pr.msg); return; }
+      _rpt.pd = _rpt.pd.filter(x => !(x.kind === pk.kind && x.key === pk.key));
+      _rpt.pd.push({ name: fname, kind: pk.kind, key: pk.key, rows: pr.rows, sum: pr.sum });
+      const lbl = pk.kind === 'day' ? ('④購入商品データ・' + (+pk.key.slice(5, 7)) + '/' + (+pk.key.slice(8, 10)) + '・速報') : ('E 購入商品データ・' + pk.key.replace('-', '/') + '・確定');
+      const had = pk.kind === 'day' ? purchData.day[pk.key] : purchData.month[pk.key];
+      _rpt.notes.push('🛒 ' + escapeHtml(fname) + '（' + lbl + '）：' + pr.count + '行・広告売上 ¥' + Math.round(pr.sum).toLocaleString() + (had ? '（取込済みを上書き）' : ''));
+      return;
+    }
     // ③ KWデータ（キーワード/ターゲット別・日別）は中身で判別（日付は中の「日付」列）。①より先に見る
     if (isKwCsvText(text)) {
       const kr = parseKwCsv(text);
@@ -6001,7 +6109,7 @@ function rptMismatchExists(){
   return false;
 }
 function rptUpdateApply(){
-  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.kw.length || rptHasMe() || (_rpt.ret && _rpt.ret.count);
+  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.kw.length || _rpt.pd.length || rptHasMe() || (_rpt.ret && _rpt.ret.count);
   const blocked = rptMismatchExists() && !_rpt.allowPartial;
   document.getElementById('report-apply').disabled = !anyData || blocked;
   const bits = [];
@@ -6010,10 +6118,11 @@ function rptUpdateApply(){
   if (_rpt.ship.length) { const sd = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => sd.add(d))); bits.push('出荷' + sd.size + '日'); }
   if (rptHasMe()) { const nM = Object.keys(rptMePlan().plan).length; bits.push('月末' + _rpt.meFiles.length + 'ファイル' + (nM ? '（' + nM + 'か月）' : '')); }
   if (_rpt.ret && _rpt.ret.count) bits.push('返品' + _rpt.ret.count + '件');
+  { const pdD = _rpt.pd.filter(x => x.kind === 'day').length, pdM = _rpt.pd.filter(x => x.kind === 'month').length; if (pdD) bits.push('購入商品' + pdD + '日'); if (pdM) bits.push('購入商品（月別）' + pdM + 'か月'); }
   document.getElementById('report-status').textContent = bits.length ? (bits.join(' / ') + (blocked ? '　⚠️ 対の欠けを確認してください' : '')) : '';
 }
 function applyReportAll(){
-  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.kw.length || rptHasMe() || (_rpt.ret && _rpt.ret.count);
+  const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.kw.length || _rpt.pd.length || rptHasMe() || (_rpt.ret && _rpt.ret.count);
   if (!anyData) { toast('取り込めるデータがありません'); return; }
   if (rptMismatchExists() && !_rpt.allowPartial) { toast('対になっていない日があります。チェックを入れると取り込めます'); return; }
   const hasMeApply = rptHasMe();
@@ -6071,6 +6180,10 @@ function applyReportAll(){
         }
         lastYm = ym;
       });
+      // v3.41：④／E 購入商品データ（日／月ごとに上書き）
+      const pdD = _rpt.pd.filter(x => x.kind === 'day'), pdM = _rpt.pd.filter(x => x.kind === 'month');
+      _rpt.pd.forEach(x => { if (x.kind === 'day') purchData.day[x.key] = x.rows; else purchData.month[x.key] = x.rows; });
+      if (_rpt.pd.length) savePurchData();
       // 返品データ（月単位で上書き）
       if (_rpt.ret && _rpt.ret.count) { for (const ym in _rpt.ret.agg) { returnsData[ym] = _rpt.ret.agg[ym]; lastYm = lastYm || ym; } saveReturns(); }
       _graphMetricCache = {};
@@ -6085,6 +6198,9 @@ function applyReportAll(){
       if (shipDatesAll.size) parts.push('出荷' + shipDatesAll.size + '日');
       if (mePlan) parts.push('月末' + _rpt.meFiles.length + 'ファイル（' + Object.keys(mePlan).length + 'か月）');
       if (_rpt.ret && _rpt.ret.count) parts.push('返品' + _rpt.ret.count + '件');
+      if (pdD.length) parts.push('購入商品' + pdD.length + '日');
+      if (pdM.length) parts.push('購入商品（月別）' + pdM.length + 'か月');
+      try { if (!document.getElementById('psales-view').hidden) renderPsalesView(); } catch (e) {}
       try { if (typeof renderReturnsView === 'function') renderReturnsView(); } catch (e) {}
       toast(parts.join(' / ') + ' を反映しました', { label: '元に戻す', onClick: () => { undo(); if (plUndoSnapshot) plUndoApply(); } });
       if (kwSkipped.length) { const ks = Array.from(new Set(kwSkipped)).sort(); setTimeout(() => alert('次の ' + ks.length + '日はKWデータを取り込みませんでした。\n同じ日の広告データと費用合計が大きく違い、Amazon の保存期間（約5か月）切れのデータの形でした（費用がほぼ0、または1か月分）。\n\n' + ks.map(d => d.replace(/-/g, '/')).slice(0, 30).join('、') + (ks.length > 30 ? ' ほか' : '')), 300); }
@@ -6366,6 +6482,7 @@ function adjustHiddenTableHeight(){
   // 対象：現在表示中の表のスクロール領域
   const scrollEl = document.querySelector('#shipment-view:not([hidden]) .table-wrap')
                  || document.querySelector('#ad-view:not([hidden]) .table-wrap')
+                 || document.querySelector('#psales-view:not([hidden]) .table-wrap')
                  || document.querySelector('#master-view:not([hidden]) .master-scroll');
   if (!scrollEl) return;
   if (!document.body.classList.contains('header-hidden')) {
@@ -8613,6 +8730,443 @@ function renderAdTable(){
   html += '</tbody></table></div>';
   body.innerHTML = html;
   if (document.body.classList.contains('header-hidden')) adjustHiddenTableHeight();
+}
+
+// =====================================================================
+// v3.41：商品-売上データ（④購入商品データ・E 月別購入商品データ → 商品ごとの売上・広告の表）
+//  ・広告売上は「実際に買われた商品（購入ASIN）」の行に入る（Amazon の統合レポート。宣伝商品／Halo）
+//  ・広告費は ① のキャンペーン別（adCampData）。商品への割り当ては
+//      直接：キャンペーンの費用を、宣伝した商品（広告対象ASIN）に全額。SB は宣伝商品が無いので割り当てない
+//      配賦（参考）：キャンペーンの費用を、そのキャンペーン経由の広告売上の比率で商品に割り振る
+//  ・月は E（確定）があれば E、無ければ ④ の日別の合計（速報）
+//  ・ADcheck v1.1488「商品-売上データ」表の仕様を移植（検索・売上ROASの絞り込み・並べ替え・CSV・項目調整）
+// =====================================================================
+function isPurchCsvText(text){
+  const head = String(text).replace(/^﻿/, '').split(/\r?\n/, 1)[0] || '';
+  return (head.indexOf('購入ASIN') > -1 && head.indexOf('関連性') > -1) || (head.indexOf('変換された商品ID') > -1 && head.indexOf('商品の関連性') > -1);
+}
+// 拡張ツールの形（広告タイプ,キャンペーン名,キャンペーンID,広告対象ASIN,購入ASIN,関連性,商品購入数,注文点数,売上）と、
+// Amazon の統合レポートそのままの形（広告プロダクト,変換された商品ID,商品の関連性,…）の両方を読む
+function parsePurchCsv(text){
+  let res;
+  try { res = Papa.parse(String(text).replace(/^﻿/, ''), { header: true, skipEmptyLines: true }); } catch (e) { return { ok: false, msg: '解析エラー' }; }
+  const rows = res.data || [];
+  const cols = rows.length ? Object.keys(rows[0]) : (res.meta && res.meta.fields) || [];
+  const pick = (...names) => cols.find(c => names.indexOf(String(c).trim()) > -1);
+  const cType = pick('広告タイプ', '広告プロダクト'), cName = pick('キャンペーン名'), cId = pick('キャンペーンID');
+  const cAdv = pick('広告対象ASIN', '広告対象商品ID'), cAsin = pick('購入ASIN', '変換された商品ID'), cRel = pick('関連性', '商品の関連性');
+  const cN = pick('商品購入数'), cU = pick('注文点数', '注文された商品点数'), cS = pick('売上');
+  if (!cAsin || !cRel || !cS) return { ok: false, msg: '「購入ASIN」「関連性」「売上」の列が見つかりません' };
+  const num = v => { const n = parseFloat(String(v == null ? '' : v).replace(/[^\d.\-]/g, '')); return isFinite(n) ? n : 0; };
+  const clean = v => String(v == null ? '' : v).replace(/^="?|"$/g, '').trim();
+  const out = []; let sum = 0;
+  rows.forEach(r => {
+    const asin = clean(r[cAsin]).toUpperCase(); if (!asin) return;
+    const tRaw = clean(cType ? r[cType] : '');
+    const t = /^SB|brand|ブランド/i.test(tRaw) ? 'SB' : 'SP';
+    const relRaw = clean(r[cRel]);
+    const rel = /halo/i.test(relRaw) ? 'h' : 'p';
+    const s = num(r[cS]), n = cN ? num(r[cN]) : 0, u = cU ? num(r[cU]) : 0;
+    if (!s && !n && !u) return;
+    out.push({ t, c: clean(cName ? r[cName] : ''), id: clean(cId ? r[cId] : ''), adv: clean(cAdv ? r[cAdv] : '').toUpperCase(), a: asin, r: rel, n, u, s });
+    sum += s;
+  });
+  return { ok: true, rows: out, sum, count: out.length };
+}
+// ファイル名から日別（YYYY-MMDD）／月別（YYYY-MM）を読む
+function purchKeyFromName(name){
+  let m = String(name).match(/(20\d{2})-(\d{2})(\d{2})(?!\d)/);
+  if (m && +m[2] >= 1 && +m[2] <= 12 && +m[3] >= 1 && +m[3] <= 31) return { kind: 'day', key: m[1] + '-' + m[2] + '-' + m[3] };
+  m = String(name).match(/(20\d{2})-(\d{2})(?![\d])/);
+  if (m && +m[2] >= 1 && +m[2] <= 12) return { kind: 'month', key: m[1] + '-' + m[2] };
+  return null;
+}
+// ④の日付の一覧（不足日の判定用）：日別の日＋ E で確定した月の日（日別の最初の日以降だけ）
+function purchDays(){
+  const ds = Object.keys(purchData.day || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+  if (!ds.length) return [];
+  const first = ds[0], set = new Set(ds);
+  Object.keys(purchData.month || {}).forEach(ym => { const dim = daysInMonth(ym); for (let d = 1; d <= dim; d++) { const k = ym + '-' + String(d).padStart(2, '0'); if (k >= first) set.add(k); } });
+  return Array.from(set);
+}
+function purchLatestYm(){
+  const a = Object.keys(purchData.day || {}).map(d => d.slice(0, 7)).concat(Object.keys(purchData.month || {})).sort();
+  return a.length ? a[a.length - 1] : null;
+}
+
+// ---------- 状態 ----------
+let psMonth = null, psDay = '', psSearch = '', psFilter = null, psSortKey = null, psSortDir = 'desc', psCostMode = 'direct', psColPanel = false;
+let psHidden = (() => { try { return new Set(JSON.parse(localStorage.getItem('amacheck_ps_hidden') || '[]')); } catch (e) { return new Set(); } })();
+function psSaveHidden(){ try { localStorage.setItem('amacheck_ps_hidden', JSON.stringify(Array.from(psHidden))); } catch (e) {} }
+
+// 列の定義（全-月別データと同じ並び：全体／SP（広告全体・KW・商品）／SB（広告全体・KW-動画・KW-商品コレ））
+const PS_BLOCKS = [
+  { g: 'all', label: '全体', cls: 'adg-sales', cols: [
+    { k: 'ship', label: '出荷数', w: 52, cls: 'adc-sales', t: 'int', tip: '②出荷数データの合計（個）' },
+    { k: 'total', label: '推計総売上', w: 86, cls: 'adc-sales', t: 'yen', tip: '出荷数 × 販売価格（セール中はセール価格）' },
+    { k: 'sroas', label: '売上ROAS', w: 62, cls: 'adc-sales-l1', t: 'sroas', tip: '推計総売上 ÷ 広告費' },
+    { k: 'seo', label: 'SEO売上', w: 86, cls: 'adc-sales-l1', t: 'yen', pct: 'seoP', tip: '推計総売上 − 広告売上（推計。0未満は0）。下の％は SEO売上と広告売上の割合' },
+    { k: 'ad', label: '広告売上', w: 86, cls: 'adc-sales-l2', t: 'yen', pct: 'adP', tip: 'この商品が買われた広告売上（SP・SB の合計。宣伝商品＋Halo）' },
+    { k: 'cost', label: '広告費', w: 78, cls: 'adc-sales-l3', t: 'cost', tip: '広告費（直接／配賦の切り替えで変わる）' },
+    { k: 'roas', label: 'ROAS', w: 54, cls: 'adc-sales-l4', t: 'roas', tip: '広告売上 ÷ 広告費' }
+  ] },
+  { g: 'sp', label: 'スポンサープロダクト広告', cls: 'adg-sp', sub: [
+    { b: 'spAll', label: '広告全体', cls: 'adc-sp', pct: 'spP' },
+    { b: 'spKw', label: 'KW', cls: 'adc-sp-b1', pct: 'kwP' },
+    { b: 'spSh', label: '商品', cls: 'adc-sp-b2', pct: 'shP' }
+  ] },
+  { g: 'sb', label: 'スポンサーブランド広告', cls: 'adg-sb', sub: [
+    { b: 'sbAll', label: '広告全体', cls: 'adc-sb', pct: 'sbP' },
+    { b: 'sbDg', label: 'KW-動画', cls: 'adc-sb-b1', pct: 'dgP' },
+    { b: 'sbSk', label: 'KW-商品コレ', cls: 'adc-sb-b2', pct: 'skP' }
+  ] }
+];
+// 葉の列（キー・幅・属するブロック）を平らにする
+function psLeafCols(){
+  const out = [];
+  PS_BLOCKS.forEach((G, gi) => {
+    if (G.cols) G.cols.forEach((c, ci) => out.push(Object.assign({ g: G.g, gi, bi: 0, first: ci === 0, gcls: G.cls }, c)));
+    else G.sub.forEach((B, bi) => {
+      [['S', '広告売上', 'yen', 76, B.pct, 'この商品が買われた広告売上（' + B.label + '）。下の％は' + (B.b === 'spAll' ? 'SP と SB の割合' : B.b === 'sbAll' ? 'SP と SB の割合' : (G.g === 'sp' ? 'KW と商品の割合' : '動画と商品コレの割合'))],
+       ['C', '広告費', 'cost', 68, null, '広告費（' + B.label + '）'],
+       ['R', 'ROAS', 'roas', 52, null, '広告売上 ÷ 広告費（' + B.label + '）']].forEach((x, xi) => {
+        out.push({ k: B.b + x[0], label: x[1], t: x[2], w: x[3], pct: x[4], tip: x[5], cls: B.cls, g: G.g, gi, bi, blabel: B.label, b: B.b, first: bi === 0 && xi === 0, bfirst: xi === 0, gcls: G.cls });
+      });
+    });
+  });
+  return out;
+}
+function psVisibleCols(){ return psLeafCols().filter(c => !psHidden.has(c.k)); }
+
+// ---------- 集計 ----------
+function psPeriodDays(){
+  if (psDay) return [psDay];
+  const ym = psMonth, out = []; if (!ym) return out;
+  for (let d = 1, dim = daysInMonth(ym); d <= dim; d++) out.push(ym + '-' + String(d).padStart(2, '0'));
+  return out;
+}
+// 期間の④の行と、出どころ
+function psPurchRows(){
+  if (psDay) return { rows: (purchData.day[psDay] || []), src: (purchData.day[psDay] ? 'day' : 'none'), nDays: purchData.day[psDay] ? 1 : 0 };
+  const ym = psMonth;
+  if (purchData.month && purchData.month[ym]) return { rows: purchData.month[ym], src: 'E', nDays: 0 };
+  const ds = Object.keys(purchData.day || {}).filter(d => d.slice(0, 7) === ym).sort();
+  let rows = []; ds.forEach(d => { rows = rows.concat(purchData.day[d] || []); });
+  return { rows, src: ds.length ? 'daily' : 'none', nDays: ds.length, firstDay: ds[0], lastDay: ds[ds.length - 1] };
+}
+function psBlockOf(t, campName){
+  const cc = classifyCampaign({ 'キャンペーン名': campName || '', '広告プロダクト': t === 'SB' ? 'Sponsored Brands' : 'Sponsored Products' });
+  if (cc.platform === 'sb') return cc.subtype === 'douga' ? 'sbDg' : 'sbSk';
+  return cc.subtype === 'kw' ? 'spKw' : (cc.subtype === 'shohin' ? 'spSh' : 'spAu');
+}
+function psCompute(){
+  const pr = psPurchRows();
+  // 速報（④の日別の合計）の月は、④のある日だけで比べる（広告費・出荷数・総売上も同じ日にそろえる）
+  const days = (!psDay && pr.src === 'daily') ? Object.keys(purchData.day).filter(d => d.slice(0, 7) === psMonth).sort() : psPeriodDays();
+  const blank = () => ({ S: { spAll: 0, spKw: 0, spSh: 0, spAu: 0, sbAll: 0, sbDg: 0, sbSk: 0 }, C: { spAll: 0, spKw: 0, spSh: 0, spAu: 0, sbAll: 0, sbDg: 0, sbSk: 0 }, prom: 0, halo: 0, units: 0, ship: 0, total: 0 });
+  const byAsin = {};
+  const get = a => (byAsin[a] = byAsin[a] || blank());
+  // 広告売上（買われた商品の行へ）
+  const campSales = {}, campAsinSales = {}, campAdv = {}, campBlock = {};
+  pr.rows.forEach(r => {
+    const blk = psBlockOf(r.t, r.c), all = r.t === 'SB' ? 'sbAll' : 'spAll';
+    const o = get(r.a);
+    o.S[blk] += r.s; o.S[all] += r.s; o.units += r.u || 0;
+    if (r.r === 'h') o.halo += r.s; else o.prom += r.s;
+    const cn = String(r.c || '').trim(); campBlock[cn] = blk;
+    campSales[cn] = (campSales[cn] || 0) + r.s;
+    (campAsinSales[cn] = campAsinSales[cn] || {})[r.a] = (campAsinSales[cn][r.a] || 0) + r.s;
+    if (r.adv) (campAdv[cn] = campAdv[cn] || new Set()).add(r.adv);
+  });
+  // 宣伝した商品が今の期間の④に出ていないキャンペーンは、他の日の④から探す
+  const advAll = {};
+  const scan = list => (list || []).forEach(r => { if (r.adv) (advAll[String(r.c || '').trim()] = advAll[String(r.c || '').trim()] || new Set()).add(r.adv); });
+  Object.keys(purchData.day || {}).forEach(d => scan(purchData.day[d])); Object.keys(purchData.month || {}).forEach(m => scan(purchData.month[m]));
+  // 広告費（①のキャンペーン別）。キャンペーン別が保存されていない日は、①の種類別の合計（KW・商品・オート・動画・商品コレ）を使う
+  const campCost = {}, campPlat = {};
+  const BLK_NAME = { spKw: '（①の合計）SP-KW', spSh: '（①の合計）SP-商品', spAu: '（①の合計）SP-オート', sbDg: '（①の合計）SB-動画', sbSk: '（①の合計）SB-商品コレ' };
+  let fallbackDays = 0;
+  days.forEach(ds => {
+    const list = adCampData[ds];
+    if (Array.isArray(list) && list.length) {
+      list.forEach(c => {
+        if (!c || !c.cost) return; const cn = String(c.name || '').trim();
+        campCost[cn] = (campCost[cn] || 0) + c.cost;
+        if (!campBlock[cn]) campBlock[cn] = c.platform === 'sb' ? (c.subtype === 'douga' ? 'sbDg' : 'sbSk') : (c.subtype === 'kw' ? 'spKw' : c.subtype === 'shohin' ? 'spSh' : 'spAu');
+        campPlat[cn] = c.platform;
+      });
+    } else if (adData[ds]) {
+      const m = adMetricsResolved(ds, 'all'); fallbackDays++;
+      [['spKw', m.cost.sp.kw], ['spSh', m.cost.sp.shohin], ['spAu', m.cost.sp.auto], ['sbDg', m.cost.sb.douga], ['sbSk', m.cost.sb.shokore]].forEach(([b, v]) => {
+        if (!v) return; const cn = BLK_NAME[b]; campCost[cn] = (campCost[cn] || 0) + v; campBlock[cn] = b; campPlat[cn] = b.indexOf('sb') === 0 ? 'sb' : 'sp';
+      });
+    }
+  });
+  // 種類別の合計を使う分は、同じ種類のキャンペーンの④の行をまとめて、割り当て先を決める
+  Object.keys(BLK_NAME).forEach(b => {
+    const cn = BLK_NAME[b]; if (!campCost[cn]) return;
+    campSales[cn] = 0; campAsinSales[cn] = {}; const adv = new Set();
+    pr.rows.forEach(r => { if (psBlockOf(r.t, r.c) !== b) return; campSales[cn] += r.s; campAsinSales[cn][r.a] = (campAsinSales[cn][r.a] || 0) + r.s; if (r.adv) adv.add(r.adv); });
+    if (!adv.size) Object.keys(advAll).forEach(k => { if (advAll[k].size && psBlockOf(k.indexOf('【SB】') > -1 ? 'SB' : 'SP', k) === b) advAll[k].forEach(a => adv.add(a)); });
+    if (adv.size) campAdv[cn] = adv;
+  });
+  let costTotal = 0, costAssigned = 0; const unassigned = [];
+  Object.keys(campCost).forEach(cn => {
+    const cost = campCost[cn]; costTotal += cost;
+    const blk = campBlock[cn], all = blk.indexOf('sb') === 0 ? 'sbAll' : 'spAll';
+    if (psCostMode === 'alloc') {
+      const tot = campSales[cn] || 0;
+      if (tot > 0) { Object.keys(campAsinSales[cn]).forEach(a => { const v = cost * campAsinSales[cn][a] / tot; const o = get(a); o.C[blk] += v; o.C[all] += v; }); costAssigned += cost; }
+      else unassigned.push({ name: cn, cost, why: 'この期間に広告経由の購入が無い' });
+    } else {
+      const adv = campAdv[cn] && campAdv[cn].size ? campAdv[cn] : advAll[cn];
+      if (adv && adv.size) { const n = adv.size; adv.forEach(a => { const v = cost / n; const o = get(a); o.C[blk] += v; o.C[all] += v; }); costAssigned += cost; }
+      else unassigned.push({ name: cn, cost, why: (campPlat[cn] === 'sb' || blk.indexOf('sb') === 0) ? 'SB は宣伝商品が1つに決まらない（共通費）' : '宣伝した商品が分からない' });
+    }
+  });
+  // 出荷数・推計総売上（②）
+  const prodByAsin = {};
+  products.forEach(p => { if (p.asin) prodByAsin[String(p.asin).toUpperCase()] = p; });
+  products.forEach(p => {
+    const a = String(p.asin || '').toUpperCase(); if (!a) return;
+    days.forEach(ds => {
+      const ym = ds.slice(0, 7), day = +ds.slice(8, 10);
+      const q = shipments[ym] && shipments[ym][p.fnsku] && shipments[ym][p.fnsku][day];
+      if (q) { const o = get(a); o.ship += q; o.total += q * priceForProductOnDate(p, ds); }
+    });
+  });
+  // 行（商品マスタの並び。撤退済みはデータがある時だけ。マスタに無い ASIN は最後）
+  const rows = [];
+  const mk = (p, a) => {
+    const o = byAsin[a] || blank();
+    const ad = o.S.spAll + o.S.sbAll, cost = o.C.spAll + o.C.sbAll;
+    const seo = Math.max(0, o.total - ad);
+    const r = { p, asin: a, name: p ? (p.name || '') : '（商品マスタに無い商品）', sku: p ? (p.sku || '') : '', ship: o.ship, total: o.total, seo, ad, cost, prom: o.prom, halo: o.halo, units: o.units };
+    r.sroas = cost > 0 ? Math.round(o.total / cost * 100) : 0;
+    r.roas = cost > 0 ? ad / cost * 100 : null;
+    const pair = (x, y) => (x + y) > 0 ? Math.round(x / (x + y) * 100) : null;
+    r.seoP = pair(seo, ad); r.adP = r.seoP == null ? null : 100 - r.seoP;
+    r.spP = pair(o.S.spAll, o.S.sbAll); r.sbP = r.spP == null ? null : 100 - r.spP;
+    r.kwP = pair(o.S.spKw, o.S.spSh); r.shP = r.kwP == null ? null : 100 - r.kwP;
+    r.dgP = pair(o.S.sbDg, o.S.sbSk); r.skP = r.dgP == null ? null : 100 - r.dgP;
+    ['spAll', 'spKw', 'spSh', 'sbAll', 'sbDg', 'sbSk'].forEach(b => { r[b + 'S'] = o.S[b]; r[b + 'C'] = o.C[b]; r[b + 'R'] = o.C[b] > 0 ? o.S[b] / o.C[b] * 100 : null; });
+    r.has = !!(o.ship || o.total || ad || cost);
+    return r;
+  };
+  const used = new Set();
+  products.forEach(p => {
+    const a = String(p.asin || '').toUpperCase(); if (!a || used.has(a)) return; used.add(a);
+    const r = mk(p, a);
+    if (productStatus(p) === 'withdrawn' && !r.has) return;
+    rows.push(r);
+  });
+  Object.keys(byAsin).forEach(a => { if (!used.has(a)) { const r = mk(null, a); if (r.has) rows.push(r); } });
+  const adTotal = rows.reduce((s, r) => s + r.ad, 0), haloTotal = rows.reduce((s, r) => s + r.halo, 0);
+  const spTotal = rows.reduce((s, r) => s + r.spAllS, 0), sbTotal = rows.reduce((s, r) => s + r.sbAllS, 0);
+  const totalSum = rows.reduce((s, r) => s + r.total, 0);
+  return { rows, pr, costTotal, costAssigned, unassigned, adTotal, haloTotal, spTotal, sbTotal, totalSum, fallbackDays };
+}
+
+// ---------- 色 ----------
+function psSroasCat(v){ if (!(v > 0)) return 'n'; if (v >= 800) return 'g'; if (v >= 500) return 'y'; if (v >= 200) return 'o'; return 'r'; }
+const PS_SROAS_CATS = [['g', '800-', '#1D9E75'], ['y', '500-800', '#BA7517'], ['o', '200-500', '#ED7D31'], ['r', '-200', '#A32D2D'], ['n', '-', '#9ca3af']];
+function psRoasColor(v){ return v >= 500 ? '#1D9E75' : (v >= 300 ? '#BA7517' : '#A32D2D'); }
+function psPctColor(p){ return p >= 80 ? '#0D47A1' : p >= 60 ? '#1E88E5' : p >= 40 ? '#C9A000' : p >= 20 ? '#E53935' : '#8B1A1A'; }
+// 検索（全角→半角・小文字・ハイフン等を無視した一致も）
+function psNorm(s){ return String(s || '').replace(/[！-～]/g, ch => String.fromCharCode(ch.charCodeAt(0) - 0xFEE0)).replace(/　/g, ' ').toLowerCase().trim(); }
+function psMatch(r, q){
+  if (!q) return true;
+  const hay = [r.name, r.sku, r.asin, r.p ? r.p.fnsku : ''].map(psNorm);
+  const nq = psNorm(q), sq = nq.replace(/[-\s_]/g, '');
+  return hay.some(h => h.indexOf(nq) > -1 || (sq && h.replace(/[-\s_]/g, '').indexOf(sq) > -1));
+}
+
+// ---------- 描画 ----------
+function psMonthsList(){
+  const set = new Set();
+  Object.keys(purchData.day || {}).forEach(d => set.add(d.slice(0, 7)));
+  Object.keys(purchData.month || {}).forEach(m => set.add(m));
+  Object.keys(shipments || {}).forEach(m => { if (/^\d{4}-\d{2}$/.test(m)) set.add(m); });
+  return Array.from(set).sort().reverse();
+}
+function renderPsalesView(){
+  const body = document.getElementById('psales-body'); if (!body) return;
+  const months = psMonthsList();
+  if (!psMonth || months.indexOf(psMonth) < 0) psMonth = purchLatestYm() || months[0] || ymKey(new Date());
+  // 月・日の選択肢
+  const msel = document.getElementById('ps-month');
+  if (msel) msel.innerHTML = (months.length ? months : [psMonth]).map(m => {
+    const tag = (purchData.month && purchData.month[m]) ? '（確定）' : (Object.keys(purchData.day || {}).some(d => d.slice(0, 7) === m) ? '（速報）' : '');
+    return '<option value="' + m + '"' + (m === psMonth ? ' selected' : '') + '>' + (+m.slice(0, 4)) + '年' + (+m.slice(5, 7)) + '月' + tag + '</option>';
+  }).join('');
+  const dsel = document.getElementById('ps-day');
+  if (dsel) {
+    const ds = Object.keys(purchData.day || {}).filter(d => d.slice(0, 7) === psMonth).sort().reverse();
+    if (psDay && ds.indexOf(psDay) < 0) psDay = '';
+    dsel.innerHTML = '<option value="">日選択（月の合計）</option>' + ds.map(d => '<option value="' + d + '"' + (d === psDay ? ' selected' : '') + '>' + (+d.slice(5, 7)) + '/' + (+d.slice(8, 10)) + '（' + '日月火水木金土'.charAt(new Date(d + 'T00:00:00').getDay()) + '）</option>').join('');
+    dsel.disabled = !ds.length;
+    dsel.title = ds.length ? 'その1日の数字だけにする（④購入商品データのある日）' : 'この月は④購入商品データ（日別）がありません';
+  }
+  // 広告費の切り替え
+  document.querySelectorAll('#ps-costmode button').forEach(b => b.classList.toggle('on', b.dataset.v === psCostMode));
+  // 売上ROASの絞り込みボタン
+  const fb = document.getElementById('ps-filter');
+  if (fb) fb.innerHTML = '<span class="ps-flbl">売上ROAS</span>' + PS_SROAS_CATS.map(c => { const on = psFilter === c[0];
+      return '<button type="button" data-cat="' + c[0] + '" title="売上ROAS ' + c[1] + ' の商品だけ" style="border-color:' + c[2] + ';background:' + (on ? c[2] : 'transparent') + ';color:' + (on ? '#fff' : c[2]) + '">' + c[1] + '</button>'; }).join('')
+    + (psFilter ? '<button type="button" class="ps-clear on" data-cat="x" title="売上ROASの絞り込みを解除">✕ 解除</button>' : '<button type="button" class="ps-clear" disabled title="絞り込みしていません">✕ 解除</button>');
+  renderPsalesTable();
+}
+function psSortValue(r, k){
+  if (k === 'name') return r.name; if (k === 'sku') return r.sku;
+  const v = r[k]; return v == null ? -Infinity : v;
+}
+function psRowsShown(cmp){
+  let rows = cmp.rows.slice();
+  rows = rows.filter(r => psMatch(r, psSearch));
+  if (psDay) rows = rows.filter(r => r.has);
+  if (psFilter) rows = rows.filter(r => psSroasCat(r.sroas) === psFilter);
+  if (psSortKey) {
+    const dir = psSortDir === 'asc' ? 1 : -1;
+    rows.sort((a, b) => {
+      const x = psSortValue(a, psSortKey), y = psSortValue(b, psSortKey);
+      if (typeof x === 'string' || typeof y === 'string') return String(x).localeCompare(String(y), 'ja') * dir;
+      return (x - y) * dir;
+    });
+  }
+  return rows;
+}
+let _psLast = null;
+function renderPsalesTable(){
+  const body = document.getElementById('psales-body'); if (!body) return;
+  const cmp = psCompute(); _psLast = cmp;
+  const rows = psRowsShown(cmp);
+  const cols = psVisibleCols();
+  const yen = v => '¥' + Math.round(v).toLocaleString();
+  // 上の要約
+  const pr = cmp.pr;
+  const per = psDay ? ((+psDay.slice(5, 7)) + '/' + (+psDay.slice(8, 10)) + '（1日）') : ((+psMonth.slice(0, 4)) + '年' + (+psMonth.slice(5, 7)) + '月');
+  let srcTag;
+  if (pr.src === 'E') srcTag = '<span class="ps-src ps-src-e" title="E 購入商品データ（月別）の数字です">確定</span>';
+  else if (pr.src === 'daily') srcTag = '<span class="ps-src ps-src-d" title="④購入商品データ（日別）の合計です。広告売上は後から増えるので、月別（E）を入れると確定の数字に入れ替わります">速報（④ ' + pr.nDays + '日分：' + (pr.firstDay === pr.lastDay ? (+pr.firstDay.slice(8, 10)) : (+pr.firstDay.slice(8, 10)) + '〜' + (+pr.lastDay.slice(8, 10))) + '日。④のある日だけで集計）</span>';
+  else if (pr.src === 'day') srcTag = '<span class="ps-src ps-src-d">速報（④）</span>';
+  else srcTag = '<span class="ps-src ps-src-n" title="この期間の④／E 購入商品データがありません。広告売上は出ません">購入商品データなし</span>';
+  const unTot = cmp.unassigned.reduce((s, u) => s + u.cost, 0);
+  const unTip = cmp.unassigned.length ? cmp.unassigned.sort((a, b) => b.cost - a.cost).map(u => '・' + u.name + '：' + yen(u.cost) + '（' + u.why + '）').join('\n') : '';
+  const sumEl = document.getElementById('ps-summary');
+  if (sumEl) sumEl.innerHTML = '<b>' + per + '</b>' + srcTag
+    + '<span>推計総売上 <b>' + yen(cmp.totalSum) + '</b></span>'
+    + '<span>広告売上 <b>' + yen(cmp.adTotal) + '</b>（SP ' + yen(cmp.spTotal) + '・SB ' + yen(cmp.sbTotal) + '／うちHalo ' + yen(cmp.haloTotal) + '）</span>'
+    + '<span>広告費 <b>' + yen(cmp.costTotal) + '</b>（' + (psCostMode === 'alloc' ? '配賦' : '直接') + 'で商品に割り当て ' + yen(cmp.costAssigned)
+    + (unTot >= 1 ? '／<span class="ps-un" title="' + escapeHtml(unTip) + '">割り当てなし ' + yen(unTot) + '</span>' : '') + '）'
+    + (cmp.fallbackDays ? '<span class="ps-un" title="この ' + cmp.fallbackDays + '日は①のキャンペーン別の数字が保存されていないため、①の種類別（KW・商品・オート・動画・商品コレ）の合計で割り当てています。耐火バッグ以外のキャンペーンの費用も含みます">※' + cmp.fallbackDays + '日は種類別の合計</span>' : '') + '</span>'
+    + '<span class="ps-cnt">' + rows.length + '件</span>';
+  // 見出し（3段：グループ／ブロック／列）
+  const groups = [];
+  cols.forEach(c => { let G = groups[groups.length - 1]; if (!G || G.g !== c.g) { G = { g: c.g, cls: c.gcls, n: 0, label: PS_BLOCKS[c.gi].label, blocks: [] }; groups.push(G); } G.n++; if (c.b) { let B = G.blocks[G.blocks.length - 1]; if (!B || B.b !== c.b) { B = { b: c.b, label: c.blabel, cls: c.cls, n: 0 }; G.blocks.push(B); } B.n++; } });
+  const sortCls = k => psSortKey === k ? (psSortDir === 'desc' ? ' ps-sort-desc' : ' ps-sort-asc') : '';
+  let cg = '<colgroup><col style="width:40px"><col style="width:170px">' + cols.map(c => '<col style="width:' + c.w + 'px">').join('') + '</colgroup>';
+  let h1 = '<tr><th rowspan="3" class="ps-img ps-stick0">画像</th><th rowspan="3" class="ps-name ps-stick1 ps-sortable' + sortCls('name') + '" data-k="name" title="クリックで並べ替え（降順→昇順→商品マスタの並び）">商品名<br><span class="ps-sub">SKU</span></th>';
+  let h2 = '<tr>', h3 = '<tr>';
+  const tw = 40 + 170 + cols.reduce((s, c) => s + c.w, 0);
+  groups.forEach((G, i) => {
+    h1 += '<th colspan="' + G.n + '" class="adg ' + G.cls + '">' + G.label + '</th>';
+    if (G.g === 'all') {
+      cols.filter(c => c.g === 'all').forEach((c, ci) => { h2 += '<th rowspan="2" class="adh ' + c.cls + (ci === 0 ? ' adc-gstart' : '') + ' ps-sortable' + sortCls(c.k) + '" data-k="' + c.k + '" title="' + escapeHtml(c.tip || '') + '｜クリックで並べ替え">' + c.label + '</th>'; });
+    } else {
+      G.blocks.forEach((B, bi) => { h2 += '<th colspan="' + B.n + '" class="adh ' + B.cls + (bi === 0 ? ' adc-gstart' : ' adc-bstart') + '">' + B.label + '</th>'; });
+      let lb = null;
+      cols.filter(c => c.g === G.g).forEach((c, ci) => {
+        const st = ci === 0 ? ' adc-gstart' : (c.b !== lb ? ' adc-bstart' : ''); lb = c.b;
+        h3 += '<th class="adh ' + c.cls + st + ' ps-sortable' + sortCls(c.k) + '" data-k="' + c.k + '" title="' + escapeHtml(c.tip || '') + '｜クリックで並べ替え">' + c.label + '</th>';
+      });
+    }
+  });
+  h1 += '</tr>'; h2 += '</tr>'; h3 += '</tr>';
+  // 行
+  const NA = '<span class="ps-na">—</span>';
+  const cell = (r, c, isFirstOfGroup, isFirstOfBlock) => {
+    const v = r[c.k];
+    let inner = '', style = '';
+    if (c.t === 'yen') inner = v ? yen(v) : NA;
+    else if (c.t === 'cost') inner = v >= 0.5 ? yen(v) : NA;
+    else if (c.t === 'int') inner = v ? Math.round(v).toLocaleString() : NA;
+    else if (c.t === 'roas') { inner = v == null ? NA : (Math.round(v).toLocaleString() + '%'); if (v != null) style = 'color:' + psRoasColor(v) + ';font-weight:700;'; }
+    else if (c.t === 'sroas') { const cat = psSroasCat(v); const col = (PS_SROAS_CATS.find(x => x[0] === cat) || [])[2]; inner = v > 0 ? v.toLocaleString() + '%' : NA; if (v > 0) style = 'color:' + col + ';font-weight:700;'; }
+    let pct = '';
+    if (c.pct && r[c.pct] != null && (v || 0) > 0) pct = '<span class="ps-pct" style="color:' + psPctColor(r[c.pct]) + '">' + r[c.pct] + '%</span>';
+    let tip = '';
+    if (c.k === 'ad' && r.ad > 0) tip = ' title="宣伝商品として買われた分 ' + yen(r.prom) + '／Halo（別の商品の広告経由）' + yen(r.halo) + '／広告経由の点数 ' + Math.round(r.units) + '個"';
+    const sep = isFirstOfGroup ? ' adc-gstart' : (isFirstOfBlock ? ' adc-bstart' : '');
+    return '<td class="' + c.cls + sep + '"' + tip + (style ? ' style="' + style + '"' : '') + '><div class="ps-v">' + inner + '</div>' + pct + '</td>';
+  };
+  let tb = '';
+  rows.forEach(r => {
+    const p = r.p;
+    tb += '<tr' + (p && productStatus(p) === 'withdrawn' ? ' class="ps-withdrawn"' : '') + '>'
+      + '<td class="ps-img ps-stick0">' + (p ? productImageHtml(p, 30) : '') + '</td>'
+      + '<td class="ps-name ps-stick1" title="' + escapeHtml(r.name + '\n' + (r.sku ? 'SKU ' + r.sku + '　' : '') + 'ASIN ' + r.asin) + '"><div class="ps-nm">' + escapeHtml(r.name) + '</div><div class="ps-sub">' + escapeHtml(r.sku || r.asin) + '</div></td>';
+    let lastG = null, lastB = null;
+    cols.forEach(c => { const fg = c.g !== lastG, fb = c.b && c.b !== lastB; tb += cell(r, c, fg, fb); lastG = c.g; lastB = c.b || null; });
+    tb += '</tr>';
+  });
+  if (!rows.length) tb = '<tr><td colspan="' + (cols.length + 2) + '" style="text-align:center;color:var(--text-tertiary);padding:28px;">' + (psFilter || psSearch ? '条件に合う商品がありません' : '表示する商品がありません') + '</td></tr>';
+  body.innerHTML = '<div class="table-wrap ps-wrap"><table class="ad-table ps-table" style="width:100%;min-width:' + tw + 'px">' + cg + '<thead>' + h1 + h2 + h3 + '</thead><tbody>' + tb + '</tbody></table></div>';
+  body.querySelectorAll('.ps-sortable').forEach(th => th.addEventListener('click', () => psSortBy(th.dataset.k)));
+  if (document.body.classList.contains('header-hidden')) adjustHiddenTableHeight();
+}
+// 並べ替え：降順 → 昇順 → 商品マスタの並び
+function psSortBy(k){
+  if (psSortKey !== k) { psSortKey = k; psSortDir = (k === 'name' || k === 'sku') ? 'asc' : 'desc'; }
+  else if ((psSortDir === 'desc') === !(k === 'name' || k === 'sku')) psSortDir = psSortDir === 'desc' ? 'asc' : 'desc';
+  else psSortKey = null;
+  renderPsalesTable();
+}
+// 項目調整（列の表示／非表示）
+function psRenderColPanel(){
+  const box = document.getElementById('ps-colpanel'); if (!box) return;
+  box.hidden = !psColPanel; if (!psColPanel) return;
+  const cols = psLeafCols();
+  let h = '<div class="ps-cp-head"><b>表示する列</b><button type="button" class="ghost" id="ps-cp-all">すべて表示</button><button type="button" class="ghost" id="ps-cp-close">閉じる</button></div><div class="ps-cp-grid">';
+  PS_BLOCKS.forEach(G => {
+    h += '<div class="ps-cp-g"><div class="ps-cp-gl">' + G.label + '</div>';
+    cols.filter(c => c.g === G.g).forEach(c => { h += '<label><input type="checkbox" data-k="' + c.k + '"' + (psHidden.has(c.k) ? '' : ' checked') + '> ' + (c.blabel ? c.blabel + '：' : '') + c.label + '</label>'; });
+    h += '</div>';
+  });
+  box.innerHTML = h + '</div>';
+  box.querySelectorAll('input[type=checkbox]').forEach(cb => cb.addEventListener('change', () => { if (cb.checked) psHidden.delete(cb.dataset.k); else psHidden.add(cb.dataset.k); psSaveHidden(); renderPsalesTable(); }));
+  box.querySelector('#ps-cp-all').addEventListener('click', () => { psHidden.clear(); psSaveHidden(); psRenderColPanel(); renderPsalesTable(); });
+  box.querySelector('#ps-cp-close').addEventListener('click', () => { psColPanel = false; psRenderColPanel(); });
+}
+// CSV出力（今の期間・検索・絞り込み・並びのまま。数字は数字で）
+function psExportCsv(){
+  const cmp = _psLast || psCompute(); const rows = psRowsShown(cmp); const cols = psVisibleCols();
+  const head = ['商品名', 'SKU', 'ASIN'].concat(cols.map(c => (c.blabel ? (c.g === 'sp' ? 'SP-' : 'SB-') + c.blabel + '-' : '') + c.label + (c.t === 'roas' || c.t === 'sroas' ? '（%）' : (c.t === 'int' ? '（個）' : '（円）'))));
+  if (cols.some(c => c.k === 'ad')) head.push('広告売上_宣伝商品（円）', '広告売上_Halo（円）');
+  const q = v => { const s = String(v == null ? '' : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
+  const lines = [head.map(q).join(',')];
+  rows.forEach(r => {
+    const vals = [r.name, r.sku, r.asin].concat(cols.map(c => { const v = r[c.k]; if (v == null || (c.t === 'sroas' && !(v > 0))) return ''; return (c.t === 'roas') ? Math.round(v) : Math.round(v); }));
+    if (cols.some(c => c.k === 'ad')) vals.push(Math.round(r.prom), Math.round(r.halo));
+    lines.push(vals.map(q).join(','));
+  });
+  const name = psDay ? 'Amacheck_商品-売上データ_' + psDay + '.csv' : 'Amacheck_商品-売上データ_' + psMonth + '.csv';
+  const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
+  setTimeout(() => URL.revokeObjectURL(a.href), 4000);
+  toast('CSVを書き出しました（' + rows.length + '件）');
+}
+function initPsalesView(){
+  const on = (id, ev, fn) => { const el = document.getElementById(id); if (el) el.addEventListener(ev, fn); };
+  on('ps-month', 'change', e => { psMonth = e.target.value; psDay = ''; renderPsalesView(); });
+  on('ps-day', 'change', e => { psDay = e.target.value; renderPsalesView(); });
+  on('ps-search', 'input', e => { psSearch = e.target.value; renderPsalesTable(); });
+  on('ps-csv', 'click', psExportCsv);
+  on('ps-colbtn', 'click', () => { psColPanel = !psColPanel; psRenderColPanel(); });
+  on('ps-add', 'click', () => openReportModal());
+  on('toggle-header-psales', 'click', toggleHeader);
+  document.querySelectorAll('#ps-costmode button').forEach(b => b.addEventListener('click', () => { psCostMode = b.dataset.v; renderPsalesView(); }));
+  const fb = document.getElementById('ps-filter');
+  if (fb) fb.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.disabled) return; const c = b.dataset.cat; psFilter = (c === 'x' || psFilter === c) ? null : c; renderPsalesView(); });
 }
 
 function populateAdMonthYear(){
