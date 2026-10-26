@@ -1413,6 +1413,32 @@
   .ps-cm button:first-child { border-radius: 8px 0 0 8px; }
   .ps-cm button:last-child { border-radius: 0 8px 8px 0; margin-left: -1px; }
   .ps-cm button.on { background: #7c3aed; border-color: #7c3aed; color: #fff; position: relative; z-index: 1; }
+  .ps-help-badge { display: inline-flex; align-items: center; justify-content: center; width: 22px; height: 22px; padding: 0; border-radius: 50%; border: none; background: #f97316; color: #fff; font-size: 13px; font-weight: 900; cursor: pointer; box-shadow: 0 0 0 3px rgba(249,115,22,.22); flex-shrink: 0; }
+  .ps-help-badge:hover { background: #ea580c; color: #fff; }
+  .psh-flow { display: flex; align-items: stretch; gap: 10px; margin-bottom: 10px; }
+  .psh-box { flex: 1; border-radius: 10px; padding: 10px 14px; font-size: 13.5px; line-height: 1.6; }
+  .psh-box em { font-style: normal; font-weight: 800; }
+  .psh-sales { background: #ecfdf5; border: 1.5px solid #6ee7b7; color: #065f46; }
+  .psh-cost { background: #fff7ed; border: 1.5px solid #fdba74; color: #9a3412; }
+  .psh-src { font-size: 11px; opacity: .8; margin-top: 2px; }
+  .psh-vs { align-self: center; font-weight: 800; color: var(--text-tertiary); font-size: 12px; }
+  .psh-cards { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+  .psh-card { border-radius: 10px; padding: 12px 14px; font-size: 13px; line-height: 1.7; color: var(--text-secondary); }
+  .psh-card p { margin: 0 0 6px; } .psh-card ul { margin: 0 0 8px; padding-left: 0; list-style: none; } .psh-card li { margin-bottom: 4px; }
+  .psh-direct { background: #f5f3ff; border: 1.5px solid #c4b5fd; }
+  .psh-alloc { background: #f0fdfa; border: 1.5px solid #5eead4; }
+  .psh-ct { font-size: 14px; font-weight: 800; color: var(--black); margin-bottom: 6px; display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .psh-tag { display: inline-block; color: #fff; font-size: 12px; font-weight: 800; padding: 2px 10px; border-radius: 999px; }
+  .psh-sp, .psh-sb { display: inline-block; color: #fff; font-size: 10.5px; font-weight: 800; padding: 0 6px; border-radius: 4px; margin-right: 4px; }
+  .psh-sp { background: #2563eb; } .psh-sb { background: #7e22ce; }
+  .psh-good { background: #ecfdf5; color: #065f46; border-radius: 6px; padding: 5px 9px; font-size: 12.5px; margin-bottom: 6px; }
+  .psh-warn { background: #fffbeb; color: #92400e; border: 1px solid #fde68a; border-radius: 6px; padding: 6px 9px; font-size: 12.5px; }
+  .psh-ex { background: #fff; border: 1px dashed #99f6e4; border-radius: 8px; padding: 8px 10px; margin-bottom: 8px; }
+  .psh-ex-t { font-size: 12.5px; margin-bottom: 5px; color: var(--black); }
+  .psh-bar { display: flex; height: 22px; border-radius: 5px; overflow: hidden; font-size: 10.5px; font-weight: 700; color: #fff; }
+  .psh-bar span { display: flex; align-items: center; justify-content: center; white-space: nowrap; overflow: hidden; }
+  .psh-ex-r { font-size: 12.5px; margin-top: 5px; color: #0f766e; }
+  .psh-tbl td, .psh-tbl th { font-size: 12.5px; }
   .ps-filter { display: inline-flex; align-items: center; gap: 4px; }
   .ps-filter .ps-flbl { font-size: 11px; color: var(--text-tertiary); margin-right: 2px; white-space: nowrap; }
   .ps-filter button { font-family: inherit; font-size: 11.5px; font-weight: 700; padding: 4px 9px; border-radius: 6px; cursor: pointer; white-space: nowrap; border: 1.5px solid; }
@@ -1952,7 +1978,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.47</span>
+    <span class="version">v3.48</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2106,6 +2132,7 @@
       <input type="search" id="ps-search" class="ps-search" placeholder="商品名・SKU・ASIN で検索">
       <span class="ps-cm-wrap" title="広告費を商品にどう割り当てるか&#10;直接：キャンペーンの費用を、宣伝した商品に全額（SB は宣伝商品が1つに決まらないので割り当てない）&#10;配賦（参考）：キャンペーンの費用を、そのキャンペーン経由で買われた商品の売上の比率で割り振る">広告費
         <span class="ps-cm" id="ps-costmode"><button type="button" data-v="direct">直接</button><button type="button" data-v="alloc">配賦（参考）</button></span>
+        <button type="button" class="ps-help-badge" id="ps-cost-help" title="「直接」と「配賦（参考）」の説明を見る">！</button>
       </span>
       <span class="ps-filter" id="ps-filter"></span>
       <div class="spacer"></div>
@@ -2698,6 +2725,61 @@
   </div>
 </div>
 <!-- 商品-KWデータ：まとめ方・マッチの説明（openKwHelp） -->
+<!-- v3.48：商品-売上データ「広告費 直接／配賦（参考）」の説明 -->
+<div class="modal-bg" id="ps-cost-help-modal" hidden>
+  <div class="modal adg-modal" style="max-width:880px;">
+    <div class="adg-head">
+      <div><h3><span class="ps-help-badge" style="cursor:default;vertical-align:2px;">！</span> 広告費の「直接」と「配賦（参考）」</h3>
+        <div class="sub" style="margin-bottom:0;">商品-売上データで、商品ごとの広告費をどう決めるかの2つの方法です。</div></div>
+      <button class="icon-btn" id="close-ps-cost-help" title="閉じる" aria-label="閉じる"><svg class="icn"><use href="#i-x"/></svg></button>
+    </div>
+    <div class="adg-body">
+      <section class="adg-sec"><h4 class="adg-h"><span class="adg-num">1</span><span class="adg-htext">なぜ2つあるのか</span></h4>
+        <div class="psh-flow">
+          <div class="psh-box psh-sales"><b>広告売上</b>は<br><span>実際に<em>買われた商品</em>の行</span>に入る<div class="psh-src">④／E 購入商品データ</div></div>
+          <div class="psh-vs">でも</div>
+          <div class="psh-box psh-cost"><b>広告費</b>は<br><span><em>キャンペーン単位</em>でしか分からない</span><div class="psh-src">① 広告データ</div></div>
+        </div>
+        <p class="adg-p">Amazon は「商品ごとの広告費」を出していません。そこで、キャンペーンの広告費を商品に割り当てる方法を2つ用意しています。<b>どちらでも広告費の合計は同じ</b>で、どの商品の行に入れるかだけが違います（「直接」では SB の分はどの商品にも入りません）。</p>
+      </section>
+      <section class="adg-sec"><h4 class="adg-h"><span class="adg-num">2</span><span class="adg-htext">2つの方法</span></h4>
+        <div class="psh-cards">
+          <div class="psh-card psh-direct">
+            <div class="psh-ct"><span class="psh-tag" style="background:#7c3aed;">直接</span>宣伝した商品に全額（最初の表示）</div>
+            <p>キャンペーンの広告費を、そのキャンペーンで<b>宣伝している商品（広告対象ASIN）</b>に全額付けます。</p>
+            <ul>
+              <li><span class="psh-sp">SP</span> 宣伝しているのは <b>SMLセット</b> だけ → SP の広告費は<b>全額 SMLセットの行</b>に入ります。</li>
+              <li><span class="psh-sb">SB</span> 複数の商品をまとめて宣伝するので、宣伝商品が1つに決まりません → <b>どの商品の行にも入れません</b>（商品群の共通費）。</li>
+            </ul>
+            <div class="psh-good">◎ 向いていること：実際にどの商品へ広告のお金をかけているか、をそのまま見る</div>
+            <div class="psh-warn">⚠️ SMLセットの広告から<b>他の商品が売れた分（Halo）</b>は、他の商品の行に入ります。なので SMLセットの ROAS は低めに見え、他の商品は広告費が0（売上ROAS・ROAS が「—」）になります。</div>
+          </div>
+          <div class="psh-card psh-alloc">
+            <div class="psh-ct"><span class="psh-tag" style="background:#0f766e;">配賦（参考）</span>売れた割合で割り振る</div>
+            <p>キャンペーンの広告費を、<b>そのキャンペーン経由で買われた商品の売上の比率</b>で各商品に割り振ります。SB の広告費も商品に入ります。</p>
+            <div class="psh-ex">
+              <div class="psh-ex-t">例：SP-KW キャンペーン　広告費 <b>¥100,000</b></div>
+              <div class="psh-bar"><span style="width:75%;background:#7c3aed;">SMLセット 売上 ¥300,000（75%）</span><span style="width:25%;background:#a78bfa;">S単品 25%</span></div>
+              <div class="psh-ex-r">S単品の売上は ¥100,000 → SMLセットに <b>¥75,000</b>、S単品に <b>¥25,000</b> を割り当て</div>
+            </div>
+            <div class="psh-good">◎ 向いていること：商品ごとの<b>だいたいの</b>広告費・売上ROAS・利益を見る</div>
+            <div class="psh-warn">⚠️ 売上の比率で割るので、<b>同じキャンペーンの中ではどの商品も ROAS が同じ</b>になります（例では2つとも 400%）。SP・SB の各ブロック（KW・商品・動画・商品コレ）の ROAS は商品どうしの比較には使えません。あくまで<b>参考</b>の数字です。</div>
+          </div>
+        </div>
+      </section>
+      <section class="adg-sec"><h4 class="adg-h"><span class="adg-num">3</span><span class="adg-htext">くらべると</span></h4>
+        <table class="kwh-tbl psh-tbl"><thead><tr><th></th><th><span class="psh-tag" style="background:#7c3aed;">直接</span></th><th><span class="psh-tag" style="background:#0f766e;">配賦（参考）</span></th></tr></thead><tbody>
+          <tr><td><b>SP の広告費</b></td><td>全額 SMLセット</td><td>SP 経由で売れた商品に、売上の比率で</td></tr>
+          <tr><td><b>SB の広告費</b></td><td>商品には入れない（共通費）</td><td>SB 経由で売れた商品に、売上の比率で</td></tr>
+          <tr><td><b>SMLセットの ROAS</b></td><td>低めに出る（Halo の売上が他の行へ）</td><td>キャンペーン全体の ROAS に近くなる</td></tr>
+          <tr><td><b>他の商品の売上ROAS</b></td><td>「—」（広告費が0のため）</td><td>出る（参考）</td></tr>
+          <tr><td><b>広告売上・推計総売上・SEO売上</b></td><td colspan="2" style="text-align:center;">どちらも同じ（変わるのは広告費と ROAS だけ）</td></tr>
+        </tbody></table>
+        <p class="adg-p" style="margin-top:8px;">広告費の元は ① 広告データ（キャンペーン別・日別）です。キャンペーン別の数字が保存されていない日は、① の種類別（KW・商品・オート・動画・商品コレ）の合計で割り当てます。</p>
+      </section>
+    </div>
+  </div>
+</div>
 <div class="modal-bg" id="kw-help-modal" hidden>
   <div class="modal adg-modal" style="max-width:920px;">
     <div class="adg-head">
@@ -9239,6 +9321,12 @@ function initPsalesView(){
   on('ps-csv', 'click', psExportCsv);
   on('ps-colbtn', 'click', () => { psColPanel = !psColPanel; psRenderColPanel(); });
   on('toggle-header-psales', 'click', toggleHeader);
+  // v3.48：「直接／配賦」の説明
+  const hm = document.getElementById('ps-cost-help-modal');
+  on('ps-cost-help', 'click', () => { if (hm) hm.hidden = false; });
+  on('close-ps-cost-help', 'click', () => { if (hm) hm.hidden = true; });
+  if (hm) hm.addEventListener('click', e => { if (e.target === hm) hm.hidden = true; });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && hm && !hm.hidden) hm.hidden = true; });
   document.querySelectorAll('#ps-costmode button').forEach(b => b.addEventListener('click', () => { psCostMode = b.dataset.v; renderPsalesView(); }));
   const fb = document.getElementById('ps-filter');
   if (fb) fb.addEventListener('click', e => { const b = e.target.closest('button'); if (!b || b.disabled) return; const c = b.dataset.cat; psFilter = (c === 'x' || psFilter === c) ? null : c; renderPsalesView(); });
