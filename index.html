@@ -1394,7 +1394,7 @@
   }
   .tab-row { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
   .tab-group {
-    color: var(--text-tertiary); font-size: 12px; font-weight: 700;
+    color: var(--text-tertiary); font-size: 15.5px; font-weight: 700;   /* v3.52：タブと同じ大きさ */
     padding: 0 2px; white-space: nowrap; user-select: none;
   }
   .tab-group-gap { margin-left: 12px; }
@@ -1476,9 +1476,17 @@
   .ps-src-n { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
   #psales-view .ps-wrap { overflow: auto; }
   table.ps-table { table-layout: fixed; }
-  table.ps-table td { font-size: 13px; padding: 5px 4px 13px; position: relative; vertical-align: middle; font-variant-numeric: tabular-nums; }
+  table.ps-table td { font-size: var(--ps-fs, 13px); padding: 5px 4px 13px; position: relative; vertical-align: middle; font-variant-numeric: tabular-nums; }
   table.ps-table .ps-v { line-height: 1.2; }
-  table.ps-table .ps-pct { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font-size: 9.5px; font-weight: 700; }
+  table.ps-table .ps-pct { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font-size: calc(var(--ps-fs, 13px) * 0.73); font-weight: 700; }
+  table.ps-table th.ps-ghead { position: sticky; }
+  table.ps-table th.ps-ghead .ps-gbtn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+  table.ps-table .ps-gbtn { font-family: inherit; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,255,255,.18); color: #fff; cursor: pointer; line-height: 1.4; }
+  table.ps-table .ps-gbtn:hover { background: #fff; color: #0f172a; }
+  table.ps-table th.ps-gcol { padding: 6px 0; vertical-align: top; text-align: center; }
+  table.ps-table th.ps-gcol .ps-gbtn { padding: 2px 0; width: 28px; font-size: 10.5px; border-radius: 6px; margin: 0 auto 8px; display: block; }
+  table.ps-table .ps-gvt { writing-mode: vertical-rl; font-size: 12.5px; margin: 0 auto; letter-spacing: 2px; }
+  table.ps-table td.ps-gcol-td { padding: 0; }
   table.ps-table .ps-na { color: #c0c4cc; }
   table.ps-table .ps-img, table.ps-table .ps-name { background: #fff; text-align: left; }
   table.ps-table thead th.ps-img, table.ps-table thead th.ps-name { background: var(--bg-secondary); vertical-align: middle; }
@@ -1488,7 +1496,7 @@
   table.ps-table .ps-stick1 { position: sticky; left: 40px; z-index: 3; box-shadow: inset -2px 0 0 rgba(0,0,0,0.25); }
   table.ps-table thead th.ps-stick0, table.ps-table thead th.ps-stick1 { z-index: 7; }
   table.ps-table td.ps-name { padding: 4px 8px; }
-  table.ps-table .ps-nm { font-size: 13px; font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  table.ps-table .ps-nm { font-size: var(--ps-fs, 13px); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
   table.ps-table .ps-sub { font-size: 10.5px; color: var(--text-tertiary); font-weight: 500; font-family: ui-monospace, Menlo, monospace; overflow: hidden; text-overflow: ellipsis; }
   table.ps-table tr.ps-withdrawn td.ps-name .ps-nm { color: var(--text-tertiary); }
   table.ps-table th.ps-sortable { cursor: pointer; user-select: none; }
@@ -1507,7 +1515,7 @@
     border-bottom: 2px solid transparent;
     color: var(--text-secondary);
     font-family: inherit;
-    font-size: 14px;
+    font-size: 15.5px;   /* v3.51：14px → 15.5px */
     font-weight: 600;
     cursor: pointer;
     display: inline-flex;
@@ -1980,7 +1988,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.50</span>
+    <span class="version">v3.53</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -8954,6 +8962,9 @@ function purchLatestYm(){
 // ---------- 状態 ----------
 let psMonth = null, psDay = '', psSearch = '', psFilter = null, psSortKey = null, psSortDir = 'desc', psCostMode = 'direct', psColPanel = false;
 let psHidden = (() => { try { return new Set(JSON.parse(localStorage.getItem('amacheck_ps_hidden') || '[]')); } catch (e) { return new Set(); } })();
+// v3.53：グループ（全体／SP／SB）ごとの隠す・表示。隠したグループは細い縦の帯になり、残りの列の文字が大きくなる
+let psGrpHidden = (() => { try { return new Set(JSON.parse(localStorage.getItem('amacheck_ps_grp') || '[]')); } catch (e) { return new Set(); } })();
+function psToggleGroup(g){ if (psGrpHidden.has(g)) psGrpHidden.delete(g); else psGrpHidden.add(g); try { localStorage.setItem('amacheck_ps_grp', JSON.stringify(Array.from(psGrpHidden))); } catch (e) {} renderPsalesTable(); }
 function psSaveHidden(){ try { localStorage.setItem('amacheck_ps_hidden', JSON.stringify(Array.from(psHidden))); } catch (e) {} }
 // v3.43：項目調整の幅・揃え・見出し名（ADcheck の COLW と同じ持ち方：{ 列キー: 幅, 'a_'+列キー: 揃え, 'l_'+列キー: 見出し名 }）
 let psColw = (() => { try { const o = JSON.parse(localStorage.getItem('amacheck_ps_colw') || '{}'); return (o && typeof o === 'object') ? o : {}; } catch (e) { return {}; } })();
@@ -9208,7 +9219,11 @@ function renderPsalesTable(){
   const body = document.getElementById('psales-body'); if (!body) return;
   const cmp = psCompute(); _psLast = cmp;
   const rows = psRowsShown(cmp);
-  const cols = psVisibleCols();
+  const cols = psVisibleCols().filter(c => !psGrpHidden.has(c.g));
+  // 並び：全体→SP→SB。隠したグループは細い帯（ps-gcol）1列にする
+  const GCOL_W = 34;
+  const segs = PS_BLOCKS.map(G => psGrpHidden.has(G.g) ? { col: true, G } : { G, cols: cols.filter(c => c.g === G.g) }).filter(x => x.col || x.cols.length);
+  const gTint = { all: 'adc-sales', sp: 'adc-sp', sb: 'adc-sb' };
   const yen = v => '¥' + Math.round(v).toLocaleString();
   // 上の要約
   const pr = cmp.pr;
@@ -9233,13 +9248,16 @@ function renderPsalesTable(){
   cols.forEach(c => { let G = groups[groups.length - 1]; if (!G || G.g !== c.g) { G = { g: c.g, cls: c.gcls, n: 0, label: PS_BLOCKS[c.gi].label, blocks: [] }; groups.push(G); } G.n++; if (c.b) { let B = G.blocks[G.blocks.length - 1]; if (!B || B.b !== c.b) { B = { b: c.b, label: c.blabel, cls: c.cls, n: 0 }; G.blocks.push(B); } B.n++; } });
   const sortCls = k => psSortKey === k ? (psSortDir === 'desc' ? ' ps-sort-desc' : ' ps-sort-asc') : '';
   const imgW = psW('img', 40), nameW = psW('name', 170), nameA = psA('name', 'left'), nameL = psColw.l_name || '商品名';
-  let cg = '<colgroup><col style="width:' + imgW + 'px"><col style="width:' + nameW + 'px">' + cols.map(c => '<col style="width:' + c.w + 'px">').join('') + '</colgroup>';
+  let cg = '<colgroup><col style="width:' + imgW + 'px"><col style="width:' + nameW + 'px">' + segs.map(sg => sg.col ? '<col style="width:' + GCOL_W + 'px">' : sg.cols.map(c => '<col style="width:' + c.w + 'px">').join('')).join('') + '</colgroup>';
   const stick1 = 'left:' + imgW + 'px;';
   let h1 = '<tr><th rowspan="3" class="ps-img ps-stick0">' + escapeHtml(psColw.l_img || '画像') + '</th><th rowspan="3" class="ps-name ps-stick1 ps-sortable' + sortCls('name') + '" data-k="name" style="' + stick1 + 'text-align:' + nameA + '" title="クリックで並べ替え（降順→昇順→商品マスタの並び）">' + escapeHtml(nameL) + '<br><span class="ps-sub">ASIN</span></th>';
   let h2 = '<tr>', h3 = '<tr>';
-  const tw = imgW + nameW + cols.reduce((s, c) => s + c.w, 0);
-  groups.forEach((G, i) => {
-    h1 += '<th colspan="' + G.n + '" class="adg ' + G.cls + '">' + G.label + '</th>';
+  const tw = imgW + nameW + cols.reduce((s, c) => s + c.w, 0) + segs.filter(x => x.col).length * GCOL_W;
+  const gIdx = {}; groups.forEach(G => { gIdx[G.g] = G; });
+  segs.forEach(sg => {
+    if (sg.col) { h1 += '<th rowspan="3" class="adg ' + sg.G.cls + ' ps-gcol" title="' + escapeHtml(sg.G.label) + '（隠しています）"><button type="button" class="ps-gbtn" data-g="' + sg.G.g + '" title="' + escapeHtml(sg.G.label) + 'を表示">表示</button><div class="ps-gvt">' + ({ all: '全体', sp: 'SP', sb: 'SB' }[sg.G.g] || '') + '</div></th>'; return; }
+    const G = gIdx[sg.G.g]; if (!G) return;
+    h1 += '<th colspan="' + G.n + '" class="adg ' + G.cls + ' ps-ghead"><span>' + G.label + '</span><button type="button" class="ps-gbtn" data-g="' + G.g + '" title="' + escapeHtml(G.label) + 'を隠す（その分、残りの文字が大きくなります）">隠す</button></th>';
     if (G.g === 'all') {
       cols.filter(c => c.g === 'all').forEach((c, ci) => { h2 += '<th rowspan="2" class="adh ' + c.cls + (ci === 0 ? ' adc-gstart' : '') + ' ps-sortable' + sortCls(c.k) + '" data-k="' + c.k + '" title="' + escapeHtml(c.tip || '') + '｜クリックで並べ替え">' + escapeHtml(c.label).replace(/\n/g, '<br>') + '</th>'; });
     } else {
@@ -9276,13 +9294,20 @@ function renderPsalesTable(){
     tb += '<tr' + (p && productStatus(p) === 'withdrawn' ? ' class="ps-withdrawn"' : '') + '>'
       + '<td class="ps-img ps-stick0" style="text-align:' + psA('img', 'center') + '">' + (p ? productImageHtml(p, 30) : '') + '</td>'
       + '<td class="ps-name ps-stick1" style="' + stick1 + 'text-align:' + nameA + '" title="' + escapeHtml(r.name + '\n' + (r.sku ? 'SKU ' + r.sku + '　' : '') + 'ASIN ' + r.asin) + '"><div class="ps-nm">' + escapeHtml(r.name) + '</div><div class="ps-sub">' + escapeHtml(r.asin) + '</div></td>';
-    let lastG = null, lastB = null;
-    cols.forEach(c => { const fg = c.g !== lastG, fb = c.b && c.b !== lastB; tb += cell(r, c, fg, fb); lastG = c.g; lastB = c.b || null; });
+    segs.forEach(sg => {
+      if (sg.col) { tb += '<td class="ps-gcol-td ' + gTint[sg.G.g] + ' adc-gstart"></td>'; return; }
+      let lastB = null;
+      sg.cols.forEach((c, ci) => { const fb = c.b && c.b !== lastB; tb += cell(r, c, ci === 0, fb); lastB = c.b || null; });
+    });
     tb += '</tr>';
   });
-  if (!rows.length) tb = '<tr><td colspan="' + (cols.length + 2) + '" style="text-align:center;color:var(--text-tertiary);padding:28px;">' + (psFilter || psSearch ? '条件に合う商品がありません' : '表示する商品がありません') + '</td></tr>';
+  if (!rows.length) tb = '<tr><td colspan="' + (cols.length + 2 + segs.filter(x => x.col).length) + '" style="text-align:center;color:var(--text-tertiary);padding:28px;">' + (psFilter || psSearch ? '条件に合う商品がありません' : '表示する商品がありません') + '</td></tr>';
   body.innerHTML = '<div class="table-wrap ps-wrap"><table class="ad-table ps-table" style="width:100%;min-width:' + tw + 'px">' + cg + '<thead>' + h1 + h2 + h3 + '</thead><tbody>' + tb + '</tbody></table></div>';
   body.querySelectorAll('.ps-sortable').forEach(th => th.addEventListener('click', () => psSortBy(th.dataset.k)));
+  body.querySelectorAll('.ps-gbtn').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); psToggleGroup(b.dataset.g); }));
+  // 空いた幅に合わせて文字を大きく（13px〜17px）
+  { const wrap = body.querySelector('.ps-wrap'), tbl = body.querySelector('table.ps-table');
+    if (wrap && tbl) { const sc = wrap.clientWidth / tw; const fs = Math.max(13, Math.min(17, Math.round(13 * sc * 2) / 2)); tbl.style.setProperty('--ps-fs', fs + 'px'); } }
   if (document.body.classList.contains('header-hidden')) adjustHiddenTableHeight();
 }
 // 並べ替え：降順 → 昇順 → 商品マスタの並び
