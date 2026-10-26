@@ -431,7 +431,7 @@
     margin-left: calc(50% - (50vw - 12px) / var(--pz, 1));
     margin-right: calc(50% - (50vw - 12px) / var(--pz, 1));
   }
-  /* 1920px で1行に収めるため、広告データ-全体のツールバーは少し詰める */
+  /* 1920px で1行に収めるため、広告データ-月別／日別のツールバーは少し詰める */
   #ad-view .toolbar { gap: 10px; }
   #ad-view .toolbar #open-ad-guide, #ad-view .toolbar #open-ad-recon { padding-left: 11px; padding-right: 11px; }
   /* クリック可能な日付セル（広告データ追加へ） */
@@ -838,7 +838,7 @@
     color: var(--black);
   }
   .period-btn:hover:not(.active) { color: var(--black); }
-  /* 広告データ-全体（月別）：月全体／月途中 のペアボタン（2つをくっつけたセグメント型・選択は緑） */
+  /* 広告データ-月別：月全体／月途中 のペアボタン（2つをくっつけたセグメント型・選択は緑） */
   .ad-daymode { display: inline-flex; gap: 0; }
   .ad-daymode[hidden] { display: none; }
   .ad-daymode button { font-family: inherit; font-size: 13px; font-weight: 600; padding: 7px 11px; cursor: pointer; white-space: nowrap;
@@ -1422,6 +1422,7 @@
   .tab[data-tab="master"] svg { color: var(--accent); }
   .tab[data-tab="shipment"] svg { color: var(--blue); }
   .tab[data-tab="ad"] svg { color: var(--purple); }
+  .tab[data-tab="addaily"] svg { color: var(--purple); }
   .tab[data-tab="adkw"] svg { color: var(--purple); }
   /* ===== 広告データ-個別（KW） ===== */
   /* v3.27：日別データ欠けの通知（ADcheck v1.1438 と同じ光り方）と「不足日を確認」 */
@@ -1872,7 +1873,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.32</span>
+    <span class="version">v3.33</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1905,7 +1906,10 @@
       <svg class="icn"><use href="#i-truck-delivery"/></svg> 出荷数データ
     </button>
     <button class="tab" data-tab="ad">
-      <svg class="icn"><use href="#i-chart-bar"/></svg> 広告データ-全体
+      <svg class="icn"><use href="#i-chart-bar"/></svg> 広告データ-月別
+    </button>
+    <button class="tab" data-tab="addaily">
+      <svg class="icn"><use href="#i-calendar"/></svg> 広告データ-日別
     </button>
     <button class="tab" data-tab="adkw">
       <svg class="icn"><use href="#i-list-details"/></svg> 広告データ-個別
@@ -2010,15 +2014,13 @@
 
   <div id="ad-view" hidden>
     <div class="toolbar">
-      <div class="period-toggle">
-        <button class="period-btn active" data-ad-period="daily">日別</button>
-        <button class="period-btn" data-ad-period="monthly">月別</button>
+      <!-- v3.33：広告データ-月別（data-tab="ad"）と 広告データ-日別（data-tab="addaily"）は同じ #ad-view を使い、adPeriod で切り替える -->
+      <div class="period-toggle" id="ad-daily-toggle">
+        <button class="period-btn active" data-ad-period="daily" title="月を選んで、その月の1日〜末日を表示">1か月</button>
+        <button class="period-btn" data-ad-period="last2m" title="最終日から遡って約2ヶ月（60日）を表示">直近2ヶ月</button>
       </div>
       <div class="ad-daymode" id="ad-daymode" hidden>
         <button type="button" data-ad-daymode="full">月全体</button><button type="button" data-ad-daymode="same">月途中</button>
-      </div>
-      <div class="period-toggle" title="最終日から遡って約2ヶ月（60日）を日別で表示">
-        <button class="period-btn" data-ad-period="last2m">直近2ヶ月</button>
       </div>
       <select id="ad-month-select"></select>
       <select id="ad-year-select" hidden></select>
@@ -2637,6 +2639,7 @@ let adData = {};
 let adCampaigns = [];
 let campaignDrafts = [];
 let adPeriod = 'daily';
+let adLastDailyPeriod = 'daily';   // v3.33：日別タブに戻った時、最後に見ていた 1か月／直近2ヶ月 に戻す
 let adDayMode = 'full';   // 月別のとき：'full'＝月全体／'same'＝月途中（各月 1〜N日だけ）。画面を開いている間だけ（保存しない）
 let adRangeEnd = null; // 直近2ヶ月（約60日連続）ローリング表示の最終日(YYYY-MM-DD)
 let adMonth = ymKey(new Date());
@@ -3448,7 +3451,7 @@ function switchView(name, fromPop){
   document.getElementById('master-view').hidden = (name !== 'master');
   document.getElementById('shipment-view').hidden = (name !== 'shipment');
   document.getElementById('withdrawn-view').hidden = (name !== 'withdrawn');
-  document.getElementById('ad-view').hidden = (name !== 'ad');
+  document.getElementById('ad-view').hidden = (name !== 'ad' && name !== 'addaily');
   document.getElementById('adkw-view').hidden = (name !== 'adkw');
   document.getElementById('campaign-view').hidden = (name !== 'campaign');
   document.getElementById('graph-view').hidden = (name !== 'graph');
@@ -3460,7 +3463,12 @@ function switchView(name, fromPop){
   if (name === 'shipment') renderShipmentTable();
   if (name === 'master') renderMasterList();
   if (name === 'withdrawn') renderWithdrawnList();
-  if (name === 'ad') { populateAdProductSelect(); renderAdTable(); }
+  if (name === 'ad' || name === 'addaily') {   // v3.33：月別タブ＝monthly、日別タブ＝daily／last2m
+    if (name === 'ad') adPeriod = 'monthly';
+    else if (adPeriod === 'monthly') adPeriod = adLastDailyPeriod || 'daily';
+    document.querySelectorAll('[data-ad-period]').forEach(b => b.classList.toggle('active', b.dataset.adPeriod === adPeriod));
+    populateAdProductSelect(); renderAdTable();
+  }
   if (name === 'campaign') renderCampaignView();
   if (name === 'adkw') renderAdKwView();
   kwPlaceHideBtns();
@@ -5499,7 +5507,7 @@ window.removeShipImport = function(id){ pendingShipImports = pendingShipImports.
 // ======================= 統合「＋レポート追加」 =======================
 // 対応ファイル種別の定義（このパネル＝唯一の正。カレンダー行/月末スロットと番号を統一）
 const REPORT_FILE_TYPES = [
-  { group: '日別データ', badge: '①', pattern: '広告データ-2026-0916.csv', label: '広告データ（日別）', key: 'ファイル名の日付', dest: 'カレンダー①・月日別グラフ／広告データ-全体', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
+  { group: '日別データ', badge: '①', pattern: '広告データ-2026-0916.csv', label: '広告データ（日別）', key: 'ファイル名の日付', dest: 'カレンダー①・月日別グラフ／広告データ-月別・日別', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
   { badge: '②', pattern: '出荷数データ-26-0915.csv', label: '出荷数データ（日別）', key: 'SKU / ASIN（＋各行の日付）', dest: 'カレンダー②・出荷数データ', url: 'https://sellercentral-japan.amazon.com/reportcentral/BUSINESS_REPORTS' },
   { badge: '③', pattern: 'KWデータ-2026-1005.csv（中身で自動判別）', label: 'KWデータ（日別・キーワード／ターゲット別）', key: '中の「日付」列', dest: '広告データ-個別（分析用データにも出力）', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
   { group: '月別データ', badge: 'A', pattern: 'トランザクション レポート .csv', label: '月末：FBA手数料・販売手数料・出荷数', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（FBA手数料・販売手数料）', url: 'https://sellercentral-japan.amazon.com/payments/reports-repository' },
@@ -8398,6 +8406,7 @@ function renderAdTable(){
     return;
   }
 
+  if (adPeriod !== 'monthly') adLastDailyPeriod = adPeriod;
   const dayCutAvail = adLatestDayCut();
   if (!dayCutAvail) adDayMode = 'full';
   const dayCut = (adPeriod === 'monthly' && adDayMode === 'same') ? dayCutAvail : 0;   // 0＝月全体
@@ -8618,6 +8627,8 @@ function populateAdMonthYear(){
   if (ys) ys.value = adYear;
   if (ms) ms.hidden = (adPeriod !== 'daily');
   if (ys) ys.hidden = (adPeriod !== 'monthly');
+  const dt = document.getElementById('ad-daily-toggle');
+  if (dt) dt.hidden = (adPeriod === 'monthly');
   const rc = document.getElementById('ad-range-ctrl');
   if (rc) rc.hidden = (adPeriod !== 'last2m');
   const re = document.getElementById('ad-range-end');
