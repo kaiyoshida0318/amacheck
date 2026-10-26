@@ -1396,6 +1396,11 @@
     padding: 0 2px; white-space: nowrap; user-select: none;
   }
   .tab-group-gap { margin-left: 12px; }
+  /* v3.38：くくりの見出しの色（基本＝青／全体＝赤／広告調整＝緑／基礎情報＝茶） */
+  .tab-group.tg-basic { color: #2563eb; }
+  .tab-group.tg-all   { color: #dc2626; }
+  .tab-group.tg-ad    { color: #16a34a; }
+  .tab-group.tg-info  { color: #92400e; }
   .tab {
     padding: 7px 10px 9px;
     background: transparent;
@@ -1876,7 +1881,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.37</span>
+    <span class="version">v3.39</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1896,40 +1901,40 @@
 <!-- タブナビゲーション -->
 <nav class="tabs">
   <div class="tab-row">
-    <span class="tab-group">【基本】</span>
+    <span class="tab-group tg-basic">【基本】</span>
     <button class="tab" data-tab="shipment">
-      <svg class="icn"><use href="#i-truck-delivery"/></svg> 商品-出荷数データ
+      商品-出荷数データ
     </button>
-    <span class="tab-group tab-group-gap">【全体】</span>
+    <span class="tab-group tab-group-gap tg-all">【全体】</span>
     <button class="tab" data-tab="ad">
-      <svg class="icn"><use href="#i-chart-bar"/></svg> 全-月別データ
+      全-月別データ
     </button>
     <button class="tab" data-tab="addaily">
-      <svg class="icn"><use href="#i-calendar"/></svg> 全-日別データ
+      全-日別データ
     </button>
     <button class="tab" data-tab="graph">
-      <svg class="icn"><use href="#i-chart-line"/></svg> 全-月日別グラフ
+      全-月日別グラフ
     </button>
     <button class="tab" data-tab="pl">
-      <svg class="icn"><use href="#i-coins"/></svg> 全体収支
+      全体収支
     </button>
     <button class="tab" data-tab="returns">
-      <svg class="icn"><use href="#i-return"/></svg> 返品率
+      返品率
     </button>
-    <span class="tab-group tab-group-gap">【広告調整】</span>
+    <span class="tab-group tab-group-gap tg-ad">【広告調整】</span>
     <button class="tab" data-tab="adkw">
-      <svg class="icn"><use href="#i-list-details"/></svg> 商品-KWデータ
+      商品-KWデータ
     </button>
-    <span class="tab-group tab-group-gap">【基礎情報】</span>
+    <span class="tab-group tab-group-gap tg-info">【基礎情報】</span>
     <button class="tab" data-tab="master">
-      <svg class="icn"><use href="#i-list-details"/></svg> 商品マスタ
+      商品マスタ
       <span class="count" id="tab-master-count"></span>
     </button>
     <button class="tab" data-tab="campaign">
-      <svg class="icn"><use href="#i-tag"/></svg> 広告キャンペーン
+      広告キャンペーン
     </button>
     <button class="tab tab-dim" data-tab="withdrawn" title="撤退済みにした商品の一覧（商品マスタからは非表示）">
-      <svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品
+      撤退済み商品
       <span class="count" id="tab-withdrawn-count"></span>
     </button>
   </div>
