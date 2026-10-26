@@ -1952,7 +1952,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.46</span>
+    <span class="version">v3.47</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -5856,7 +5856,7 @@ async function rptStage(files){
       _rpt.pd.push({ name: fname, kind: pk.kind, key: pk.key, rows: pr.rows, sum: pr.sum });
       const lbl = pk.kind === 'day' ? ('④購入商品データ・' + (+pk.key.slice(5, 7)) + '/' + (+pk.key.slice(8, 10)) + '・速報') : ('E 購入商品データ・' + pk.key.replace('-', '/') + '・確定');
       const had = pk.kind === 'day' ? purchData.day[pk.key] : purchData.month[pk.key];
-      _rpt.notes.push('🛒 ' + escapeHtml(fname) + '（' + lbl + '）：' + pr.count + '行・広告売上 ¥' + Math.round(pr.sum).toLocaleString() + (had ? '（取込済みを上書き）' : ''));
+      if (pk.kind === 'month') _rpt.notes.push('🛒 ' + escapeHtml(fname) + '（' + lbl + '）：' + (pr.count ? pr.count + '行・広告売上 ¥' + Math.round(pr.sum).toLocaleString() : '<b style="color:#b45309;">0行</b>（この月は Amazon に購入商品のデータがありません）') + (had ? '（取込済みを上書き）' : ''));
       return;
     }
     // ③ KWデータ（キーワード/ターゲット別・日別）は中身で判別（日付は中の「日付」列）。①より先に見る
@@ -6126,7 +6126,16 @@ function rptRender(){
   // 未判別
   document.getElementById('report-unknown').textContent = _rpt.unknown.length ? ('判別できないファイル：' + _rpt.unknown.join(', ')) : '';
   const notesEl = document.getElementById('report-notes');
-  if (notesEl) notesEl.innerHTML = (_rpt.notes || []).map(t => '<div style="margin-top:6px;">' + t + '</div>').join('');
+  // v3.47：④購入商品データ（日別）は1行にまとめる（0行のファイル＝Amazon にデータが無い日も数える）
+  let pdNote = '';
+  { const ds = (_rpt.pd || []).filter(x => x.kind === 'day').sort((a, b) => a.key < b.key ? -1 : 1);
+    if (ds.length) {
+      const empty = ds.filter(x => !x.rows.length), sum = ds.reduce((a, x) => a + x.sum, 0), rows = ds.reduce((a, x) => a + x.rows.length, 0);
+      const f = d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10));
+      pdNote = '🛒 ④購入商品データ（日別・速報）' + ds.length + '日分（' + f(ds[0].key) + (ds.length > 1 ? '〜' + f(ds[ds.length - 1].key) : '') + '）：' + rows + '行・広告売上 ¥' + Math.round(sum).toLocaleString()
+        + (empty.length ? '<br><b style="color:#b45309;">⚠️ ' + (empty.length === ds.length ? 'すべての日' : empty.length + '日（' + empty.slice(0, 10).map(x => f(x.key)).join('・') + (empty.length > 10 ? ' ほか' : '') + '）') + 'が 0行です。</b>Amazon にこの期間の購入商品データが残っていない可能性があります（商品-売上データの広告売上は空欄になります）' : '');
+    } }
+  if (notesEl) notesEl.innerHTML = (pdNote ? '<div style="margin-top:6px;">' + pdNote + '</div>' : '') + (_rpt.notes || []).map(t => '<div style="margin-top:6px;">' + t + '</div>').join('');
   // 月末データの「対象月」を、取り込んだファイルから自動推定して既定にセット（誤って別の月へ入るのを防止）
   // 月が読めないファイル用の「対象月」は自動で決めず、選んでもらう（日別データの月に引っ張られて別の月へ入る事故を防ぐ）
   if (hasMe) {
@@ -8824,8 +8833,10 @@ function purchKeyFromName(name){
 // ④の日付の一覧（不足日の判定用）：日別の日＋ E で確定した月の日（日別の最初の日以降だけ）
 function purchDays(){
   const ds = Object.keys(purchData.day || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
-  if (!ds.length) return [];
-  const first = ds[0], set = new Set(ds);
+  // v3.47：最初の日は「行がある日」から（Amazon にデータが無い昔の日＝0行のファイルを入れても、そこから欠けを数えない）
+  const firstReal = ds.find(d => (purchData.day[d] || []).length);
+  if (!firstReal) return [];
+  const first = firstReal, set = new Set(ds.filter(d => d >= first));
   Object.keys(purchData.month || {}).forEach(ym => { const dim = daysInMonth(ym); for (let d = 1; d <= dim; d++) { const k = ym + '-' + String(d).padStart(2, '0'); if (k >= first) set.add(k); } });
   return Array.from(set);
 }
@@ -8893,11 +8904,13 @@ function psPeriodDays(){
   return out;
 }
 // 期間の④の行と、出どころ
+// v3.47：行が1つも無い（Amazon にデータが無い）期間は「データなし」と同じ扱い（0円・0% と見間違えないよう空欄に）
+function purchHasRows(list){ return Array.isArray(list) && list.length > 0; }
 function psPurchRows(){
-  if (psDay) return { rows: (purchData.day[psDay] || []), src: (purchData.day[psDay] ? 'day' : 'none'), nDays: purchData.day[psDay] ? 1 : 0 };
+  if (psDay) { const l = purchData.day[psDay]; return { rows: l || [], src: purchHasRows(l) ? 'day' : 'none', nDays: purchHasRows(l) ? 1 : 0 }; }
   const ym = psMonth;
-  if (purchData.month && purchData.month[ym]) return { rows: purchData.month[ym], src: 'E', nDays: 0 };
-  const ds = Object.keys(purchData.day || {}).filter(d => d.slice(0, 7) === ym).sort();
+  if (purchData.month && purchHasRows(purchData.month[ym])) return { rows: purchData.month[ym], src: 'E', nDays: 0 };
+  const ds = Object.keys(purchData.day || {}).filter(d => d.slice(0, 7) === ym && purchHasRows(purchData.day[d])).sort();
   let rows = []; ds.forEach(d => { rows = rows.concat(purchData.day[d] || []); });
   return { rows, src: ds.length ? 'daily' : 'none', nDays: ds.length, firstDay: ds[0], lastDay: ds[ds.length - 1] };
 }
@@ -9045,7 +9058,7 @@ function renderPsalesView(){
   // 月・日の選択肢
   const msel = document.getElementById('ps-month');
   if (msel) msel.innerHTML = (months.length ? months : [psMonth]).map(m => {
-    const tag = (purchData.month && purchData.month[m]) ? '（確定）' : (Object.keys(purchData.day || {}).some(d => d.slice(0, 7) === m) ? '（速報）' : '');
+    const tag = (purchData.month && purchHasRows(purchData.month[m])) ? '（確定）' : (Object.keys(purchData.day || {}).some(d => d.slice(0, 7) === m && purchHasRows(purchData.day[d])) ? '（速報）' : '');
     return '<option value="' + m + '"' + (m === psMonth ? ' selected' : '') + '>' + (+m.slice(0, 4)) + '年' + (+m.slice(5, 7)) + '月' + tag + '</option>';
   }).join('');
   const dsel = document.getElementById('ps-day');
