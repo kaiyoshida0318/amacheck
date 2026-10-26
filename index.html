@@ -848,11 +848,11 @@
   .ad-daymode button:hover:not(.on) { color: var(--black); }
   .ad-daymode button.on { background: #0f766e; border-color: #0f766e; color: #fff; position: relative; z-index: 1; }
   /* 月途中の帯（表のすぐ上）・見出しのラベル・月の列 */
-  .ad-day-banner { display: flex; align-items: center; gap: 12px; padding: 10px 16px; background: #0f766e; color: #fff; font-size: 17px; font-weight: 800; letter-spacing: .4px; border-radius: 11px 11px 0 0; }
-  .ad-day-banner .adb-tag { background: #fff; color: #0f766e; border-radius: 5px; padding: 2px 11px; font-size: 15px; }
-  .ad-day-banner button { margin-left: auto; font-family: inherit; font-size: 14px; font-weight: 800; padding: 5px 13px; border-radius: 7px; border: 1.5px solid #fff; background: transparent; color: #fff; cursor: pointer; }
+  .ad-day-banner { display: flex; align-items: center; gap: 11px; padding: 7px 15px; background: #0f766e; color: #fff; font-size: 15px; font-weight: 800; letter-spacing: .35px; border-radius: 11px 11px 0 0; }
+  .ad-day-banner .adb-tag { background: #fff; color: #0f766e; border-radius: 5px; padding: 1px 10px; font-size: 13.5px; }
+  .ad-day-banner button { margin-left: auto; font-family: inherit; font-size: 13px; font-weight: 800; padding: 3px 12px; border-radius: 6px; border: 1.5px solid #fff; background: transparent; color: #fff; cursor: pointer; }
   .ad-day-banner button:hover { background: rgba(255,255,255,.15); }
-  table.ad-table .ad-daycut-lbl { display: inline-block; margin-top: 4px; background: #0f766e; color: #fff; font-size: 12.5px; font-weight: 800; padding: 2px 8px; border-radius: 5px; white-space: nowrap; }
+  table.ad-table .ad-daycut-lbl { display: inline-block; margin-top: 3px; background: #0f766e; color: #fff; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px; white-space: nowrap; letter-spacing: 0; }
   table.ad-table td.ad-daycol.ad-daycut { background: #e6f4f1; color: #0f766e; }
 
   /* 商品マスタ画面 */
@@ -1937,7 +1937,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.41</span>
+    <span class="version">v3.42</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2116,9 +2116,9 @@
       <select id="ad-month-select"></select>
       <select id="ad-year-select" hidden></select>
       <span id="ad-range-ctrl" hidden style="display:inline-flex;align-items:center;gap:6px;">
-        <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);">最終日
-          <input type="date" id="ad-range-end" style="font-size:13px;padding:5px 8px;">
-        </label>
+        <input type="date" id="ad-range-start" title="表示する期間の最初の日" style="font-size:13px;padding:5px 8px;">
+        <span style="font-size:13px;color:var(--text-secondary);">〜</span>
+        <input type="date" id="ad-range-end" title="表示する期間の最後の日" style="font-size:13px;padding:5px 8px;">
       </span>
       <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);" title="キャンペーン（広告商品）で絞り込み">
         <select id="ad-product-select" style="font-size:13px;padding:6px 8px;"></select>
@@ -2732,7 +2732,8 @@ let campaignDrafts = [];
 let adPeriod = 'daily';
 let adLastDailyPeriod = 'daily';   // v3.33：日別タブに戻った時、最後に見ていた 1か月／直近2ヶ月 に戻す
 let adDayMode = 'full';   // 月別のとき：'full'＝月全体／'same'＝月途中（各月 1〜N日だけ）。画面を開いている間だけ（保存しない）
-let adRangeEnd = null; // 直近2ヶ月（約60日連続）ローリング表示の最終日(YYYY-MM-DD)
+let adRangeEnd = null; // 直近2ヶ月（期間指定）表示の最後の日(YYYY-MM-DD)
+let adRangeStart = null; // v3.42：同じく最初の日（既定は最後の日の59日前＝約2ヶ月）
 let adMonth = ymKey(new Date());
 let adYear = String(new Date().getFullYear());
 let adProduct = 'all';
@@ -3451,7 +3452,9 @@ function init(){
   });
   {
     const reEl = document.getElementById('ad-range-end');
-    if (reEl) reEl.addEventListener('change', (e) => { if (e.target.value) { adRangeEnd = e.target.value; renderAdTable(); } });
+    if (reEl) reEl.addEventListener('change', (e) => { if (e.target.value) { adRangeEnd = e.target.value; adFixRange('end'); renderAdTable(); } });
+    const rsEl = document.getElementById('ad-range-start');
+    if (rsEl) rsEl.addEventListener('change', (e) => { if (e.target.value) { adRangeStart = e.target.value; adFixRange('start'); renderAdTable(); } });
   }
   document.addEventListener('keydown', (e) => {
     if (e.key === 'Escape' && !document.getElementById('ad-add-modal').hidden) closeAdAddModal();
@@ -8550,7 +8553,8 @@ function renderAdTable(){
     }
   } else if (adPeriod === 'last2m') {
     if (!adRangeEnd) adRangeEnd = defaultAdRangeEnd();
-    last2mDates(adRangeEnd).forEach(dateStr => {
+    if (!adRangeStart) adRangeStart = adShiftDay(adRangeEnd, -59);
+    adRangeDates(adRangeStart, adRangeEnd).forEach(dateStr => {
       const mo = +dateStr.slice(5, 7), da = +dateStr.slice(8, 10);
       rows.push({ label: mo + '/' + da, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr), saleNames: saleNamesForDate(dateStr) });
     });
@@ -8942,14 +8946,16 @@ function psCompute(){
     const ad = o.S.spAll + o.S.sbAll, cost = o.C.spAll + o.C.sbAll;
     const seo = Math.max(0, o.total - ad);
     const r = { p, asin: a, name: p ? (p.name || '') : '（商品マスタに無い商品）', sku: p ? (p.sku || '') : '', ship: o.ship, total: o.total, seo, ad, cost, prom: o.prom, halo: o.halo, units: o.units };
+    const noPd = pr.src === 'none';   // v3.42：購入商品データが無い期間は、広告売上まわりを空欄に（0円ではない）
     r.sroas = cost > 0 ? Math.round(o.total / cost * 100) : 0;
-    r.roas = cost > 0 ? ad / cost * 100 : null;
+    r.roas = (cost > 0 && !noPd) ? ad / cost * 100 : null;
     const pair = (x, y) => (x + y) > 0 ? Math.round(x / (x + y) * 100) : null;
     r.seoP = pair(seo, ad); r.adP = r.seoP == null ? null : 100 - r.seoP;
     r.spP = pair(o.S.spAll, o.S.sbAll); r.sbP = r.spP == null ? null : 100 - r.spP;
     r.kwP = pair(o.S.spKw, o.S.spSh); r.shP = r.kwP == null ? null : 100 - r.kwP;
     r.dgP = pair(o.S.sbDg, o.S.sbSk); r.skP = r.dgP == null ? null : 100 - r.dgP;
-    ['spAll', 'spKw', 'spSh', 'sbAll', 'sbDg', 'sbSk'].forEach(b => { r[b + 'S'] = o.S[b]; r[b + 'C'] = o.C[b]; r[b + 'R'] = o.C[b] > 0 ? o.S[b] / o.C[b] * 100 : null; });
+    ['spAll', 'spKw', 'spSh', 'sbAll', 'sbDg', 'sbSk'].forEach(b => { r[b + 'S'] = o.S[b]; r[b + 'C'] = o.C[b]; r[b + 'R'] = (o.C[b] > 0 && !noPd) ? o.S[b] / o.C[b] * 100 : null; });
+    if (noPd) { r.seo = null; r.seoP = r.adP = null; r.ad = null; }
     r.has = !!(o.ship || o.total || ad || cost);
     return r;
   };
@@ -9055,7 +9061,7 @@ function renderPsalesTable(){
   const sumEl = document.getElementById('ps-summary');
   if (sumEl) sumEl.innerHTML = '<b>' + per + '</b>' + srcTag
     + '<span>推計総売上 <b>' + yen(cmp.totalSum) + '</b></span>'
-    + '<span>広告売上 <b>' + yen(cmp.adTotal) + '</b>（SP ' + yen(cmp.spTotal) + '・SB ' + yen(cmp.sbTotal) + '／うちHalo ' + yen(cmp.haloTotal) + '）</span>'
+    + (pr.src === 'none' ? '<span>広告売上 <b>—</b>（この期間の購入商品データがありません）</span>' : '<span>広告売上 <b>' + yen(cmp.adTotal) + '</b>（SP ' + yen(cmp.spTotal) + '・SB ' + yen(cmp.sbTotal) + '／うちHalo ' + yen(cmp.haloTotal) + '）</span>')
     + '<span>広告費 <b>' + yen(cmp.costTotal) + '</b>（' + (psCostMode === 'alloc' ? '配賦' : '直接') + 'で商品に割り当て ' + yen(cmp.costAssigned)
     + (unTot >= 1 ? '／<span class="ps-un" title="' + escapeHtml(unTip) + '">割り当てなし ' + yen(unTot) + '</span>' : '') + '）'
     + (cmp.fallbackDays ? '<span class="ps-un" title="この ' + cmp.fallbackDays + '日は①のキャンペーン別の数字が保存されていないため、①の種類別（KW・商品・オート・動画・商品コレ）の合計で割り当てています。耐火バッグ以外のキャンペーンの費用も含みます">※' + cmp.fallbackDays + '日は種類別の合計</span>' : '') + '</span>'
@@ -9197,6 +9203,25 @@ function populateAdMonthYear(){
   if (rc) rc.hidden = (adPeriod !== 'last2m');
   const re = document.getElementById('ad-range-end');
   if (re && adPeriod === 'last2m') { if (!adRangeEnd) adRangeEnd = defaultAdRangeEnd(); re.value = adRangeEnd; }
+  const rs = document.getElementById('ad-range-start');
+  if (rs && adPeriod === 'last2m') { if (!adRangeStart) adRangeStart = adShiftDay(adRangeEnd, -59); rs.value = adRangeStart; }
+}
+// v3.42：期間指定（最初の日〜最後の日）。逆なら入れ替え、長すぎる時（400日超）は動かした方に合わせて縮める
+function adShiftDay(ds, n){ const [y, m, d] = ds.split('-').map(Number); const t = new Date(y, m - 1, d); t.setDate(t.getDate() + n); return ymdKey(t); }
+function adFixRange(moved){
+  if (!adRangeEnd) adRangeEnd = defaultAdRangeEnd();
+  if (!adRangeStart) adRangeStart = adShiftDay(adRangeEnd, -59);
+  if (adRangeStart > adRangeEnd) { const t = adRangeStart; adRangeStart = adRangeEnd; adRangeEnd = t; }
+  const MAX = 400;
+  if (adRangeDates(adRangeStart, adRangeEnd, MAX + 1).length > MAX) {
+    if (moved === 'start') adRangeEnd = adShiftDay(adRangeStart, MAX - 1); else adRangeStart = adShiftDay(adRangeEnd, -(MAX - 1));
+    toast('表示できるのは ' + MAX + '日までです。期間を ' + MAX + '日に縮めました');
+  }
+}
+function adRangeDates(from, to, limit){
+  const out = []; let d = from;
+  while (d <= to && out.length < (limit || 1000)) { out.push(d); d = adShiftDay(d, 1); }
+  return out;
 }
 // 直近2ヶ月の既定最終日：広告データの最新日（無ければ今日）
 function defaultAdRangeEnd(){
