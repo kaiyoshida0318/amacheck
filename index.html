@@ -1988,7 +1988,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.53</span>
+    <span class="version">v3.54</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -9136,10 +9136,12 @@ function psCompute(){
   products.forEach(p => {
     const a = String(p.asin || '').toUpperCase(); if (!a || used.has(a)) return; used.add(a);
     const r = mk(p, a);
-    if (productStatus(p) === 'withdrawn' && !r.has) return;
+    // v3.54：自動登録（商品マスタに無かった商品）は表に出さない。撤退済みは撤退した月まで（データがある時だけ）
+    if (p.autoFromPurchase) return;
+    if (productStatus(p) === 'withdrawn' && (!r.has || (p.withdrawnDate && psMonth > String(p.withdrawnDate).slice(0, 7)))) return;
     rows.push(r);
   });
-  Object.keys(byAsin).forEach(a => { if (!used.has(a)) { const r = mk(null, a); if (r.has) rows.push(r); } });
+  // v3.54：商品マスタに無い ASIN の行は出さない（撤退済み商品へ自動登録される）
   const adTotal = rows.reduce((s, r) => s + r.ad, 0), haloTotal = rows.reduce((s, r) => s + r.halo, 0);
   const spTotal = rows.reduce((s, r) => s + r.spAllS, 0), sbTotal = rows.reduce((s, r) => s + r.sbAllS, 0);
   const totalSum = rows.reduce((s, r) => s + r.total, 0);
