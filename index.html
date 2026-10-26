@@ -431,7 +431,7 @@
     margin-left: calc(50% - (50vw - 12px) / var(--pz, 1));
     margin-right: calc(50% - (50vw - 12px) / var(--pz, 1));
   }
-  /* 1920px で1行に収めるため、広告データ-月別／日別のツールバーは少し詰める */
+  /* 1920px で1行に収めるため、全-月別データ／全-日別データのツールバーは少し詰める */
   #ad-view .toolbar { gap: 10px; }
   #ad-view .toolbar #open-ad-guide, #ad-view .toolbar #open-ad-recon { padding-left: 11px; padding-right: 11px; }
   /* クリック可能な日付セル（広告データ追加へ） */
@@ -838,7 +838,7 @@
     color: var(--black);
   }
   .period-btn:hover:not(.active) { color: var(--black); }
-  /* 広告データ-月別：月全体／月途中 のペアボタン（2つをくっつけたセグメント型・選択は緑） */
+  /* 全-月別データ：月全体／月途中 のペアボタン（2つをくっつけたセグメント型・選択は緑） */
   .ad-daymode { display: inline-flex; gap: 0; }
   .ad-daymode[hidden] { display: none; }
   .ad-daymode button { font-family: inherit; font-size: 13px; font-weight: 600; padding: 7px 11px; cursor: pointer; white-space: nowrap;
@@ -1420,11 +1420,14 @@
   }
   .tab svg { font-size: 18px; }
   .tab[data-tab="master"] svg { color: var(--accent); }
+  /* v3.35：撤退済み商品のタブは文字を少し薄く（選んでいる時は通常どおり） */
+  .tab.tab-dim:not(.active) { color: var(--text-tertiary); font-weight: 500; }
+  .tab.tab-dim:not(.active) svg { color: var(--text-tertiary); opacity: .8; }
   .tab[data-tab="shipment"] svg { color: var(--blue); }
   .tab[data-tab="ad"] svg { color: var(--purple); }
   .tab[data-tab="addaily"] svg { color: var(--purple); }
   .tab[data-tab="adkw"] svg { color: var(--purple); }
-  /* ===== 広告データ-個別（KW） ===== */
+  /* ===== 商品-KWデータ（KW） ===== */
   /* v3.27：日別データ欠けの通知（ADcheck v1.1438 と同じ光り方）と「不足日を確認」 */
   #daily-gap-btn { margin-left: 12px; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 6px; border: 1px solid #b71c1c; background: #b71c1c; color: #fff; cursor: pointer; white-space: nowrap; font-family: inherit; animation: dailyGapAlarm 1.3s ease-in-out infinite; }
   #daily-gap-btn:hover { background: #8e1515; border-color: #8e1515; color: #fff; }
@@ -1657,7 +1660,7 @@
   .kwm-navbtn { width: 32px; height: 32px; border-radius: 10px; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); font-size: 14px; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; padding: 0; }
   .kwm-navbtn:hover:not(:disabled) { border-color: var(--purple); color: var(--purple); background: #faf5ff; }
   .kwm-navbtn:disabled { opacity: 0.3; cursor: default; }
-  /* v3.32：推移モーダルの上部（▲▼の右）にキャンペーンページへのリンク（広告データ-個別の「ページを開く」と同じ色） */
+  /* v3.32：推移モーダルの上部（▲▼の右）にキャンペーンページへのリンク（商品-KWデータの「ページを開く」と同じ色） */
   .kwm-camp-go { display: inline-flex; align-items: center; gap: 5px; height: 32px; box-sizing: border-box; padding: 0 12px; border-radius: 10px; flex-shrink: 0;
     color: #fff; background: #ff9900; border: 1px solid #e88b00; font-size: 13px; font-weight: 700; text-decoration: none; white-space: nowrap; max-width: 260px; overflow: hidden; text-overflow: ellipsis; }
   .kwm-camp-go:hover { background: #e88b00; color: #fff; }
@@ -1873,7 +1876,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.33</span>
+    <span class="version">v3.37</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -1894,6 +1897,30 @@
 <nav class="tabs">
   <div class="tab-row">
     <span class="tab-group">【基本】</span>
+    <button class="tab" data-tab="shipment">
+      <svg class="icn"><use href="#i-truck-delivery"/></svg> 商品-出荷数データ
+    </button>
+    <span class="tab-group tab-group-gap">【全体】</span>
+    <button class="tab" data-tab="ad">
+      <svg class="icn"><use href="#i-chart-bar"/></svg> 全-月別データ
+    </button>
+    <button class="tab" data-tab="addaily">
+      <svg class="icn"><use href="#i-calendar"/></svg> 全-日別データ
+    </button>
+    <button class="tab" data-tab="graph">
+      <svg class="icn"><use href="#i-chart-line"/></svg> 全-月日別グラフ
+    </button>
+    <button class="tab" data-tab="pl">
+      <svg class="icn"><use href="#i-coins"/></svg> 全体収支
+    </button>
+    <button class="tab" data-tab="returns">
+      <svg class="icn"><use href="#i-return"/></svg> 返品率
+    </button>
+    <span class="tab-group tab-group-gap">【広告調整】</span>
+    <button class="tab" data-tab="adkw">
+      <svg class="icn"><use href="#i-list-details"/></svg> 商品-KWデータ
+    </button>
+    <span class="tab-group tab-group-gap">【基礎情報】</span>
     <button class="tab" data-tab="master">
       <svg class="icn"><use href="#i-list-details"/></svg> 商品マスタ
       <span class="count" id="tab-master-count"></span>
@@ -1901,32 +1928,13 @@
     <button class="tab" data-tab="campaign">
       <svg class="icn"><use href="#i-tag"/></svg> 広告キャンペーン
     </button>
-    <span class="tab-group tab-group-gap">【実績】</span>
-    <button class="tab" data-tab="shipment">
-      <svg class="icn"><use href="#i-truck-delivery"/></svg> 出荷数データ
-    </button>
-    <button class="tab" data-tab="ad">
-      <svg class="icn"><use href="#i-chart-bar"/></svg> 広告データ-月別
-    </button>
-    <button class="tab" data-tab="addaily">
-      <svg class="icn"><use href="#i-calendar"/></svg> 広告データ-日別
-    </button>
-    <button class="tab" data-tab="adkw">
-      <svg class="icn"><use href="#i-list-details"/></svg> 広告データ-個別
-    </button>
-    <button class="tab" data-tab="returns">
-      <svg class="icn"><use href="#i-return"/></svg> 返品率
-    </button>
-    <span class="tab-group tab-group-gap">【全体】</span>
-    <button class="tab" data-tab="graph">
-      <svg class="icn"><use href="#i-chart-line"/></svg> 月日別グラフ
-    </button>
-    <button class="tab" data-tab="pl">
-      <svg class="icn"><use href="#i-coins"/></svg> 全体収支
+    <button class="tab tab-dim" data-tab="withdrawn" title="撤退済みにした商品の一覧（商品マスタからは非表示）">
+      <svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品
+      <span class="count" id="tab-withdrawn-count"></span>
     </button>
   </div>
 </nav>
-<!-- 広告データ-個別：ヘッダーを隠す／ヘッダー2まで隠す（位置は kwPlaceHideBtns） -->
+<!-- 商品-KWデータ：ヘッダーを隠す／ヘッダー2まで隠す（位置は kwPlaceHideBtns） -->
 <div class="adkw-hide-btns" id="adkw-hide-btns" hidden>
   <button type="button" class="utility toggle-header-btn" id="toggle-header-adkw" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
   <button type="button" class="utility" id="kw-steps-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダー2まで隠す</button>
@@ -1975,7 +1983,6 @@
   <div id="master-view" hidden>
     <div class="toolbar">
       <span id="product-count" style="color:var(--text-tertiary);font-size:13px;"></span>
-      <button class="ghost" id="open-withdrawn" title="撤退済みの商品を表示" style="font-size:13px;"><svg class="icn"><use href="#i-database-off"/></svg> 撤退済み商品 <span class="wd-count" style="color:var(--text-tertiary);"></span></button>
       <div class="spacer"></div>
       <button class="danger" id="delete-selected" disabled><svg class="icn"><use href="#i-trash"/></svg> 選択を削除 <span id="selected-count"></span></button>
       <button class="utility toggle-header-btn" id="toggle-header-master" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;"><svg class="icn"><use href="#i-chevron-up"/></svg> ヘッダーを隠す</button>
@@ -2007,14 +2014,14 @@
   </div>
 
   <!-- 広告データ画面 -->
-  <!-- 広告データ-個別（③KWデータ） -->
+  <!-- 商品-KWデータ（③KWデータ） -->
   <div id="adkw-view" hidden>
     <div id="adkw-body"></div>
   </div>
 
   <div id="ad-view" hidden>
     <div class="toolbar">
-      <!-- v3.33：広告データ-月別（data-tab="ad"）と 広告データ-日別（data-tab="addaily"）は同じ #ad-view を使い、adPeriod で切り替える -->
+      <!-- v3.33：全-月別データ（data-tab="ad"）と 全-日別データ（data-tab="addaily"）は同じ #ad-view を使い、adPeriod で切り替える -->
       <div class="period-toggle" id="ad-daily-toggle">
         <button class="period-btn active" data-ad-period="daily" title="月を選んで、その月の1日〜末日を表示">1か月</button>
         <button class="period-btn" data-ad-period="last2m" title="最終日から遡って約2ヶ月（60日）を表示">直近2ヶ月</button>
@@ -2079,8 +2086,7 @@
   <!-- 撤退済み商品画面 -->
   <div id="withdrawn-view" hidden>
     <div class="toolbar">
-      <button class="ghost" onclick="switchView('master')"><svg class="icn"><use href="#i-arrow-left"/></svg> 商品マスタへ戻る</button>
-      <h2 style="font-size:16px;margin:0 0 0 4px;"><svg class="icn" style="color:var(--text-secondary);vertical-align:-3px;"><use href="#i-database-off"/></svg> 撤退済み商品</h2>
+      <h2 style="font-size:16px;margin:0;"><svg class="icn" style="color:var(--text-secondary);vertical-align:-3px;"><use href="#i-database-off"/></svg> 撤退済み商品</h2>
       <div class="spacer"></div>
     </div>
     <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;">撤退済みにした商品の一覧です。商品マスタからは非表示になり、設定した撤退日の翌月から出荷数データの表にも表示されなくなります。ステータスを「現役商品」に戻すと復帰します。</p>
@@ -2548,7 +2554,7 @@
 </div>
 
 <div class="toast" id="toast"></div>
-<!-- KW推移モーダル（広告データ-個別）。表示倍率（.container の zoom）の外に置く -->
+<!-- KW推移モーダル（商品-KWデータ）。表示倍率（.container の zoom）の外に置く -->
 <div class="kwm-bg" id="kwm-modal" hidden><div class="kwm-box" id="kwm-box"></div></div>
 <!-- 広告データの照合（v3.07）：月末B と 日別① と KW③ の広告費 -->
 <div class="modal-bg" id="ad-recon-modal" hidden>
@@ -2592,12 +2598,12 @@
     </div>
   </div>
 </div>
-<!-- 広告データ-個別：まとめ方・マッチの説明（openKwHelp） -->
+<!-- 商品-KWデータ：まとめ方・マッチの説明（openKwHelp） -->
 <div class="modal-bg" id="kw-help-modal" hidden>
   <div class="modal adg-modal" style="max-width:920px;">
     <div class="adg-head">
       <div><h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-info"/></svg> まとめ方とマッチの説明</h3>
-        <div class="sub" style="margin-bottom:0;">広告データ-個別の「詳しい条件」にある「まとめ方」と、表の「マッチ」列の意味です。</div></div>
+        <div class="sub" style="margin-bottom:0;">商品-KWデータの「詳しい条件」にある「まとめ方」と、表の「マッチ」列の意味です。</div></div>
       <button class="icon-btn" id="close-kw-help" title="閉じる" aria-label="閉じる"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
     <div class="adg-body" id="kw-help-body"></div>
@@ -2897,7 +2903,7 @@ function saveReturns(){ return persistKey(STORAGE_RETURNS, returnsData); }
 // 商品カテゴリ： { FNSKU: 'カテゴリ名' }
 let categories = {};
 function saveCategories(){ return persistKey(STORAGE_CAT, categories); }
-// v3.14：キャンペーン名 → 広告管理画面（キャンペーンマネージャー）のURL。広告データ-個別でキャンペーンを選ぶとリンクが出る
+// v3.14：キャンペーン名 → 広告管理画面（キャンペーンマネージャー）のURL。商品-KWデータでキャンペーンを選ぶとリンクが出る
 let campUrls = {};
 const CAMP_URL_DEFAULTS = {   // v3.20：広告グループのターゲティング（キーワード）ページへ
   '【SB】耐火バッグ-商品コレ-KW': 'https://advertising-japan.amazon.com/cm/sb/campaigns/A00578012DSFUZ1DX6ADX/ad-groups/A05392487P887FOUI33P/targeting?entityId=ENTITY15N4IW58E6FGF',
@@ -3258,7 +3264,6 @@ function init(){
     if (e.key === 'Escape' && !document.getElementById('sale-modal').hidden) closeSaleModal();
   });
   // 撤退済み商品（専用ページへ遷移）
-  document.getElementById('open-withdrawn').addEventListener('click', () => switchView('withdrawn'));
   // 広告データ
   document.getElementById('open-ad-add').addEventListener('click', () => openReportModal());
   // 返品データ追加モーダル
@@ -3490,6 +3495,7 @@ function updateTabCounts(){
   const el = document.getElementById('tab-master-count');
   const n = visibleMasterProducts().length;
   if (el) el.textContent = n ? '(' + n + ')' : '';
+  try { updateWithdrawnButton(); } catch (e) {}   // v3.35：撤退済み商品タブの件数
 }
 
 function updateHomeStatus(){
@@ -3830,7 +3836,7 @@ function renderMasterList(){
     wrap.innerHTML = '<div class="empty-state">'
       + '<svg class="icn" style="font-size:28px;color:var(--text-tertiary);"><use href="#i-database-off"/></svg>'
       + '<div style="margin-top:8px;">' + (allWithdrawn ? '表示できる商品がありません（すべて撤退済み）' : '登録された商品はまだありません') + '</div>'
-      + '<div style="margin-top:6px;font-size:12px;color:var(--text-tertiary);">' + (allWithdrawn ? '「撤退済み商品」から確認・復帰できます' : '右上の「+ 商品情報追加」から登録してください') + '</div>'
+      + '<div style="margin-top:6px;font-size:12px;color:var(--text-tertiary);">' + (allWithdrawn ? '「撤退済み商品」タブから確認・復帰できます' : '右上の「+ 商品情報追加」から登録してください') + '</div>'
       + '</div>';
     updateBulkControls();
     return;
@@ -5507,9 +5513,9 @@ window.removeShipImport = function(id){ pendingShipImports = pendingShipImports.
 // ======================= 統合「＋レポート追加」 =======================
 // 対応ファイル種別の定義（このパネル＝唯一の正。カレンダー行/月末スロットと番号を統一）
 const REPORT_FILE_TYPES = [
-  { group: '日別データ', badge: '①', pattern: '広告データ-2026-0916.csv', label: '広告データ（日別）', key: 'ファイル名の日付', dest: 'カレンダー①・月日別グラフ／広告データ-月別・日別', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
-  { badge: '②', pattern: '出荷数データ-26-0915.csv', label: '出荷数データ（日別）', key: 'SKU / ASIN（＋各行の日付）', dest: 'カレンダー②・出荷数データ', url: 'https://sellercentral-japan.amazon.com/reportcentral/BUSINESS_REPORTS' },
-  { badge: '③', pattern: 'KWデータ-2026-1005.csv（中身で自動判別）', label: 'KWデータ（日別・キーワード／ターゲット別）', key: '中の「日付」列', dest: '広告データ-個別（分析用データにも出力）', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
+  { group: '日別データ', badge: '①', pattern: '広告データ-2026-0916.csv', label: '広告データ（日別）', key: 'ファイル名の日付', dest: 'カレンダー①・全-月日別グラフ／全-月別データ・全-日別データ', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
+  { badge: '②', pattern: '出荷数データ-26-0915.csv', label: '出荷数データ（日別）', key: 'SKU / ASIN（＋各行の日付）', dest: 'カレンダー②・商品-出荷数データ', url: 'https://sellercentral-japan.amazon.com/reportcentral/BUSINESS_REPORTS' },
+  { badge: '③', pattern: 'KWデータ-2026-1005.csv（中身で自動判別）', label: 'KWデータ（日別・キーワード／ターゲット別）', key: '中の「日付」列', dest: '商品-KWデータ（分析用データにも出力）', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
   { group: '月別データ', badge: 'A', pattern: 'トランザクション レポート .csv', label: '月末：FBA手数料・販売手数料・出荷数', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（FBA手数料・販売手数料）', url: 'https://sellercentral-japan.amazon.com/payments/reports-repository' },
   { badge: 'B', pattern: '広告レポート（月合計）.csv', label: '月末：広告費・広告売上', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（広告費・広告売上・ROAS）', url: 'https://advertising-japan.amazon.com/campaign-manager/all-campaigns' },
   { badge: 'C', pattern: '月次保管料レポート .csv', label: '月末：保管費', key: 'ファイル名の年月（例 2025-01）', dest: '全体収支（保管費）', url: 'https://sellercentral-japan.amazon.com/reportcentral/STORAGE_FEE_CHARGES/1' },
@@ -6351,7 +6357,7 @@ function toggleHeader(){
 
 // ヘッダー非表示時、表の下端を画面いっぱいまで伸ばす
 function adjustHiddenTableHeight(){
-  kwFitTable();   // 広告データ-個別の表
+  kwFitTable();   // 商品-KWデータの表
   // 対象：現在表示中の表のスクロール領域
   const scrollEl = document.querySelector('#shipment-view:not([hidden]) .table-wrap')
                  || document.querySelector('#ad-view:not([hidden]) .table-wrap')
@@ -6385,7 +6391,7 @@ function setSalePartMode(on){
 }
 // セール参加商品リストのテンプレート（商品マスタの商品入り。セール価格だけ空欄。編集中のセールは現在のセール価格を入れる）
 // ============================================
-// 広告データ-個別（③KWデータ：キーワード／ターゲット別）
+// 商品-KWデータ（③KWデータ：キーワード／ターゲット別）
 //  ・基本は「期間合計」：1行＝キーワード×マッチタイプ×キャンペーン（まとめ方で KWだけ／キャンペーン にも）
 //  ・判定：ROAS 300%以上＝緑／200〜299%＝黄土色／199%以下＝赤（費用0の行は判定なし。表示している％の値で判定）
 //  ・期間の基準は「データの最終日」（取込が遅れても意図どおりの範囲になる）
@@ -6860,7 +6866,7 @@ function kwToggleSteps(){
   else { kwStepsHidden = false; if (hdr && !kwStepsPrevHeader) toggleHeader(); }
   renderAdKwView();
 }
-// 「ヘッダーを隠す」「ヘッダー2まで隠す」：タブ行の右端に縦に2つ（ヘッダーを隠している間は画面の右上）。広告データ-個別のときだけ出す
+// 「ヘッダーを隠す」「ヘッダー2まで隠す」：タブ行の右端に縦に2つ（ヘッダーを隠している間は画面の右上）。商品-KWデータのときだけ出す
 function kwPlaceHideBtns(){
   const box = document.getElementById('adkw-hide-btns'); if (!box) return;
   const v = document.getElementById('adkw-view');
@@ -6886,7 +6892,7 @@ function kwFitTable(){
 
 
 // ============================================
-// KW推移モーダル（広告データ-個別でワードをクリックしたときに開く）
+// KW推移モーダル（商品-KWデータでワードをクリックしたときに開く）
 //  ADcheck「商品モーダル・全体情報」の仕様を Amacheck の KW データ向けに移植
 //  ・日別（30日／先月-今月／今月、月セレクト）／月別（1月始まり／5月始まり／2年横並び）
 //  ・指標セレクト＋グラフ（Chart.js）＋データ表（新しい順、月別は前年同月比も）
@@ -7869,12 +7875,11 @@ function isProductVisibleInShip(p){
   return currentMonth <= wMonth; // 撤退月までは表示、翌月から非表示
 }
 
-function updateWithdrawnButton(){
-  const btn = document.getElementById('open-withdrawn');
-  if (!btn) return;
+function updateWithdrawnButton(){   // v3.35：商品マスタのボタンは廃止し、タブ「撤退済み商品」の件数に
+  const cnt = document.getElementById('tab-withdrawn-count');
+  if (!cnt) return;
   const n = withdrawnProducts().length;
-  const cnt = btn.querySelector('.wd-count');
-  if (cnt) cnt.textContent = n ? '(' + n + ')' : '';
+  cnt.textContent = n ? '(' + n + ')' : '';
 }
 
 function renderWithdrawnList(){
