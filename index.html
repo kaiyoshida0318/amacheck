@@ -1989,7 +1989,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.55</span>
+    <span class="version">v3.56</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -10384,7 +10384,7 @@ const GRAPH_CATEGORIES = {
     { key: 'seoShare', label: 'SEO売上 割合', color: '#9333ea' },
     { key: 'adSalesShare', label: '広告売上 割合', color: '#ea580c' },
   ] },
-  adcost: { label: '広告費', yen: true, items: [
+  adcost: { label: '広告-実績額', yen: true, items: [
     { key: 'adcActualTotal',    label: '合計',              color: '#dc2626' },
     { key: 'adcActualSp',       label: 'SP広告',            color: '#2563eb' },
     { key: 'adcActualSb',       label: 'SB広告',            color: '#ea580c' },
@@ -10393,31 +10393,54 @@ const GRAPH_CATEGORIES = {
     { key: 'adcActualSbDouga',  label: 'SB広告-KW-動画',    color: '#d97706' },
     { key: 'adcActualSbShokore',label: 'SB広告-KW-商品コレ', color: '#db2777' },
   ] },
-  adshareSpSb: { label: '広告費-割合(SP/SB)', yen: false, pct: true, fixed100: true, items: [
+  adshareSpSb: { label: '広告-割合(SP/SB)', yen: false, pct: true, fixed100: true, items: [
     { key: 'adcSpShare', label: 'SP広告 割合', color: '#2563eb' },
     { key: 'adcSbShare', label: 'SB広告 割合', color: '#ea580c' },
   ] },
-  adshareSpKwSh: { label: 'SP広告費-割合', yen: false, pct: true, fixed100: true, items: [
+  adshareSpKwSh: { label: 'SP広告-割合', yen: false, pct: true, fixed100: true, items: [
     { key: 'adcSpKwShare',     label: 'SP広告-KW 割合',   color: '#0891b2' },
     { key: 'adcSpShohinShare', label: 'SP広告-商品 割合', color: '#7c3aed' },
   ] },
-  adshareSbDgSk: { label: 'SB広告費-割合', yen: false, pct: true, fixed100: true, items: [
+  adshareSbDgSk: { label: 'SB広告-割合', yen: false, pct: true, fixed100: true, items: [
     { key: 'adcSbDougaShare',   label: 'SB広告-KW-動画 割合',   color: '#d97706' },
     { key: 'adcSbShokoreShare', label: 'SB広告-KW-商品コレ 割合', color: '#db2777' },
   ] },
-  roas: { label: 'ROAS', yen: false, dec: true, items: [
+  roas: { label: '広告-ROAS', yen: false, dec: true, items: [
     { key: 'roasActual', label: '広告ROAS(全体)', color: '#dc2626' },
     { key: 'roasActualSpKw', label: 'SP-KW', color: '#0891b2' },
     { key: 'roasActualSpShohin', label: 'SP-商品', color: '#7c3aed' },
     { key: 'roasActualSbDouga', label: 'SB-動画', color: '#d97706' },
     { key: 'roasActualSbShokore', label: 'SB-商品コレ', color: '#db2777' },
   ] },
-  cvr: { label: 'CVR', yen: false, pct: true, dec2: true, items: [
+  cvr: { label: '広告-CVR', yen: false, pct: true, dec2: true, items: [
     { key: 'cvr',          label: 'CVR(全体)',  color: '#dc2626' },
     { key: 'cvrSpKw',      label: 'SP-KW',     color: '#0891b2' },
     { key: 'cvrSpShohin',  label: 'SP-商品',    color: '#7c3aed' },
     { key: 'cvrSbDouga',   label: 'SB-動画',    color: '#d97706' },
     { key: 'cvrSbShokore', label: 'SB-商品コレ', color: '#db2777' },
+  ] },
+  // v3.56：CTR（左の軸・%）＋クリック数（右の軸・回）。CTR は ③KWデータ（表示回数がある日だけ）、クリック数は ①広告データ
+  ctr: { label: '広告-CTR＆クリック数', yen: false, pct: true, dec2: true, axisL: 'CTR（%）', axisR: 'クリック数（回）', items: [
+    { key: 'ctr',          label: 'CTR(全体)',    color: '#dc2626' },
+    { key: 'ctrSpKw',      label: 'CTR SP-KW',    color: '#0891b2' },
+    { key: 'ctrSpShohin',  label: 'CTR SP-商品',   color: '#7c3aed' },
+    { key: 'ctrSbDouga',   label: 'CTR SB-動画',   color: '#d97706' },
+    { key: 'ctrSbShokore', label: 'CTR SB-商品コレ', color: '#db2777' },
+    { key: 'clk',          label: 'クリック数(全体)',    color: '#dc2626', y2: true, soft: true },
+    { key: 'clkSpKw',      label: 'クリック数 SP-KW',    color: '#0891b2', y2: true, soft: true },
+    { key: 'clkSpShohin',  label: 'クリック数 SP-商品',   color: '#7c3aed', y2: true, soft: true },
+    { key: 'clkSbDouga',   label: 'クリック数 SB-動画',   color: '#d97706', y2: true, soft: true },
+    { key: 'clkSbShokore', label: 'クリック数 SB-商品コレ', color: '#db2777', y2: true, soft: true },
+  ] },
+  // v3.56：広告経由で売れた個数（④購入商品データの注文点数。月別は E を優先、④が無い日は ① の注文数で代用）
+  units: { label: '広告-個数', yen: false, items: [
+    { key: 'unAll',       label: '合計',          color: '#dc2626' },
+    { key: 'unSp',        label: 'SP広告',        color: '#2563eb' },
+    { key: 'unSb',        label: 'SB広告',        color: '#ea580c' },
+    { key: 'unSpKw',      label: 'SP広告-KW',     color: '#0891b2' },
+    { key: 'unSpShohin',  label: 'SP広告-商品',    color: '#7c3aed' },
+    { key: 'unSbDouga',   label: 'SB広告-KW-動画',  color: '#d97706' },
+    { key: 'unSbShokore', label: 'SB広告-KW-商品コレ', color: '#db2777' },
   ] },
   fees: { label: '諸費用', yen: true, items: [
     { key: 'storage', label: '保管費', color: '#0891b2' },
@@ -10441,6 +10464,8 @@ function graphAllItems(){
   if (graphCategory === 'shipment') return GRAPH_CATEGORIES.shipment.items;
   if (graphCategory === 'roas') return GRAPH_CATEGORIES.roas.items;
   if (graphCategory === 'cvr') return GRAPH_CATEGORIES.cvr.items;
+  if (graphCategory === 'ctr') return GRAPH_CATEGORIES.ctr.items;
+  if (graphCategory === 'units') return GRAPH_CATEGORIES.units.items;
   if (graphCategory === 'adcost') return GRAPH_CATEGORIES.adcost.items;
   if (graphCategory === 'salesShare') return GRAPH_CATEGORIES.salesShare.items;
   if (graphCategory === 'adshareSpSb') return GRAPH_CATEGORIES.adshareSpSb.items;
@@ -10455,6 +10480,8 @@ function graphDefaultHidden(cat){
   else if (cat === 'fees') GRAPH_CATEGORIES.sales.items.forEach(i => hidden.add(i.key));
   else if (cat === 'adcost') ['adcActualSpKw', 'adcActualSpShohin', 'adcActualSbDouga', 'adcActualSbShokore'].forEach(k => hidden.add(k));
   else if (cat === 'roas') ['roasSpKw', 'roasSpShohin', 'roasSbDouga', 'roasSbShokore'].forEach(k => hidden.add(k));
+  else if (cat === 'ctr') ['ctrSpKw', 'ctrSpShohin', 'ctrSbDouga', 'ctrSbShokore', 'clkSpKw', 'clkSpShohin', 'clkSbDouga', 'clkSbShokore'].forEach(k => hidden.add(k));
+  else if (cat === 'units') ['unSpKw', 'unSpShohin', 'unSbDouga', 'unSbShokore'].forEach(k => hidden.add(k));
   return hidden;
 }
 let graphPeriodStart = 'jan';   // 'jan' | 'may'
@@ -10469,6 +10496,62 @@ let graphStartYM = null;        // 'YYYY-MM'（比較の前年側）
 let graphEndYM = null;          // 'YYYY-MM'（比較の今年側）
 let _graphMetricCache = {};
 
+// v3.56：CTR・個数用の素の値（区分＝spKw/spSh/spAu/sbDg/sbSk）
+const GX_BLK = ['spKw', 'spSh', 'spAu', 'sbDg', 'sbSk'];
+let _gxBlkCache = {};
+function gxBlank(){ const o = {}; GX_BLK.forEach(b => o[b] = 0); return o; }
+function gxBlk(t, camp){ const k = t + '|' + camp; return _gxBlkCache[k] || (_gxBlkCache[k] = psBlockOf(t, camp)); }
+// 1日分：③の表示回数とクリック（CTR用）、広告経由の個数（④の注文点数、④が無い日は①の注文数）
+function graphDayExtra(ds){
+  const x = { imp: gxBlank(), kc: gxBlank(), un: gxBlank(), hasKw: false, hasUn: false, unSrc: null };
+  (adKwData[ds] || []).forEach(r => {
+    if (r.imp == null) return;
+    const b = gxBlk(r.type === 'SB' ? 'SB' : 'SP', r.campaign);
+    x.imp[b] += Number(r.imp) || 0; x.kc[b] += Number(r.clicks) || 0; x.hasKw = true;
+  });
+  const pl = purchData.day && purchData.day[ds];
+  if (purchHasRows(pl)) {
+    pl.forEach(r => { x.un[gxBlk(r.t, r.c)] += Number(r.u) || 0; });
+    x.hasUn = true; x.unSrc = 'pd';
+  } else if (adData[ds]) {
+    const o = adMetricsResolved(ds, 'all').orders;
+    x.un.spKw += o.sp.kw || 0; x.un.spSh += o.sp.shohin || 0; x.un.spAu += o.sp.auto || 0; x.un.sbDg += o.sb.douga || 0; x.un.sbSk += o.sb.shokore || 0;
+    x.hasUn = true; x.unSrc = 'ad';
+  }
+  return x;
+}
+function gxAdd(acc, x){
+  GX_BLK.forEach(b => { acc.imp[b] += x.imp[b]; acc.kc[b] += x.kc[b]; acc.un[b] += x.un[b]; });
+  if (x.hasKw) acc.hasKw = true;
+  if (x.hasUn) { acc.hasUn = true; acc.srcs.add(x.unSrc); }
+}
+function gxAcc(){ return { imp: gxBlank(), kc: gxBlank(), un: gxBlank(), hasKw: false, hasUn: false, srcs: new Set() }; }
+// 月：E（月別の確定）がある月は E の注文点数で個数を置き換える
+function gxMonthOverride(ym, acc){
+  const e = purchData.month && purchData.month[ym];
+  if (!purchHasRows(e)) return;
+  acc.un = gxBlank(); e.forEach(r => { acc.un[gxBlk(r.t, r.c)] += Number(r.u) || 0; });
+  acc.hasUn = true; acc.srcs = new Set(['E']);
+}
+// クリック数（①）＋CTR（③）＋個数 を指標のキーにする
+function gxMetrics(acc, clk){
+  const div = (a, b) => (b > 0 ? a / b * 100 : null);
+  const I = acc.imp, K = acc.kc, U = acc.un;
+  const sum = (o, ks) => ks.reduce((t, k) => t + o[k], 0);
+  const all = GX_BLK, sp = ['spKw', 'spSh', 'spAu'], sb = ['sbDg', 'sbSk'];
+  const r = {
+    ctr: acc.hasKw ? div(sum(K, all), sum(I, all)) : null,
+    ctrSpKw: acc.hasKw ? div(K.spKw, I.spKw) : null, ctrSpShohin: acc.hasKw ? div(K.spSh, I.spSh) : null,
+    ctrSbDouga: acc.hasKw ? div(K.sbDg, I.sbDg) : null, ctrSbShokore: acc.hasKw ? div(K.sbSk, I.sbSk) : null,
+    clk: clk ? clk.spKw + clk.spSh + clk.spAu + clk.sbDg + clk.sbSk : null,
+    clkSpKw: clk ? clk.spKw : null, clkSpShohin: clk ? clk.spSh : null, clkSbDouga: clk ? clk.sbDg : null, clkSbShokore: clk ? clk.sbSk : null,
+    unAll: acc.hasUn ? sum(U, all) : null, unSp: acc.hasUn ? sum(U, sp) : null, unSb: acc.hasUn ? sum(U, sb) : null,
+    unSpKw: acc.hasUn ? U.spKw : null, unSpShohin: acc.hasUn ? U.spSh : null, unSbDouga: acc.hasUn ? U.sbDg : null, unSbShokore: acc.hasUn ? U.sbSk : null,
+    unSrc: acc.hasUn ? Array.from(acc.srcs).sort().join('+') : null,
+  };
+  return r;
+}
+
 function graphMonthMetrics(ym){
   if (_graphMetricCache[ym]) return _graphMetricCache[ym];
   // 月別グラフは全体収支ベース。広告データ完備でなくても全体収支の数値（売上・粗利益・実質利益・ROAS）は計算する。
@@ -10481,8 +10564,12 @@ function graphMonthMetrics(ym){
   let sSpKw = 0, sSpShohin = 0, sSpAuto = 0, sSbDouga = 0, sSbShokore = 0;
   let klSpKw = 0, klSpShohin = 0, klSpAuto = 0, klSbDouga = 0, klSbShokore = 0;
   let orSpKw = 0, orSpShohin = 0, orSpAuto = 0, orSbDouga = 0, orSbShokore = 0;
+  const gx = gxAcc();   // v3.56：CTR・個数
+  let gxHasAd = false;
   for (let d = 1; d <= dim; d++) {
-    const m = adMetricsForDate(ym + '-' + String(d).padStart(2, '0'), 'all');
+    const _ds = ym + '-' + String(d).padStart(2, '0');
+    gxAdd(gx, graphDayExtra(_ds)); if (adData[_ds]) gxHasAd = true;
+    const m = adMetricsForDate(_ds, 'all');
     const s = m.sales, c = m.cost, k = m.clicks, o = m.orders;
     adSales += s.sp.kw + s.sp.shohin + s.sp.auto + s.sb.douga + s.sb.shokore;
     adCost  += c.sp.kw + c.sp.shohin + c.sp.auto + c.sb.douga + c.sb.shokore;
@@ -10574,6 +10661,8 @@ function graphMonthMetrics(ym){
     adcSpShare, adcSbShare, adcSpKwShare, adcSpShohinShare, adcSbDougaShare, adcSbShokoreShare,
     roasSpTotal, roasSpKw, roasSpShohin, roasSbTotal, roasSbDouga, roasSbShokore,
     cvr, cvrSpTotal, cvrSpKw, cvrSpShohin, cvrSbTotal, cvrSbDouga, cvrSbShokore };
+  gxMonthOverride(ym, gx);
+  Object.assign(r, gxMetrics(gx, gxHasAd ? { spKw: klSpKw, spSh: klSpShohin, spAu: klSpAuto, sbDg: klSbDouga, sbSk: klSbShokore } : null));
   _graphMetricCache[ym] = r;
   return r;
 }
@@ -11872,7 +11961,7 @@ function gYmAdd(ym, n){ return ymKey(new Date(+ym.slice(0, 4), +ym.slice(5, 7) -
 
 function graphItemsNow(){ const a = graphAllItems(); return graphGrain === 'daily' ? a.filter(it => !GRAPH_MONTHLY_ONLY_KEYS.has(it.key)) : a; }
 function graphResetCache(){
-  _graphMetricCache = {}; _graphDayCache = {}; _graphRowCache = {}; _graphDataDates = null;
+  _graphMetricCache = {}; _graphDayCache = {}; _graphRowCache = {}; _graphDataDates = null; _gxBlkCache = {};
   _graphProdMap = {}; products.forEach(p => { _graphProdMap[p.fnsku] = p; });
 }
 // 日別データ（出荷 or 広告）のある日。昇順 'YYYY-MM-DD'
@@ -11902,24 +11991,31 @@ function graphDayRaw(ds){
     if (p && p.sellingPrice != null && p.sellingPrice !== '') cogs += q * (Number(p.cost) || 0);
   }
   const has = qty > 0 || !!adData[ds];
-  const r = has ? { has: true, qty, cogs, sales: totalSalesResolved(ds, 'all'), m: adMetricsResolved(ds, 'all') } : { has: false };
+  const gx = graphDayExtra(ds);   // v3.56：CTR・個数（④だけある日も has にする）
+  const has2 = has || gx.hasKw || gx.hasUn;
+  const r = has2 ? { has: true, qty, cogs, sales: totalSalesResolved(ds, 'all'), m: adMetricsResolved(ds, 'all'), gx, hasAd: !!adData[ds] } : { has: false };
   _graphDayCache[ds] = r;
   return r;
 }
 // ★複数日を「合計してから」派生値（ROAS・CVR・割合）を計算する。率の平均はしない
-function graphAggregate(dsList){
+function graphAggregate(dsList, ym){
   const z = zeroAdMetrics();
-  let sales = 0, qty = 0, cogs = 0, has = false;
+  let sales = 0, qty = 0, cogs = 0, has = false, hasAd = false;
+  const gx = gxAcc();
   dsList.forEach(ds => {
     const r = graphDayRaw(ds);
     if (!r.has) return;
     has = true; sales += r.sales; qty += r.qty; cogs += r.cogs;
+    gxAdd(gx, r.gx); if (r.hasAd) hasAd = true;
     ['sales', 'cost', 'clicks', 'orders'].forEach(t => {
       ['kw', 'shohin', 'auto'].forEach(k => { z[t].sp[k] += r.m[t].sp[k] || 0; });
       ['douga', 'shokore'].forEach(k => { z[t].sb[k] += r.m[t].sb[k] || 0; });
     });
   });
-  return has ? graphDerive(z, sales, qty, cogs) : null;
+  if (ym) { gxMonthOverride(ym, gx); if (gx.hasUn) has = true; }
+  if (!has) return null;
+  const k = z.clicks;
+  return Object.assign(graphDerive(z, sales, qty, cogs), gxMetrics(gx, hasAd ? { spKw: k.sp.kw, spSh: k.sp.shohin, spAu: k.sp.auto, sbDg: k.sb.douga, sbSk: k.sb.shokore } : null));
 }
 function graphDerive(z, sales, qty, cogs){
   const s = z.sales, c = z.cost, k = z.clicks, o = z.orders;
@@ -11964,7 +12060,7 @@ function graphMonthRow(ym){
   } else {
     const dim = daysInMonth(ym), list = [];
     for (let d = 1; d <= dim; d++) list.push(ym + '-' + String(d).padStart(2, '0'));
-    const m = graphAggregate(list);
+    const m = graphAggregate(list, ym);
     row = { code: ym.replace('-', ''), key: ym, m, synth: !!m };
   }
   _graphRowCache[ym] = row;
@@ -12050,7 +12146,7 @@ function graphBuildModel(){
   const lineItems = barMode ? visItems.filter(it => it.key !== 'seoActual' && it.key !== 'adSalesActual' && !(it.key === 'salesActual' && showSeo && showAd)) : visItems;
   let chart = {
     labels, keys: rows.map(r => r.key), years: null,
-    datasets: lineItems.map(it => ({ label: it.label, seriesLabel: it.label, color: it.color, data: rows.map(r => val(r, it.key)), meta, dash: [], width: 3, rec: 0 })),
+    datasets: lineItems.map(it => ({ label: it.label, seriesLabel: it.label, color: it.color, data: rows.map(r => val(r, it.key)), meta, dash: [], width: 3, rec: 0, y2: !!it.y2 })),
   };
   if (barMode && (showSeo || showAd)) {
     const col = k => (GRAPH_CATEGORIES.sales.items.find(i => i.key === k) || {}).color;
@@ -12098,7 +12194,7 @@ function graphYearify(labels, dss){
         data: arr, meta,
         dash: GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length],   // 古いほど破線
         width: rec === 0 ? 3 : 1.9,                        // 最新を太く
-        rec, year: yr, hidden: graphHiddenFY.has(yr),
+        rec, year: yr, hidden: graphHiddenFY.has(yr), y2: !!ds.y2,
       });
     });
   });
@@ -12114,12 +12210,17 @@ function graphFmtAxis(v, cat){
   return (cat.yen ? '¥' : '') + Math.round(v).toLocaleString();
 }
 function graphSvg(chart, cat){
-  const W = 1480, H = 490, padL = 120, padR = 48, padT = 46, padB = 42;
+  // v3.56：y2（右の軸）の系列。左の系列が1つも出ていない時は右の系列を左の軸で描く
+  let vis = chart.datasets.filter(d => !d.hidden && !d.y2), vis2 = chart.datasets.filter(d => !d.hidden && d.y2);
+  if (!vis.length && vis2.length) { vis = vis2.map(d => Object.assign({}, d, { y2: false })); vis2 = []; cat = { yen: false }; }
+  const CNT = { yen: false };
+  const W = 1480, H = 490, padL = 120, padR = vis2.length ? 110 : 48, padT = 46, padB = 42;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const n = chart.labels.length;
-  const vis = chart.datasets.filter(d => !d.hidden);
   let maxV = 0, minV = 0, any = false;
   vis.forEach(d => d.data.forEach(v => { if (v == null) return; any = true; if (v > maxV) maxV = v; if (v < minV) minV = v; }));
+  let max2 = 0;
+  vis2.forEach(d => d.data.forEach(v => { if (v == null) return; any = true; if (v > max2) max2 = v; }));
   const bar = chart.bar || null;   // v3.23：積み上げ棒（SEO売上＋広告売上）
   const barSeg = i => { const sv = bar.showSeo ? Math.max(0, bar.seo[i] || 0) : 0, av = bar.showAd ? Math.max(0, bar.ad[i] || 0) : 0; return { sv, av, has: (bar.showSeo && bar.seo[i] != null) || (bar.showAd && bar.ad[i] != null) }; };
   if (bar) for (let i = 0; i < n; i++) { const b = barSeg(i); if (!b.has) continue; any = true; if (b.sv + b.av > maxV) maxV = b.sv + b.av; }
@@ -12135,6 +12236,10 @@ function graphSvg(chart, cat){
   }
   const xOf = bar ? (i => padL + plotW * (i + 0.5) / Math.max(1, n)) : (i => padL + (n <= 1 ? plotW / 2 : plotW * i / (n - 1)));   // 棒の時は各月の帯の中央
   const yOf = v => padT + plotH * (1 - (v - bot) / (top - bot));
+  // 右の軸：左の目盛り線にそろえる（同じ本数）
+  const nT = Math.round((top - bot) / tickStep), below = Math.round(-bot / tickStep);
+  const step2 = graphNiceStep((max2 > 0 ? max2 : 1) / Math.max(1, nT - below)), bot2 = -below * step2, top2 = bot2 + nT * step2;
+  const y2Of = v => padT + plotH * (1 - (v - bot2) / (top2 - bot2));
   let svg = '<svg viewBox="0 0 ' + W + ' ' + H + '" style="width:100%;height:auto;" preserveAspectRatio="xMidYMid meet" font-family="inherit">';
   if (chart.keys && graphShowSale) svg += graphSaleOverlay(chart.keys, xOf, n, padT, plotH, W);
   const nTicks = Math.round((top - bot) / tickStep);
@@ -12142,6 +12247,11 @@ function graphSvg(chart, cat){
     const v = bot + tickStep * t, y = yOf(v);
     svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="' + (Math.abs(v) < 1e-9 && bot < 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)') + '"/>';
     svg += '<text x="' + (padL - 10) + '" y="' + (y + 6) + '" text-anchor="end" font-size="17" fill="#888">' + graphFmtAxis(v, cat) + '</text>';
+    if (vis2.length) svg += '<text x="' + (W - padR + 10) + '" y="' + (y + 6) + '" text-anchor="start" font-size="17" fill="#888">' + graphFmtAxis(bot2 + step2 * t, CNT) + '</text>';
+  }
+  if (vis2.length) {   // 軸の名前（左＝%、右＝回）
+    svg += '<text x="' + (padL - 10) + '" y="' + (padT - 18) + '" text-anchor="end" font-size="15" font-weight="700" fill="#6b7280">' + (cat.axisL || '') + '</text>';
+    svg += '<text x="' + (W - 6) + '" y="' + (padT - 18) + '" text-anchor="end" font-size="15" font-weight="700" fill="#6b7280">' + (cat.axisR || '') + '</text>';
   }
   const maxLab = Math.max(2, Math.floor(plotW / 80));
   const step = Math.max(1, Math.ceil(n / maxLab));
@@ -12170,17 +12280,20 @@ function graphSvg(chart, cat){
       hits += '<rect class="gpt" x="' + x.toFixed(1) + '" y="' + Math.min(yTop, y0 - 6).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(6, y0 - yTop).toFixed(1) + '" fill="transparent" style="cursor:pointer" data-tip="' + escapeHtml(txt) + '"/>';
     }
   }
-  vis.forEach(d => {
+  vis2.concat(vis).forEach(d => {   // 右の軸の系列（クリック数など）を先に描き、左の軸の系列を前面に
+    const yF = d.y2 ? y2Of : yOf, fc = d.y2 ? CNT : cat;
     let path = '', started = false;
-    d.data.forEach((v, i) => { if (v == null) return; path += (started ? ' L' : 'M') + xOf(i).toFixed(1) + ' ' + yOf(v).toFixed(1); started = true; });   // 欠測は跨いで繋ぐ（spanGaps）
-    if (path) svg += '<path d="' + path + '" fill="none" stroke="' + d.color + '" stroke-width="' + d.width + '"' + (d.dash.length ? ' stroke-dasharray="' + d.dash.join(' ') + '"' : '') + (d.rec > 0 ? ' opacity="0.85"' : '') + ' stroke-linejoin="round"/>';
+    d.data.forEach((v, i) => { if (v == null) return; path += (started ? ' L' : 'M') + xOf(i).toFixed(1) + ' ' + yF(v).toFixed(1); started = true; });   // 欠測は跨いで繋ぐ（spanGaps）
+    if (path) svg += '<path d="' + path + '" fill="none" stroke="' + d.color + '" stroke-width="' + (d.y2 ? Math.max(1.6, d.width - 1) : d.width) + '"' + (d.dash.length ? ' stroke-dasharray="' + d.dash.join(' ') + '"' : '') + (d.rec > 0 || d.y2 ? ' opacity="' + (d.y2 ? 0.6 : 0.85) + '"' : '') + ' stroke-linejoin="round"/>';
     d.data.forEach((v, i) => {
       if (v == null) return;
       const mt = d.meta[i] || {};
       const hollow = d.rec > 0 || mt.synth;
-      svg += '<circle cx="' + xOf(i).toFixed(1) + '" cy="' + yOf(v).toFixed(1) + '" r="' + pr + '" fill="' + (hollow ? '#fff' : d.color) + '" stroke="' + d.color + '" stroke-width="' + (pr > 3 ? 2.2 : 1.6) + '"/>';
-      const txt = d.seriesLabel + '  ' + (mt.key ? graphPeriodText(mt.key) : '') + (mt.synth ? '（日別集計）' : '') + '  ' + fmtGraphVal(v, cat);
-      hits += '<circle class="gpt" cx="' + xOf(i).toFixed(1) + '" cy="' + yOf(v).toFixed(1) + '" r="' + hitR.toFixed(1) + '" fill="transparent" style="cursor:pointer" data-tip="' + escapeHtml(txt) + '"/>';
+      const cx = xOf(i), cy = yF(v);
+      if (d.y2) svg += '<rect x="' + (cx - pr).toFixed(1) + '" y="' + (cy - pr).toFixed(1) + '" width="' + (pr * 2) + '" height="' + (pr * 2) + '" fill="' + (hollow ? '#fff' : d.color) + '" stroke="' + d.color + '" stroke-width="1.6" opacity="0.8"/>';   // 右の軸＝四角
+      else svg += '<circle cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + pr + '" fill="' + (hollow ? '#fff' : d.color) + '" stroke="' + d.color + '" stroke-width="' + (pr > 3 ? 2.2 : 1.6) + '"/>';
+      const txt = d.seriesLabel + '  ' + (mt.key ? graphPeriodText(mt.key) : '') + (mt.synth ? '（日別集計）' : '') + '  ' + fmtGraphVal(v, fc) + (d.y2 ? '回' : '');
+      hits += '<circle class="gpt" cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + hitR.toFixed(1) + '" fill="transparent" style="cursor:pointer" data-tip="' + escapeHtml(txt) + '"/>';
     });
   });
   svg += hits;
@@ -12228,7 +12341,7 @@ function graphSaleOverlay(keys, xOf, n, padT, plotH, W){
 // ---- 画面 ----
 function renderGraphView(){
   graphResetCache();
-  const catKeys = ['sales', 'salesShare', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'cvr', 'fees', 'shipment'];
+  const catKeys = ['sales', 'salesShare', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'cvr', 'ctr', 'units', 'fees', 'shipment'];
   if (!catKeys.includes(graphCategory)) graphCategory = 'sales';
   if (graphGrain === 'daily' && graphCategory === 'fees') graphCategory = 'sales';   // 諸費用は月単位のみ
   if (!_graphInited) { graphHiddenItems = graphDefaultHidden(graphCategory); _graphInited = true; }
@@ -12306,6 +12419,8 @@ function renderGraphView(){
 
   // チャート
   if (!graphHideChart) h += '<div id="graph-chart">' + graphSvg(chart, cat) + '<div id="graph-tip" class="graph-tip"></div></div>';
+  if (!graphHideChart && graphCategory === 'ctr') h += '<div class="graph-foot-note">※CTR＝クリック÷表示回数。表示回数は③KWデータにしかないため、③のある日だけで計算します（それより前は線が出ません）。クリック数は①広告データ（右の軸・四角の点）。</div>';
+  if (!graphHideChart && graphCategory === 'units') h += '<div class="graph-foot-note">※広告経由で売れた個数＝④購入商品データの「注文点数」（宣伝商品＋Halo）。月別は E（月別の確定）がある月は E を使います。④が無い日は ①広告データの「注文数」で代わりに数えます。</div>';
   if (!graphHideChart) h += '<div class="graph-foot-note">' + (daily
     ? '※日別の総売上は「出荷数×販売価格（セール価格反映）」の推計、広告は広告データの集計です。実質利益・保管費・FBA手数料は月単位のため日別には出ません。'
     : '※月別は全体収支（実額）を優先し、全体収支が未入力の月は日別データからの集計値（表の「日別集計」、グラフの白抜き点）で表示します。') + '</div>';
@@ -12491,7 +12606,7 @@ function buildGraphTable(model){
   trs.forEach(t => {
     h += '<tr' + (t.cls ? ' class="' + t.cls.trim() + '"' : '') + '>' + t.lead;
     extraCols.forEach((c, i) => h += gcell(c.key, t.m, c.fmt, i === sepIdx ? 'gt-adsep' : ''));
-    items.forEach(it => h += gcell(it.key, t.m, cat));
+    items.forEach(it => h += gcell(it.key, t.m, it.y2 ? { yen: false } : cat));
     h += '</tr>';
   });
   if (!trs.length) h += '<tr><td colspan="' + (items.length + 1 + extraCols.length + (yoy ? 1 : 0)) + '" style="text-align:center;color:var(--text-tertiary);padding:20px;">この期間のデータがありません</td></tr>';
