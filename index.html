@@ -4,6 +4,9 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Amacheck</title>
+<!-- v3.67：タブの行（【基本】〜）の文字は Noto Sans JP -->
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500;700&display=swap" rel="stylesheet">
   <!-- Tabler icons はインラインSVGスプライトで読み込みます（CDN不要） -->
 <style>
   :root {
@@ -1395,7 +1398,8 @@
   }
   .tab-row { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
   .tab-group {
-    color: var(--text-tertiary); font-size: 15.5px; font-weight: 700;   /* v3.52：タブと同じ大きさ */
+    color: var(--text-tertiary); font-size: 14.7px; font-weight: 700;   /* v3.52：タブと同じ大きさ／v3.67：15.5px の95% */
+    font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", Meiryo, sans-serif;
     padding: 0 2px; white-space: nowrap; user-select: none;
   }
   .tab-group-gap { margin-left: 12px; }
@@ -1521,7 +1525,8 @@
     border-bottom: 2px solid transparent;
     color: var(--text-secondary);
     font-family: inherit;
-    font-size: 15.5px;   /* v3.51：14px → 15.5px */
+    font-size: 14.7px;   /* v3.51：14px → 15.5px／v3.67：その95%（14.7px） */
+    font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", Meiryo, sans-serif;   /* v3.67 */
     font-weight: 500;   /* v3.59：600 → 500（【基本】などの見出しは 700 のまま） */
     cursor: pointer;
     display: inline-flex;
@@ -2046,7 +2051,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.66</span>
+    <span class="version">v3.67</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2213,8 +2218,9 @@
   <div id="ad-view" hidden>
     <div class="toolbar">
       <!-- v3.33：全-月別データ（data-tab="ad"）と 全-日別データ（data-tab="addaily"）は同じ #ad-view を使い、adPeriod で切り替える -->
+      <select id="ad-month-select"></select><!-- v3.67：「今月」の左に -->
       <div class="period-toggle" id="ad-daily-toggle">
-        <button class="period-btn active" data-ad-period="daily" title="月を選んで、その月の1日〜末日を表示">1か月</button>
+        <button class="period-btn active" data-ad-period="daily" title="左で選んだ月の1日〜末日を表示">今月</button>
         <button class="period-btn" data-ad-period="last2m" title="最終日から遡って約2ヶ月（60日）を表示">直近2ヶ月</button>
       </div>
       <div class="ad-daymode" id="ad-daymode" hidden>
@@ -2225,7 +2231,6 @@
         <span style="font-size:13px;color:var(--text-secondary);">〜</span>
         <input type="date" id="ad-range-end" title="表示する期間の最後の日" style="font-size:13px;padding:5px 8px;">
       </span>
-      <select id="ad-month-select"></select>
       <select id="ad-year-select" hidden></select>
       <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);" title="キャンペーン（広告商品）で絞り込み">
         <select id="ad-product-select" style="font-size:13px;padding:6px 8px;"></select>
