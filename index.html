@@ -1269,7 +1269,8 @@
   #exp-range-seg button.active { background: var(--teal); color: #fff; }
   .exp-note { font-size: 12px; color: var(--text-tertiary); margin-top: 6px; }
   .exp-checks { display: flex; flex-direction: column; gap: 8px; }
-  .exp-checks label { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; }
+  .exp-checks label { font-size: 14px; font-weight: 600; display: flex; align-items: center; gap: 8px; cursor: pointer; white-space: nowrap; }
+  .exp-checks label span { white-space: normal; }
   .exp-checks label span { font-size: 12px; font-weight: 400; color: var(--text-tertiary); }
   .sale-part { display: flex; align-items: center; gap: 12px; margin-top: 16px; flex-wrap: wrap; }
   .sale-part-lbl { font-weight: 600; font-size: 12px; }
@@ -1988,7 +1989,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.54</span>
+    <span class="version">v3.55</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2453,7 +2454,7 @@
 
 <!-- 分析用データの書き出し -->
 <div class="modal-bg" id="export-modal" hidden>
-  <div class="modal" style="max-width:540px;">
+  <div class="modal" style="max-width:640px;">
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <h3><svg class="icn" style="color:var(--teal);vertical-align:-3px;"><use href="#i-download"/></svg> 分析用データ</h3>
@@ -2474,9 +2475,10 @@
       <span class="exp-lbl" style="padding-top:2px;">データ</span>
       <div class="exp-checks">
         <label><input type="checkbox" id="exp-ship" checked> 出荷数データ<span>日×商品（推計売上・セール価格つき）</span></label>
-        <label><input type="checkbox" id="exp-ad" checked> 広告データ<span>日×広告商品×SP/SB×種類＋日×キャンペーン（2026年10月以降の取込分）</span></label>
+        <label><input type="checkbox" id="exp-ad" checked> 広告データ<span>日×広告商品×SP/SB×種類＋日×キャンペーン＋日×キーワード（取り込んだ日の分）</span></label>
         <label><input type="checkbox" id="exp-pl" checked> 全体収支<span>月別の実額＋広告のSP/SB内訳</span></label>
         <label><input type="checkbox" id="exp-ret" checked> 返品データ<span>月×商品×商品の状態</span></label>
+        <label><input type="checkbox" id="exp-pd" checked> 購入商品・商品別の売上<span>買われた商品別の広告売上（④日別・E月別）＋商品別×月の売上・広告・ROAS</span></label>
       </div>
     </div>
     <div class="exp-note">いつも入るシート：データ説明・日別_合計・商品マスタ・広告商品_対応表・セール期間・セール価格</div>
@@ -7558,6 +7560,8 @@ function expMonthsAll(){
   Object.keys(adData).forEach(k => set.add(k.slice(0, 7)));
   Object.keys(plData).forEach(k => { if (plMonthHasPlData(k)) set.add(k); });
   Object.keys(returnsData || {}).forEach(k => set.add(k));
+  Object.keys((purchData && purchData.day) || {}).forEach(k => set.add(k.slice(0, 7)));
+  Object.keys((purchData && purchData.month) || {}).forEach(k => set.add(k));
   return Array.from(set).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
 }
 function openExportModal(){
@@ -7708,6 +7712,62 @@ function buildAnalysisSheets(fromYm, toYm, want){
     sheets.push({ name: '返品_月別', rows, widths: [8, 14, 16, 12, 36, 12, 16, 7, 10] });
   }
 
+  // v3.55：⑪ 購入商品（④日別・E月別：買われた商品別の広告売上）と ⑫ 商品別×月（商品-売上データと同じ計算）
+  if (want.pd) {
+    const aMap = {}; products.forEach(p => { if (p.asin) aMap[String(p.asin).toUpperCase()] = p; });
+    const pinfo = a => { const p = aMap[String(a || '').toUpperCase()]; return p ? [p.sku || '', p.autoFromPurchase ? '' : (p.name || ''), catOf(p.fnsku), p.autoFromPurchase ? '商品マスタに無い' : (STATUS_LABELS[productStatus(p)] || '')] : ['', '', '', '商品マスタに無い']; };
+    const kindOf = r => { const b = psBlockOf(r.t, r.c); return { spKw: 'KW', spSh: '商品', spAu: 'オート', sbDg: '動画', sbSk: '商品コレ' }[b] || ''; };
+    const advName = a => { const p = aMap[String(a || '').toUpperCase()]; return p && !p.autoFromPurchase ? (p.name || '') : ''; };
+    const dRows = [['日付', '年月', '曜日', '広告タイプ', '広告種類', 'キャンペーン名', 'キャンペーンID', '広告対象ASIN', '広告対象商品名', '購入ASIN', '購入SKU', '購入商品名', 'カテゴリ', 'ステータス', '関連性', '商品購入数', '注文点数', '売上', '宣伝商品と同じ', 'セール期間中', 'セール名']];
+    Object.keys(purchData.day || {}).filter(ds => /^\d{4}-\d{2}-\d{2}$/.test(ds) && inYm(ds.slice(0, 7))).sort().forEach(ds => {
+      const sn = saleNamesForDate(ds);
+      (purchData.day[ds] || []).forEach(r => {
+        const pi = pinfo(r.a);
+        dRows.push([ds, ds.slice(0, 7), EXP_DOW[new Date(ds + 'T00:00:00').getDay()], r.t, kindOf(r), r.c, r.id, r.adv || '', advName(r.adv), r.a, pi[0], pi[1], pi[2], pi[3], r.r === 'h' ? 'Halo' : '宣伝商品', r.n, r.u, expR(r.s), (r.adv && r.adv === r.a) ? 1 : 0, sn.length ? 1 : 0, sn.join(' / ')]);
+      });
+    });
+    sheets.push({ name: '購入商品_日別', rows: dRows, widths: [11, 8, 5, 6, 8, 30, 17, 12, 24, 12, 16, 30, 12, 10, 8, 8, 8, 10, 8, 8, 18] });
+    const mRows = [['年月', '広告タイプ', '広告種類', 'キャンペーン名', 'キャンペーンID', '広告対象ASIN', '広告対象商品名', '購入ASIN', '購入SKU', '購入商品名', 'カテゴリ', 'ステータス', '関連性', '商品購入数', '注文点数', '売上', '宣伝商品と同じ']];
+    Object.keys(purchData.month || {}).filter(ym => /^\d{4}-\d{2}$/.test(ym) && inYm(ym)).sort().forEach(ym => {
+      (purchData.month[ym] || []).forEach(r => {
+        const pi = pinfo(r.a);
+        mRows.push([ym, r.t, kindOf(r), r.c, r.id, r.adv || '', advName(r.adv), r.a, pi[0], pi[1], pi[2], pi[3], r.r === 'h' ? 'Halo' : '宣伝商品', r.n, r.u, expR(r.s), (r.adv && r.adv === r.a) ? 1 : 0]);
+      });
+    });
+    sheets.push({ name: '購入商品_月別', rows: mRows, widths: [8, 6, 8, 30, 17, 12, 24, 12, 16, 30, 12, 10, 8, 8, 8, 10, 8] });
+    // 商品別×月：商品-売上データの計算（psCompute）を月ごとに「直接」「配賦」の両方で回す
+    const keep = { m: psMonth, d: psDay, c: psCostMode };
+    const pRows = [['年月', '購入商品データ', '集計した日数', 'ASIN', 'SKU', '商品名', 'カテゴリ', 'ステータス', '出荷数', '推計総売上', '広告売上', '広告売上_宣伝商品', '広告売上_Halo', '広告経由の点数', '推計SEO売上', '広告売上比率（%）',
+      'SP広告売上', 'SP-KW売上', 'SP-商品売上', 'SP-オート売上', 'SB広告売上', 'SB-動画売上', 'SB-商品コレ売上',
+      '広告費_直接', 'SP広告費_直接', 'SB広告費_直接', 'ROAS_直接（倍）', '売上ROAS_直接（倍）',
+      '広告費_配賦', 'SP広告費_配賦', 'SB広告費_配賦', 'ROAS_配賦（倍）', '売上ROAS_配賦（倍）', 'SP-ROAS_配賦（倍）', 'SB-ROAS_配賦（倍）']];
+    try {
+      const yms = new Set();
+      Object.keys(purchData.day || {}).forEach(d => yms.add(d.slice(0, 7))); Object.keys(purchData.month || {}).forEach(m => yms.add(m));
+      Array.from(yms).filter(ym => /^\d{4}-\d{2}$/.test(ym) && inYm(ym)).sort().forEach(ym => {
+        psMonth = ym; psDay = '';
+        psCostMode = 'direct'; const cd = psCompute();
+        psCostMode = 'alloc'; const ca = psCompute();
+        if (cd.pr.src === 'none') return;   // 行が無い（Amazon にデータが無い）月は出さない
+        const src = cd.pr.src === 'E' ? '確定（E 月別）' : '速報（④ 日別の合計）';
+        const ndays = cd.pr.src === 'E' ? daysInMonth(ym) : cd.pr.nDays;
+        const aMapA = {}; ca.rows.forEach(r => { aMapA[r.asin] = r; });
+        cd.rows.forEach(r => {
+          if (r.p && r.p.autoFromPurchase) return;
+          const a = aMapA[r.asin] || {};
+          if (!r.has && !(a.cost > 0)) return;
+          const p = r.p || {};
+          const rt = (x, y) => (y > 0 && x != null) ? expR(x / y, 4) : null;
+          pRows.push([ym, src, ndays, r.asin, r.sku, r.name, p.fnsku ? catOf(p.fnsku) : '', p.fnsku ? (STATUS_LABELS[productStatus(p)] || '') : '', r.ship, expR(r.total), expR(r.ad), expR(r.prom), expR(r.halo), r.units, expR(r.seo), (r.total > 0 && r.ad != null) ? expR(r.ad / r.total * 100, 2) : null,
+            expR(r.spAllS), expR(r.spKwS), expR(r.spShS), expR(r.spAuS), expR(r.sbAllS), expR(r.sbDgS), expR(r.sbSkS),
+            expR(r.cost), expR(r.spAllC), expR(r.sbAllC), rt(r.ad, r.cost), rt(r.total, r.cost),
+            expR(a.cost), expR(a.spAllC), expR(a.sbAllC), rt(a.ad, a.cost), rt(a.total, a.cost), rt(a.spAllS, a.spAllC), rt(a.sbAllS, a.sbAllC)]);
+        });
+      });
+    } finally { psMonth = keep.m; psDay = keep.d; psCostMode = keep.c; }
+    sheets.push({ name: '商品別_月別', rows: pRows, widths: [8, 16, 8, 12, 16, 30, 12, 10, 7, 11, 10, 11, 10, 8, 11, 9, 10, 10, 10, 10, 10, 10, 10, 10, 10, 10, 9, 9, 10, 10, 10, 9, 9, 9, 9] });
+  }
+
   // ⑦ 商品マスタ ⑧ 広告商品の対応表 ⑨ セール期間 ⑩ セール価格（常に付ける：シート同士をつなぐための表）
   sheets.push({ name: '商品マスタ', rows: [['FNSKU', 'SKU', 'ASIN', '商品名', 'カテゴリ', 'ステータス', '撤退日', '販売価格', '原価単価', '販売手数料（1個あたり）', 'FBA手数料（1個あたり）']]
     .concat(products.map(p => [p.fnsku || '', p.sku || '', p.asin || '', p.name || '', catOf(p.fnsku), STATUS_LABELS[productStatus(p)] || '', p.withdrawnDate || '', num(p.sellingPrice), num(p.cost), num(p.sellingFee), num(p.fbaFee)])),
@@ -7733,9 +7793,10 @@ function buildAnalysisSheets(fromYm, toYm, want){
   D.push(['通貨・単位', '金額はすべて日本円（税込・整数）。数値に¥やカンマは付けていない。率は列名に単位を記載（ROAS（倍）＝広告売上÷広告費、CVR（%）＝注文数÷クリック数×100）。']);
   D.push(['形式', '各シートは1行目が列名、2行目以降が1行＝1件の縦長データ。値が無い（未入力・計算不可）セルは空欄。フラグ列は 1＝はい／0＝いいえ。']);
   D.push(['重要な注意1', '「推計」と付く売上は、出荷数×販売価格（セール期間中の参加商品はセール価格）で計算した見込み値。実際の売上（Amazon 売上ダッシュボードの実額）は「全体収支_月別」の「総売上（実額）」のみ。両者は一致しない。']);
-  D.push(['重要な注意2', '日別の広告データは、全キャンペーン（状態が有効・一時停止などに関係なく、その日に動きのあったもの）をキャンペーン名から「広告商品」「SP/SB」「種類」に分類して合算したもの。キャンペーン単位の行は保存していない。月の広告実額（全体収支）とは集計元レポートが違うため一致しないことがある。']);
+  D.push(['重要な注意2', '日別の広告データは、全キャンペーン（状態が有効・一時停止などに関係なく、その日に動きのあったもの）をキャンペーン名から「広告商品」「SP/SB」「種類」に分類して合算したもの。キャンペーン単位の行は「広告_キャンペーン別_日別」（取り込んだ日のみ）。月の広告実額（全体収支）とは集計元レポートが違うため一致しないことがある。']);
+  D.push(['重要な注意4', '「購入商品」「商品別_月別」の広告売上は、広告をクリックした人が実際に買った商品（購入ASIN）ごとの売上（Amazon 広告の新しいレポート画面＝2026年6月公開の統合レポート）。宣伝商品＝広告に出した商品そのものが売れた分、Halo＝広告経由で同じブランドの別の商品が売れた分。計算方法が①の広告データと違うため、合計は①と少しずれることがある。Amazon にデータが残っていない古い月は入っていない。広告費は商品ごとには取れないため、「直接」（キャンペーンの費用を宣伝した商品に全額。SB は宣伝商品が決まらないので商品に入れない）と「配賦」（キャンペーン経由の売上の比率で割り振り＝参考値）の2通りで載せている。']);
   D.push(['重要な注意3', '全体収支の「粗利益」＝総売上（実額）−原価（出荷数×原価単価）。「実質利益」＝粗利益−広告費（実額）−保管費（実額）−FBA手数料（実額）−販売手数料（実額）。保管費・FBA手数料・販売手数料が未取込の月は0として計算している（「〜入力済み」列で確認できる）。']);
-  D.push(['キーの対応', '商品は SKU／ASIN／FNSKU で各シートをつなげる。広告シートの「広告商品」は「広告商品_対応表」で対象ASIN、さらに「商品マスタ」のASINへつながる。セールは「セール期間」「セール価格」を参照。']);
+  D.push(['キーの対応', '商品は SKU／ASIN／FNSKU で各シートをつなげる（購入商品・商品別_月別は ASIN）。広告シートの「広告商品」は「広告商品_対応表」で対象ASIN、さらに「商品マスタ」のASINへつながる。セールは「セール期間」「セール価格」を参照。']);
   D.push([]);
   D.push(['シート', '列', '説明']);
   const add = (sh, col, desc) => D.push([sh, col, desc]);
@@ -7777,6 +7838,19 @@ function buildAnalysisSheets(fromYm, toYm, want){
     add('全体収支_月別', '〜入力済み', 'その月にその実額が取り込まれているか（1/0）。0の月の実額系の列は空欄。');
     add('全体収支_広告内訳', '（シート全体）', '1行＝1か月×SP/SB×種類。月の広告レポート（実額）の内訳。');
   }
+  if (want.pd) {
+    add('購入商品_日別', '（シート全体）', '1行＝1日×1キャンペーン×1購入ASIN×関連性。④購入商品データ（日別・前日1日分の速報）。広告売上は後から増えるので、取った日によっては少なめ。');
+    add('購入商品_日別', '広告対象ASIN／購入ASIN', '広告対象＝そのキャンペーンで宣伝した商品（SB は空欄）。購入＝実際に買われた商品。「宣伝商品と同じ」＝両者が同じなら1。');
+    add('購入商品_日別', '関連性', '宣伝商品＝広告に出した商品そのものが売れた／Halo＝広告経由で同じブランドの別の商品が売れた。');
+    add('購入商品_日別', '商品購入数／注文点数／売上', '広告経由の購入件数／個数／売上（円）。');
+    add('購入商品_月別', '（シート全体）', '1行＝1か月×1キャンペーン×1購入ASIN×関連性。E 購入商品データ（月別・翌月16日以降に取った確定値）。同じ月は日別よりこちらを優先して使う。');
+    add('商品別_月別', '（シート全体）', '1行＝1か月×1商品。Amacheck の「商品-売上データ」画面と同じ計算。購入商品データ（確定＝E、無ければ速報＝④の合計）×出荷数×①広告費。');
+    add('商品別_月別', '購入商品データ／集計した日数', '確定（E 月別）か速報（④ 日別の合計）か。速報の月は ④ のある日だけで、出荷数・推計総売上・広告費もその日にそろえて集計している（集計した日数＝その日数）。');
+    add('商品別_月別', '広告売上（宣伝商品／Halo／SP・SB・種類別）', 'その商品が買われた広告売上と内訳。SP-KW・SP-商品・SP-オート、SB-動画・SB-商品コレはキャンペーン名から判定。');
+    add('商品別_月別', '推計SEO売上／広告売上比率（%）', '推計総売上−広告売上（0未満は0）／広告売上÷推計総売上×100。');
+    add('商品別_月別', '広告費_直接／ROAS_直接／売上ROAS_直接', '直接＝キャンペーンの広告費を宣伝した商品に全額（SP は宣伝商品へ、SB はどの商品にも入れない）。ROAS＝広告売上÷広告費、売上ROAS＝推計総売上÷広告費（倍）。広告費0の商品は空欄。');
+    add('商品別_月別', '広告費_配賦／ROAS_配賦／売上ROAS_配賦', '配賦（参考）＝キャンペーンの広告費を、そのキャンペーン経由で買われた商品の売上比で割り振ったもの。同じキャンペーンの中ではどの商品も ROAS が同じになるため、商品の比較には「売上ROAS_配賦」や広告売上の内訳を使う。');
+  }
   if (want.ret) add('返品_月別', '（シート全体）', '1行＝1か月×1商品×商品の状態。返品数と、同じ月のその商品の出荷数。返品率＝返品数÷出荷数（Amacheck の画面では「欠陥品・不良品」の返品を使用）。');
   add('商品マスタ', '（シート全体）', '1行＝1商品。販売価格・原価単価・1個あたりの手数料。');
   add('セール期間／セール価格', '（シート全体）', 'セール期間の一覧と、参加商品のセール価格。参加商品数0のセールは期間の記録のみ（価格は通常のまま）。');
@@ -7788,8 +7862,9 @@ function downloadAnalysisData(){
   const custom = document.querySelector('#exp-range-seg button.active') && document.querySelector('#exp-range-seg button.active').dataset.v === 'custom';
   let from = custom ? document.getElementById('exp-from').value : null, to = custom ? document.getElementById('exp-to').value : null;
   if (from && to && from > to) { const t = from; from = to; to = t; }
-  const want = { ship: document.getElementById('exp-ship').checked, ad: document.getElementById('exp-ad').checked, pl: document.getElementById('exp-pl').checked, ret: document.getElementById('exp-ret').checked };
-  if (!want.ship && !want.ad && !want.pl && !want.ret) { toast('書き出すデータを1つ以上選んでください'); return; }
+  const pdEl = document.getElementById('exp-pd');
+  const want = { ship: document.getElementById('exp-ship').checked, ad: document.getElementById('exp-ad').checked, pl: document.getElementById('exp-pl').checked, ret: document.getElementById('exp-ret').checked, pd: !!(pdEl && pdEl.checked) };
+  if (!want.ship && !want.ad && !want.pl && !want.ret && !want.pd) { toast('書き出すデータを1つ以上選んでください'); return; }
   const btn = document.getElementById('exp-go'); const orig = btn.innerHTML;
   btn.disabled = true; btn.innerHTML = '<span class="btn-spin"></span> 作成中…';
   setTimeout(() => {
@@ -7803,7 +7878,7 @@ function downloadAnalysisData(){
       });
       const d = new Date(), stamp = d.getFullYear() + String(d.getMonth() + 1).padStart(2, '0') + String(d.getDate()).padStart(2, '0');
       const range = (from || to) ? '_' + (from || '').replace('-', '') + '-' + (to || '').replace('-', '') : '';
-      saleSaveBlob(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array' })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'Amacheck_分析用データ_' + stamp + range + '.xlsx');
+      saleSaveBlob(new Blob([XLSX.write(wb, { bookType: 'xlsx', type: 'array', compression: true })], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), 'Amacheck_分析用データ_' + stamp + range + '.xlsx');
       const n = sheets.reduce((a, s) => a + Math.max(0, s.rows.length - 1), 0);
       toast('分析用データを書き出しました（' + sheets.length + 'シート・約' + n.toLocaleString() + '行）');
       closeExportModal();
@@ -9129,6 +9204,7 @@ function psCompute(){
     r.dgP = pair(o.S.sbDg, o.S.sbSk); r.skP = r.dgP == null ? null : 100 - r.dgP;
     ['spAll', 'spKw', 'spSh', 'sbAll', 'sbDg', 'sbSk'].forEach(b => { r[b + 'S'] = o.S[b]; r[b + 'C'] = o.C[b]; r[b + 'R'] = (o.C[b] > 0 && !noPd) ? o.S[b] / o.C[b] * 100 : null; });
     if (noPd) { r.seo = null; r.seoP = r.adP = null; r.ad = null; }
+    r.spAuS = o.S.spAu; r.spAuC = o.C.spAu;   // v3.55：分析用データ用（オート）
     r.has = !!(o.ship || o.total || ad || cost);
     return r;
   };
