@@ -1489,6 +1489,10 @@
   table.ps-table .ps-gvt { writing-mode: vertical-rl; font-size: 12.5px; margin: 0 auto; letter-spacing: 2px; }
   table.ps-table td.ps-gcol-td { padding: 0; }
   table.ps-table .ps-na { color: #c0c4cc; }
+  /* v3.62：配賦で全商品同じ ROAS の列（見出しに1つ、行は「共通」） */
+  table.ps-table .ps-common-h { display: block; margin: 3px auto 0; font-size: 0.95em; font-weight: 800; white-space: nowrap; background: #fff; border-radius: 4px; padding: 1px 2px; line-height: 1.15; }
+  table.ps-table .ps-common-h small { display: block; font-size: 0.78em; font-weight: 700; color: #6b7280; }
+  table.ps-table .ps-common-c { color: #b8bec8; font-size: 0.82em; font-weight: 600; }
   table.ps-table .ps-img, table.ps-table .ps-name { background: #fff; text-align: left; }
   table.ps-table thead th.ps-img, table.ps-table thead th.ps-name { background: var(--bg-secondary); vertical-align: middle; }
   table.ps-table td.ps-img { padding: 3px 4px; text-align: center; }
@@ -1989,7 +1993,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.61</span>
+    <span class="version">v3.62</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -9351,12 +9355,23 @@ function renderPsalesTable(){
   h1 += '</tr>'; h2 += '</tr>'; h3 += '</tr>';
   // 行
   const NA = '<span class="ps-na">—</span>';
+  // v3.62：配賦のとき、全商品で同じ値になる ROAS 列（同じキャンペーンの比率で割るため）は、見出しに1つだけ出し、行は「共通」
+  const psCommon = {};
+  if (psCostMode === 'alloc') cols.filter(c => c.t === 'roas').forEach(c => {
+    const vals = cmp.rows.map(r => r[c.k]).filter(v => v != null && isFinite(v));
+    if (vals.length >= 2 && new Set(vals.map(v => Math.round(v))).size === 1) psCommon[c.k] = vals[0];
+  });
+  Object.keys(psCommon).forEach(k => {
+    const v = psCommon[k], mark = '<span class="ps-common-h" style="color:' + psRoasColor(v) + '" title="配賦では、同じキャンペーンの中はどの商品も同じ ROAS になります（売上の比率で広告費を割るため）。商品どうしの比較には使えません"><small>共通</small>' + Math.round(v).toLocaleString() + '%</span>';
+    h3 = h3.replace(new RegExp('(data-k="' + k + '"[^>]*>)([^<]*)(</th>)'), '$1$2' + mark + '$3');
+  });
   const cell = (r, c, isFirstOfGroup, isFirstOfBlock) => {
     const v = r[c.k];
     let inner = '', style = '';
     if (c.t === 'yen') inner = v ? yen(v) : NA;
     else if (c.t === 'cost') inner = v >= 0.5 ? yen(v) : NA;
     else if (c.t === 'int') inner = v ? Math.round(v).toLocaleString() : NA;
+    else if (c.t === 'roas' && psCommon[c.k] != null) inner = v == null ? NA : '<span class="ps-common-c">共通</span>';   // v3.62
     else if (c.t === 'roas') { inner = v == null ? NA : (Math.round(v).toLocaleString() + '%'); if (v != null) style = 'color:' + psRoasColor(v) + ';font-weight:700;'; }
     else if (c.t === 'sroas') { const cat = psSroasCat(v); const col = (PS_SROAS_CATS.find(x => x[0] === cat) || [])[2]; inner = v > 0 ? v.toLocaleString() + '%' : NA; if (v > 0) style = 'color:' + col + ';font-weight:700;'; }
     let pct = '';
