@@ -1989,7 +1989,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.60</span>
+    <span class="version">v3.61</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -3323,7 +3323,7 @@ function importAllData(file){
 }
 // 撤退月は商品マスタのステータス（撤退済み＋撤退日）を唯一の情報源とする。撤退日の月までは表示、翌月以降は返品率表から除外
 function fnskuWithdrawnMonth(f){ const p = products.find(x => x.fnsku === f); return (p && productStatus(p) === 'withdrawn' && p.withdrawnDate) ? p.withdrawnDate.slice(0, 7) : null; }
-function retActive(f, ym){ const w = fnskuWithdrawnMonth(f); return !(w && ym > w); }
+function retActive(f, ym){ if (/^AUTO-/.test(f)) { const p = products.find(x => x.fnsku === f); if (p && p.autoFromPurchase) return false; } const w = fnskuWithdrawnMonth(f); return !(w && ym > w); }   // v3.61：自動登録の商品は出さない
 function isAdMonthClosed(ym){ return !!adClose[ym]; }
 let adCloseDismissed = new Set(); // このセッション中「あとで」にした月
 
@@ -8206,6 +8206,7 @@ window.onWithdrawDateChange = onWithdrawDateChange;
 
 // 出荷数データの表に表示してよいか（撤退済みは撤退日の翌月以降は非表示）
 function isProductVisibleInShip(p){
+  if (p && p.autoFromPurchase) return false;   // v3.61：購入商品データから自動登録した商品（撤退済み）は出荷数データの表に出さない
   if (productStatus(p) !== 'withdrawn' || !p.withdrawnDate) return true;
   if (currentPeriod === 'monthly') {
     const wYear = p.withdrawnDate.slice(0, 4);
