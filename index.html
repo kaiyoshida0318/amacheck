@@ -1989,7 +1989,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.56</span>
+    <span class="version">v3.58</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -10420,13 +10420,13 @@ const GRAPH_CATEGORIES = {
     { key: 'cvrSbShokore', label: 'SB-商品コレ', color: '#db2777' },
   ] },
   // v3.56：CTR（左の軸・%）＋クリック数（右の軸・回）。CTR は ③KWデータ（表示回数がある日だけ）、クリック数は ①広告データ
-  ctr: { label: '広告-CTR＆クリック数', yen: false, pct: true, dec2: true, axisL: 'CTR（%）', axisR: 'クリック数（回）', items: [
+  ctr: { label: '広告-CTR＆クリック数', yen: false, pct: true, dec2: true, barY1: true, axisL: 'CTR（%）', axisR: 'クリック数（回）', items: [
     { key: 'ctr',          label: 'CTR(全体)',    color: '#dc2626' },
     { key: 'ctrSpKw',      label: 'CTR SP-KW',    color: '#0891b2' },
     { key: 'ctrSpShohin',  label: 'CTR SP-商品',   color: '#7c3aed' },
     { key: 'ctrSbDouga',   label: 'CTR SB-動画',   color: '#d97706' },
     { key: 'ctrSbShokore', label: 'CTR SB-商品コレ', color: '#db2777' },
-    { key: 'clk',          label: 'クリック数(全体)',    color: '#dc2626', y2: true, soft: true },
+    { key: 'clk',          label: 'クリック数(全体)',    color: '#16a34a', y2: true, soft: true },   // v3.57：CTR(全体)の赤と離して緑
     { key: 'clkSpKw',      label: 'クリック数 SP-KW',    color: '#0891b2', y2: true, soft: true },
     { key: 'clkSpShohin',  label: 'クリック数 SP-商品',   color: '#7c3aed', y2: true, soft: true },
     { key: 'clkSbDouga',   label: 'クリック数 SB-動画',   color: '#d97706', y2: true, soft: true },
@@ -12234,7 +12234,8 @@ function graphSvg(chart, cat){
     bot = Math.floor(lo / tickStep + 1e-9) * tickStep;
     if (top <= bot) top = bot + tickStep;
   }
-  const xOf = bar ? (i => padL + plotW * (i + 0.5) / Math.max(1, n)) : (i => padL + (n <= 1 ? plotW / 2 : plotW * i / (n - 1)));   // 棒の時は各月の帯の中央
+  const barY1 = !!cat.barY1 && vis.length > 0;   // v3.58：左の軸の系列を棒で描く（CTR）
+  const xOf = (bar || barY1) ? (i => padL + plotW * (i + 0.5) / Math.max(1, n)) : (i => padL + (n <= 1 ? plotW / 2 : plotW * i / (n - 1)));   // 棒の時は各月の帯の中央
   const yOf = v => padT + plotH * (1 - (v - bot) / (top - bot));
   // 右の軸：左の目盛り線にそろえる（同じ本数）
   const nT = Math.round((top - bot) / tickStep), below = Math.round(-bot / tickStep);
@@ -12280,7 +12281,19 @@ function graphSvg(chart, cat){
       hits += '<rect class="gpt" x="' + x.toFixed(1) + '" y="' + Math.min(yTop, y0 - 6).toFixed(1) + '" width="' + bw.toFixed(1) + '" height="' + Math.max(6, y0 - yTop).toFixed(1) + '" fill="transparent" style="cursor:pointer" data-tip="' + escapeHtml(txt) + '"/>';
     }
   }
-  vis2.concat(vis).forEach(d => {   // 右の軸の系列（クリック数など）を先に描き、左の軸の系列を前面に
+  if (barY1) {   // v3.58：左の軸の系列＝横に並べた棒（年重ねの時は 古い年ほど薄い）。日別集計の月は薄く・破線枠
+    const bandW = plotW / Math.max(1, n), gN = vis.length, totW = Math.min(bandW * 0.78, gN * 40), bw = totW / gN, y0 = yOf(0);
+    vis.forEach((d, j) => d.data.forEach((v, i) => {
+      if (v == null) return;
+      const mt = d.meta[i] || {}, x = xOf(i) - totW / 2 + j * bw, yv = yOf(v);
+      const yt = Math.min(yv, y0), hh = Math.max(1, Math.abs(y0 - yv)), w = Math.max(1, bw - (bw > 6 ? 1.5 : 0.5));
+      const op = d.rec > 0 ? 0.38 : (mt.synth ? 0.5 : 0.85);
+      svg += '<rect x="' + x.toFixed(1) + '" y="' + yt.toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + hh.toFixed(1) + '" fill="' + d.color + '" opacity="' + op + '"' + (mt.synth ? ' stroke="#6b7280" stroke-width="1.2" stroke-dasharray="4 2"' : '') + '/>';
+      const txt = d.seriesLabel + (d.year ? ' ' + d.year + '年' : '') + '  ' + (mt.key ? graphPeriodText(mt.key) : '') + (mt.synth ? '（日別集計）' : '') + '  ' + fmtGraphVal(v, cat);
+      hits += '<rect class="gpt" x="' + x.toFixed(1) + '" y="' + Math.min(yt, y0 - 6).toFixed(1) + '" width="' + w.toFixed(1) + '" height="' + Math.max(6, hh).toFixed(1) + '" fill="transparent" style="cursor:pointer" data-tip="' + escapeHtml(txt) + '"/>';
+    }));
+  }
+  (barY1 ? vis2 : vis2.concat(vis)).forEach(d => {   // 右の軸の系列（クリック数など）を先に描き、左の軸の系列を前面に（棒の時は棒の上に線）
     const yF = d.y2 ? y2Of : yOf, fc = d.y2 ? CNT : cat;
     let path = '', started = false;
     d.data.forEach((v, i) => { if (v == null) return; path += (started ? ' L' : 'M') + xOf(i).toFixed(1) + ' ' + yF(v).toFixed(1); started = true; });   // 欠測は跨いで繋ぐ（spanGaps）
@@ -12411,15 +12424,15 @@ function renderGraphView(){
       const col = chart.multi ? '#4b5563' : GRAPH_FY_PALETTE[yi % GRAPH_FY_PALETTE.length];
       const dash = GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length];
       h += '<button class="graph-yr-btn' + (graphHiddenFY.has(yr) ? ' off' : '') + '" data-y="' + yr + '">'
-        + '<svg width="34" height="10"><line x1="1" y1="5" x2="33" y2="5" stroke="' + col + '" stroke-width="' + (rec === 0 ? 3 : 2) + '"' + (dash.length ? ' stroke-dasharray="' + dash.join(' ') + '"' : '') + '/></svg>'
+        + '<svg width="34" height="10"><line x1="1" y1="5" x2="33" y2="5" stroke="' + col + '" stroke-width="' + (rec === 0 ? 3 : 2) + '"' + (dash.length ? ' stroke-dasharray="' + dash.join(' ') + '"' : '') + '/>' + (cat.barY1 ? '<rect x="12" y="0" width="10" height="10" fill="' + col + '" opacity="' + (rec === 0 ? 0.85 : 0.38) + '"/>' : '') + '</svg>'
         + chart.yrLabel(yr) + '</button>';
     });
-    h += '<span class="graph-note">最新ほど太い実線、古いほど細い破線' + (chart.multi ? '（色＝項目）' : '（色＝年）') + '</span></div>';
+    h += '<span class="graph-note">' + (cat.barY1 ? '棒（CTR）は最新ほど濃く、古いほど薄い。線（クリック数）は最新ほど太い実線、古いほど細い破線' : '最新ほど太い実線、古いほど細い破線') + (chart.multi ? '（色＝項目）' : '（色＝年）') + '</span></div>';
   }
 
   // チャート
   if (!graphHideChart) h += '<div id="graph-chart">' + graphSvg(chart, cat) + '<div id="graph-tip" class="graph-tip"></div></div>';
-  if (!graphHideChart && graphCategory === 'ctr') h += '<div class="graph-foot-note">※CTR＝クリック÷表示回数。表示回数は③KWデータにしかないため、③のある日だけで計算します（それより前は線が出ません）。クリック数は①広告データ（右の軸・四角の点）。</div>';
+  if (!graphHideChart && graphCategory === 'ctr') h += '<div class="graph-foot-note">※CTR＝クリック÷表示回数。表示回数は③KWデータにしかないため、③のある日だけで計算します（それより前は線が出ません）。クリック数は①広告データ（右の軸・四角の点の線）。CTR は棒（左の軸）。</div>';
   if (!graphHideChart && graphCategory === 'units') h += '<div class="graph-foot-note">※広告経由で売れた個数＝④購入商品データの「注文点数」（宣伝商品＋Halo）。月別は E（月別の確定）がある月は E を使います。④が無い日は ①広告データの「注文数」で代わりに数えます。</div>';
   if (!graphHideChart) h += '<div class="graph-foot-note">' + (daily
     ? '※日別の総売上は「出荷数×販売価格（セール価格反映）」の推計、広告は広告データの集計です。実質利益・保管費・FBA手数料は月単位のため日別には出ません。'
