@@ -4,9 +4,6 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Amacheck</title>
-<!-- v3.63：表の数字は ADcheck と同じ DM Mono（400・500 だけ読み込む。太字はブラウザが太く見せる＝ADcheck と同じ見た目） -->
-<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
   <!-- Tabler icons はインラインSVGスプライトで読み込みます（CDN不要） -->
 <style>
   :root {
@@ -493,9 +490,6 @@
   /* 広告費/ROAS 2分割：境界線は通常の罫線と同じ濃さで（薄すぎて白く見えるのを解消） */
   table.ad-table .ad-roas { color: var(--black); }
   table.ad-table tbody td { color: var(--black); font-size: 14px; }
-  /* v3.63：数字のセルは DM Mono（等幅で桁がそろう）。左端の月・日付、商品の画像・商品名はふつうのフォントのまま */
-  table.ad-table tbody td:not(.ad-daycol):not(.ps-name):not(.ps-img) { font-family: 'DM Mono', ui-monospace, Menlo, monospace; letter-spacing: -0.04em; }   /* 等幅は横に広いので字間を少し詰める */
-  table.ad-table:not(.ps-table) tbody td:not(.ad-daycol) { font-size: 13px; }   /* v3.63：全-月別／全-日別は 14px → 13px（DM Mono は横に広いので、今の列の幅に ¥9,999,999 が収まる大きさ） */
   /* ヘッダーと最初のデータ行の間の罫線を濃く */
   table.ad-table tbody tr:first-child td { border-top: 2px solid rgba(0,0,0,0.45); }
   table.ad-table tbody tr:hover td:not(.ad-daycol) { filter: brightness(0.97); }
@@ -1495,7 +1489,7 @@
   table.ps-table .ps-gvt { writing-mode: vertical-rl; font-size: 12.5px; margin: 0 auto; letter-spacing: 2px; }
   table.ps-table td.ps-gcol-td { padding: 0; }
   table.ps-table .ps-na { color: #c0c4cc; }
-  table.ps-table td.ps-tight .ps-v { font-size: 0.86em; letter-spacing: -0.07em; }   /* v3.63：はみ出すセルだけ */
+  table.ps-table td.ps-tight .ps-v { font-size: 0.86em; letter-spacing: -0.07em; }   /* v3.63：列からはみ出すセルだけ（v3.64 でフォントは元に戻したが、これは残す） */
   /* v3.62：配賦で全商品同じ ROAS の列（見出しに1つ、行は「共通」） */
   table.ps-table .ps-common-h { display: block; margin: 3px auto 0; font-size: 0.95em; font-weight: 800; white-space: nowrap; background: #fff; border-radius: 4px; padding: 1px 2px; line-height: 1.15; }
   table.ps-table .ps-common-h small { display: block; font-size: 0.78em; font-weight: 700; color: #6b7280; }
@@ -2000,7 +1994,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.63</span>
+    <span class="version">v3.64</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
