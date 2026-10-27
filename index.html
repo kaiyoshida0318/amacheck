@@ -1605,6 +1605,29 @@
   .kwm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9200; display: flex; align-items: flex-start; justify-content: center; padding-top: 2.5vh; }
   .kwm-bg[hidden] { display: none; }
   .kwm-box { background: #fff; width: 79vw; min-width: min(1100px, 96vw); max-width: 1560px; height: 96vh; max-height: 96vh; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; }
+  /* v3.68：全-推移 */
+  .trend-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; }
+  .trend-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .trend-lbl { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
+  .trend-desc { font-size: 12px; color: var(--text-tertiary); }
+  .trend-empty { padding: 60px 10px; text-align: center; color: var(--text-tertiary); font-size: 14px; }
+  .trend-chart { position: relative; height: 400px; }
+  .trend-tblwrap { margin-top: 16px; overflow: auto; max-height: 75vh; border: 1px solid var(--border); border-radius: 8px; }
+  table.trend-tbl { border-collapse: collapse; width: 100%; font-size: 14px; font-variant-numeric: tabular-nums; }
+  table.trend-tbl th { position: sticky; top: 0; z-index: 2; background: #f3f2ef; box-shadow: inset 0 -2px 0 var(--border); white-space: nowrap; padding: 8px 12px; }
+  table.trend-tbl th.tr-g { height: 38px; box-sizing: border-box; text-align: center; font-size: 14px; font-weight: 800; border-left: 1px solid var(--border); }
+  table.trend-tbl th.tr-s { top: 38px; text-align: right; font-size: 11.5px; font-weight: 700; color: var(--text-tertiary); }
+  table.trend-tbl th.tr-day { z-index: 3; text-align: left; vertical-align: bottom; font-size: 13px; }
+  table.trend-tbl td { padding: 7px 12px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table.trend-tbl td.tr-day { text-align: left; font-weight: 600; }
+  table.trend-tbl .tr-gs { border-left: 1px solid var(--border); }
+  table.trend-tbl td.tr-d { color: var(--text-secondary); background: rgba(127,127,127,0.05); }
+  table.trend-tbl td.tr-p { color: var(--text-tertiary); font-size: 12px; }
+  table.trend-tbl tr.tr-last td { background: rgba(59,130,246,0.08); font-weight: 700; }
+  table.trend-tbl td.gt-sat { color: #2563eb; } table.trend-tbl td.gt-sun { color: #dc2626; }
+  table.trend-tbl .gt-sale { display: inline-block; margin-left: 6px; font-size: 10px; font-weight: 800; color: #fff; background: #c2185b; border-radius: 4px; padding: 0 4px; vertical-align: 1px; }
+  .trend-na { color: var(--text-tertiary); font-weight: 400; }
+  .trend-note { font-size: 12px; color: var(--text-tertiary); margin-top: 8px; }
   /* v3.66：商品モーダル（全体情報／KW推移／商品を編集）。ADcheck v1.1492 の外枠を流用 */
   .pm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9200; display: flex; align-items: flex-start; justify-content: center; padding: 20px; }
   .pm-bg[hidden] { display: none; }
@@ -2051,7 +2074,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.67</span>
+    <span class="version">v3.68</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2087,6 +2110,9 @@
     </button>
     <button class="tab" data-tab="graph">
       全-月日別グラフ
+    </button>
+    <button class="tab" data-tab="trend">
+      全-推移
     </button>
     <button class="tab" data-tab="pl">
       全体収支
@@ -2270,6 +2296,9 @@
   <!-- 準備中（今後追加予定のカテゴリ） -->
   <div id="graph-view" hidden>
     <div id="graph-body"></div>
+  </div>
+  <div id="trend-view" hidden><!-- v3.68：全-推移 -->
+    <div id="trend-body"></div>
   </div>
   <div id="pl-view" hidden>
     <div id="pl-body"></div>
@@ -3739,9 +3768,11 @@ function switchView(name, fromPop){
   document.getElementById('adkw-view').hidden = (name !== 'adkw');
   document.getElementById('campaign-view').hidden = (name !== 'campaign');
   document.getElementById('graph-view').hidden = (name !== 'graph');
+  document.getElementById('trend-view').hidden = (name !== 'trend');   // v3.68
   document.getElementById('pl-view').hidden = (name !== 'pl');
   document.getElementById('returns-view').hidden = (name !== 'returns');
   if (name === 'graph') renderGraphView();
+  if (name === 'trend') renderTrendView();
   if (name === 'pl') renderPlView();
   if (name === 'returns') renderReturnsView();
   if (name === 'shipment') renderShipmentTable();
@@ -10986,6 +11017,88 @@ function pmKwBind(box){
     renderKwModal();
   }));
   const on = box.querySelector('.pm-kwi.on'); if (on) { try { on.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
+}
+
+// ============================================
+// v3.68：全-推移（ADcheck v1.1492「全-推移」を流用）
+//   月初からの累積ROAS（線）が月末の確定値へ近づいていく様子と、その日だけの ROAS（棒・表）を見る
+//   売上ROAS＝推計総売上÷広告費／ROAS＝広告売上÷広告費／ROAS-SP広告／ROAS-SB広告（①広告データ）
+// ============================================
+let trendMonth = null, _trendChart = null;
+const TREND_COL = { sroas: '#3b82f6', roas: '#10b981', sp: '#f59e0b', sb: '#ef4444' };
+function trendMonths(){
+  return Array.from(new Set(Object.keys(adData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).map(d => d.slice(0, 7)))).sort().reverse();
+}
+// 対象月の①がある日を昇順に、1日ずつ足しながら累積と日別を出す
+function trendRows(ym){
+  const days = Object.keys(adData || {}).filter(d => d.slice(0, 7) === ym && /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+  let cTot = 0, cSp = 0, cSpS = 0, cSb = 0, cSbS = 0;
+  const div = (a, b) => (b > 0 ? a / b * 100 : null);
+  return days.map(ds => {
+    const m = adMetricsResolved(ds, 'all'), tot = totalSalesResolved(ds, 'all') || 0;
+    const spC = m.cost.sp.kw + m.cost.sp.shohin + m.cost.sp.auto, sbC = m.cost.sb.douga + m.cost.sb.shokore;
+    const spS = m.sales.sp.kw + m.sales.sp.shohin + m.sales.sp.auto, sbS = m.sales.sb.douga + m.sales.sb.shokore;
+    cTot += tot; cSp += spC; cSpS += spS; cSb += sbC; cSbS += sbS;
+    return {
+      ds, cost: spC + sbC, costSp: spC, costSb: sbC,
+      dSroas: div(tot, spC + sbC), dRoas: div(spS + sbS, spC + sbC), dSp: div(spS, spC), dSb: div(sbS, sbC),
+      sroas: div(cTot, cSp + cSb), roas: div(cSpS + cSbS, cSp + cSb), sp: div(cSpS, cSp), sb: div(cSbS, cSb),
+    };
+  });
+}
+function renderTrendView(){
+  const body = document.getElementById('trend-body'); if (!body) return;
+  const months = trendMonths();
+  if (!trendMonth || months.indexOf(trendMonth) < 0) trendMonth = months[0] || null;
+  if (_trendChart) { try { _trendChart.destroy(); } catch (e) {} _trendChart = null; }
+  let h = '<div class="trend-card"><div class="trend-head"><span class="trend-lbl">対象月</span>'
+    + '<select id="trend-month" class="graph-select">' + months.map(m => '<option value="' + m + '"' + (m === trendMonth ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') + '</select>'
+    + '<span class="trend-desc">月末までの推移（月初からの累積ROAS。確定値に近づいていきます）。表には日別の値も並べています。</span></div>';
+  const rows = trendMonth ? trendRows(trendMonth) : [];
+  if (!rows.length) {
+    h += '<div class="trend-empty">この月の日別の広告データがありません。全-日別データ（①広告データ）を取り込んでください。</div></div>';
+    body.innerHTML = h; trendBind(body); return;
+  }
+  h += '<div class="trend-chart">' + (typeof Chart === 'undefined' ? '<div class="kwm-nochart">グラフの部品（Chart.js）を読み込めませんでした。ネット接続を確認して再読み込みしてください。下の表は使えます。</div>' : '<canvas id="trend-canvas"></canvas>') + '</div>';
+  // 表（新しい日が上。最上段＝今月の確定見込み）
+  const pct = v => (v != null && v > 0) ? (Math.round(v * 10) / 10).toFixed(1) + '%' : '<span class="trend-na">—</span>';
+  const yen = v => v > 0 ? '¥' + Math.round(v).toLocaleString() : '<span class="trend-na">—</span>';
+  const tCost = rows.reduce((a, r) => a + r.cost, 0), tSp = rows.reduce((a, r) => a + r.costSp, 0), tSb = rows.reduce((a, r) => a + r.costSb, 0);
+  const shr = (v, t) => (t > 0 && v > 0) ? (Math.round(v / t * 1000) / 10).toFixed(1) + '%' : '<span class="trend-na">—</span>';
+  const grp = (c, l, n) => '<th colspan="' + n + '" class="tr-g" style="color:' + c + '">' + l + '</th>';
+  const sub = '<th class="tr-s tr-gs">累積</th><th class="tr-s">日別</th>', subA = '<th class="tr-s">広告費</th><th class="tr-s">月内%</th>';
+  h += '<div class="trend-tblwrap"><table class="trend-tbl"><thead><tr><th rowspan="2" class="tr-day">日</th>'
+    + grp(TREND_COL.sroas, '売上ROAS', 2) + grp(TREND_COL.roas, 'ROAS', 4) + grp(TREND_COL.sp, 'ROAS-SP広告', 4) + grp(TREND_COL.sb, 'ROAS-SB広告', 4) + '</tr>'
+    + '<tr>' + sub + sub + subA + sub + subA + sub + subA + '</tr></thead><tbody>';
+  rows.slice().reverse().forEach((r, i) => {
+    const dw = new Date(r.ds + 'T00:00:00').getDay(), sn = saleNamesForDate(r.ds);
+    h += '<tr' + (i === 0 ? ' class="tr-last"' : '') + '><td class="tr-day' + (dw === 0 ? ' gt-sun' : (dw === 6 ? ' gt-sat' : '')) + '">' + r.ds.slice(5, 7) + '/' + r.ds.slice(8, 10) + '(' + GRAPH_DOW[dw] + ')' + (sn.length ? '<span class="gt-sale" title="' + escapeHtml(sn.join(' / ')) + '">SALE</span>' : '') + '</td>'
+      + '<td class="tr-gs">' + pct(r.sroas) + '</td><td class="tr-d">' + pct(r.dSroas) + '</td>'
+      + '<td class="tr-gs">' + pct(r.roas) + '</td><td class="tr-d">' + pct(r.dRoas) + '</td><td>' + yen(r.cost) + '</td><td class="tr-p">' + shr(r.cost, tCost) + '</td>'
+      + '<td class="tr-gs">' + pct(r.sp) + '</td><td class="tr-d">' + pct(r.dSp) + '</td><td>' + yen(r.costSp) + '</td><td class="tr-p">' + shr(r.costSp, tSp) + '</td>'
+      + '<td class="tr-gs">' + pct(r.sb) + '</td><td class="tr-d">' + pct(r.dSb) + '</td><td>' + yen(r.costSb) + '</td><td class="tr-p">' + shr(r.costSb, tSb) + '</td></tr>';
+  });
+  h += '</tbody></table></div><div class="trend-note">※ 累積（月初〜その日）と日別（その日だけ）を並べています。最上段＝その月の確定見込み（累積）。売上ROAS の分子は推計総売上（出荷数×販売価格）。直近の日は広告売上が後から増えるので、ROAS は低めに出ます。</div></div>';
+  body.innerHTML = h;
+  trendBind(body);
+  // グラフ（線＝累積、棒＝日別の ROAS-SB・ROAS-SP。棒は線の後ろ）
+  const cv = body.querySelector('#trend-canvas'); if (!cv) return;
+  kwmRegisterZoomFix();
+  const r1 = v => (v != null && v > 0) ? Math.round(v * 10) / 10 : null;
+  const line = (k, c, l) => ({ type: 'line', label: l, data: rows.map(r => r1(r[k])), borderColor: c, backgroundColor: c + '22', borderWidth: 2.5, pointRadius: 2.5, tension: 0.3, fill: false, spanGaps: true, order: 1 });
+  const bar = (k, c, l) => ({ type: 'bar', label: l, data: rows.map(r => r1(r[k])), backgroundColor: c, borderWidth: 0, order: 10, categoryPercentage: 0.8, barPercentage: 0.95 });
+  _trendChart = new Chart(cv, { type: 'line', data: { labels: rows.map(r => r.ds.slice(5, 7) + '/' + r.ds.slice(8, 10)), datasets: [
+    bar('dSb', 'rgba(239,68,68,0.32)', 'ROAS-SB広告(日別)'), bar('dSp', 'rgba(245,158,11,0.34)', 'ROAS-SP広告(日別)'),
+    line('sroas', TREND_COL.sroas, '売上ROAS'), line('roas', TREND_COL.roas, 'ROAS'), line('sp', TREND_COL.sp, 'ROAS-SP広告'), line('sb', TREND_COL.sb, 'ROAS-SB広告'),
+  ] }, options: { animation: false, responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
+    plugins: { legend: { display: true, position: 'top', labels: { color: '#4b5563', font: { size: 13 }, usePointStyle: true } },
+      tooltip: { callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y != null ? c.parsed.y.toFixed(1) + '%' : '—') } } },
+    scales: { x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 12 } } },
+      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 12 }, callback: v => v + '%' } } } } });
+  try { requestAnimationFrame(() => requestAnimationFrame(() => { try { if (_trendChart) _trendChart.resize(); } catch (e) {} })); } catch (e) {}
+}
+function trendBind(body){
+  const s = body.querySelector('#trend-month'); if (s) s.addEventListener('change', e => { trendMonth = e.target.value; renderTrendView(); });
 }
 
 // v3.56：CTR・個数用の素の値（区分＝spKw/spSh/spAu/sbDg/sbSk）
