@@ -1600,6 +1600,58 @@
   .kwm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9200; display: flex; align-items: flex-start; justify-content: center; padding-top: 2.5vh; }
   .kwm-bg[hidden] { display: none; }
   .kwm-box { background: #fff; width: 79vw; min-width: min(1100px, 96vw); max-width: 1560px; height: 96vh; max-height: 96vh; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; }
+  /* v3.66：商品モーダル（全体情報／KW推移／商品を編集）。ADcheck v1.1492 の外枠を流用 */
+  .pm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9200; display: flex; align-items: flex-start; justify-content: center; padding: 20px; }
+  .pm-bg[hidden] { display: none; }
+  .pm-card { background: #fff; width: 96vw; max-width: 1400px; max-height: 100%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; }
+  .pm-tabs { display: flex; align-items: flex-end; gap: 4px; padding: 10px 16px 0 24px; border-bottom: 1px solid var(--border); background: #fff; flex-shrink: 0; }
+  .pm-tab { padding: 9px 20px; border: none; background: none; cursor: pointer; font-size: 14.5px; font-weight: 600; color: var(--text-tertiary); border-bottom: 2.5px solid transparent; font-family: inherit; border-radius: 0; }
+  .pm-tab:hover { color: var(--black); background: none; }
+  .pm-tab.on { cursor: default; font-weight: 800; color: var(--black); border-bottom-color: var(--black); }
+  .pm-x { margin: 0 0 6px auto; align-self: center; border: none; background: rgba(0,0,0,0.08); cursor: pointer; font-size: 15px; color: #333; line-height: 1; padding: 7px 11px; border-radius: 50%; flex-shrink: 0; }
+  .pm-x:hover { background: rgba(0,0,0,0.16); }
+  .pm-prod { display: flex; align-items: center; gap: 12px; padding: 12px 24px; border-bottom: 1px solid var(--border); flex-shrink: 0; min-width: 0; }
+  .pm-prod-img .ph { border-radius: 7px; border: 1px solid var(--border); }
+  .pm-prod-txt { min-width: 0; }
+  .pm-prod-name { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pm-prod-sub { font-size: 12px; color: var(--text-tertiary); font-family: ui-monospace, Menlo, monospace; margin-top: 2px; }
+  .pm-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 24px 24px; }
+  .pm-toolbar { position: static; margin: 14px 0 10px; flex-wrap: wrap; }
+  .pm-cm { display: inline-flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 700; color: var(--text-secondary); }
+  .pm-items { margin-bottom: 8px; }
+  .pm-chart { position: relative; margin-top: 4px; }
+  .pm-empty { padding: 40px 10px; text-align: center; color: var(--text-tertiary); font-size: 14px; }
+  .pm-tbl-title { margin: 16px 0 6px; font-size: 14px; font-weight: 800; color: var(--text-secondary); }
+  .pm-table { font-size: 14px; }
+  .pm-table th, .pm-table td { padding: 8px 14px; }
+  .pm-table thead th { font-size: 13px; }
+  .pm-src { display: inline-block; font-size: 11px; font-weight: 700; border-radius: 5px; padding: 1px 7px; white-space: nowrap; }
+  .pm-src-e { background: #dcfce7; color: #166534; }
+  .pm-src-d { background: #fef3c7; color: #92400e; }
+  .pm-table td.pm-src-td, .pm-table th.pm-src-h { text-align: center; }
+  /* KW推移（#kwm-modal の商品モード）：上にタブの帯と商品名、左に KW 一覧 */
+  .kwm-box.pm-mode .kwm-close, .kwm-box.pm-mode .kwm-nav { display: none; }
+  .pm-kwwrap { flex: 1 1 auto; min-height: 0; display: flex; }
+  .pm-kwlist { width: 250px; flex-shrink: 0; overflow-y: auto; border-right: 1px solid var(--border); padding: 8px; background: #fafafa; }
+  .pm-kwlist-h { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); padding: 4px 6px 8px; display: flex; justify-content: space-between; }
+  .pm-kwlist-h span { cursor: help; color: var(--text-tertiary); }
+  .pm-kwi { display: block; width: 100%; text-align: left; border: 1px solid transparent; background: #fff; border-radius: 7px; padding: 7px 9px; margin-bottom: 4px; cursor: pointer; font-family: inherit; }
+  .pm-kwi:hover { border-color: #c4b5fd; background: #fff; }
+  .pm-kwi.on { border-color: #7c3aed; background: #f3e8ff; box-shadow: inset 3px 0 0 #7c3aed; }
+  .pm-kwi.stop { opacity: .55; background: #f3f4f6; }
+  .pm-kwi-n { display: block; font-size: 13px; font-weight: 700; color: var(--black); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pm-kwi-n .kw-badge { margin-right: 5px; }
+  .pm-kwi-s { display: block; font-size: 11.5px; color: var(--text-secondary); margin-top: 2px; }
+  .pm-kwi-c { display: block; font-size: 10.5px; color: var(--text-tertiary); margin-top: 1px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .pm-kwmain { flex: 1 1 auto; min-width: 0; min-height: 0; display: flex; flex-direction: column; }
+  /* 商品を編集：タブの帯を .modal の上端いっぱいに */
+  .pm-tabs-edit { margin: -24px -24px 16px; }
+  #edit-modal #edit-close { display: none; }   /* 閉じるはタブの帯の右端の ✕ に一本化 */
+  .pm-tabs-edit .pm-tabs { border-radius: 14px 14px 0 0; padding-left: 16px; }
+  .pm-tabs-edit .pm-tab { padding: 9px 14px; font-size: 13.5px; white-space: nowrap; }
+  /* 表の画像・商品名は押すと商品モーダル */
+  table.master td.img-cell, table.master td.name-cell, table.ship td.img, table.ship td.name, table.ps-table td.ps-img, table.ps-table td.ps-name { cursor: pointer; }
+  table.master td.name-cell:hover, table.ship td.name:hover, table.ps-table td.ps-name:hover .ps-nm { text-decoration: underline; text-decoration-color: #9ca3af; }
   .kwm-head { display: flex; align-items: center; gap: 18px; padding: 20px 30px; border-bottom: 1px solid var(--border); }
   .kwm-title-wrap { flex: 1; min-width: 0; }
   .kwm-stop { flex-shrink: 0; display: inline-block; padding: 2px 10px; border-radius: 6px; background: #e5e7eb; color: #374151; border: 1px solid #cbd5e1; font-size: 13px; font-weight: 800; white-space: nowrap; cursor: help; }
@@ -1994,7 +2046,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.64</span>
+    <span class="version">v3.66</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2015,11 +2067,11 @@
 <nav class="tabs">
   <div class="tab-row">
     <span class="tab-group tg-basic">【基本】</span>
-    <button class="tab" data-tab="shipment">
-      商品-出荷数データ
-    </button>
     <button class="tab" data-tab="psales">
       商品-売上データ
+    </button>
+    <button class="tab" data-tab="shipment">
+      商品-出荷数データ
     </button>
     <span class="tab-group tab-group-gap tg-all">【全体】</span>
     <button class="tab" data-tab="ad">
@@ -2128,7 +2180,6 @@
         <span class="lg-shlo">少ない 下位5</span>
       </span>
       <div class="spacer toast-slot" id="ship-toast-slot"></div>
-      <span class="imp-badge" id="imp-badge-ship"></span>
       <button class="utility toggle-header-btn" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;">ヘッダーを隠す</button>
     </div>
     <div id="shipment-body"></div>
@@ -2154,7 +2205,6 @@
       <div class="spacer"></div>
       <span class="ps-colwrap"><button type="button" class="ps-btn" id="ps-colbtn">項目調整</button><div class="ps-colpanel" id="ps-colpanel" hidden></div></span>
       <button type="button" class="ps-btn" id="ps-csv">CSV出力</button>
-      <span class="imp-badge" id="imp-badge-psales"></span>
       <button class="utility toggle-header-btn" id="toggle-header-psales" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;">ヘッダーを隠す</button>
     </div>
     <div id="psales-body"></div>
@@ -2193,7 +2243,6 @@
         <button class="utility" id="open-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button>
       </span>
       <button class="utility" id="open-ad-recon" style="font-size:12px;" title="月ごとに、月末データ（B）と日別の広告データ（①）・KWデータ（③）の広告費を比べます"><svg class="icn"><use href="#i-check"/></svg> 月末データと照合</button>
-      <span class="imp-badge" id="imp-badge-ad"></span>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
       <button class="utility toggle-header-btn" id="toggle-header-ad" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;">ヘッダーを隠す</button>
     </div>
@@ -2516,6 +2565,7 @@
 <!-- 編集モーダル -->
 <div class="modal-bg" id="edit-modal" hidden>
   <div class="modal">
+    <div class="pm-tabs-edit" id="pm-tabs-edit"></div><!-- v3.66：商品モーダルのタブ（全体情報／KW推移／商品を編集） -->
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;margin-bottom:8px;">
       <div style="flex:1;min-width:0;">
         <h3 style="margin:0;">商品を編集</h3>
@@ -2699,6 +2749,8 @@
 <div class="toast" id="toast"></div>
 <!-- KW推移モーダル（商品-KWデータ）。表示倍率（.container の zoom）の外に置く -->
 <div class="kwm-bg" id="kwm-modal" hidden><div class="kwm-box" id="kwm-box"></div></div>
+<!-- v3.66：商品モーダル（全体情報） -->
+<div class="pm-bg" id="pm-modal" hidden><div class="pm-card" id="pm-card"></div></div>
 <!-- 広告データの照合（v3.07）：月末B と 日別① と KW③ の広告費 -->
 <div class="modal-bg" id="ad-recon-modal" hidden>
   <div class="modal adg-modal" style="max-width:1000px;">
@@ -3493,6 +3545,15 @@ function init(){
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('ret-add-modal').hidden) closeRetAddModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('cat-modal').hidden) closeCatModal(); });
   document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && !document.getElementById('export-modal').hidden) closeExportModal(); });
+  // v3.66：商品モーダル（全体情報）は Esc で閉じる。画像・商品名を押すと開く（商品-売上データ／商品-出荷数データ／商品マスタ／撤退済み商品）
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('pm-modal').hidden) closePmInfo(); });
+  document.getElementById('pm-modal').addEventListener('mousedown', e => { if (e.target.id === 'pm-modal') closePmInfo(); });
+  document.addEventListener('click', e => {
+    const td = e.target.closest('table.master td.img-cell, table.master td.name-cell, table.ship td.img, table.ship td.name, table.ps-table td.ps-img, table.ps-table td.ps-name');
+    if (!td || e.target.closest('input, button, a, select')) return;
+    const tr = td.closest('tr'), f = tr && tr.dataset.fnsku; if (!f) return;
+    openProductModal(f, 'info');
+  });
   document.addEventListener('keydown', (e) => {
     const sh = document.getElementById('kw-share-help');
     if (!sh.hidden) { if (e.key === 'Escape') closeShareHelp(); return; }   // 説明が開いているときはそちらだけ閉じる
@@ -3649,15 +3710,15 @@ function init(){
   document.getElementById('edit-image-delete').addEventListener('click', deleteCurrentImage);
 
   // ブラウザ・マウスの戻る/進むボタンで画面遷移できるよう履歴を管理
-  history.replaceState({ view: 'master' }, '');
+  history.replaceState({ view: 'ad' }, '');
   window.addEventListener('popstate', (e) => {
-    const view = (e.state && e.state.view) || 'master';
+    const view = (e.state && e.state.view) || 'ad';
     switchView(view, true);
   });
 
-  // 初期表示：商品マスタタブ（新しいタブ用に #view=xxx 指定があればそれを優先）
+  // 初期表示：全-月別データ（v3.65。新しいタブ用に #view=xxx 指定があればそれを優先）
   const _hv = (location.hash.match(/view=([a-z]+)/i) || [])[1];
-  switchView((_hv || 'master'), true);
+  switchView((_hv || 'ad'), true);
 }
 
 function switchView(name, fromPop){
@@ -4620,7 +4681,7 @@ function renderMonthlyTable(){
       sorted.slice(0, 3).forEach(o => mHi.add(o.m));
       sorted.slice(-3).forEach(o => mLo.add(o.m));
     }
-    html += '<tr>';
+    html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '">';   // v3.66：画像・商品名から商品モーダルを開くため
     html += '<td class="asin">' + escapeHtml(p.asin || '-') + '</td>';
     html += '<td class="asin">' + escapeHtml(p.fnsku || '-') + '</td>';
     html += '<td class="img">' + productImageHtml(p, 52) + '</td>';
@@ -7171,7 +7232,7 @@ function kwFitTable(){
 //  ・変更記録の代わりに「入札額の変更」を縦線＋バッジで表示、セール期間はピンクの帯
 //  ・月別の ROAS／CVR／CTR／CPC／入札額／上部シェア は年ごとに線を重ねる（線種で年を区別）
 // ============================================
-const kwm = { key: null, period: 'daily', fy: 1, view2y: false, preset: '30', month: null, metric: 'all', hideChart: false, hiddenSeries: new Set(), hiddenYears: new Set(), tblYoy: false };
+const kwm = { prod: null, key: null, period: 'daily', fy: 1, view2y: false, preset: '30', month: null, metric: 'all', hideChart: false, hiddenSeries: new Set(), hiddenYears: new Set(), tblYoy: false };
 let _kwmChart = null;
 const KWM_METRICS = [['all', '広告売上・広告費＆ROAS'], ['sales', '広告売上'], ['cost', '広告費'], ['roas', 'ROAS'], ['cvr', 'CVR'], ['ctr', 'CTR'], ['cpc', 'CPC'], ['clicks', 'クリック'], ['imp', '表示（インプレッション）'], ['orders', '注文'], ['bid', '入札額'], ['share', '検索結果上部のインプレッションシェア']];
 const KWM_LINE = new Set(['roas', 'cvr', 'ctr', 'cpc', 'bid', 'share']);   // 折れ線（月別は年ごとに重ねる）
@@ -7212,11 +7273,13 @@ function kwmAgg(rows, keyFn){
   });
   return m;
 }
-function kwmRows(){ const ds = kwDates(); if (!ds.length || !kwm.key) return []; return kwRows(ds[0], ds[ds.length - 1]).filter(r => kwGroupKey(r) === kwm.key); }
+function kwmRows(){ if (kwm.prod) return kwm.key ? _pmKwRows.filter(r => kwGroupKey(r) === kwm.key) : [];   // v3.66：商品モーダルの KW推移（ページの絞り込みは使わない）
+  const ds = kwDates(); if (!ds.length || !kwm.key) return []; return kwRows(ds[0], ds[ds.length - 1]).filter(r => kwGroupKey(r) === kwm.key); }
 
 // 推移モーダルの最初の表示：一覧の期間が「月別」なら月別、それ以外（日別・直近30日・期間指定）は日別（v3.04）
 function kwmStartPeriod(){ return kwRange === 'month' ? 'monthly' : 'daily'; }
 function openKwModal(key){
+  kwm.prod = null;   // v3.66：商品-KWデータから開いた時は商品モードではない
   kwm.key = key; kwm.period = kwmStartPeriod(); kwm.preset = '30'; kwm.month = null; kwm.hiddenSeries = new Set(); kwm.hiddenYears = new Set(); kwm.tblYoy = false;
   if (kwm.metric === 'bid' && kwGroup !== 'kwmatch') kwm.metric = 'all';
   document.getElementById('kwm-modal').hidden = false;
@@ -7225,9 +7288,11 @@ function openKwModal(key){
 }
 // 表の上／下のワードへ。新しく開いたときと同じ表示（一覧が月別なら月別、それ以外は日別・30日）から始める。指標・グラフを隠す・系列の ON/OFF はそのまま
 function kwmGo(d){
-  const i = kwRowKeys.indexOf(kwm.key), j = i + d;
-  if (i < 0 || j < 0 || j >= kwRowKeys.length) return;
-  kwm.key = kwRowKeys[j];
+  const keys = kwm.prod ? _pmKwKeys : kwRowKeys;   // v3.66：商品モードは左の KW 一覧の順
+  const i = keys.indexOf(kwm.key), j = i + d;
+  if (i < 0 || j < 0 || j >= keys.length) return;
+  kwm.key = keys[j];
+  if (kwm.prod) { kwm.month = null; kwm.hiddenYears = new Set(); kwm.tblYoy = false; renderKwModal(); return; }
   kwm.period = kwmStartPeriod(); kwm.preset = '30'; kwm.month = null; kwm.hiddenYears = new Set(); kwm.tblYoy = false;
   renderKwModal();
 }
@@ -7239,6 +7304,7 @@ function closeKwModal(){
   if (_kwmChart) { _kwmChart.destroy(); _kwmChart = null; }
   document.getElementById('kwm-modal').hidden = true;
   document.documentElement.style.overflow = ''; document.body.style.overflow = '';
+  if (kwm.prod) { kwm.prod = null; const bx = document.getElementById('kwm-box'); if (bx) bx.classList.remove('pm-mode'); return; }   // v3.66：商品モーダルの KW推移
   kwLastKey = kwm.key || null;
   let hit = null;
   document.querySelectorAll('#adkw-body tr.kw-row').forEach(tr => {
@@ -7394,7 +7460,9 @@ function renderKwModal(){
   }
   if (!labels.length) h += '<tr><td colspan="' + (COLS.length + 1 + (kwm.tblYoy && !isDaily ? 1 : 0)) + '" class="kw-empty">データがありません</td></tr>';
   h += '</tbody></table></div></div>';
-  box.innerHTML = h;
+  box.classList.toggle('pm-mode', !!kwm.prod);
+  box.innerHTML = kwm.prod ? pmKwWrap(h) : h;   // v3.66：商品モーダルの KW推移は、タブの帯・商品名・左の KW 一覧で包む
+  if (kwm.prod) pmKwBind(box);
 
   // ---- イベント ----
   const segOn = (id, fn) => box.querySelectorAll('#' + id + ' button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); renderKwModal(); }));
@@ -9117,11 +9185,11 @@ function psBlockOf(t, campName){
   if (cc.platform === 'sb') return cc.subtype === 'douga' ? 'sbDg' : 'sbSk';
   return cc.subtype === 'kw' ? 'spKw' : (cc.subtype === 'shohin' ? 'spSh' : 'spAu');
 }
-function psCompute(){
+function psCompute(opt){   // v3.66：opt.asin を渡すと、その商品の行だけ（表の絞り込み無し）を one に入れて返す
   const pr = psPurchRows();
   // 速報（④の日別の合計）の月は、④のある日だけで比べる（広告費・出荷数・総売上も同じ日にそろえる）
   const days = (!psDay && pr.src === 'daily') ? Object.keys(purchData.day).filter(d => d.slice(0, 7) === psMonth).sort() : psPeriodDays();
-  const blank = () => ({ S: { spAll: 0, spKw: 0, spSh: 0, spAu: 0, sbAll: 0, sbDg: 0, sbSk: 0 }, C: { spAll: 0, spKw: 0, spSh: 0, spAu: 0, sbAll: 0, sbDg: 0, sbSk: 0 }, prom: 0, halo: 0, units: 0, ship: 0, total: 0 });
+  const blank = () => ({ S: { spAll: 0, spKw: 0, spSh: 0, spAu: 0, sbAll: 0, sbDg: 0, sbSk: 0 }, C: { spAll: 0, spKw: 0, spSh: 0, spAu: 0, sbAll: 0, sbDg: 0, sbSk: 0 }, U: { spAll: 0, spKw: 0, spSh: 0, spAu: 0, sbAll: 0, sbDg: 0, sbSk: 0 }, prom: 0, halo: 0, units: 0, ship: 0, total: 0 });
   const byAsin = {};
   const get = a => (byAsin[a] = byAsin[a] || blank());
   // 広告売上（買われた商品の行へ）
@@ -9129,7 +9197,7 @@ function psCompute(){
   pr.rows.forEach(r => {
     const blk = psBlockOf(r.t, r.c), all = r.t === 'SB' ? 'sbAll' : 'spAll';
     const o = get(r.a);
-    o.S[blk] += r.s; o.S[all] += r.s; o.units += r.u || 0;
+    o.S[blk] += r.s; o.S[all] += r.s; o.units += r.u || 0; o.U[blk] += r.u || 0; o.U[all] += r.u || 0;
     if (r.r === 'h') o.halo += r.s; else o.prom += r.s;
     const cn = String(r.c || '').trim(); campBlock[cn] = blk;
     campSales[cn] = (campSales[cn] || 0) + r.s;
@@ -9211,9 +9279,11 @@ function psCompute(){
     ['spAll', 'spKw', 'spSh', 'sbAll', 'sbDg', 'sbSk'].forEach(b => { r[b + 'S'] = o.S[b]; r[b + 'C'] = o.C[b]; r[b + 'R'] = (o.C[b] > 0 && !noPd) ? o.S[b] / o.C[b] * 100 : null; });
     if (noPd) { r.seo = null; r.seoP = r.adP = null; r.ad = null; }
     r.spAuS = o.S.spAu; r.spAuC = o.C.spAu;   // v3.55：分析用データ用（オート）
+    ['spAll', 'spKw', 'spSh', 'spAu', 'sbAll', 'sbDg', 'sbSk'].forEach(b => { r[b + 'U'] = o.U[b]; });   // v3.66：区分ごとの個数（商品モーダル）
     r.has = !!(o.ship || o.total || ad || cost);
     return r;
   };
+  if (opt && opt.asin) { const A = String(opt.asin).toUpperCase(); return { one: mk(prodByAsin[A] || null, A), pr, fallbackDays }; }
   const used = new Set();
   products.forEach(p => {
     const a = String(p.asin || '').toUpperCase(); if (!a || used.has(a)) return; used.add(a);
@@ -9386,7 +9456,7 @@ function renderPsalesTable(){
   let tb = '';
   rows.forEach(r => {
     const p = r.p;
-    tb += '<tr' + (p && productStatus(p) === 'withdrawn' ? ' class="ps-withdrawn"' : '') + '>'
+    tb += '<tr' + (p ? ' data-fnsku="' + escapeHtml(p.fnsku) + '"' : '') + (p && productStatus(p) === 'withdrawn' ? ' class="ps-withdrawn"' : '') + '>'
       + '<td class="ps-img ps-stick0" style="text-align:' + psA('img', 'center') + '">' + (p ? productImageHtml(p, 30) : '') + '</td>'
       + '<td class="ps-name ps-stick1" style="' + stick1 + 'text-align:' + nameA + '" title="' + escapeHtml(r.name + '\n' + (r.sku ? 'SKU ' + r.sku + '　' : '') + 'ASIN ' + r.asin) + '"><div class="ps-nm">' + escapeHtml(r.name) + '</div><div class="ps-sub">' + escapeHtml(r.asin) + '</div></td>';
     segs.forEach(sg => {
@@ -10061,6 +10131,7 @@ window.registerCampaigns = registerCampaigns;
 function openEditModal(fnsku){
   loadProductIntoEditModal(fnsku);
   document.getElementById('edit-modal').hidden = false;
+  pm.fnsku = fnsku; pmFillEditTabs();   // v3.66
 }
 
 function markDirty(){
@@ -10344,7 +10415,7 @@ function placeToast(el){
     midY = r.top + r.height / 2;
   } else {
     // ヒント帯が無い（月別）時：合計出荷数の右〜「出荷数データを追加」の左の間（配色の凡例に一時的に重ねる）
-    const tot = view.querySelector('.ship-total'), btn = document.getElementById('imp-badge-ship');   // v3.45：「出荷数データを追加」ボタンは廃止。最終取込の印の左まで
+    const tot = view.querySelector('.ship-total'), btn = document.getElementById('toggle-header');   // v3.65：「最終取込」の印は廃止。「ヘッダーを隠す」の左まで
     if (!tot || !btn || btn.offsetParent === null) return;
     const a = tot.getBoundingClientRect(), b = btn.getBoundingClientRect();
     if (Math.abs(a.top - b.top) > 20) return;   // ツールバーが折り返している時は従来位置
@@ -10515,6 +10586,402 @@ let graphPrevYear = null;
 let graphStartYM = null;        // 'YYYY-MM'（比較の前年側）
 let graphEndYM = null;          // 'YYYY-MM'（比較の今年側）
 let _graphMetricCache = {};
+
+// ============================================
+// v3.66：商品モーダル（全体情報／KW推移／商品を編集）— ADcheck v1.1492 の商品モーダルを流用
+//   タブに見えるが、実際は3つのモーダル（#pm-modal／#kwm-modal の商品モード／#edit-modal）。タブを押すと今のを閉じて同じ商品で別のを開く
+// ============================================
+const pm = { fnsku: null, grain: 'daily', month: null, preset: '30', endYm: null, fy: 'jan', view2y: false, cat: 'sales', hidden: null, hiddenFY: new Set(), costMode: null, showSale: true, cache: {} };
+const PM_CAT_ORDER = ['sales', 'salesShare', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'units', 'adBreak', 'shipment', 'avgPrice'];
+const PM_CATS = {
+  sales: { label: '売上・利益', yen: true, items: [
+    { key: 'salesActual', label: '推計総売上', color: '#2563eb' },
+    { key: 'adSalesActual', label: '広告売上', color: '#ea580c' },
+    { key: 'seoActual', label: 'SEO売上', color: '#9333ea' },
+    { key: 'adCostActual', label: '広告費', color: '#dc2626' },
+  ] },
+  salesShare: GRAPH_CATEGORIES.salesShare,
+  adcost: { label: '広告-実績額', yen: true, bar: true, items: GRAPH_CATEGORIES.adcost.items },
+  adshareSpSb: GRAPH_CATEGORIES.adshareSpSb,
+  adshareSpKwSh: GRAPH_CATEGORIES.adshareSpKwSh,
+  adshareSbDgSk: GRAPH_CATEGORIES.adshareSbDgSk,
+  roas: { label: '広告-ROAS', yen: false, pct: true, items: [
+    { key: 'roasAll', label: '広告ROAS(全体)', color: '#dc2626' },
+    { key: 'roasSp', label: 'SP広告', color: '#2563eb' },
+    { key: 'roasSb', label: 'SB広告', color: '#ea580c' },
+    { key: 'roasSpKw', label: 'SP-KW', color: '#0891b2' },
+    { key: 'roasSpShohin', label: 'SP-商品', color: '#7c3aed' },
+    { key: 'roasSbDouga', label: 'SB-動画', color: '#d97706' },
+    { key: 'roasSbShokore', label: 'SB-商品コレ', color: '#db2777' },
+    { key: 'sroas', label: '売上ROAS', color: '#16a34a' },
+  ] },
+  units: { label: '広告-個数', yen: false, bar: true, items: GRAPH_CATEGORIES.units.items },
+  adBreak: { label: '広告売上の内訳(宣伝商品/Halo)', yen: true, bar: true, items: [
+    { key: 'prom', label: '宣伝商品として', color: '#ea580c' },
+    { key: 'halo', label: 'Halo（別の商品の広告経由）', color: '#f59e0b' },
+    { key: 'adSalesActual', label: '広告売上(合計)', color: '#dc2626' },
+  ] },
+  shipment: { label: '出荷数', yen: false, bar: true, items: [
+    { key: 'totalQty', label: '総出荷数', color: '#2563eb' },
+    { key: 'adQty', label: '広告経由の個数', color: '#ea580c' },
+    { key: 'seoQty', label: 'SEO出荷数', color: '#9333ea' },
+  ] },
+  avgPrice: { label: '平均単価', yen: true, items: [
+    { key: 'avgPrice', label: '平均単価', color: '#0891b2' },
+  ] },
+};
+function pmDefaultHidden(cat){
+  if (cat === 'adcost') return new Set(['adcActualSpKw', 'adcActualSpShohin', 'adcActualSbDouga', 'adcActualSbShokore']);
+  if (cat === 'roas') return new Set(['roasSpKw', 'roasSpShohin', 'roasSbDouga', 'roasSbShokore']);
+  if (cat === 'units') return new Set(['unSpKw', 'unSpShohin', 'unSbDouga', 'unSbShokore']);
+  if (cat === 'adBreak') return new Set(['adSalesActual']);
+  return new Set();
+}
+function pmProd(){ return products.find(x => x.fnsku === pm.fnsku) || null; }
+const pmEsc = s => escapeHtml(String(s == null ? '' : s));
+
+// ---- 開く・閉じる・タブの行き来 ----
+function openProductModal(fnsku, tab){
+  const p = products.find(x => x.fnsku === fnsku); if (!p) return;
+  if (pm.fnsku !== fnsku) { pm.cache = {}; pm.month = null; pm.endYm = null; }
+  pm.fnsku = fnsku;
+  if (tab === 'kw') return openPmKw(fnsku);
+  if (tab === 'edit') { openEditModal(fnsku); pmFillEditTabs(); return; }
+  if (!pm.costMode) pm.costMode = psCostMode || 'direct';
+  if (!pm.hidden) pm.hidden = pmDefaultHidden(pm.cat);
+  document.getElementById('pm-modal').hidden = false;
+  document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden';
+  pmRenderInfo(true);
+}
+function closePmInfo(){
+  document.getElementById('pm-modal').hidden = true;
+  document.documentElement.style.overflow = ''; document.body.style.overflow = '';
+}
+function pmCurrent(){
+  if (!document.getElementById('pm-modal').hidden) return { tab: 'info', f: pm.fnsku, close: closePmInfo };
+  if (!document.getElementById('kwm-modal').hidden && kwm.prod) return { tab: 'kw', f: kwm.prod, close: closeKwModal };
+  if (!document.getElementById('edit-modal').hidden) return { tab: 'edit', f: editingFnsku, close: closeEditModal };
+  return null;
+}
+function pmGo(to){
+  const cur = pmCurrent(); const f = cur ? cur.f : pm.fnsku; if (!f) return;
+  if (cur) {
+    if (cur.tab === to) return;
+    cur.close();
+    if (cur.tab === 'edit' && !document.getElementById('edit-modal').hidden) return;   // 未保存の確認で「キャンセル」
+  }
+  openProductModal(f, to);
+}
+function pmTabsHtml(cur, closeId){
+  const t = (k, l) => '<button type="button" class="pm-tab' + (k === cur ? ' on' : '') + '"' + (k === cur ? '' : ' data-pmgo="' + k + '"') + '>' + l + '</button>';
+  return '<div class="pm-tabs">' + t('info', '全体情報') + t('kw', 'KW推移') + t('edit', '商品を編集')
+    + '<button type="button" class="pm-x" id="' + closeId + '" title="閉じる (Esc)">✕</button></div>';
+}
+function pmProdRowHtml(p){
+  const st = STATUS_LABELS[productStatus(p)] || '';
+  return '<div class="pm-prod"><div class="pm-prod-img">' + productImageHtml(p, 44) + '</div><div class="pm-prod-txt">'
+    + '<div class="pm-prod-name" title="' + pmEsc(p.name) + '">' + pmEsc(p.name) + '</div>'
+    + '<div class="pm-prod-sub">ASIN ' + pmEsc(p.asin || '-') + '　｜　SKU ' + pmEsc(p.sku || '-') + (st ? '　｜　' + pmEsc(st) : '') + '</div></div></div>';
+}
+function pmBindTabs(root){
+  root.querySelectorAll('[data-pmgo]').forEach(b => b.addEventListener('click', () => pmGo(b.dataset.pmgo)));
+}
+// 編集のモーダルにもタブの帯（商品マスタの「編集」から開いた時も出す）
+function pmFillEditTabs(){
+  const box = document.getElementById('pm-tabs-edit'); if (!box) return;
+  box.innerHTML = pmTabsHtml('edit', 'pm-x-edit');
+  pmBindTabs(box);
+  const x = box.querySelector('#pm-x-edit'); if (x) x.addEventListener('click', closeEditModal);
+}
+
+// ---- 全体情報：データ ----
+// その商品のデータがある日（出荷 or ④の購入）
+function pmDates(p){
+  const set = new Set(), A = String(p.asin || '').toUpperCase();
+  Object.keys(shipments).forEach(ym => { const d = shipments[ym] && shipments[ym][p.fnsku]; if (!d) return; for (const k in d) if ((Number(d[k]) || 0) > 0) set.add(ym + '-' + String(k).padStart(2, '0')); });
+  if (A) Object.keys(purchData.day || {}).forEach(ds => { if ((purchData.day[ds] || []).some(r => String(r.a || '').toUpperCase() === A)) set.add(ds); });
+  return Array.from(set).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort();
+}
+function pmMonths(p){
+  const s = new Set(pmDates(p).map(d => d.slice(0, 7))), A = String(p.asin || '').toUpperCase();
+  if (A) Object.keys(purchData.month || {}).forEach(ym => { if ((purchData.month[ym] || []).some(r => String(r.a || '').toUpperCase() === A)) s.add(ym); });
+  const l = Array.from(s).filter(k => /^\d{4}-\d{2}$/.test(k)).sort();
+  if (!l.length) return [];
+  const out = []; for (let ym = l[0]; ym <= l[l.length - 1]; ym = gYmAdd(ym, 1)) out.push(ym);   // 間の月も並べる
+  return out;
+}
+// 全体の最新日（出荷・広告・④）。日別の終わりはこの日を超えない
+function pmLatestDate(){
+  const a = graphDataDates(); let last = a.length ? a[a.length - 1] : null;
+  Object.keys(purchData.day || {}).forEach(d => { if (/^\d{4}-\d{2}-\d{2}$/.test(d) && (!last || d > last)) last = d; });
+  return last;
+}
+// 1つの期間（日 'YYYY-MM-DD' か 月 'YYYY-MM'）を、商品-売上データと同じ計算（psCompute）で出す
+function pmCompute(key){
+  const p = pmProd(); if (!p) return null;
+  const ck = pm.costMode + '|' + key; if (pm.cache[ck] !== undefined) return pm.cache[ck];
+  const sv = [psMonth, psDay, psCostMode]; let out = null;
+  try {
+    if (key.length === 10) { psDay = key; psMonth = key.slice(0, 7); } else { psDay = ''; psMonth = key; }
+    psCostMode = pm.costMode;
+    const c = psCompute({ asin: p.asin });
+    const noPd = c.pr.src === 'none';
+    out = { m: pmRowMetrics(c.one, noPd), src: c.pr.src, nDays: c.pr.nDays, first: c.pr.firstDay, last: c.pr.lastDay };
+  } catch (e) { console.error(e); out = null; }
+  finally { psMonth = sv[0]; psDay = sv[1]; psCostMode = sv[2]; }
+  pm.cache[ck] = out;
+  return out;
+}
+function pmRowMetrics(r, noPd){
+  const nz = v => (noPd ? null : v);
+  const div = (a, b, mul) => (noPd ? null : (b > 0 ? a / b * (mul || 1) : null));
+  const cSp = r.spAllC || 0, cSb = r.sbAllC || 0, cost = cSp + cSb, ad = r.ad || 0, tot = r.total || 0;
+  return {
+    salesActual: tot, adSalesActual: nz(ad), seoActual: nz(Math.max(0, tot - ad)), adCostActual: nz(cost),
+    seoShare: (!noPd && tot > 0) ? Math.max(0, tot - ad) / tot * 100 : null, adSalesShare: (!noPd && tot > 0) ? Math.min(ad, tot) / tot * 100 : null,
+    adcActualTotal: nz(cost), adcActualSp: nz(cSp), adcActualSb: nz(cSb),
+    adcActualSpKw: nz(r.spKwC), adcActualSpShohin: nz(r.spShC), adcActualSbDouga: nz(r.sbDgC), adcActualSbShokore: nz(r.sbSkC),
+    adcSpShare: div(cSp, cost, 100), adcSbShare: div(cSb, cost, 100),
+    adcSpKwShare: div(r.spKwC, r.spKwC + r.spShC, 100), adcSpShohinShare: div(r.spShC, r.spKwC + r.spShC, 100),
+    adcSbDougaShare: div(r.sbDgC, cSb, 100), adcSbShokoreShare: div(r.sbSkC, cSb, 100),
+    roasAll: div(ad, cost, 100), roasSp: div(r.spAllS, cSp, 100), roasSb: div(r.sbAllS, cSb, 100),
+    roasSpKw: div(r.spKwS, r.spKwC, 100), roasSpShohin: div(r.spShS, r.spShC, 100), roasSbDouga: div(r.sbDgS, r.sbDgC, 100), roasSbShokore: div(r.sbSkS, r.sbSkC, 100),
+    sroas: div(tot, cost, 100),
+    unAll: nz(r.units), unSp: nz(r.spAllU), unSb: nz(r.sbAllU), unSpKw: nz(r.spKwU), unSpShohin: nz(r.spShU), unSbDouga: nz(r.sbDgU), unSbShokore: nz(r.sbSkU),
+    prom: nz(r.prom), halo: nz(r.halo),
+    totalQty: r.ship || 0, adQty: nz(r.units), seoQty: noPd ? null : Math.max(0, (r.ship || 0) - (r.units || 0)),
+    avgPrice: r.ship > 0 ? tot / r.ship : null,
+  };
+}
+// 表示する期間（行）を決める
+function pmPeriodRows(p){
+  const catDef = PM_CATS[pm.cat];
+  if (pm.grain === 'daily') {
+    const dates = pmDates(p), months = Array.from(new Set(dates.map(d => d.slice(0, 7)))).sort().reverse();
+    if (!pm.month || months.indexOf(pm.month) < 0) pm.month = months[0] || null;
+    if (!pm.month) return { rows: [], months };
+    const latest = pmLatestDate();
+    const mEnd = pm.month + '-' + String(daysInMonth(pm.month)).padStart(2, '0');
+    const end = (latest && latest < mEnd) ? latest : mEnd;
+    const start = pm.preset === 'thismonth' ? pm.month + '-01' : (pm.preset === '2month' ? gYmAdd(pm.month, -1) + '-01' : gAddDays(end, -29));
+    const rows = [];
+    for (let ds = start, n = 0; ds <= end && n < 400; ds = gAddDays(ds, 1), n++) { const c = pmCompute(ds); rows.push({ key: ds, code: ds.replace(/-/g, ''), c, m: c ? c.m : null, synth: false }); }
+    return { rows, months };
+  }
+  const all = pmMonths(p);
+  if (!pm.endYm || all.indexOf(pm.endYm) < 0) pm.endYm = all[all.length - 1] || null;
+  if (!pm.endYm) return { rows: [], months: all };
+  let list = all.filter(m => m <= pm.endYm);
+  if (pm.view2y) list = list.slice(-24);
+  else if (catDef.bar || pm.cat === 'sales') {   // 棒の指標：終わりの月を含む年度だけ（ADcheck と同じ）
+    const so = pm.fy === 'may' ? 5 : 1, y = +pm.endYm.slice(0, 4), mo = +pm.endYm.slice(5, 7);
+    const fyStart = (mo >= so ? y : y - 1) + '-' + String(so).padStart(2, '0');
+    list = list.filter(m => m >= fyStart);
+  }
+  const rows = list.map(ym => { const c = pmCompute(ym); return { key: ym, code: ym.replace('-', ''), c, m: c ? c.m : null, synth: !!(c && c.src === 'daily') }; });
+  return { rows, months: all };
+}
+function pmBuildChart(rows){
+  const catKey = pm.cat, cat = PM_CATS[catKey];
+  const vis = cat.items.filter(it => !pm.hidden.has(it.key));
+  const labels = rows.map(r => r.key.length === 10 ? r.key.slice(5, 7) + '/' + r.key.slice(8, 10) : r.key.slice(0, 4) + '/' + r.key.slice(5, 7));
+  const meta = rows.map(r => ({ key: r.key, synth: r.synth }));
+  const val = (r, k) => { const v = r.m ? r.m[k] : null; return (v == null || isNaN(v)) ? null : v; };
+  const barMode = catKey === 'sales';
+  const showSeo = barMode && !pm.hidden.has('seoActual'), showAd = barMode && !pm.hidden.has('adSalesActual');
+  // 推計総売上は線でも出す（④が無い日は広告売上・SEO売上の内訳が無く、棒が出ないため）
+  const lineItems = barMode ? vis.filter(it => it.key !== 'seoActual' && it.key !== 'adSalesActual') : vis;
+  let chart = { labels, keys: rows.map(r => r.key), years: null,
+    datasets: lineItems.map(it => ({ label: it.label, seriesLabel: it.label, color: it.color, data: rows.map(r => val(r, it.key)), meta, dash: [], width: 3, rec: 0, y2: !!it.y2 })) };
+  if (barMode && (showSeo || showAd)) {
+    const col = k => (cat.items.find(i => i.key === k) || {}).color;
+    chart.bar = { showSeo, showAd, seoColor: col('seoActual'), adColor: col('adSalesActual'), meta,
+      seo: rows.map(r => val(r, 'seoActual')), ad: rows.map(r => val(r, 'adSalesActual')), total: rows.map(r => val(r, 'salesActual')) };
+  }
+  // 月別の線の指標は年ごとに重ねる（2年横並び以外）
+  if (pm.grain === 'monthly' && !pm.view2y && !cat.bar && !barMode) {
+    const y = graphYearify(labels, chart.datasets, pm.fy === 'may' ? 4 : 0, pm.hiddenFY);
+    if (y) chart = y;
+  }
+  return { chart, vis };
+}
+
+// ---- 全体情報：画面 ----
+function pmRenderInfo(fresh){
+  const card = document.getElementById('pm-card'); const p = pmProd(); if (!card || !p) return;
+  const oldBody = card.querySelector('.pm-body'), keep = (!fresh && oldBody) ? oldBody.scrollTop : 0;
+  graphResetCache();
+  const cat = PM_CATS[pm.cat], daily = pm.grain === 'daily';
+  const pr = pmPeriodRows(p), rows = pr.rows;
+  const model = pmBuildChart(rows), chart = model.chart;
+  const seg = (id, list, cur) => '<div class="graph-seg sm" id="' + id + '">' + list.map(([v, l, t]) => '<button type="button" data-v="' + v + '"' + (t ? ' title="' + t + '"' : '') + ' class="' + (v === cur ? 'active' : '') + '">' + l + '</button>').join('') + '</div>';
+  let h = pmTabsHtml('info', 'pm-x-info') + pmProdRowHtml(p) + '<div class="pm-body">';
+  // 操作の行
+  h += '<div class="graph-toolbar pm-toolbar">' + seg('pm-grain', [['daily', '日別'], ['monthly', '月別']], pm.grain);
+  if (daily) {
+    h += '<select class="graph-select" id="pm-month" title="基準の月">' + pr.months.map(m => '<option value="' + m + '"' + (m === pm.month ? ' selected' : '') + '>' + m.replace('-', '年') + '月</option>').join('') + '</select>';
+    h += seg('pm-preset', [['30', '30日'], ['2month', '先月-今月'], ['thismonth', '今月']], pm.preset);
+  } else {
+    h += '<select class="graph-select" id="pm-endym" title="この月まで">' + pr.months.slice().reverse().map(m => '<option value="' + m + '"' + (m === pm.endYm ? ' selected' : '') + '>' + m.replace('-', '年') + '月まで</option>').join('') + '</select>';
+    h += seg('pm-fy', [['jan', '1月始まり'], ['may', '5月始まり'], ['2y', '2年横並び']], pm.view2y ? '2y' : pm.fy);
+  }
+  h += '<select class="graph-select" id="pm-cat" style="font-weight:700;">' + PM_CAT_ORDER.map(k => '<option value="' + k + '"' + (k === pm.cat ? ' selected' : '') + '>' + PM_CATS[k].label + '</option>').join('') + '</select>';
+  h += '<span class="pm-cm" title="広告費の割り当て方（商品-売上データの 直接／配賦 と同じ）">広告費 ' + seg('pm-cost', [['direct', '直接'], ['alloc', '配賦（参考）']], pm.costMode) + '</span>';
+  if (chart.keys) h += '<button class="graph-chip' + (pm.showSale ? ' on' : '') + '" id="pm-sale"><span class="dot"></span>セール期間を重ねる</button>';
+  h += '</div>';
+  // 系列のON/OFF
+  h += '<div class="graph-items pm-items">';
+  cat.items.forEach(it => { const off = pm.hidden.has(it.key); h += '<button class="graph-item-btn' + (off ? ' off' : '') + '" data-k="' + it.key + '" style="' + (off ? '' : 'background:' + (it.soft ? softColor(it.color) : it.color)) + '"><span class="dot"></span>' + it.label + '</button>'; });
+  h += '</div>';
+  if (chart.years) {
+    h += '<div class="graph-years pm-years"><span class="graph-lbl">' + (pm.fy === 'may' ? '年度' : '年') + '</span>';
+    chart.years.forEach((yr, yi) => {
+      const rec = chart.years.length - 1 - yi, col = chart.multi ? '#4b5563' : GRAPH_FY_PALETTE[yi % GRAPH_FY_PALETTE.length], dash = GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length];
+      h += '<button class="graph-yr-btn' + (pm.hiddenFY.has(yr) ? ' off' : '') + '" data-y="' + yr + '"><svg width="34" height="10"><line x1="1" y1="5" x2="33" y2="5" stroke="' + col + '" stroke-width="' + (rec === 0 ? 3 : 2) + '"' + (dash.length ? ' stroke-dasharray="' + dash.join(' ') + '"' : '') + '/></svg>' + chart.yrLabel(yr) + '</button>';
+    });
+    h += '</div>';
+  }
+  // グラフ
+  if (!rows.length) h += '<div class="pm-empty">この商品の出荷数・購入商品データがまだありません。</div>';
+  else {
+    const svgCat = Object.assign({}, cat, { barY1: !!cat.bar && !chart.years });
+    const sv = graphShowSale; graphShowSale = pm.showSale;
+    try { h += '<div class="pm-chart" id="pm-chart">' + graphSvg(chart, svgCat) + '<div class="graph-tip" id="pm-tip"></div></div>'; } finally { graphShowSale = sv; }
+  }
+  h += '<div class="graph-foot-note">※推計総売上＝出荷数×販売価格（セール中はセール価格）' + (pm.cat === 'sales' ? '（線）。棒＝SEO売上（下）＋広告売上（上）' : '') + '。広告の数字（広告売上・広告費・ROAS・個数）は、④購入商品データ（日別）か E（月別）がある期間だけ出ます（無い期間は「—」）。'
+    + (daily ? '' : '月別で E が無い月は ④ の日別の合計（速報）で、④ のある日だけで集計します（グラフの白抜きの点・表の「速報」）。') + '広告費は「' + (pm.costMode === 'alloc' ? '配賦：キャンペーンの広告費を、そのキャンペーンで売れた売上の比率で各商品に割り当て（参考）' : '直接：SP は宣伝した商品に全額。SB は割り当てない') + '」。</div>';
+  // 表（新しい順）
+  if (rows.length) {
+    const items = model.vis;
+    const fmtOf = it => (it.y2 ? { yen: false } : cat);
+    h += '<div class="pm-tbl-title">' + (daily ? '日別' : '月別') + '</div>';
+    h += '<table class="graph-table pm-table"><thead><tr><th>' + (daily ? '日付' : '月') + '</th><th class="pm-src-h" title="広告の数字の出どころ">広告データ</th>' + items.map(it => '<th style="color:' + it.color + '">' + pmEsc(it.label) + '</th>').join('') + '</tr></thead><tbody>';
+    rows.slice().reverse().forEach(r => {
+      let lead;
+      if (daily) {
+        const dw = new Date(r.key + 'T00:00:00').getDay(), sn = saleNamesForDate(r.key);
+        lead = '<td class="grp-label' + (dw === 0 ? ' gt-sun' : (dw === 6 ? ' gt-sat' : '')) + '">' + graphPeriodText(r.key) + (sn.length ? '<span class="gt-sale" title="' + pmEsc(sn.join(' / ')) + '">SALE</span>' : '') + '</td>';
+      } else lead = '<td class="grp-label">' + r.key.replace('-', '/') + '</td>';
+      const c = r.c || {};
+      const src = c.src === 'E' ? '<span class="pm-src pm-src-e">確定(E)</span>' : (c.src === 'daily' ? '<span class="pm-src pm-src-d" title="④購入商品データ（日別）の合計。④のある日だけで集計">速報 ④' + c.nDays + '日</span>' : (c.src === 'day' ? '<span class="pm-src pm-src-d">④</span>' : '<span class="gt-dash">—</span>'));
+      h += '<tr>' + lead + '<td class="pm-src-td">' + src + '</td>' + items.map(it => { const v = r.m ? r.m[it.key] : null; return '<td>' + ((v == null || isNaN(v)) ? '<span class="gt-dash">—</span>' : fmtGraphVal(v, fmtOf(it))) + '</td>'; }).join('') + '</tr>';
+    });
+    h += '</tbody></table>';
+  }
+  h += '</div>';
+  card.innerHTML = h;
+  // イベント
+  pmBindTabs(card);
+  const on = (sel, ev, fn) => { const el = card.querySelector(sel); if (el) el.addEventListener(ev, fn); };
+  const segOn = (id, fn) => card.querySelectorAll('#' + id + ' button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); pmRenderInfo(); }));
+  on('#pm-x-info', 'click', closePmInfo);
+  segOn('pm-grain', v => { if (pm.grain === v) return; if (v === 'monthly' && pm.month) pm.endYm = pm.month; if (v === 'daily' && pm.endYm) pm.month = pm.endYm; pm.grain = v; });   // 選んだ月は引き継ぐ
+  segOn('pm-preset', v => { pm.preset = v; });
+  segOn('pm-fy', v => { if (v === '2y') pm.view2y = true; else { pm.view2y = false; pm.fy = v; } });
+  segOn('pm-cost', v => { pm.costMode = v; });
+  on('#pm-month', 'change', e => { pm.month = e.target.value; pmRenderInfo(); });
+  on('#pm-endym', 'change', e => { pm.endYm = e.target.value; pmRenderInfo(); });
+  on('#pm-cat', 'change', e => { pm.cat = e.target.value; pm.hidden = pmDefaultHidden(pm.cat); pmRenderInfo(); });
+  on('#pm-sale', 'click', () => { pm.showSale = !pm.showSale; pmRenderInfo(); });
+  card.querySelectorAll('.pm-items button').forEach(b => b.addEventListener('click', () => { const k = b.dataset.k; if (pm.hidden.has(k)) pm.hidden.delete(k); else pm.hidden.add(k); pmRenderInfo(); }));
+  card.querySelectorAll('.pm-years button').forEach(b => b.addEventListener('click', () => { const y = +b.dataset.y; if (pm.hiddenFY.has(y)) pm.hiddenFY.delete(y); else pm.hiddenFY.add(y); pmRenderInfo(); }));
+  const ch = card.querySelector('#pm-chart'), tip = card.querySelector('#pm-tip'), svgEl = ch ? ch.querySelector('svg') : null;
+  if (svgEl && tip) {
+    svgEl.addEventListener('mousemove', e => {
+      const t = e.target;
+      if (t && t.classList && t.classList.contains('gpt')) {
+        tip.textContent = t.getAttribute('data-tip');
+        const r = ch.getBoundingClientRect(); let x = e.clientX - r.left + 12;
+        if (x + tip.offsetWidth + 8 > r.width) x = e.clientX - r.left - 12 - tip.offsetWidth;
+        tip.style.left = x + 'px'; tip.style.top = (e.clientY - r.top - 6) + 'px'; tip.style.display = 'block';
+      } else tip.style.display = 'none';
+    });
+    svgEl.addEventListener('mouseleave', () => { tip.style.display = 'none'; });
+  }
+  const nb = card.querySelector('.pm-body'); if (nb && keep) nb.scrollTop = keep;
+}
+
+// ---- KW推移：この商品が入っている広告キャンペーンの KW ----
+// キャンペーン＝広告キャンペーンの設定の ASIN にこの商品がある ＋ ④で「宣伝した商品」がこの商品（SP）／宣伝商品として買われた（SB）
+function pmProdCampaigns(p){
+  const A = String(p.asin || '').toUpperCase(), set = new Set(); if (!A) return set;
+  (adCampaigns || []).forEach(c => { const l = String(c.asin || '').toUpperCase().split(/[\s,、，]+/).filter(Boolean); if (l.indexOf(A) > -1 && c.name) set.add(String(c.name).trim()); });
+  const scan = list => (list || []).forEach(r => {
+    if (String(r.adv || '').toUpperCase() === A) set.add(String(r.c || '').trim());
+    else if (r.t === 'SB' && r.r === 'p' && String(r.a || '').toUpperCase() === A) set.add(String(r.c || '').trim());
+  });
+  Object.keys(purchData.day || {}).forEach(d => scan(purchData.day[d]));
+  Object.keys(purchData.month || {}).forEach(m => scan(purchData.month[m]));
+  return set;
+}
+function pmKwAllRows(p){
+  const camps = pmProdCampaigns(p), out = [];
+  if (!camps.size) return out;
+  kwDates().forEach(ds => (adKwData[ds] || []).forEach(r => { if (camps.has(String(r.campaign || '').trim())) out.push(Object.assign({ ds }, r)); }));
+  return out;
+}
+let _pmKwRows = [], _pmKwKeys = [];
+function pmKwList(){
+  const rows = _pmKwRows; if (!rows.length) return [];
+  const ds = Array.from(new Set(rows.map(r => r.ds))).sort(), last = ds[ds.length - 1], from30 = gAddDays(last, -29), from7 = gAddDays(last, -6);
+  const m = {};
+  rows.forEach(r => {
+    const k = kwGroupKey(r);
+    const a = m[k] || (m[k] = { key: k, target: r.target, campaign: r.campaign, match: r.match, type: r.type, kind: r.kind, camps: new Set(), last: '', cost: 0, sales: 0, clicks: 0 });
+    a.camps.add(r.campaign); if (r.ds > a.last) a.last = r.ds;
+    if (r.ds >= from30) { a.cost += r.cost || 0; a.sales += r.sales || 0; a.clicks += r.clicks || 0; }
+  });
+  const list = Object.values(m);
+  list.forEach(a => { a.active = a.last >= from7; });
+  list.sort((x, y) => (y.active - x.active) || (y.cost - x.cost) || (y.last < x.last ? -1 : y.last > x.last ? 1 : 0) || String(x.target).localeCompare(String(y.target), 'ja'));
+  return list;
+}
+function openPmKw(fnsku){
+  const p = products.find(x => x.fnsku === fnsku); if (!p) return;
+  _pmKwRows = pmKwAllRows(p);
+  const list = pmKwList(); _pmKwKeys = list.map(a => a.key);
+  kwm.prod = fnsku;
+  kwm.key = (kwm.key && _pmKwKeys.indexOf(kwm.key) > -1) ? kwm.key : (_pmKwKeys[0] || null);
+  kwm.period = 'daily'; kwm.preset = '30'; kwm.month = null; kwm.hiddenSeries = new Set(); kwm.hiddenYears = new Set(); kwm.tblYoy = false;
+  if (kwm.metric === 'bid' && kwGroup !== 'kwmatch') kwm.metric = 'all';
+  document.getElementById('kwm-modal').hidden = false;
+  document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden';
+  if (kwm.key) renderKwModal();
+  else {
+    const box = document.getElementById('kwm-box'); box.classList.add('pm-mode'); box.dataset.key = '';
+    box.innerHTML = pmTabsHtml('kw', 'pm-x-kw') + pmProdRowHtml(p) + '<div class="pm-empty" style="margin:30px;">この商品が入っている広告キャンペーンの KWデータがありません。<br><span style="font-size:12.5px;">（広告キャンペーンの設定の ASIN、または ④購入商品データの「宣伝した商品」で、この商品のキャンペーンを探しています）</span></div>';
+    pmBindTabs(box); const x = box.querySelector('#pm-x-kw'); if (x) x.addEventListener('click', closeKwModal);
+  }
+}
+// renderKwModal の中身（h）を、タブの帯・商品名・左の KW 一覧で包む
+function pmKwWrap(h){
+  const p = products.find(x => x.fnsku === kwm.prod); if (!p) return h;
+  const list = pmKwList(); _pmKwKeys = list.map(a => a.key);
+  const yen = v => '¥' + Math.round(v).toLocaleString();
+  const roasCol = v => v >= 300 ? '#16a34a' : (v >= 200 ? '#b45309' : (v > 0 ? '#dc2626' : '#9ca3af'));   // 商品-KWデータと同じ（300%以上・200〜299%・199%以下）
+  let l = '<div class="pm-kwlist"><div class="pm-kwlist-h">KW（' + list.length + '）<span title="この商品が入っている広告キャンペーンのKW。並び：最近7日に出ている→直近30日の広告費の多い順。数字はキャンペーン単位で、この商品だけの数字ではありません">？</span></div>';
+  list.forEach(a => {
+    const name = kwGroup === 'camp' ? a.campaign : a.target;
+    const roas = a.cost > 0 ? Math.round(a.sales / a.cost * 100) : 0;
+    const sub = kwGroup === 'camp' ? '' : (kwGroup === 'kw' ? a.camps.size + 'キャンペーン' : (a.match || '') + '・' + a.campaign);
+    l += '<button type="button" class="pm-kwi' + (a.key === kwm.key ? ' on' : '') + (a.active ? '' : ' stop') + '" data-key="' + pmEsc(a.key) + '" title="' + pmEsc(name + '\n' + sub) + '">'
+      + '<span class="pm-kwi-n"><span class="kw-badge ' + String(a.type || '').toLowerCase() + '">' + pmEsc(String(a.type || '').toUpperCase()) + '</span>' + pmEsc(name) + '</span>'
+      + '<span class="pm-kwi-s">' + (a.active ? (a.cost > 0 ? '30日 ' + yen(a.cost) + '・ROAS <b style="color:' + roasCol(roas) + '">' + roas + '%</b>' : '30日 広告費なし') : '最後 ' + a.last.replace(/-/g, '/')) + '</span>'
+      + (sub ? '<span class="pm-kwi-c">' + pmEsc(sub) + '</span>' : '') + '</button>';
+  });
+  l += '</div>';
+  return pmTabsHtml('kw', 'pm-x-kw') + pmProdRowHtml(p) + '<div class="pm-kwwrap">' + l + '<div class="pm-kwmain">' + h + '</div></div>';
+}
+function pmKwBind(box){
+  pmBindTabs(box);
+  const x = box.querySelector('#pm-x-kw'); if (x) x.addEventListener('click', closeKwModal);
+  box.querySelectorAll('.pm-kwi').forEach(b => b.addEventListener('click', () => {
+    if (b.dataset.key === kwm.key) return;
+    kwm.key = b.dataset.key; kwm.month = null; kwm.hiddenYears = new Set(); kwm.tblYoy = false;
+    renderKwModal();
+  }));
+  const on = box.querySelector('.pm-kwi.on'); if (on) { try { on.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
+}
 
 // v3.56：CTR・個数用の素の値（区分＝spKw/spSh/spAu/sbDg/sbSk）
 const GX_BLK = ['spKw', 'spSh', 'spAu', 'sbDg', 'sbSk'];
@@ -11364,7 +11831,6 @@ function renderPlView(){
     + '<span class="lg-mid">中間</span><span class="lg-lo20">下位20%</span><span class="lg-lo10">下位10%</span></span>';
   h += '<div class="spacer" style="flex:1"></div>';
   if (plUndoSnapshot) h += '<button id="pl-undo" class="ghost" style="font-size:12px;margin-right:8px;" title="直前に反映したデータを取り消して元に戻します"><svg class="icn"><use href="#i-arrow-left"/></svg> 直前の反映を取り消す</button>';
-  h += '<span class="imp-badge" id="imp-badge-pl"></span>';
   h += '</div>';
 
   // 1パス目：行データを集める（総売上＝実売上。未入力はnull＝粗利益・実質利益もnull）
@@ -11783,7 +12249,7 @@ function renderReturnsView(){
   h += '<div class="spacer" style="flex:1"></div>';
   h += '<span style="font-size:11px;color:var(--text-tertiary);margin-right:8px;">返品率＝返品÷出荷／対象「欠陥品・不良品」</span>';
   h += '<button class="utility" id="ret-cat-open" style="font-size:12px;"><svg class="icn"><use href="#i-tag"/></svg> カテゴリ設定</button>';
-  h += '<button class="primary report-add-btn" id="ret-add-open" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 返品データを追加</button><span class="imp-badge" id="imp-badge-ret"></span>';
+  h += '<button class="primary report-add-btn" id="ret-add-open" style="background:#dc2626;border-color:#dc2626;"><svg class="icn"><use href="#i-plus"/></svg> 返品データを追加</button>';
   h += '</div>';
 
   h += '<div id="ret-table-area"></div>';
@@ -12193,11 +12659,12 @@ function graphBuildModel(){
   return { rows, visItems, chart };
 }
 // ★年度重ね：できあがった系列を「年度内12か月のX軸 × 年度ごとの線」へ変形する
-function graphYearify(labels, dss){
+function graphYearify(labels, dss, soOpt, hiddenOpt){   // v3.66：商品モーダルからも使う（開始月・隠した年を渡せる）
   if (!labels.length) return null;
   const parsed = labels.map(lb => { const m = /^(\d{4})\/(\d{2})$/.exec(lb); return m ? { y: +m[1], mi: +m[2] - 1 } : null; });
   if (parsed.some(x => !x)) return null;                  // 形式が1つでも崩れていたら変形しない
-  const so = graphPeriodStart === 'may' ? 4 : 0;
+  const so = soOpt != null ? soOpt : (graphPeriodStart === 'may' ? 4 : 0);
+  const hidFY = hiddenOpt || graphHiddenFY;
   parsed.forEach(x => { x.fi = (x.mi - so + 12) % 12; x.fy = (x.mi >= so) ? x.y : x.y - 1; });
   const years = [...new Set(parsed.map(x => x.fy))].sort((a, b) => a - b);
   const multi = dss.length > 1;
@@ -12214,7 +12681,7 @@ function graphYearify(labels, dss){
         data: arr, meta,
         dash: GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length],   // 古いほど破線
         width: rec === 0 ? 3 : 1.9,                        // 最新を太く
-        rec, year: yr, hidden: graphHiddenFY.has(yr), y2: !!ds.y2,
+        rec, year: yr, hidden: hidFY.has(yr), y2: !!ds.y2,
       });
     });
   });
@@ -12225,7 +12692,7 @@ function graphYearify(labels, dss){
 
 // ---- 描画（SVG）----
 function graphFmtAxis(v, cat){
-  if (cat.pct) return (cat.dec2 ? v.toFixed(2) : Math.round(v)) + '%';
+  if (cat.pct) return (cat.dec2 ? v.toFixed(2) : (Math.abs(v - Math.round(v)) > 1e-9 ? v.toFixed(1) : Math.round(v))) + '%';   // v3.66：刻みが1未満の時は小数1けた
   if (cat.dec) return v.toFixed(2);
   return (cat.yen ? '¥' : '') + Math.round(v).toLocaleString();
 }
