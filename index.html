@@ -1472,6 +1472,7 @@
     padding: 0 2px; white-space: nowrap; user-select: none;
   }
   .tab-group-gap { margin-left: 12px; }
+  .tab-row .tab-break { flex-basis: 100%; height: 0; }
   /* ===== v3.41：商品-売上データ ===== */
   #psales-view .toolbar, #psales-view .ps-summary, #psales-view .table-wrap {
     width: calc((100vw - 24px) / var(--pz, 1));
@@ -1587,6 +1588,7 @@
   .tab-group.tg-all   { color: #dc2626; }
   .tab-group.tg-ad    { color: #16a34a; }
   .tab-group.tg-info  { color: #92400e; }
+  .tab-group.tg-fix   { color: #7c3aed; }   /* v3.80：【確定】は紫系 */
   .tab {
     padding: 7px 10px 9px;
     background: transparent;
@@ -2160,7 +2162,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.78</span>
+    <span class="version">v3.80</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2203,6 +2205,7 @@
     <button class="tab" data-tab="compare">
       全-比較
     </button>
+    <span class="tab-group tab-group-gap tg-fix" title="Amazon の月末データ・返品レポートから取る実際の数字（推計ではない）">【確定】</span><!-- v3.80 -->
     <button class="tab" data-tab="pl">
       全体収支
     </button>
@@ -2213,7 +2216,8 @@
     <button class="tab" data-tab="adkw">
       商品-KWデータ
     </button>
-    <span class="tab-group tab-group-gap tg-info">【基礎情報】</span>
+    <span class="tab-break"></span><!-- v3.79：【基礎情報】から後ろは2行目（【基本】の下） -->
+    <span class="tab-group tg-info">【基礎情報】</span>
     <button class="tab" data-tab="master">
       商品マスタ
       <span class="count" id="tab-master-count"></span>
@@ -7398,7 +7402,9 @@ function kwPlaceHideBtns(){
   if (hidden) { box.style.top = ''; return; }
   const row = document.querySelector('.tabs .tab-row');
   let top = 8;
-  if (row) { const r = row.getBoundingClientRect(); top = r.top + window.scrollY + (r.height - box.offsetHeight) / 2; }
+  const t1 = row && row.querySelector('.tab');   // v3.79：タブの行が2行になったので、1行目の高さの真ん中に合わせる
+  if (t1) { const r = t1.getBoundingClientRect(); top = r.top + window.scrollY + (r.height - box.offsetHeight) / 2; }
+  else if (row) { const r = row.getBoundingClientRect(); top = r.top + window.scrollY + (r.height - box.offsetHeight) / 2; }
   box.style.top = Math.round(top) + 'px';
 }
 // 隠しているときは、表の下端を画面の下まで伸ばす（ページの表示倍率 zoom を考慮）
