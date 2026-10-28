@@ -2169,7 +2169,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.86</span>
+    <span class="version">v3.87</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -11568,8 +11568,8 @@ function initCmpTip(){
   const placeAt = el => {
     const img = el.classList.contains('yt-tile') ? (el.firstElementChild || el) : el;
     const r = img.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
-    let x = r.right - 6, y = r.top - h + 2;
-    if (x + w > window.innerWidth - 6) x = Math.max(6, r.left - w + 6);
+    let x = r.left + r.width / 2 - w / 2, y = r.top - h + 2;   // v3.87：画像の真ん中にそろえる（高さはそのまま）
+    x = Math.max(6, Math.min(window.innerWidth - w - 6, x));
     if (y < 4) y = r.bottom + 2;
     tip.style.left = x + 'px'; tip.style.top = y + 'px';
   };
