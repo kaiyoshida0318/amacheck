@@ -2142,7 +2142,7 @@
 </svg>
 <!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
 <header class="page-header">
-  <div class="logo" id="logo-home" title="クリック：ホームに戻る ／ Ctrl(⌘)+クリック：新しいタブで開く">
+  <div class="logo" id="logo-home" title="クリック：全-月別データへ ／ Ctrl(⌘)+クリック：新しいタブで開く">
     <svg class="icn"><use href="#i-shopping-cart"/></svg>
     <div class="divider"></div>
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
@@ -2150,7 +2150,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.76</span>
+    <span class="version">v3.77</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -3561,12 +3561,12 @@ function init(){
 
   document.getElementById('open-add').addEventListener('click', () => switchView('add'));
   document.getElementById('logo-home').addEventListener('click', (e) => {
-    // Ctrl/⌘+クリックで新規タブにもう1ページ（商品マスタ画面で起動）
+    // Ctrl/⌘+クリックで新規タブにもう1ページ（全-月別データで起動）
     if (e.ctrlKey || e.metaKey) {
-      window.open(window.location.href, '_blank');
+      window.open(window.location.href.split('#')[0], '_blank');
       return;
     }
-    switchView('master');
+    switchView('ad');   // v3.77：ロゴ＝全-月別データ（開いたときの最初の画面と同じ）
   });
   // タブクリック
   document.querySelectorAll('.tab').forEach(t => {
