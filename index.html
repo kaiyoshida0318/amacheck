@@ -2169,7 +2169,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.87</span>
+    <span class="version">v3.90</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -3670,7 +3670,7 @@ function init(){
   document.getElementById('data-export').addEventListener('click', exportAllData);
   document.getElementById('data-import').addEventListener('click', () => document.getElementById('data-import-input').click());
   document.getElementById('data-import-input').addEventListener('change', (e) => { if (e.target.files && e.target.files[0]) importAllData(e.target.files[0]); e.target.value = ''; });
-  initSaleTip();
+  initSaleTip(); initCmpTip();
   document.getElementById('sale-edit-cancel').addEventListener('click', cancelSaleEdit);
   document.querySelectorAll('#sale-part-seg button').forEach(b => b.addEventListener('click', () => { setSalePartMode(b.dataset.v === 'some'); setSaleFileInfo(pendingSaleProducts); }));
   document.getElementById('sale-tmpl-dl').addEventListener('click', downloadSaleTemplate);
@@ -9869,7 +9869,7 @@ function renderPsalesTable(){
     const p = r.p;
     tb += '<tr' + (p ? ' data-fnsku="' + escapeHtml(p.fnsku) + '"' : '') + (p && productStatus(p) === 'withdrawn' ? ' class="ps-withdrawn"' : '') + '>'
       + '<td class="ps-img ps-stick0" style="text-align:' + psA('img', 'center') + '">' + (p ? productImageHtml(p, 30) : '') + '</td>'
-      + '<td class="ps-name ps-stick1" style="' + stick1 + 'text-align:' + nameA + '" title="' + escapeHtml(r.name + '\n' + (r.sku ? 'SKU ' + r.sku + '　' : '') + 'ASIN ' + r.asin) + '"><div class="ps-nm">' + escapeHtml(r.name) + '</div><div class="ps-sub">' + escapeHtml(r.asin) + '</div></td>';
+      + '<td class="ps-name ps-stick1" style="' + stick1 + 'text-align:' + nameA + '" data-ytip="' + escapeHtml(r.name) + '"><div class="ps-nm">' + escapeHtml(r.name) + '</div><div class="ps-sub">' + escapeHtml(r.asin) + '</div></td>';
     segs.forEach(sg => {
       if (sg.col) { tb += '<td class="ps-gcol-td ' + gTint[sg.G.g] + ' adc-gstart"></td>'; return; }
       let lastB = null;
@@ -9981,7 +9981,8 @@ function populateAdMonthYear(){
   if (ys) ys.value = adYear;
   if (ms) ms.hidden = (adPeriod !== 'daily');
   if (ys) ys.hidden = true;   // v3.71：年のドロップダウンは廃止（全-月別データは全部の月を並べる）
-  const pw = document.getElementById('ad-product-wrap'); if (pw) pw.hidden = (adPeriod === 'monthly');   // v3.71：全-月別データはキャンペーンを選ばない
+  const pw = document.getElementById('ad-product-wrap'); if (pw) pw.hidden = (adPeriod === 'monthly');
+  const rcb = document.getElementById('open-ad-recon'); if (rcb) rcb.hidden = (adPeriod !== 'monthly');   // v3.88：「月末データと照合」は全-月別データだけ   // v3.71：全-月別データはキャンペーンを選ばない
   const tm = document.getElementById('ad-tblmode');
   if (tm) { tm.hidden = (adPeriod !== 'monthly'); tm.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.adTm === adTableMode)); }
   const dt = document.getElementById('ad-daily-toggle');
@@ -11566,6 +11567,17 @@ function initCmpTip(){
   const place = e => { let x = e.clientX + 14, y = e.clientY + 16; const w = tip.offsetWidth, h = tip.offsetHeight; if (x + w > window.innerWidth - 8) x = e.clientX - w - 12; if (y + h > window.innerHeight - 8) y = e.clientY - h - 12; tip.style.left = x + 'px'; tip.style.top = y + 'px'; };
   // v3.86：商品名だけを、画像の右上（画像と下の数字にかぶらない位置）に出す。カーソルには付いていかない
   const placeAt = el => {
+    // v3.90：商品-売上データの商品名は、名前の末尾（見えている最後の文字）のすぐ右に、名前の行と同じ高さで出す
+    const nm = el.matches('td.ps-name') ? el.querySelector('.ps-nm') : null;
+    if (nm) {
+      const nr = nm.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
+      let end = nr.right;
+      try { const rg = document.createRange(); rg.selectNodeContents(nm); end = Math.min(rg.getBoundingClientRect().right, nr.right); } catch (e) {}
+      let x = end + 6, y = nr.top + nr.height / 2 - h / 2;
+      if (x + w > window.innerWidth - 6) { x = Math.max(6, end - w); y = nr.top - h - 2; }
+      tip.style.left = x + 'px'; tip.style.top = y + 'px';
+      return;
+    }
     const img = el.classList.contains('yt-tile') ? (el.firstElementChild || el) : el;
     const r = img.getBoundingClientRect(), w = tip.offsetWidth, h = tip.offsetHeight;
     let x = r.left + r.width / 2 - w / 2, y = r.top - h + 2;   // v3.87：画像の真ん中にそろえる（高さはそのまま）
@@ -11574,14 +11586,16 @@ function initCmpTip(){
     tip.style.left = x + 'px'; tip.style.top = y + 'px';
   };
   document.addEventListener('mouseover', e => {
-    const el = e.target && e.target.closest ? e.target.closest('#tab-yoy [data-ytip]') : null;
+    let el = e.target && e.target.closest ? e.target.closest('#tab-yoy [data-ytip], table.ps-table td.ps-name[data-ytip]') : null;
+    // v3.90：商品-売上データの商品名は、名前が切れて「…」になっているときだけ出す
+    if (el && el.matches('td.ps-name')) { const nm = el.querySelector('.ps-nm'); if (!nm || nm.scrollWidth <= nm.clientWidth + 1) el = null; }
     if (el) { if (act !== el) { act = el; tip.textContent = el.getAttribute('data-ytip'); tip.classList.add('show'); placeAt(el); } }
     else if (act) { act = null; tip.classList.remove('show'); }
   });
   document.addEventListener('scroll', () => { if (act) { act = null; tip.classList.remove('show'); } }, true);
 }
 function renderCompareView(){
-  initCmpTip();
+  initCmpTip();   // v3.90：商品-売上データの商品名でも同じ帯を出す（initCmpTip は起動時にも呼ぶ）
   _cmpCache = {}; _cmpBuildProducts();
   renderYoy();
 }
