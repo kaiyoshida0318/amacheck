@@ -1590,6 +1590,94 @@
   .tab-group.tg-ad    { color: #16a34a; }
   .tab-group.tg-info  { color: #92400e; }
   .tab-group.tg-fix   { color: #7c3aed; }   /* v3.80：【確定】は紫系 */
+  /* v3.91：【入札単価対策】・KW-全体データ・注視分 */
+  .tab-group.tg-bid   { color: #c026d3; }
+  #kwall-view .kw-wrap, #kwwatch-view .kw-wrap { width: calc((100vw - 24px) / var(--pz, 1)); margin-left: calc(50% - (50vw - 12px) / var(--pz, 1)); max-height: calc((100vh - 290px) / var(--pz, 1)); }
+  .kwa-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin: 0 0 8px; }
+  .kwa-lbl { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
+  .kwa-lbl.kwa-gap { margin-left: 14px; }
+  .kwa-note { font-size: 12.5px; color: var(--text-tertiary); }
+  .kwa-seg button.active { background: var(--purple) !important; color: #fff; }
+  .graph-select.kwa-q { width: 270px; font-size: 14px; padding: 7px 10px; }
+  .graph-select.kwa-sel { font-size: 14px; padding: 7px 10px; }
+  .graph-select.kwa-date { font-size: 14px; padding: 6px 8px; }
+  .kwa-cand { border: 1.5px solid #ea580c; background: #fff7ed; color: #c2410c; font-weight: 800; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 13.5px; font-family: inherit; }
+  .kwa-cand:hover { background: #ffedd5; }
+  .kwa-cand.on { background: #ea580c; color: #fff; }
+  .kwa-bulk { border: 1.5px solid #c026d3; background: #fdf4ff; color: #a21caf; font-weight: 800; border-radius: 8px; padding: 6px 12px; cursor: pointer; font-size: 13px; font-family: inherit; }
+  .kwa-bulk:hover { background: #c026d3; color: #fff; }
+  .kwa-bulk.gray { border-color: #cbd5e1; background: #f8fafc; color: #475569; }
+  .kwa-bulk.gray:hover { background: #475569; color: #fff; }
+  .kwa-legend { margin-left: auto; font-size: 12.5px; color: var(--text-secondary); }
+  .kwa-cnt2 { color: var(--text-tertiary); font-size: 12.5px; font-weight: 400; }
+  table.kwa-table { font-size: 13.5px; }
+  table.kwa-table th, table.kwa-table td { padding: 5px 8px; vertical-align: middle; }
+  table.kwa-table thead th { font-size: 12.5px; line-height: 1.25; z-index: 3; }
+  .kwa-hs { display: block; font-size: 10px; font-weight: 600; color: var(--text-tertiary); }
+  table.kwa-table td.kwa-prod { width: 170px; max-width: 170px; white-space: normal; }
+  table.kwa-table td.kwa-prod.none { color: var(--text-tertiary); text-align: center; }
+  .kwa-pw { display: flex; align-items: center; gap: 7px; }
+  .kwa-img { flex: 0 0 auto; cursor: pointer; display: inline-flex; border-radius: 6px; }
+  .kwa-img:hover { outline: 2px solid var(--purple); outline-offset: 1px; }
+  .kwa-pn { font-size: 11.5px; line-height: 1.3; color: var(--text-secondary); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+  .kwa-pn em { font-style: normal; margin-left: 4px; color: var(--purple); font-weight: 700; }
+  table.kwa-table td.kwa-kw { max-width: 300px; }
+  .kwa-w { display: flex; align-items: center; min-width: 0; }
+  .kwa-w b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--black); user-select: text; }
+  .kwa-sub { font-size: 11.5px; color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+  .kwa-sh { font-size: 10.5px; color: #b45309; font-weight: 600; }
+  .kwa-bchg { font-size: 10.5px; font-weight: 700; white-space: nowrap; }
+  .kwa-bchg.dn { color: #2563eb; } .kwa-bchg.up { color: #ea580c; }
+  th.kwa-wh, td.kwa-wc { text-align: center !important; width: 64px; }
+  td.kwa-wc input { width: 17px; height: 17px; cursor: pointer; accent-color: #c026d3; vertical-align: middle; }
+  .kwa-cbadge { display: inline-block; font-size: 10.5px; font-weight: 800; color: #fff; background: #ea580c; border-radius: 4px; padding: 0 4px; margin-right: 4px; vertical-align: middle; cursor: help; }
+  table.kw-table tr.kww-on td { background: #fdf4ff; }
+  table.kw-table tr.kww-on:hover td { background: #fae8ff; }
+  /* 注視分-KW一覧 */
+  .kww-note { font-size: 12.5px; color: var(--text-secondary); background: #fdf4ff; border: 1px solid #f5d0fe; border-radius: 8px; padding: 7px 10px; margin: 0 0 8px; line-height: 1.6; }
+  table.kww-table td.kww-c { line-height: 1.25; }
+  .kww-a { font-weight: 700; font-size: 14px; }
+  .kww-b { font-size: 10.5px; color: var(--text-tertiary); white-space: nowrap; }
+  .kww-chg { margin-left: 3px; font-weight: 700; color: #64748b; }
+  .kww-chg.good { color: #16a34a; } .kww-chg.bad { color: #dc2626; }
+  table.kww-table td.kww-bd { min-width: 150px; }
+  input.kww-base { font-size: 13px; padding: 3px 5px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; }
+  .kww-bl { margin-top: 2px; display: flex; align-items: center; gap: 4px; }
+  .kww-src { font-size: 10.5px; font-weight: 700; border-radius: 4px; padding: 0 4px; white-space: nowrap; }
+  .kww-src.bid { color: #7e22ce; background: #f3e8ff; } .kww-src.man { color: #b45309; background: #fef3c7; } .kww-src.at { color: #475569; background: #f1f5f9; }
+  .kww-auto { font-size: 10.5px; border: 1px solid #cbd5e1; background: #fff; border-radius: 4px; padding: 0 4px; cursor: pointer; font-family: inherit; color: #475569; }
+  .kww-auto:hover { background: #475569; color: #fff; }
+  .kww-per { font-size: 10.5px; color: var(--text-tertiary); margin-top: 1px; }
+  input.kww-memo { width: 170px; font-size: 12.5px; padding: 4px 6px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; }
+  .kww-x { font-size: 12px; border: 1px solid #fca5a5; background: #fff; color: #dc2626; border-radius: 6px; padding: 3px 8px; cursor: pointer; font-family: inherit; }
+  .kww-x:hover { background: #dc2626; color: #fff; }
+  table.kww-table td.kww-nodata { color: var(--text-tertiary); font-size: 12.5px; }
+  /* 注視分-推移 */
+  .kwt-key { margin-left: 10px; white-space: nowrap; }
+  .kwt-key i { display: inline-block; width: 18px; height: 0; vertical-align: middle; margin-right: 4px; }
+  .kwt-k-base { border-top: 2px dashed #f97316; } .kwt-k-bid { border-top: 2px solid #9333ea; }
+  .kwt-group { margin: 0 0 16px; }
+  .kwt-gh { display: flex; align-items: center; gap: 8px; padding: 6px 4px; border-bottom: 2px solid #f5d0fe; margin-bottom: 8px; font-size: 15px; }
+  .kwt-gimg { cursor: pointer; display: inline-flex; }
+  .kwt-gs { font-size: 12px; color: var(--text-tertiary); }
+  .kwt-gn { margin-left: auto; font-size: 12px; color: #a21caf; font-weight: 700; }
+  .kwt-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(380px, 1fr)); gap: 10px; }
+  .kwt-card { background: var(--bg-card); border: 1px solid var(--border); border-radius: 10px; padding: 8px 10px; min-width: 0; }
+  .kwt-card.stop { opacity: .7; }
+  .kwt-ch { cursor: pointer; border-radius: 6px; padding: 2px 4px; margin: -2px -4px 4px; }
+  .kwt-ch:hover { background: #faf5ff; }
+  .kwt-bid { margin-left: auto; font-size: 12px; color: #7e22ce; font-weight: 700; white-space: nowrap; padding-left: 8px; }
+  .kwt-cv { position: relative; height: 170px; }
+  .kwt-foot { margin-top: 6px; font-size: 11.5px; color: var(--text-secondary); }
+  .kwt-base { display: inline-flex; align-items: center; gap: 4px; flex-wrap: wrap; }
+  .kwt-ms { display: flex; flex-wrap: wrap; gap: 2px 12px; margin-top: 3px; }
+  .kwt-m { white-space: nowrap; }
+  .kwt-m em { font-style: normal; color: var(--text-tertiary); margin-right: 3px; }
+  .kwt-memo { margin-top: 3px; color: #92400e; }
+  /* KW推移モーダルの「注視」ボタン */
+  .kwm-watch { margin-left: 10px; border: 1.5px solid #c026d3; color: #a21caf; background: #fff; border-radius: 7px; padding: 3px 10px; font-weight: 800; font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; flex: 0 0 auto; }
+  .kwm-watch:hover { background: #fdf4ff; }
+  .kwm-watch.on { background: #c026d3; color: #fff; }
   .tab {
     padding: 7px 10px 9px;
     background: transparent;
@@ -2169,7 +2257,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.90</span>
+    <span class="version">v3.91</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2219,10 +2307,6 @@
     <button class="tab" data-tab="returns">
       返品率
     </button>
-    <span class="tab-group tab-group-gap tg-ad">【広告調整】</span>
-    <button class="tab" data-tab="adkw">
-      商品-KWデータ
-    </button>
     <span class="tab-break"></span><!-- v3.79：【基礎情報】から後ろは2行目（【基本】の下） -->
     <span class="tab-group tg-info">【基礎情報】</span>
     <button class="tab" data-tab="master">
@@ -2235,6 +2319,22 @@
     <button class="tab tab-dim" data-tab="withdrawn" title="撤退済みにした商品の一覧（商品マスタからは非表示）">
       撤退済み商品
       <span class="count" id="tab-withdrawn-count"></span>
+    </button>
+    <!-- v3.91：【広告調整】は2行目へ（1行目がいっぱいのため）。KW-全体データと【入札単価対策】を追加 -->
+    <span class="tab-group tab-group-gap tg-ad">【広告調整】</span>
+    <button class="tab" data-tab="kwall" title="有効なKW・ASINターゲットを全部、広告費の大きい順に。注視に☑するところ">
+      KW-全体データ
+    </button>
+    <button class="tab" data-tab="adkw">
+      商品-KWデータ
+    </button>
+    <span class="tab-group tab-group-gap tg-bid" title="注視に☑したKWだけを見る（入札額を変えた後の確認など）">【入札単価対策】</span>
+    <button class="tab" data-tab="kwwatch">
+      注視分-KW一覧
+      <span class="count" id="tab-kwwatch-count"></span>
+    </button>
+    <button class="tab" data-tab="kwwtrend">
+      注視分-推移
     </button>
   </div>
 </nav>
@@ -2319,6 +2419,10 @@
   <div id="adkw-view" hidden>
     <div id="adkw-body"></div>
   </div>
+  <!-- v3.91：KW-全体データ／注視分-KW一覧／注視分-推移 -->
+  <div id="kwall-view" hidden><div id="kwall-body"></div></div>
+  <div id="kwwatch-view" hidden><div id="kwwatch-body"></div></div>
+  <div id="kwwtrend-view" hidden><div id="kwwtrend-body"></div></div>
 
   <!-- v3.41：商品-売上データ（④／E 購入商品データ × ②出荷数 × ①広告費） -->
   <div id="psales-view" hidden>
@@ -3059,6 +3163,7 @@ const STORAGE_PL = 'amacheck_pl_v1';
 const STORAGE_RETURNS = 'amacheck_returns_v1';
 const STORAGE_CAT = 'amacheck_categories_v1';
 const STORAGE_CAMPURL = 'amacheck_campurl_v1';   // v3.14：キャンペーン名 → 広告管理画面のURL
+const STORAGE_KWWATCH = 'amacheck_kwwatch_v1';   // v3.91：注視しているKW（【入札単価対策】）
 const STORAGE_CHGLOG = 'amacheck_changelog_v1';   // v3.73：変更記録（ショップ全体。全-月別データの点線枠）
 const STORAGE_PURCH = 'amacheck_purchase_v1';   // v3.41：④／E 購入商品データ（買われた商品別の広告売上）
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
@@ -3356,7 +3461,7 @@ const CAMP_URL_OLD = {
 function saveCampUrls(){ return persistKey(STORAGE_CAMPURL, campUrls); }
 function campUrlOf(name){ const u = campUrls && campUrls[String(name || '').trim()]; return (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : ''; }
 
-const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH, STORAGE_CHGLOG];
+const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH, STORAGE_CHGLOG, STORAGE_KWWATCH];
 
 // ==== 永続化: IndexedDB（大容量）優先。使えない時は localStorage(圧縮) にフォールバック ====
 function idbOpen(){
@@ -3386,7 +3491,7 @@ function persistKey(key, obj){
   const r = lzSet(key, obj); scheduleSync(); return r;
 }
 function amacheckStateMap(){
-  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData, [STORAGE_CHGLOG]: globalChangeLogs };
+  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData, [STORAGE_CHGLOG]: globalChangeLogs, [STORAGE_KWWATCH]: kwWatch };
 }
 
 // ================= GitHub クラウド同期 =================
@@ -3507,6 +3612,8 @@ async function bootstrap(){
   categories = await load(STORAGE_CAT, {});
   globalChangeLogs = await load(STORAGE_CHGLOG, []);   // v3.73
   if (!Array.isArray(globalChangeLogs)) globalChangeLogs = [];
+  kwWatch = await load(STORAGE_KWWATCH, {});   // v3.91
+  if (!kwWatch || typeof kwWatch !== 'object' || Array.isArray(kwWatch)) kwWatch = {};
   purchData = await load(STORAGE_PURCH, null);
   if (!purchData || typeof purchData !== 'object' || Array.isArray(purchData)) purchData = { day: {}, month: {} };
   if (!purchData.day || typeof purchData.day !== 'object') purchData.day = {};
@@ -3920,6 +4027,9 @@ function switchView(name, fromPop){
   document.getElementById('withdrawn-view').hidden = (name !== 'withdrawn');
   document.getElementById('ad-view').hidden = (name !== 'ad' && name !== 'addaily');
   document.getElementById('adkw-view').hidden = (name !== 'adkw');
+  document.getElementById('kwall-view').hidden = (name !== 'kwall');       // v3.91
+  document.getElementById('kwwatch-view').hidden = (name !== 'kwwatch');
+  document.getElementById('kwwtrend-view').hidden = (name !== 'kwwtrend');
   document.getElementById('campaign-view').hidden = (name !== 'campaign');
   document.getElementById('graph-view').hidden = (name !== 'graph');
   document.getElementById('trend-view').hidden = (name !== 'trend');   // v3.68
@@ -3945,6 +4055,9 @@ function switchView(name, fromPop){
   }
   if (name === 'campaign') renderCampaignView();
   if (name === 'adkw') renderAdKwView();
+  if (name === 'kwall') renderKwAllView();
+  if (name === 'kwwatch') renderKwWatchView();
+  if (name === 'kwwtrend') renderKwWTrendView();
   kwPlaceHideBtns();
   updateActiveTab(name);
   // ブラウザ履歴に積む（popstateからの呼び出しは積まない）
@@ -3965,6 +4078,7 @@ function updateTabCounts(){
   const n = visibleMasterProducts().length;
   if (el) el.textContent = n ? '(' + n + ')' : '';
   try { updateWithdrawnButton(); } catch (e) {}   // v3.35：撤退済み商品タブの件数
+  try { kwWatchSync(); } catch (e) {}   // v3.91：注視分-KW一覧の件数
 }
 
 function updateHomeStatus(){
@@ -7250,15 +7364,17 @@ function renderAdKwView(){
     const th = (k, l) => '<th class="sortable num' + (kwSortKey === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwSortKey === k ? (kwSortDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
     h += '<table class="kw-table"><thead><tr><th class="sortable kw-jh' + (kwSortKey === 'roas' ? '' : '') + '" data-k="roas">判定</th>' + labelHead()
       + (kwGroup === 'kwmatch' ? th('bid', '入札額') : '') + th('imp', '表示') + th('clicks', 'クリック') + th('ctr', 'CTR') + th('cpc', 'CPC') + th('cost', '広告費') + th('orders', '注文') + th('sales', '売上') + th('cvr', 'CVR') + th('roas', 'ROAS') + th('acos', 'ACOS') + th('share', '上部シェア' + '<button type="button" class="kw-help kw-qs" data-help="share" title="上部シェアとは？" aria-label="上部シェアとは？">?</button>')
+      + (kwGroup === 'kwmatch' ? '<th class="kwa-wh" title="☑すると【入札単価対策】の注視分に出ます">注視</th>' : '')   // v3.91
       + '</tr></thead><tbody>';
-    const nCols = (kwGroup === 'camp' ? 3 : 4) + (kwGroup === 'kwmatch' ? 1 : 0) + 11;
+    const nCols = (kwGroup === 'camp' ? 3 : 4) + (kwGroup === 'kwmatch' ? 2 : 0) + 11;
     kwRowKeys = groups.map(g => g.key);   // KW推移モーダルの「上のワード／下のワード」用（表の並び順）
     groups.forEach(gp => {
-      h += '<tr class="kw-row' + (stopOf(gp) ? ' kw-stopped' : '') + (gp.key === kwLastKey ? ' kw-last' : '') + ' j-' + (gp.judge || 'none') + '" data-key="' + escapeHtml(gp.key) + '"' + (gp.key === kwLastKey ? ' title="さっき推移の画面で見ていた行"' : '') + '>' + '<td class="kw-jc">' + kwJudge(gp.judge) + '</td>' + labelCells(gp)
+      h += '<tr class="kw-row' + (kwGroup === 'kwmatch' && kwIsWatched(gp.key) ? ' kww-on' : '') + (stopOf(gp) ? ' kw-stopped' : '') + (gp.key === kwLastKey ? ' kw-last' : '') + ' j-' + (gp.judge || 'none') + '" data-key="' + escapeHtml(gp.key) + '"' + (gp.key === kwLastKey ? ' title="さっき推移の画面で見ていた行"' : '') + '>' + '<td class="kw-jc">' + kwJudge(gp.judge) + '</td>' + labelCells(gp)
         + (kwGroup === 'kwmatch' ? '<td class="num">' + kwYen(gp.bid) + '</td>' : '')
         + '<td class="num">' + kwNum(gp.imp) + '</td><td class="num">' + kwNum(gp.clicks) + '</td><td class="num">' + kwPct(gp.ctr, 2) + '</td><td class="num">' + kwYen(gp.cpc) + '</td>'
         + '<td class="num strong">' + kwYen(gp.cost) + '</td><td class="num">' + kwNum(gp.orders) + '</td><td class="num">' + kwYen(gp.sales) + '</td><td class="num">' + kwPct(gp.cvr) + '</td>'
-        + '<td class="num strong ' + kwCls(gp.judge) + '">' + kwRoasTxt(gp.roas) + '</td><td class="num">' + kwPct(gp.acos) + '</td><td class="num">' + kwPct(gp.share) + '</td></tr>';
+        + '<td class="num strong ' + kwCls(gp.judge) + '">' + kwRoasTxt(gp.roas) + '</td><td class="num">' + kwPct(gp.acos) + '</td><td class="num">' + kwPct(gp.share) + '</td>'
+        + (kwGroup === 'kwmatch' ? '<td class="kwa-wc"><input type="checkbox" class="kww-chk" data-wkey="' + escapeHtml(gp.key) + '"' + (kwIsWatched(gp.key) ? ' checked' : '') + ' title="注視に入れる／外す"></td>' : '') + '</tr>';
     });
     if (!groups.length) h += '<tr><td colspan="' + nCols + '" class="kw-empty">この期間・条件のデータがありません</td></tr>';
     h += '</tbody></table>';
@@ -7307,8 +7423,9 @@ function renderAdKwView(){
     else { kwSortKey = k; kwSortDir = (k === 'target' || k === 'match' || k === 'campaign') ? 'asc' : 'desc'; }
     renderAdKwView();
   }));
+  body.querySelectorAll('input.kww-chk').forEach(c => { c.addEventListener('click', e => e.stopPropagation()); c.addEventListener('change', () => kwWatchSet(c.dataset.wkey, c.checked)); });   // v3.91
   body.querySelectorAll('.kw-table tr.kw-row').forEach(tr => tr.addEventListener('click', (e) => {
-    if (e.target.closest('.kw-copy')) return;
+    if (e.target.closest('.kw-copy') || e.target.closest('.kwa-wc')) return;
     const sel = window.getSelection && String(window.getSelection()); if (sel) return;   // 文字を選んでいる時は開閉しない（ドラッグでコピーできるように）
     openKwModal(tr.dataset.key);   // 推移（グラフ＋表）をモーダルで開く
   }));
@@ -7435,7 +7552,7 @@ function kwFitTable(){
 //  ・変更記録の代わりに「入札額の変更」を縦線＋バッジで表示、セール期間はピンクの帯
 //  ・月別の ROAS／CVR／CTR／CPC／入札額／上部シェア は年ごとに線を重ねる（線種で年を区別）
 // ============================================
-const kwm = { prod: null, key: null, period: 'daily', fy: 1, view2y: false, preset: '30', month: null, metric: 'all', hideChart: false, hiddenSeries: new Set(), hiddenYears: new Set(), tblYoy: false };
+const kwm = { prod: null, ext: null, key: null, period: 'daily', fy: 1, view2y: false, preset: '30', month: null, metric: 'all', hideChart: false, hiddenSeries: new Set(), hiddenYears: new Set(), tblYoy: false };
 let _kwmChart = null;
 const KWM_METRICS = [['all', '広告売上・広告費＆ROAS'], ['sales', '広告売上'], ['cost', '広告費'], ['roas', 'ROAS'], ['cvr', 'CVR'], ['ctr', 'CTR'], ['cpc', 'CPC'], ['clicks', 'クリック'], ['imp', '表示（インプレッション）'], ['orders', '注文'], ['bid', '入札額'], ['share', '検索結果上部のインプレッションシェア']];
 const KWM_LINE = new Set(['roas', 'cvr', 'ctr', 'cpc', 'bid', 'share']);   // 折れ線（月別は年ごとに重ねる）
@@ -7476,13 +7593,16 @@ function kwmAgg(rows, keyFn){
   });
   return m;
 }
-function kwmRows(){ if (kwm.prod) return kwm.key ? _pmKwRows.filter(r => kwGroupKey(r) === kwm.key) : [];   // v3.66：商品モーダルの KW推移（ページの絞り込みは使わない）
+function kwmKeyList(){ return kwm.ext ? kwm.ext.keys : (kwm.prod ? _pmKwKeys : kwRowKeys); }   // v3.91
+function kwmGrp(){ return kwm.ext ? 'kwmatch' : kwGroup; }   // v3.91：KW-全体データ・注視分から開いた時は、いつも KW×マッチ
+function kwmRows(){ if (kwm.ext) { const e = kwIndex().by.get(kwm.key); return e ? e.rows : []; }   // v3.91
+  if (kwm.prod) return kwm.key ? _pmKwRows.filter(r => kwGroupKey(r) === kwm.key) : [];   // v3.66：商品モーダルの KW推移（ページの絞り込みは使わない）
   const ds = kwDates(); if (!ds.length || !kwm.key) return []; return kwRows(ds[0], ds[ds.length - 1]).filter(r => kwGroupKey(r) === kwm.key); }
 
 // 推移モーダルの最初の表示：一覧の期間が「月別」なら月別、それ以外（日別・直近30日・期間指定）は日別（v3.04）
 function kwmStartPeriod(){ return kwRange === 'month' ? 'monthly' : 'daily'; }
 function openKwModal(key){
-  kwm.prod = null;   // v3.66：商品-KWデータから開いた時は商品モードではない
+  kwm.prod = null; kwm.ext = null;   // v3.66：商品-KWデータから開いた時は商品モードではない
   kwm.key = key; kwm.period = kwmStartPeriod(); kwm.preset = '30'; kwm.month = null; kwm.hiddenSeries = new Set(); kwm.hiddenYears = new Set(); kwm.tblYoy = false;
   if (kwm.metric === 'bid' && kwGroup !== 'kwmatch') kwm.metric = 'all';
   document.getElementById('kwm-modal').hidden = false;
@@ -7491,11 +7611,11 @@ function openKwModal(key){
 }
 // 表の上／下のワードへ。新しく開いたときと同じ表示（一覧が月別なら月別、それ以外は日別・30日）から始める。指標・グラフを隠す・系列の ON/OFF はそのまま
 function kwmGo(d){
-  const keys = kwm.prod ? _pmKwKeys : kwRowKeys;   // v3.66：商品モードは左の KW 一覧の順
+  const keys = kwmKeyList();   // v3.66：商品モードは左の KW 一覧の順（v3.91：KW-全体データ・注視分はその画面の並び）
   const i = keys.indexOf(kwm.key), j = i + d;
   if (i < 0 || j < 0 || j >= keys.length) return;
   kwm.key = keys[j];
-  if (kwm.prod) { kwm.month = null; kwm.hiddenYears = new Set(); kwm.tblYoy = false; renderKwModal(); return; }
+  if (kwm.prod || kwm.ext) { kwm.month = null; kwm.hiddenYears = new Set(); kwm.tblYoy = false; renderKwModal(); return; }
   kwm.period = kwmStartPeriod(); kwm.preset = '30'; kwm.month = null; kwm.hiddenYears = new Set(); kwm.tblYoy = false;
   renderKwModal();
 }
@@ -7507,7 +7627,8 @@ function closeKwModal(){
   if (_kwmChart) { _kwmChart.destroy(); _kwmChart = null; }
   document.getElementById('kwm-modal').hidden = true;
   document.documentElement.style.overflow = ''; document.body.style.overflow = '';
-  if (kwm.prod) { kwm.prod = null; const bx = document.getElementById('kwm-box'); if (bx) bx.classList.remove('pm-mode'); return; }   // v3.66：商品モーダルの KW推移
+  if (kwm.ext) { _kwExtLast = kwm.key || null; kwm.ext = null; kwRefreshWatchViews(); return; }   // v3.91：KW-全体データ・注視分から開いた時（注視の変更を表に反映）
+  if (kwm.prod) { kwm.prod = null; const bx = document.getElementById('kwm-box'); if (bx) bx.classList.remove('pm-mode'); kwWatchSync(); return; }   // v3.66：商品モーダルの KW推移
   kwLastKey = kwm.key || null;
   let hit = null;
   document.querySelectorAll('#adkw-body tr.kw-row').forEach(tr => {
@@ -7524,7 +7645,8 @@ function renderKwModal(){
   const _prevBody = box.querySelector('.kwm-body'), _keepScroll = (_prevBody && box.dataset.key === kwm.key) ? _prevBody.scrollTop : 0;
   box.dataset.key = kwm.key;
   const rows = kwmRows();
-  const bidOk = kwGroup === 'kwmatch';   // 入札額はキーワード×マッチ単位のときだけ意味がある
+  const _grp = kwmGrp();   // v3.91
+  const bidOk = _grp === 'kwmatch';   // 入札額はキーワード×マッチ単位のときだけ意味がある
   if (!bidOk && kwm.metric === 'bid') kwm.metric = 'all';
   const first = rows[0] || {};
   const allDs = Array.from(new Set(rows.map(r => r.ds))).sort();
@@ -7559,10 +7681,10 @@ function renderKwModal(){
   // ---- ヘッダー・操作 ----
   const seg = (id, list, cur) => '<div class="kwm-seg" id="' + id + '">' + list.map(([v, l]) => '<button type="button" data-v="' + v + '" class="' + (String(v) === String(cur) ? 'on' : '') + '">' + l + '</button>').join('') + '</div>';
   const typeBadge = '<span class="kw-badge ' + String(first.type || '').toLowerCase() + '">' + escapeHtml(String(first.type || '').toUpperCase()) + '</span>';
-  const title = kwGroup === 'camp' ? (first.campaign || '') : (first.target || '');
+  const title = _grp === 'camp' ? (first.campaign || '') : (first.target || '');
   let sub;
-  if (kwGroup === 'camp') sub = typeBadge + 'キャンペーン';
-  else if (kwGroup === 'kw') sub = Array.from(new Set(rows.map(r => r.match))).join('・') + '　｜　' + Array.from(new Set(rows.map(r => r.campaign))).length + 'キャンペーン';
+  if (_grp === 'camp') sub = typeBadge + 'キャンペーン';
+  else if (_grp === 'kw') sub = Array.from(new Set(rows.map(r => r.match))).join('・') + '　｜　' + Array.from(new Set(rows.map(r => r.campaign))).length + 'キャンペーン';
   else sub = escapeHtml(first.match || '') + '　｜　' + typeBadge + escapeHtml(first.campaign || '') + (first.adGroup && first.adGroup !== first.campaign ? ' ／ ' + escapeHtml(first.adGroup) : '') + '　｜　' + escapeHtml(first.kind || '');
   const lastAgg = bidOk && lastDs ? kwmAgg(rows.filter(r => r.ds === lastDs), () => 'x').x : null;
   const stopHtml = (() => {   // v3.15：止まっているキーワード（まとめたものは全部止まっている時）
@@ -7574,7 +7696,8 @@ function renderKwModal(){
   let h = '<div class="kwm-head"><div class="kwm-title-wrap"><div class="kwm-titlerow"><div class="kwm-title">' + escapeHtml(title || '（なし）')
     + '</div>'   // v3.00：コピーボタンは廃止
     + stopHtml
-    + (() => { const i = kwRowKeys.indexOf(kwm.key), n = kwRowKeys.length; if (i < 0 || n < 2) return ''; return '<div class="kwm-nav"><button type="button" class="kwm-navbtn" id="kwm-prev" title="上のワード（↑キー）"' + (i <= 0 ? ' disabled' : '') + '>▲</button><span class="kwm-navpos">' + (i + 1) + ' / ' + n + '</span><button type="button" class="kwm-navbtn" id="kwm-next" title="下のワード（↓キー）"' + (i >= n - 1 ? ' disabled' : '') + '>▼</button></div>'; })()   // v3.01：上／下のワードへ（ワード名の右）
+    + (bidOk && String(kwm.key || '').indexOf('M|') === 0 ? '<button type="button" class="kwm-watch' + (kwIsWatched(kwm.key) ? ' on' : '') + '" id="kwm-watch" title="' + (kwIsWatched(kwm.key) ? '押すと注視から外します' : '押すと【入札単価対策】の注視分に出ます') + '">' + (kwIsWatched(kwm.key) ? '★ 注視中' : '☆ 注視に入れる') + '</button>' : '')   // v3.91
+    + (() => { const _ks = kwmKeyList(), i = _ks.indexOf(kwm.key), n = _ks.length; if (i < 0 || n < 2) return ''; return '<div class="kwm-nav"><button type="button" class="kwm-navbtn" id="kwm-prev" title="上のワード（↑キー）"' + (i <= 0 ? ' disabled' : '') + '>▲</button><span class="kwm-navpos">' + (i + 1) + ' / ' + n + '</span><button type="button" class="kwm-navbtn" id="kwm-next" title="下のワード（↓キー）"' + (i >= n - 1 ? ' disabled' : '') + '>▼</button></div>'; })()   // v3.01：上／下のワードへ（ワード名の右）
     + (() => {   // v3.32：このワードのキャンペーンのページへ（URL が登録されているものだけ。まとめ方が「キーワード」で複数キャンペーンの時はキャンペーンごとに出す）
       const cs = Array.from(new Set(rows.map(r => String(r.campaign || '').trim()).filter(Boolean))).filter(c => campUrlOf(c));
       return cs.map(c => '<a class="kwm-camp-go" href="' + escapeHtml(campUrlOf(c)) + '" target="_blank" rel="noopener" title="' + escapeHtml(c) + ' の広告管理画面を開く\n' + escapeHtml(campUrlOf(c)) + '">'
@@ -7682,6 +7805,7 @@ function renderKwModal(){
     if (bodyEl && _keepScroll) bodyEl.scrollTop = _keepScroll;
   }
   on('#kwm-close', 'click', closeKwModal);
+  on('#kwm-watch', 'click', () => { kwWatchSet(kwm.key, !kwIsWatched(kwm.key)); renderKwModal(); toast(kwIsWatched(kwm.key) ? '注視に入れました' : '注視から外しました'); });   // v3.91
   on('#kwm-prev', 'click', () => kwmGo(-1));
   on('#kwm-next', 'click', () => kwmGo(1));
   box.querySelectorAll('.kw-qs').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); openShareHelp(); }));
@@ -11358,7 +11482,7 @@ function openPmKw(fnsku){
   const p = products.find(x => x.fnsku === fnsku); if (!p) return;
   _pmKwRows = pmKwAllRows(p);
   const list = pmKwList(); _pmKwKeys = list.map(a => a.key);
-  kwm.prod = fnsku;
+  kwm.prod = fnsku; kwm.ext = null;
   kwm.key = (kwm.key && _pmKwKeys.indexOf(kwm.key) > -1) ? kwm.key : (_pmKwKeys[0] || null);
   kwm.period = 'daily'; kwm.preset = '30'; kwm.month = null; kwm.hiddenSeries = new Set(); kwm.hiddenYears = new Set(); kwm.tblYoy = false;
   if (kwm.metric === 'bid' && kwGroup !== 'kwmatch') kwm.metric = 'all';
@@ -11400,6 +11524,500 @@ function pmKwBind(box){
   }));
   const on = box.querySelector('.pm-kwi.on'); if (on) { try { on.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
 }
+
+// ============================================
+// v3.91：【広告調整】KW-全体データ ／【入札単価対策】注視分-KW一覧・注視分-推移
+//   ADcheck v1.1493 の「KW-全体データ」「注視分-KW一覧」「注視分-月別推移」を、Amazon の③KWデータ向けに作り直したもの
+//   注視の単位＝KW×マッチ×キャンペーン×広告グループ（キー 'M|campaign|adGroup|target|match'。商品-KWデータの「キーワード×マッチ」と同じ）
+//   kwWatch[key] = { at:注視に入れた日（データの最新日）, base:基準日（空＝自動）, memo }
+//   基準日（自動）＝データで入札額を最後に変えた日。変えていなければ注視に入れた日
+// ============================================
+let kwWatch = {};
+function saveKwWatch(){ return persistKey(STORAGE_KWWATCH, kwWatch); }
+const kwWKey = r => 'M|' + kwMatchKey(r);
+const kwIsWatched = k => !!(kwWatch && kwWatch[k]);
+function kwWatchSet(k, on){
+  if (!k) return;
+  if (on) { if (!kwWatch[k]) kwWatch[k] = { at: kwIndex().latest || todayStr(), base: '', memo: '' }; }
+  else delete kwWatch[k];
+  saveKwWatch(); kwWatchSync();
+}
+// 画面に出ている注視のチェック・タブの件数をそろえる
+function kwWatchSync(){
+  document.querySelectorAll('input.kww-chk[data-wkey]').forEach(c => { c.checked = kwIsWatched(c.dataset.wkey); const tr = c.closest('tr'); if (tr) tr.classList.toggle('kww-on', c.checked); });
+  const el = document.getElementById('tab-kwwatch-count'), n = Object.keys(kwWatch || {}).length;
+  if (el) el.textContent = n ? '(' + n + ')' : '';
+}
+// ③KWデータをキーごとに日付順にまとめたもの（データが変わった時だけ作り直す）。入札額の変更もここで拾う
+let _kwIdx = null, _kwIdxSig = '';
+function kwIndex(){
+  const ds = kwDates();
+  let n = 0, c = 0;
+  ds.forEach(d => { const l = adKwData[d] || []; n += l.length; for (let i = 0; i < l.length; i++) c += (+l[i].cost || 0) + (+l[i].bid || 0) + (+l[i].imp || 0); });
+  const sig = ds.length + '|' + (ds[0] || '') + '|' + (ds[ds.length - 1] || '') + '|' + n + '|' + Math.round(c * 100);
+  if (_kwIdx && sig === _kwIdxSig) return _kwIdx;
+  const by = new Map();
+  ds.forEach(d => (adKwData[d] || []).forEach(r => {
+    const k = kwWKey(r); let e = by.get(k);
+    if (!e) by.set(k, e = { key: k, target: r.target, match: r.match, campaign: r.campaign, adGroup: r.adGroup, type: String(r.type || '').toUpperCase(), kind: r.kind, rows: [] });
+    e.rows.push(Object.assign({ ds: d }, r));
+  }));
+  by.forEach(e => {
+    let prev = null; e.bidChanges = [];
+    e.rows.forEach(r => { if (r.bid != null && r.bid !== '' && isFinite(+r.bid)) { const b = +r.bid; if (prev != null && Math.abs(b - prev) > 0.001) e.bidChanges.push({ d: r.ds, from: prev, to: b }); prev = b; } });
+    e.bidNow = prev; e.last = e.rows.length ? e.rows[e.rows.length - 1].ds : '';
+  });
+  _kwIdx = { by, ds, dset: new Set(ds), latest: ds[ds.length - 1] || '' }; _kwIdxSig = sig;
+  return _kwIdx;
+}
+function kwSum(rows, from, to){ return kwTotals(rows.filter(r => r.ds >= from && r.ds <= to)); }
+// キャンペーン → 商品（広告キャンペーンの設定の ASIN ＋ ④で宣伝した商品／SB で宣伝商品として買われた商品。商品モーダルの KW推移と同じ考え方）
+function kwCampProdMap(){
+  const byAsin = new Map();
+  (products || []).forEach(p => { const a = String(p.asin || '').toUpperCase(); if (a && (!byAsin.has(a) || (byAsin.get(a).withdrawn && !p.withdrawn))) byAsin.set(a, p); });
+  const m = new Map();
+  const add = (c, a) => { c = String(c || '').trim(); const p = byAsin.get(String(a || '').toUpperCase()); if (!c || !p) return; let l = m.get(c); if (!l) m.set(c, l = []); if (l.indexOf(p) < 0) l.push(p); };
+  (adCampaigns || []).forEach(c => String(c.asin || '').toUpperCase().split(/[\s,、，]+/).filter(Boolean).forEach(a => add(c.name, a)));
+  const scan = list => (list || []).forEach(r => { if (r.adv) add(r.c, r.adv); if (r.t === 'SB' && r.r === 'p' && r.a) add(r.c, r.a); });
+  Object.keys((purchData && purchData.day) || {}).forEach(d => scan(purchData.day[d]));
+  Object.keys((purchData && purchData.month) || {}).forEach(k => scan(purchData.month[k]));
+  return m;
+}
+const kwMd = d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10));
+function kwProdCell(ps){
+  if (!ps || !ps.length) return '<td class="kwa-prod none" title="このキャンペーンの商品が分かりません（広告キャンペーンの設定に ASIN を入れると出ます）">—</td>';
+  const p = ps[0], more = ps.length - 1;
+  return '<td class="kwa-prod" data-fnsku="' + escapeHtml(p.fnsku || '') + '" title="' + escapeHtml(ps.map(x => x.name || x.asin).join('\n')) + '"><div class="kwa-pw"><span class="kwa-img" title="押すと商品の画面">' + productImageHtml(p, 34) + '</span>'
+    + '<span class="kwa-pn">' + escapeHtml(p.name || p.asin || '') + (more ? '<em>他' + more + '商品</em>' : '') + '</span></div></td>';
+}
+function kwWordCell(e, stopped){
+  const cg = e.campaign + (e.adGroup && e.adGroup !== e.campaign ? ' ／ ' + e.adGroup : '');
+  return '<td class="kwa-kw"><div class="kwa-w"><span class="kw-badge ' + escapeHtml(e.type.toLowerCase()) + '">' + escapeHtml(e.type) + '</span><b title="' + escapeHtml(e.target) + '">' + escapeHtml(e.target || '（なし）') + '</b>'
+    + (stopped ? '<span class="kw-stop" title="停止中">停</span>' : '') + '</div><div class="kwa-sub" title="' + escapeHtml(cg) + '">' + escapeHtml((e.match || '') + '・' + (e.campaign || '')) + '</div></td>';
+}
+function kwBidChgHtml(c){
+  if (!c) return '';
+  const dn = c.to < c.from;
+  return '<div class="kwa-bchg ' + (dn ? 'dn' : 'up') + '" title="入札額を変えた日（データで分かった日）">' + kwMd(c.d) + ' ' + (dn ? '↓' : '↑') + '¥' + Math.round(c.from) + '→¥' + Math.round(c.to) + '</div>';
+}
+function kwNoDataHtml(){
+  return '<div class="master-card"><div class="empty-state"><svg class="icn" style="font-size:32px;color:var(--text-tertiary)"><use href="#i-database-off"/></svg>'
+    + '<div style="margin-top:8px;">③KWデータ（キーワード／ターゲット別・日別）がまだありません</div>'
+    + '<button class="primary" style="margin-top:16px;" onclick="openReportModal()"><svg class="icn"><use href="#i-plus"/></svg> レポート追加</button></div></div>';
+}
+// KW推移モーダルを、この画面の並びで開く（↑↓で前後のKWへ）
+function kwOpenModalExt(key, keys){
+  if (!key) return;
+  kwm.prod = null; kwm.ext = { keys: (keys && keys.length ? keys : [key]).slice() };
+  kwm.key = key; kwm.period = 'daily'; kwm.preset = '30'; kwm.month = null; kwm.hiddenSeries = new Set(); kwm.hiddenYears = new Set(); kwm.tblYoy = false;
+  const bx = document.getElementById('kwm-box'); if (bx) bx.classList.remove('pm-mode');
+  document.getElementById('kwm-modal').hidden = false;
+  document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden';
+  renderKwModal();
+}
+let _kwExtLast = null;
+function kwRefreshWatchViews(){
+  const vis = id => { const v = document.getElementById(id); return v && !v.hidden; };
+  if (vis('kwall-view')) renderKwAllView();
+  else if (vis('kwwatch-view')) renderKwWatchView();
+  else if (vis('kwwtrend-view')) renderKwWTrendView();
+  else kwWatchSync();
+}
+// 表の行の共通の動き：注視のチェック・商品画像・行のクリック
+function kwBindRows(root, keysFn){
+  root.querySelectorAll('input.kww-chk').forEach(c => { c.addEventListener('click', e => e.stopPropagation()); c.addEventListener('change', () => kwWatchSet(c.dataset.wkey, c.checked)); });
+  root.querySelectorAll('td.kwa-prod[data-fnsku] .kwa-img').forEach(im => im.addEventListener('click', e => { e.stopPropagation(); const f = im.closest('td').dataset.fnsku; if (f) openProductModal(f, 'info'); }));
+  root.querySelectorAll('tr.kwa-row').forEach(tr => tr.addEventListener('click', e => {
+    if (e.target.closest('input, button, select, a, textarea, .kwa-img')) return;
+    const sel = window.getSelection && String(window.getSelection()); if (sel) return;
+    kwOpenModalExt(tr.dataset.key, keysFn());
+  }));
+  const last = _kwExtLast && Array.from(root.querySelectorAll('tr.kwa-row')).find(tr => tr.dataset.key === _kwExtLast);
+  if (last) { last.classList.add('kw-last'); last.title = 'さっき推移の画面で見ていた行'; void last.offsetWidth; last.classList.add('kw-flash'); try { last.scrollIntoView({ block: 'nearest' }); } catch (e) {} }
+}
+const kwSegHtml = (id, items, cur) => '<div class="graph-seg sm kwa-seg" id="' + id + '">' + items.map(([v, l, tip]) => '<button type="button" data-v="' + v + '" class="' + (String(v) === String(cur) ? 'active' : '') + '"' + (tip ? ' title="' + escapeHtml(tip) + '"' : '') + '>' + l + '</button>').join('') + '</div>';
+
+// ---------------- KW-全体データ ----------------
+// 有効な（止まっていない）KW・ASIN ターゲットを全部、広告費の大きい順に。注視候補＝広告費が上位20位以内 かつ ROAS 200%未満
+let kwaPeriod = 'last30', kwaSort = 'cost', kwaDir = 'desc', kwaQ = '', kwaCand = false, kwaStop = false, kwaZero = false, kwaBidDay = '', _kwaKeys = [], _kwaQTimer = null;
+const KWA_PERIODS = [['last7', '直近7日'], ['last30', '直近30日'], ['thism', '今月'], ['prevm', '先月']];
+const KWA_CAND_N = 20, KWA_CAND_ROAS = 2;
+function kwaRange(latest){
+  const ds = kwDates(), first = ds[0];
+  let f, t = latest;
+  if (kwaPeriod === 'last7') f = gAddDays(latest, -6);
+  else if (kwaPeriod === 'thism') f = latest.slice(0, 7) + '-01';
+  else if (kwaPeriod === 'prevm') { const ym = gYmAdd(latest.slice(0, 7), -1); f = ym + '-01'; t = ym + '-' + String(daysInMonth(ym)).padStart(2, '0'); }
+  else f = gAddDays(latest, -29);
+  if (f < first) f = first;
+  if (t < f) t = f;
+  return [f, t];
+}
+function renderKwAllView(){
+  const body = document.getElementById('kwall-body'); if (!body) return;
+  const ix = kwIndex();
+  if (!ix.ds.length) { body.innerHTML = kwNoDataHtml(); return; }
+  const prevWrap = body.querySelector('.kwa-wrap'), keepTop = prevWrap ? prevWrap.scrollTop : 0;
+  const [from, to] = kwaRange(ix.latest);
+  const nDays = kwDayList(from, to).length;
+  const stopMap = kwStopMap(kwActiveCampSet()).map, cpm = kwCampProdMap();
+  const t3 = gAddDays(to, -2), chgFrom = gAddDays(ix.latest, -59);
+  let base = [];
+  ix.by.forEach(e => {
+    const stopped = stopMap.has(e.key.slice(2));
+    if (stopped && !kwaStop) return;
+    const t = kwSum(e.rows, from, to);
+    if (!kwaZero && !(t.cost > 0) && !(t.imp > 0)) return;
+    const lc = e.bidChanges.length ? e.bidChanges[e.bidChanges.length - 1] : null;
+    base.push({ e, t, c3: kwSum(e.rows, t3, to).clicks, stopped, ps: cpm.get(String(e.campaign || '').trim()) || [], lastChg: lc && lc.d >= chgFrom ? lc : null });
+  });
+  // 入札額を変えた日（直近60日）
+  const chgDays = {};
+  base.forEach(x => x.e.bidChanges.forEach(c => { if (c.d >= chgFrom) (chgDays[c.d] = chgDays[c.d] || new Set()).add(x.e.key); }));
+  if (kwaBidDay && !chgDays[kwaBidDay]) kwaBidDay = '';
+  const candSet = new Set(base.filter(x => x.t.cost > 0).sort((a, b) => b.t.cost - a.t.cost).slice(0, KWA_CAND_N).filter(x => x.t.roas < KWA_CAND_ROAS).map(x => x.e.key));
+  let list = base;
+  const q = kwaQ.trim().toLowerCase();
+  if (q) list = list.filter(x => [x.e.target, x.e.campaign, x.e.adGroup, x.e.match].concat(x.ps.map(p => (p.name || '') + ' ' + (p.asin || '') + ' ' + (p.sku || ''))).join(' ').toLowerCase().indexOf(q) > -1);
+  if (kwaBidDay) list = list.filter(x => chgDays[kwaBidDay].has(x.e.key));
+  if (kwaCand) list = list.filter(x => candSet.has(x.e.key));
+  const KF = { cost: x => x.t.cost, sales: x => x.t.sales, roas: x => x.t.roas, acos: x => x.t.acos, cvr: x => x.t.cvr, clicks: x => x.t.clicks, c3: x => x.c3, cpc: x => x.t.cpc, imp: x => x.t.imp, ctr: x => x.t.ctr, bid: x => x.e.bidNow };
+  const kf = KF[kwaSort] || KF.cost, dir = kwaDir === 'asc' ? 1 : -1;
+  list.sort((a, b) => { const x = kf(a), y = kf(b); if (x == null && y == null) return b.t.cost - a.t.cost; if (x == null) return 1; if (y == null) return -1; return (x - y) * dir || (b.t.cost - a.t.cost); });
+  const totCost = list.reduce((s, x) => s + (x.t.cost || 0), 0);
+  const nW = list.filter(x => kwIsWatched(x.e.key)).length;
+
+  let h = '<div class="kwa-bar">'
+    + '<span class="kwa-lbl">期間</span>' + kwSegHtml('kwa-period', KWA_PERIODS, kwaPeriod)
+    + '<span class="kwa-note">' + from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + nDays + '日）</span>'
+    + '<input type="search" class="graph-select kwa-q" id="kwa-q" placeholder="KW・ASIN・キャンペーン・商品名で検索" value="' + escapeHtml(kwaQ) + '">'
+    + '<span class="kwa-lbl">入札を変えた日</span><select class="graph-select kwa-sel" id="kwa-bidday" title="入札額を変えたKWだけを出す（直近60日。データで入札額が変わった日）"><option value="">すべて</option>'
+    + Object.keys(chgDays).sort().reverse().map(d => '<option value="' + d + '"' + (d === kwaBidDay ? ' selected' : '') + '>' + d.replace(/-/g, '/') + '（' + chgDays[d].size + '件）</option>').join('') + '</select>'
+    + '</div>';
+  h += '<div class="kwa-bar kwa-bar2">'
+    + '<button type="button" class="kwa-cand' + (kwaCand ? ' on' : '') + '" id="kwa-cand" title="この期間で、広告費が上位' + KWA_CAND_N + '位以内 かつ ROAS ' + Math.round(KWA_CAND_ROAS * 100) + '%未満のKW（インパクトが大きくて効率が悪いもの）">注視候補だけ（' + candSet.size + '）</button>'
+    + '<label class="kw-chk"><input type="checkbox" id="kwa-stop"' + (kwaStop ? ' checked' : '') + '> 停止中も出す</label>'
+    + '<label class="kw-chk" title="この期間に表示も広告費も0のKWも出します"><input type="checkbox" id="kwa-zero"' + (kwaZero ? ' checked' : '') + '> 表示0の行も出す</label>'
+    + (kwaBidDay && list.length ? '<button type="button" class="kwa-bulk" id="kwa-bulk" title="いま表に出ているKWを、まとめて注視に入れます">表示中の' + list.length + '件をまとめて注視に入れる</button>' : '')
+    + '<span class="kwa-legend">ROAS：<span class="kw-dot hi"></span>300%以上　<span class="kw-dot mid"></span>200〜299%　<span class="kw-dot lo"></span>199%以下</span>'
+    + '</div>';
+  h += '<div class="kw-count"><b>' + list.length + '件</b><span class="kwa-cnt2">（うち注視 ' + nW + '件）　データの最新日 ' + ix.latest.replace(/-/g, '/') + '</span><span class="kw-hint">行を押すと、そのKWの日別・月別の推移が開きます。右端の注視に☑すると【入札単価対策】に出ます</span></div>';
+  const th = (k, l, cls) => '<th class="sortable' + (cls ? ' ' + cls : '') + (kwaSort === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwaSort === k ? (kwaDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
+  h += '<div class="table-wrap kw-wrap kwa-wrap"><table class="kw-table kwa-table"><thead><tr><th class="kw-jh">判定</th><th>商品</th><th>KW／ターゲット</th>'
+    + th('bid', '入札額', 'num') + th('cost', '広告費<span class="kwa-hs">ページ内割合</span>', 'num') + th('sales', '売上', 'num') + th('roas', 'ROAS', 'num') + th('acos', 'ACOS', 'num') + th('cvr', 'CVR', 'num')
+    + th('clicks', 'クリック', 'num') + th('c3', '直近3日<br>クリック', 'num') + th('cpc', 'CPC', 'num') + th('imp', '表示', 'num') + th('ctr', 'CTR', 'num') + '<th class="kwa-wh">注視</th></tr></thead><tbody>';
+  list.forEach(x => {
+    const t = x.t, on = kwIsWatched(x.e.key), cand = candSet.has(x.e.key);
+    const sh = totCost > 0 && t.cost > 0 ? (Math.round(t.cost / totCost * 1000) / 10) : null;
+    h += '<tr class="kw-row kwa-row' + (on ? ' kww-on' : '') + (x.stopped ? ' kw-stopped' : '') + '" data-key="' + escapeHtml(x.e.key) + '">'
+      + '<td class="kw-jc">' + kwJudge(t.judge) + '</td>' + kwProdCell(x.ps) + kwWordCell(x.e, x.stopped)
+      + '<td class="num">' + kwYen(x.e.bidNow) + kwBidChgHtml(x.lastChg) + '</td>'
+      + '<td class="num strong">' + kwYen(t.cost) + (sh != null ? '<div class="kwa-sh">' + sh + '%</div>' : '') + '</td>'
+      + '<td class="num">' + kwYen(t.sales) + '</td><td class="num strong ' + kwCls(t.judge) + '">' + kwRoasTxt(t.roas) + '</td><td class="num">' + kwPct(t.acos) + '</td><td class="num">' + kwPct(t.cvr) + '</td>'
+      + '<td class="num">' + kwNum(t.clicks) + '</td><td class="num">' + kwNum(x.c3) + '</td><td class="num">' + kwYen(t.cpc) + '</td><td class="num">' + kwNum(t.imp) + '</td><td class="num">' + kwPct(t.ctr, 2) + '</td>'
+      + '<td class="kwa-wc">' + (cand ? '<span class="kwa-cbadge" title="広告費が上位' + KWA_CAND_N + '位以内 かつ ROAS ' + Math.round(KWA_CAND_ROAS * 100) + '%未満">候補</span>' : '')
+      + '<input type="checkbox" class="kww-chk" data-wkey="' + escapeHtml(x.e.key) + '"' + (on ? ' checked' : '') + ' title="注視に入れる／外す"></td></tr>';
+  });
+  if (!list.length) h += '<tr><td colspan="15" class="kw-empty">この期間・条件のKWがありません</td></tr>';
+  h += '</tbody></table></div>';
+  body.innerHTML = h;
+  _kwaKeys = list.map(x => x.e.key);
+  const wrap = body.querySelector('.kwa-wrap'); if (wrap && keepTop) wrap.scrollTop = keepTop;
+
+  const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
+  body.querySelectorAll('#kwa-period button').forEach(b => b.addEventListener('click', () => { kwaPeriod = b.dataset.v; renderKwAllView(); }));
+  on('#kwa-q', 'input', e => {
+    clearTimeout(_kwaQTimer); const v = e.target.value;
+    _kwaQTimer = setTimeout(() => { kwaQ = v; renderKwAllView(); const i = document.getElementById('kwa-q'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 300);
+  });
+  on('#kwa-bidday', 'change', e => { kwaBidDay = e.target.value; renderKwAllView(); });
+  on('#kwa-cand', 'click', () => { kwaCand = !kwaCand; renderKwAllView(); });
+  on('#kwa-stop', 'change', e => { kwaStop = e.target.checked; renderKwAllView(); });
+  on('#kwa-zero', 'change', e => { kwaZero = e.target.checked; renderKwAllView(); });
+  on('#kwa-bulk', 'click', () => {
+    const ks = _kwaKeys.filter(k => !kwIsWatched(k));
+    if (!ks.length) { toast('表示中のKWは、すべて注視に入っています'); return; }
+    ks.forEach(k => { kwWatch[k] = { at: ix.latest, base: '', memo: '' }; });
+    saveKwWatch(); kwWatchSync(); renderKwAllView(); toast(ks.length + '件を注視に入れました');
+  });
+  body.querySelectorAll('.kwa-table th.sortable').forEach(t => t.addEventListener('click', () => {
+    const k = t.dataset.k;
+    if (kwaSort === k) kwaDir = kwaDir === 'desc' ? 'asc' : 'desc'; else { kwaSort = k; kwaDir = 'desc'; }
+    renderKwAllView();
+  }));
+  kwBindRows(body, () => _kwaKeys);
+  _kwExtLast = null;
+  kwWatchSync();
+}
+window.renderKwAllView = renderKwAllView;
+
+// ---------------- 注視分：共通 ----------------
+let kwwDays = 14;
+function kwwBase(w, e){
+  if (w && w.base) return { d: w.base, src: 'manual' };
+  const c = e && e.bidChanges.length ? e.bidChanges[e.bidChanges.length - 1] : null;
+  if (c) return { d: c.d, src: 'bid', c };
+  return { d: (w && w.at) || '', src: 'at' };
+}
+// 前後の比較：後＝基準日〜（最大 N 日・データの最新日まで）、前＝基準日の前の同じ日数。
+//   1日あたりは「③KWデータのある日数」で割る（取り込んでいない日があっても低く出ない）
+function kwwDataDays(f, t){ const ds = kwIndex().dset; return kwDayList(f, t).filter(d => ds.has(d)).length; }
+function kwwCompare(e, base, latest, N){
+  if (!e || !base || base > latest) return null;
+  let aTo = gAddDays(base, N - 1); if (aTo > latest) aTo = latest;
+  const span = kwDayList(base, aTo).length;
+  const bTo = gAddDays(base, -1), bFrom = gAddDays(base, -span);
+  const n = kwwDataDays(base, aTo), nB = kwwDataDays(bFrom, bTo);
+  const hasA = n > 0 && e.rows.some(r => r.ds >= base && r.ds <= aTo), hasB = nB > 0 && e.rows.some(r => r.ds >= bFrom && r.ds <= bTo);
+  return { n, nB, aFrom: base, aTo, bFrom, bTo, A: hasA ? kwSum(e.rows, base, aTo) : null, B: hasB ? kwSum(e.rows, bFrom, bTo) : null };
+}
+// [キー, 見出し, 書式, 1日あたりにするか, 良い向き（1＝上がると良い／-1＝下がると良い／0＝どちらでもない）]
+const KWW_MET = [['cost', '広告費/日', 'yen', true, 0], ['sales', '売上/日', 'yen', true, 1], ['roas', 'ROAS', 'roas', false, 1], ['clicks', 'クリック/日', 'num1', true, 0], ['cpc', 'CPC', 'yen', false, -1], ['imp', '表示/日', 'num', true, 0], ['cvr', 'CVR', 'pct', false, 1]];
+function kwwVal(T, k, per, n){ if (!T) return null; const v = T[k]; if (v == null) return null; return per ? v / n : v; }
+function kwwFmt(f, v){
+  if (v == null) return '—';
+  if (f === 'yen') return '¥' + Math.round(v).toLocaleString();
+  if (f === 'roas') return Math.round(v * 100) + '%';
+  if (f === 'pct') return v.toFixed(1) + '%';
+  if (f === 'num1') return v < 10 ? v.toFixed(1) : Math.round(v).toLocaleString();
+  return Math.round(v).toLocaleString();
+}
+function kwwChg(a, b, good){
+  if (a == null || b == null || !b) return '';
+  const r = (a - b) / Math.abs(b) * 100, up = r >= 0;
+  const cls = (good === 0 || Math.abs(r) < 0.5) ? '' : ((up ? good > 0 : good < 0) ? ' good' : ' bad');
+  return '<span class="kww-chg' + cls + '">' + (up ? '▲' : '▼') + Math.abs(Math.round(r)) + '%</span>';
+}
+function kwwCell(cmp, m){
+  const [k, , f, per, good] = m;
+  if (!cmp) return '<td class="num kww-c">—</td>';
+  const a = kwwVal(cmp.A, k, per, cmp.n), b = cmp.B ? kwwVal(cmp.B, k, per, cmp.nB) : null;
+  return '<td class="num kww-c"><div class="kww-a' + (k === 'roas' ? ' ' + kwCls(kwJudgeOf(a)) : '') + '">' + kwwFmt(f, a) + '</div>'
+    + '<div class="kww-b">' + (cmp.B ? '前 ' + kwwFmt(f, b) + ' ' + kwwChg(a, b, good) : '前 データなし') + '</div></td>';
+}
+function kwwBaseLabel(b){
+  if (b.src === 'manual') return '<span class="kww-src man">手入力</span>';
+  if (b.src === 'bid') return '<span class="kww-src bid" title="データで入札額が変わった日">入札 ' + (b.c.to < b.c.from ? '↓' : '↑') + '¥' + Math.round(b.c.from) + '→¥' + Math.round(b.c.to) + '</span>';
+  return '<span class="kww-src at" title="入札額を変えていないので、注視に入れた日">注視に入れた日</span>';
+}
+function kwwEmptyHtml(){
+  return '<div class="master-card"><div class="empty-state"><div style="font-size:30px;">☆</div><div style="margin-top:6px;font-weight:700;">注視しているKWがありません</div>'
+    + '<div style="margin-top:6px;font-size:13px;color:var(--text-secondary);line-height:1.8;">【広告調整】の <b>KW-全体データ</b>・<b>商品-KWデータ</b> の右端の「注視」に☑するか、<br>KWの推移の画面（行を押すと開く）の「☆ 注視に入れる」を押すと、ここに出ます。</div>'
+    + '<button class="primary" style="margin-top:14px;" onclick="switchView(\'kwall\')">KW-全体データを開く</button></div></div>';
+}
+// 注視しているKWの一覧（データの無くなったKWも）。cpm＝キャンペーン→商品
+function kwwItems(){
+  const ix = kwIndex(), cpm = kwCampProdMap(), stopMap = kwStopMap(kwActiveCampSet()).map;
+  return Object.keys(kwWatch || {}).map(k => {
+    const w = kwWatch[k], e = ix.by.get(k) || null;
+    const ps = e ? (cpm.get(String(e.campaign || '').trim()) || []) : [];
+    return { k, w, e, ps, stopped: stopMap.has(k.slice(2)), base: kwwBase(w, e) };
+  });
+}
+function kwwProdName(x){ return x.ps.length ? (x.ps[0].name || x.ps[0].asin || '') : '￿'; }
+
+// ---------------- 注視分-KW一覧 ----------------
+let kwwSort = 'cost';
+function renderKwWatchView(){
+  const body = document.getElementById('kwwatch-body'); if (!body) return;
+  const ix = kwIndex();
+  if (!ix.ds.length) { body.innerHTML = kwNoDataHtml(); return; }
+  const items = kwwItems();
+  if (!items.length) { body.innerHTML = kwwEmptyHtml(); kwWatchSync(); return; }
+  const prevWrap = body.querySelector('.kwa-wrap'), keepTop = prevWrap ? prevWrap.scrollTop : 0;
+  items.forEach(x => { x.cmp = x.e ? kwwCompare(x.e, x.base.d, ix.latest, kwwDays) : null; });
+  const perDay = (x, k) => x.cmp && x.cmp.A && x.cmp.A[k] != null ? x.cmp.A[k] / x.cmp.n : -1;
+  const roasD = x => (x.cmp && x.cmp.A && x.cmp.B && x.cmp.A.roas != null && x.cmp.B.roas != null) ? x.cmp.A.roas - x.cmp.B.roas : 1e9;
+  const SORTS = { cost: (a, b) => perDay(b, 'cost') - perDay(a, 'cost'), roasd: (a, b) => roasD(a) - roasD(b) || perDay(b, 'cost') - perDay(a, 'cost'),
+    base: (a, b) => String(b.base.d).localeCompare(String(a.base.d)) || perDay(b, 'cost') - perDay(a, 'cost'),
+    at: (a, b) => String(b.w.at || '').localeCompare(String(a.w.at || '')) || perDay(b, 'cost') - perDay(a, 'cost'),
+    prod: (a, b) => kwwProdName(a).localeCompare(kwwProdName(b), 'ja') || perDay(b, 'cost') - perDay(a, 'cost') };
+  items.sort(SORTS[kwwSort] || SORTS.cost);
+  const keys = items.map(x => x.k);
+  let h = '<div class="kwa-bar">'
+    + '<span class="kwa-lbl">比べる日数</span>' + kwSegHtml('kww-days', [[7, '7日'], [14, '14日'], [30, '30日']], kwwDays)
+    + '<span class="kwa-lbl">並べ替え</span><select class="graph-select kwa-sel" id="kww-sort">'
+    + [['cost', '広告費/日（基準日から）の多い順'], ['roasd', 'ROASが下がった順'], ['base', '基準日の新しい順'], ['at', '注視に入れた日の新しい順'], ['prod', '商品順']].map(([v, l]) => '<option value="' + v + '"' + (v === kwwSort ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>'
+    + '<span class="kwa-lbl kwa-gap">基準日をまとめて</span><input type="date" class="graph-select kwa-date" id="kww-bulk-date" value="' + escapeHtml(ix.latest) + '" max="' + escapeHtml(ix.latest) + '">'
+    + '<button type="button" class="kwa-bulk" id="kww-bulk-set" title="注視しているKW全部の基準日を、この日にします（あとで1つずつ直せます）">全部この日にする</button>'
+    + '<button type="button" class="kwa-bulk gray" id="kww-bulk-auto" title="手で入れた基準日を消して、全部「自動（入札額を最後に変えた日）」に戻します">全部を自動に戻す</button>'
+    + '</div>';
+  h += '<div class="kww-note">基準日＝<b>入札額を最後に変えた日</b>（③KWデータで入札額が変わった日。自動）。日付を入れると、その日で比べます。'
+    + '<b>後</b>＝基準日〜データの最新日（最大' + kwwDays + '日）、<b>前</b>＝基準日の前の同じ日数。広告費・売上・クリック・表示は1日あたり。データの最新日 ' + ix.latest.replace(/-/g, '/') + '</div>';
+  h += '<div class="kw-count"><b>注視 ' + items.length + '件</b><span class="kw-hint">KWを押すと、そのKWの日別・月別の推移（入札額の変更の札つき）が開きます</span></div>';
+  h += '<div class="table-wrap kw-wrap kwa-wrap kww-wrap"><table class="kw-table kwa-table kww-table"><thead><tr><th>商品</th><th>KW／ターゲット</th><th class="num">入札額</th><th>基準日</th>'
+    + KWW_MET.map(m => '<th class="num">' + m[1] + '<span class="kwa-hs">後 ／ 前</span></th>').join('') + '<th>メモ</th><th></th></tr></thead><tbody>';
+  items.forEach(x => {
+    const e = x.e, auto = kwwBase(Object.assign({}, x.w, { base: '' }), e).d;
+    h += '<tr class="kw-row kwa-row kww-row' + (x.stopped ? ' kw-stopped' : '') + '" data-key="' + escapeHtml(x.k) + '">';
+    if (!e) {
+      const p = x.k.split('|');
+      h += '<td class="kwa-prod none">—</td><td class="kwa-kw"><div class="kwa-w"><b>' + escapeHtml(p[3] || '') + '</b></div><div class="kwa-sub">' + escapeHtml((p[4] || '') + '・' + (p[1] || '')) + '</div></td>'
+        + '<td colspan="' + (2 + KWW_MET.length) + '" class="kww-nodata">③KWデータにこのKWがありません（データを消した可能性があります）</td>';
+    } else {
+      h += kwProdCell(x.ps) + kwWordCell(e, x.stopped) + '<td class="num">' + kwYen(e.bidNow) + '</td>'
+        + '<td class="kww-bd"><input type="date" class="kww-base" data-wkey="' + escapeHtml(x.k) + '" data-auto="' + escapeHtml(auto) + '" value="' + escapeHtml(x.base.d) + '" max="' + escapeHtml(ix.latest) + '" title="比べる基準の日（変えると手入力になります）">'
+        + '<div class="kww-bl">' + kwwBaseLabel(x.base) + (x.base.src === 'manual' ? '<button type="button" class="kww-auto" data-wkey="' + escapeHtml(x.k) + '" title="自動（' + escapeHtml(auto.replace(/-/g, '/')) + '）に戻す">自動に戻す</button>' : '') + '</div>'
+        + '<div class="kww-per">' + (x.cmp ? '後 ' + x.cmp.n + '日 ／ 前 ' + x.cmp.nB + '日' + (x.cmp.n < kwDayList(x.cmp.aFrom, x.cmp.aTo).length || x.cmp.nB < kwDayList(x.cmp.bFrom, x.cmp.bTo).length ? '<span title="③KWデータを取り込んでいない日は数えていません">*</span>' : '') : '基準日が最新日より後です') + '</div></td>'
+        + KWW_MET.map(m => kwwCell(x.cmp, m)).join('');
+    }
+    h += '<td class="kww-mc"><input type="text" class="kww-memo" data-wkey="' + escapeHtml(x.k) + '" value="' + escapeHtml(x.w.memo || '') + '" placeholder="メモ（例：10/20 入札を下げた）"></td>'
+      + '<td class="kww-xc"><button type="button" class="kww-x" data-wkey="' + escapeHtml(x.k) + '" title="注視から外す">外す</button></td></tr>';
+  });
+  h += '</tbody></table></div>';
+  body.innerHTML = h;
+  const wrap = body.querySelector('.kwa-wrap'); if (wrap && keepTop) wrap.scrollTop = keepTop;
+
+  const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
+  body.querySelectorAll('#kww-days button').forEach(b => b.addEventListener('click', () => { kwwDays = +b.dataset.v; renderKwWatchView(); }));
+  on('#kww-sort', 'change', e => { kwwSort = e.target.value; renderKwWatchView(); });
+  on('#kww-bulk-set', 'click', () => {
+    const d = (document.getElementById('kww-bulk-date') || {}).value; if (!d) { toast('日付を入れてください'); return; }
+    if (!confirm('注視している ' + items.length + '件すべての基準日を ' + d.replace(/-/g, '/') + ' にします。よろしいですか？')) return;
+    Object.keys(kwWatch).forEach(k => { kwWatch[k].base = d; }); saveKwWatch(); renderKwWatchView(); toast('基準日を ' + d.replace(/-/g, '/') + ' にしました');
+  });
+  on('#kww-bulk-auto', 'click', () => { Object.keys(kwWatch).forEach(k => { kwWatch[k].base = ''; }); saveKwWatch(); renderKwWatchView(); toast('基準日を全部「自動」に戻しました'); });
+  body.querySelectorAll('input.kww-base').forEach(i => { i.addEventListener('click', e => e.stopPropagation()); i.addEventListener('change', () => {
+    const w = kwWatch[i.dataset.wkey]; if (!w) return;
+    w.base = (i.value && i.value !== i.dataset.auto) ? i.value : ''; saveKwWatch(); renderKwWatchView();
+  }); });
+  body.querySelectorAll('.kww-auto').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const w = kwWatch[b.dataset.wkey]; if (w) { w.base = ''; saveKwWatch(); renderKwWatchView(); } }));
+  body.querySelectorAll('input.kww-memo').forEach(i => { i.addEventListener('click', e => e.stopPropagation()); i.addEventListener('change', () => { const w = kwWatch[i.dataset.wkey]; if (w) { w.memo = i.value.trim(); saveKwWatch(); } }); });
+  body.querySelectorAll('.kww-x').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); kwWatchSet(b.dataset.wkey, false); renderKwWatchView(); toast('注視から外しました'); }));
+  kwBindRows(body, () => keys);
+  _kwExtLast = null;
+  kwWatchSync();
+}
+window.renderKwWatchView = renderKwWatchView;
+
+// ---------------- 注視分-推移 ----------------
+// 注視KWを商品ごとにまとめ、KWごとに小さなグラフ（日別／週別／月別）。基準日に縦の破線、入札額は紫の階段の線
+let kwtUnit = 'daily', kwtSpan = 30, kwtMetric = 'all', kwtProd = '', _kwtCharts = [];
+const KWT_METRICS = [['all', '広告費・売上・ROAS'], ['click', 'クリック・CPC・入札額'], ['imp', '表示・CTR']];
+function kwtBuckets(latest){
+  const out = [];
+  if (kwtUnit === 'monthly') {
+    for (let i = 5; i >= 0; i--) { const ym = gYmAdd(latest.slice(0, 7), -i), end = ym + '-' + String(daysInMonth(ym)).padStart(2, '0'); out.push({ f: ym + '-01', t: end > latest ? latest : end, l: (+ym.slice(5, 7)) + '月' }); }
+  } else if (kwtUnit === 'weekly') {
+    for (let i = 11; i >= 0; i--) { const t = gAddDays(latest, -7 * i), f = gAddDays(t, -6); out.push({ f, t, l: kwMd(f) + '〜' }); }
+  } else {
+    kwDayList(gAddDays(latest, -(kwtSpan - 1)), latest).forEach(d => out.push({ f: d, t: d, l: kwMd(d) }));
+  }
+  return out;
+}
+function kwtSeries(e, bks){
+  return bks.map(b => {
+    const rs = e.rows.filter(r => r.ds >= b.f && r.ds <= b.t);
+    if (!rs.length) return null;
+    const n = kwwDataDays(b.f, b.t); if (!n) return null;
+    const T = kwTotals(rs);
+    let bid = null; rs.forEach(r => { if (r.bid != null && r.bid !== '' && isFinite(+r.bid)) bid = +r.bid; });
+    return { cost: T.cost / n, sales: T.sales / n, clicks: T.clicks / n, imp: T.imp / n, roas: T.roas != null ? T.roas * 100 : null, cpc: T.cpc, ctr: T.ctr, bid };
+  });
+}
+function renderKwWTrendView(){
+  const body = document.getElementById('kwwtrend-body'); if (!body) return;
+  _kwtCharts.forEach(c => { try { c.destroy(); } catch (e) {} }); _kwtCharts = [];
+  const ix = kwIndex();
+  if (!ix.ds.length) { body.innerHTML = kwNoDataHtml(); return; }
+  let items = kwwItems().filter(x => x.e);
+  if (!items.length) { body.innerHTML = kwwEmptyHtml(); kwWatchSync(); return; }
+  items.forEach(x => { x.cmp = kwwCompare(x.e, x.base.d, ix.latest, kwwDays); });
+  // 商品ごとにまとめる（商品が分からないKWは最後）
+  const groups = new Map();
+  items.forEach(x => { const p = x.ps[0] || null, gk = p ? (p.fnsku || p.asin) : ''; let g = groups.get(gk); if (!g) groups.set(gk, g = { p, list: [] }); g.list.push(x); });
+  const gl = Array.from(groups.values()).sort((a, b) => (!a.p) - (!b.p) || String(a.p ? a.p.name : '').localeCompare(String(b.p ? b.p.name : ''), 'ja'));
+  if (kwtProd && !gl.some(g => (g.p ? (g.p.fnsku || g.p.asin) : '__none__') === kwtProd)) kwtProd = '';
+  const shown = kwtProd ? gl.filter(g => (g.p ? (g.p.fnsku || g.p.asin) : '__none__') === kwtProd) : gl;
+  const bks = kwtBuckets(ix.latest);
+  const unitTxt = kwtUnit === 'daily' ? '日別' : (kwtUnit === 'weekly' ? '週別（最新日までの7日ずつ）' : '月別');
+  let h = '<div class="kwa-bar">'
+    + '<span class="kwa-lbl">商品</span><select class="graph-select kwa-sel" id="kwt-prod"><option value="">すべて（' + gl.length + '商品・' + items.length + 'KW）</option>'
+    + gl.map(g => { const v = g.p ? (g.p.fnsku || g.p.asin) : '__none__'; return '<option value="' + escapeHtml(v) + '"' + (v === kwtProd ? ' selected' : '') + '>' + escapeHtml(g.p ? (g.p.name || g.p.asin) : '商品が分からないKW') + '（' + g.list.length + '）</option>'; }).join('') + '</select>'
+    + '<span class="kwa-lbl">単位</span>' + kwSegHtml('kwt-unit', [['daily', '日別'], ['weekly', '週別'], ['monthly', '月別']], kwtUnit)
+    + (kwtUnit === 'daily' ? kwSegHtml('kwt-span', [[30, '30日'], [60, '60日'], [90, '90日']], kwtSpan) : '')
+    + '<span class="kwa-lbl">グラフ</span><select class="graph-select kwa-sel" id="kwt-metric">' + KWT_METRICS.map(([v, l]) => '<option value="' + v + '"' + (v === kwtMetric ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>'
+    + '</div>';
+  h += '<div class="kww-note">' + unitTxt + '。棒・ROAS などは<b>1日あたり</b>。<span class="kwt-key"><i class="kwt-k-base"></i>オレンジの破線＝基準日</span><span class="kwt-key"><i class="kwt-k-bid"></i>紫の線＝入札額</span>'
+    + '　下の数字＝基準日の前後' + kwwDays + '日の比較（日数は「注視分-KW一覧」の「比べる日数」）。グラフの見出しを押すと詳しい推移が開きます。</div>';
+  const keys = [];
+  const cards = [];
+  shown.forEach(g => {
+    h += '<div class="kwt-group"><div class="kwt-gh">' + (g.p ? '<span class="kwt-gimg" data-fnsku="' + escapeHtml(g.p.fnsku || '') + '" title="押すと商品の画面">' + productImageHtml(g.p, 30) + '</span><b>' + escapeHtml(g.p.name || g.p.asin || '') + '</b><span class="kwt-gs">' + escapeHtml(g.p.asin || '') + '</span>' : '<b>商品が分からないKW</b><span class="kwt-gs">広告キャンペーンの設定に ASIN を入れると、商品ごとにまとまります</span>')
+      + '<span class="kwt-gn">' + g.list.length + 'KW</span></div><div class="kwt-grid">';
+    g.list.sort((a, b) => ((b.cmp && b.cmp.A ? b.cmp.A.cost / b.cmp.n : 0) - (a.cmp && a.cmp.A ? a.cmp.A.cost / a.cmp.n : 0)));
+    g.list.forEach(x => {
+      const e = x.e, i = cards.length, cmp = x.cmp;
+      keys.push(x.k); cards.push({ x, i });
+      const mini = cmp ? [['roas', 'ROAS'], ['cost', '広告費/日'], ['cpc', 'CPC'], ['clicks', 'クリック/日']].map(([k, l]) => { const m = KWW_MET.find(z => z[0] === k); const a = kwwVal(cmp.A, k, m[3], cmp.n), b = cmp.B ? kwwVal(cmp.B, k, m[3], cmp.nB) : null; return '<span class="kwt-m"><em>' + l + '</em>' + kwwFmt(m[2], b) + '→<b' + (k === 'roas' ? ' class="' + kwCls(kwJudgeOf(a)) + '"' : '') + '>' + kwwFmt(m[2], a) + '</b>' + kwwChg(a, b, m[4]) + '</span>'; }).join('') : '<span class="kwt-m">基準日が最新日より後です</span>';
+      h += '<div class="kwt-card' + (x.stopped ? ' stop' : '') + '"><div class="kwt-ch kwa-row" data-key="' + escapeHtml(x.k) + '" title="押すと、このKWの詳しい推移">'
+        + '<div class="kwa-w"><span class="kw-badge ' + escapeHtml(e.type.toLowerCase()) + '">' + escapeHtml(e.type) + '</span><b>' + escapeHtml(e.target || '（なし）') + '</b>' + (x.stopped ? '<span class="kw-stop">停</span>' : '') + '<span class="kwt-bid">入札 ' + kwYen(e.bidNow) + '</span></div>'
+        + '<div class="kwa-sub">' + escapeHtml((e.match || '') + '・' + (e.campaign || '')) + '</div></div>'
+        + '<div class="kwt-cv"><canvas id="kwt-cv-' + i + '"></canvas></div>'
+        + '<div class="kwt-foot"><span class="kwt-base">基準日 ' + (x.base.d ? x.base.d.replace(/-/g, '/') : '—') + ' ' + kwwBaseLabel(x.base) + (cmp ? '　後' + cmp.n + '日 vs 前' + cmp.nB + '日' : '') + '</span><div class="kwt-ms">' + mini + '</div>'
+        + (x.w.memo ? '<div class="kwt-memo">📝 ' + escapeHtml(x.w.memo) + '</div>' : '') + '</div></div>';
+    });
+    h += '</div></div>';
+  });
+  body.innerHTML = h;
+  const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
+  on('#kwt-prod', 'change', e => { kwtProd = e.target.value; renderKwWTrendView(); });
+  on('#kwt-metric', 'change', e => { kwtMetric = e.target.value; renderKwWTrendView(); });
+  body.querySelectorAll('#kwt-unit button').forEach(b => b.addEventListener('click', () => { kwtUnit = b.dataset.v; renderKwWTrendView(); }));
+  body.querySelectorAll('#kwt-span button').forEach(b => b.addEventListener('click', () => { kwtSpan = +b.dataset.v; renderKwWTrendView(); }));
+  body.querySelectorAll('.kwt-gimg[data-fnsku]').forEach(im => im.addEventListener('click', () => { if (im.dataset.fnsku) openProductModal(im.dataset.fnsku, 'info'); }));
+  body.querySelectorAll('.kwt-ch.kwa-row').forEach(d => d.addEventListener('click', () => kwOpenModalExt(d.dataset.key, keys)));
+  kwWatchSync();
+  if (typeof Chart === 'undefined') { body.querySelectorAll('.kwt-cv').forEach(c => { c.innerHTML = '<div class="kwm-nochart">グラフの部品（Chart.js）を読み込めませんでした</div>'; }); return; }
+  const labels = bks.map(b => b.l);
+  const yen = v => '¥' + Math.round(v).toLocaleString();
+  cards.forEach(({ x, i }) => {
+    const cv = document.getElementById('kwt-cv-' + i); if (!cv) return;
+    const s = kwtSeries(x.e, bks), g = k => s.map(v => v ? v[k] : null);
+    const baseIdx = x.base.d ? bks.findIndex(b => x.base.d >= b.f && x.base.d <= b.t) : -1;
+    let ds = [], scales = { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#94a3b8', maxRotation: 0, autoSkip: true, maxTicksLimit: 8 } } };
+    const bidDs = { type: 'line', label: '入札額', data: g('bid'), borderColor: KWM_BID_COLOR, backgroundColor: KWM_BID_COLOR, borderWidth: 1.8, stepped: 'before', pointRadius: 0, spanGaps: true, order: 0 };
+    if (kwtMetric === 'click') {
+      ds = [{ type: 'bar', label: 'クリック/日', data: g('clicks'), backgroundColor: KWM_COLOR.clicks + 'aa', yAxisID: 'y', order: 2 },
+        { type: 'line', label: 'CPC', data: g('cpc'), borderColor: KWM_COLOR.cpc, backgroundColor: KWM_COLOR.cpc, borderWidth: 2, tension: 0.3, pointRadius: kwtUnit === 'daily' ? 1.5 : 2, spanGaps: kwtUnit !== 'daily', yAxisID: 'y1', order: 1 },
+        Object.assign(bidDs, { yAxisID: 'y1' })];
+      scales.y = { beginAtZero: true, ticks: { font: { size: 10 }, color: '#94a3b8' }, grid: { color: 'rgba(0,0,0,0.05)' } };
+      scales.y1 = { beginAtZero: true, position: 'right', ticks: { font: { size: 10 }, color: KWM_COLOR.cpc, callback: yen }, grid: { display: false } };
+    } else if (kwtMetric === 'imp') {
+      ds = [{ type: 'bar', label: '表示/日', data: g('imp'), backgroundColor: KWM_COLOR.imp + '88', yAxisID: 'y', order: 2 },
+        { type: 'line', label: 'CTR', data: g('ctr'), borderColor: KWM_COLOR.ctr, backgroundColor: KWM_COLOR.ctr, borderWidth: 2, tension: 0.3, pointRadius: kwtUnit === 'daily' ? 1.5 : 2, spanGaps: kwtUnit !== 'daily', yAxisID: 'y1', order: 1 }];
+      scales.y = { beginAtZero: true, ticks: { font: { size: 10 }, color: '#94a3b8' }, grid: { color: 'rgba(0,0,0,0.05)' } };
+      scales.y1 = { beginAtZero: true, position: 'right', ticks: { font: { size: 10 }, color: KWM_COLOR.ctr, callback: v => (Math.round(v * 10) / 10) + '%' }, grid: { display: false } };
+    } else {
+      ds = [{ type: 'bar', label: '売上/日', data: g('sales'), backgroundColor: KWM_COLOR.sales + 'bb', yAxisID: 'y', order: 2 },
+        { type: 'bar', label: '広告費/日', data: g('cost'), backgroundColor: KWM_COLOR.cost + 'bb', yAxisID: 'y', order: 2 },
+        { type: 'line', label: 'ROAS', data: g('roas'), borderColor: KWM_COLOR.roas, backgroundColor: KWM_COLOR.roas, borderWidth: 2, tension: 0.3, pointRadius: kwtUnit === 'daily' ? 1.5 : 2, spanGaps: kwtUnit !== 'daily', yAxisID: 'y1', order: 1 },
+        Object.assign(bidDs, { yAxisID: 'y2' })];
+      const bv = g('bid').filter(v => v != null), lo = bv.length ? Math.min.apply(null, bv) : 0, hi = bv.length ? Math.max.apply(null, bv) : 100, pad = Math.max(10, (hi - lo) * 0.3);
+      scales.y = { beginAtZero: true, ticks: { font: { size: 10 }, color: '#94a3b8', callback: yen }, grid: { color: 'rgba(0,0,0,0.05)' } };
+      const rv = g('roas').filter(v => v != null).sort((a, b) => a - b), p90 = rv.length ? rv[Math.floor((rv.length - 1) * 0.9)] : 0;   // 1日だけ飛び抜けた ROAS で目盛りがつぶれないように
+      scales.y1 = { beginAtZero: true, max: Math.max(300, Math.ceil(p90 * 1.3 / 100) * 100), position: 'right', ticks: { font: { size: 10 }, color: KWM_COLOR.roas, callback: v => Math.round(v) + '%' }, grid: { display: false } };
+      scales.y2 = { display: false, min: Math.max(0, lo - pad * 2), max: hi + pad };
+    }
+    const fmt = (lab, v) => v == null ? '—' : (/ROAS|CTR/.test(lab) ? (lab === 'CTR' ? v.toFixed(2) + '%' : Math.round(v) + '%') : (/表示|クリック/.test(lab) ? (v < 10 ? v.toFixed(1) : Math.round(v).toLocaleString()) : yen(v)));
+    _kwtCharts.push(new Chart(cv.getContext('2d'), {
+      type: 'bar', data: { labels, datasets: ds },
+      options: { responsive: true, maintainAspectRatio: false, animation: false, interaction: { mode: 'index', intersect: false },
+        plugins: { legend: { display: false }, tooltip: { callbacks: { title: it => { const b = bks[it[0].dataIndex]; return b.f === b.t ? graphPeriodText(b.f) : b.f.replace(/-/g, '/') + '〜' + b.t.replace(/-/g, '/'); }, label: c => ' ' + c.dataset.label + '：' + fmt(c.dataset.label, c.raw) } } },
+        scales },
+      plugins: [{ id: 'kwtBase', afterDatasetsDraw(chart){
+        if (baseIdx < 0) return;
+        const { ctx, chartArea: ca, scales: { x } } = chart, px = x.getPixelForValue(baseIdx) - (kwtUnit === 'daily' ? ((labels.length > 1 ? x.getPixelForValue(1) - x.getPixelForValue(0) : 0) / 2) : 0);
+        ctx.save(); ctx.strokeStyle = '#f97316'; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]);
+        ctx.beginPath(); ctx.moveTo(px, ca.top); ctx.lineTo(px, ca.bottom); ctx.stroke(); ctx.setLineDash([]);
+        ctx.font = 'bold 10px sans-serif'; ctx.fillStyle = '#f97316'; ctx.textBaseline = 'top';
+        const txt = '基準日', w = ctx.measureText(txt).width; ctx.fillText(txt, Math.min(ca.right - w, px + 3), ca.top + 1);
+        ctx.restore();
+      } }]
+    }));
+  });
+}
+window.renderKwWTrendView = renderKwWTrendView;
 
 // ============================================
 // v3.68：全-推移（ADcheck v1.1492「全-推移」を流用）
