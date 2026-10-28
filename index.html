@@ -1674,6 +1674,16 @@
   .kwm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9200; display: flex; align-items: flex-start; justify-content: center; padding-top: 2.5vh; }
   .kwm-bg[hidden] { display: none; }
   .kwm-box { background: #fff; width: 79vw; min-width: min(1100px, 96vw); max-width: 1560px; height: 96vh; max-height: 96vh; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; }
+  /* v3.78：全-比較（ADcheck の色の名前を、この画面の中だけで定義） */
+  .cmp-root { --surface: #fff; --surface2: #f3f2ef; --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.14); --text: #1a1a1a; --text2: #666; --text3: #999; color: var(--text); font-size: 13px; }
+  .cmp-root button { display: inline-block; }
+  .cmp-root button:hover { filter: brightness(0.97); }
+  .cmp-cm { display: inline-flex; align-items: center; gap: 5px; margin-left: 6px; }
+  .cmp-cm-l { font-size: 12px; font-weight: 700; color: var(--text2); }
+  .cmp-cm-seg { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
+  .cmp-cm-seg button { font-size: 12px; padding: 5px 9px; border: none; background: var(--surface2); color: var(--text3); font-weight: 700; cursor: pointer; border-radius: 0; }
+  .cmp-cm-seg button.on { background: #7c3aed; color: #fff; }
+  .cmp-cm .ps-help-badge { display: inline-flex; }
   /* v3.68：全-推移 */
   .trend-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; }
   .trend-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
@@ -2150,7 +2160,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.77</span>
+    <span class="version">v3.78</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2189,6 +2199,9 @@
     </button>
     <button class="tab" data-tab="trend">
       全-推移
+    </button>
+    <button class="tab" data-tab="compare">
+      全-比較
     </button>
     <button class="tab" data-tab="pl">
       全体収支
@@ -2382,6 +2395,29 @@
   </div>
   <div id="trend-view" hidden><!-- v3.68：全-推移 -->
     <div id="trend-body"></div>
+  </div>
+  <div id="compare-view" hidden><!-- v3.78：全-比較（ADcheck v1.1493） -->
+<div id="tab-yoy" class="cmp-root">
+    <div style="padding:4px 0 0">
+      <div style="display:flex;gap:6px;margin-bottom:16px;flex-wrap:wrap;align-items:center">   <!-- ★v1.1431★ 1段に収まるよう全体を詰めた -->
+        <span id="yoyViewWrap" style="display:inline-flex;gap:0;margin-right:6px;border:1px solid #475569;border-radius:7px;overflow:hidden"><button id="yoyViewTop" onclick="setYoyView('top')" style="font-size:12px;padding:6px 10px;border:none;cursor:pointer;font-weight:700;background:#475569;color:#fff">寄与度トップ20</button><button id="yoyViewList" onclick="setYoyView('list')" style="font-size:12px;padding:6px 10px;border:none;cursor:pointer;font-weight:700;background:var(--surface);color:#475569">商品一覧</button></span>
+        <button id="yoyModeY1" onclick="setYoyMode('y1')" style="font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid #3b82f6;background:#3b82f6;color:#fff;">直近1年</button>
+        <button id="yoyModeMom" onclick="setYoyMode('mom')" style="font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">前月比較</button>
+        <button id="yoyModeYoy" onclick="setYoyMode('yoy')" style="font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid #3b82f6;background:#3b82f6;color:#fff;">前年同月比</button>
+        <button id="yoyModeYoy3" onclick="setYoyMode('yoy3')" style="font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">前年同月比(3年分)</button>
+        <button id="yoyModePick" onclick="setYoyMode('pick')" style="font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">特定月比較</button>
+        <select id="yoySel" onchange="setYoyMonth(this.value)" style="margin-left:4px;font-size:12px;padding:6px 4px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer"></select><select id="yoySelA" onchange="setYoyPick('a',this.value)" style="display:none;margin-left:4px;font-size:12px;padding:6px 4px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer"></select><button id="yoyPickArrow" onclick="swapYoyPick()" title="左右の月を入れ替える" style="display:none;margin:0 2px;line-height:1;padding:6px 8px;border-radius:6px;border:1px solid #3b82f6;background:#eff6ff;color:#2563eb;font-weight:800;cursor:pointer" onmouseenter="this.style.background='#3b82f6';this.style.color='#fff'" onmouseleave="this.style.background='#eff6ff';this.style.color='#2563eb'"><svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M1.5 4h12M10.5 1l3 3-3 3"/><path d="M14.5 10h-12M5.5 7l-3 3 3 3"/></svg></button><select id="yoySelB" onchange="setYoyPick('b',this.value)" style="display:none;font-size:12px;padding:6px 4px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer"></select>
+        <span class="cmp-cm" id="cmpCostWrap" title="広告費を商品にどう割り当てるか（商品-売上データの 直接／配賦 と同じ）"></span><span id="yoyImpWrap" style="display:none;margin-left:6px;gap:4px;align-items:center"></span><span id="yoyTopRight" style="display:none;margin-left:auto;align-items:center;justify-content:flex-end;gap:8px;flex:1 1 0;min-width:230px"><span id="yoyPinWrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-weight:600;flex:0 1 auto;min-width:0"></span><button id="yoyExportBtn" onclick="exportYoyTop()" title="今表示している寄与度トップ（全指標・今月と比較月）をCSVで保存" style="flex:0 0 auto;font-size:12px;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:700;border:1px solid #0f766e;background:#0f766e;color:#fff;white-space:nowrap">⬇ エクスポート</button></span><button id="yoyTglUp" onclick="toggleYoyLine('up')" style="margin-left:12px;font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid #16a34a;background:#16a34a;color:#fff;">上昇線</button>
+        <button id="yoyTglDown" onclick="toggleYoyLine('down')" style="font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid #dc2626;background:#dc2626;color:#fff;">下降線</button>
+        <button id="yoyColBlue" onclick="toggleYoyColor('blue')" style="margin-left:12px;font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">青商品</button>
+        <button id="yoyColGreen" onclick="toggleYoyColor('green')" style="font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">緑商品</button>
+        <button id="yoyColYellow" onclick="toggleYoyColor('yellow')" style="font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">黄色商品</button>
+        <button id="yoyColRed" onclick="toggleYoyColor('red')" style="font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">赤商品</button>
+        <div style="margin-left:auto;display:flex;align-items:center;gap:10px;font-size:11px;color:var(--text2);flex-wrap:wrap"><span style="font-weight:600">売上 前期比</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#2563eb;margin-right:3px;vertical-align:middle"></span>上昇</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#16a34a;margin-right:3px;vertical-align:middle"></span>上昇(2割以内)</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#ca8a04;margin-right:3px;vertical-align:middle"></span>減少(2割以内)</span><span><span style="display:inline-block;width:10px;height:10px;border-radius:2px;background:#dc2626;margin-right:3px;vertical-align:middle"></span>2割超の減少</span></div>
+      </div>
+      <div id="yoyCompareArea" style="position:relative;overflow:auto;max-height:72vh"></div>
+      <div id="yoyMetricNav" style="display:none;flex-wrap:wrap;gap:6px;margin:0 0 10px"></div>
+      <div id="yoyTopArea" style="display:none;overflow:auto;max-height:76vh" onscroll="_yoyNavSpy()"></div>
   </div>
   <div id="pl-view" hidden>
     <div id="pl-body"></div>
@@ -3874,10 +3910,14 @@ function switchView(name, fromPop){
   document.getElementById('campaign-view').hidden = (name !== 'campaign');
   document.getElementById('graph-view').hidden = (name !== 'graph');
   document.getElementById('trend-view').hidden = (name !== 'trend');   // v3.68
+  document.getElementById('compare-view').hidden = (name !== 'compare');   // v3.78
+  _currentTab = (name === 'compare') ? 'yoy' : name;
+  try { _yoyPageLock(name === 'compare'); } catch (e) {}
   document.getElementById('pl-view').hidden = (name !== 'pl');
   document.getElementById('returns-view').hidden = (name !== 'returns');
   if (name === 'graph') renderGraphView();
   if (name === 'trend') renderTrendView();
+  if (name === 'compare') { renderCompareView(); try { _yoyPageLock(true); } catch (e) {} }
   if (name === 'pl') renderPlView();
   if (name === 'returns') renderReturnsView();
   if (name === 'shipment') renderShipmentTable();
@@ -11014,6 +11054,7 @@ function openProductModal(fnsku, tab){
 function closePmInfo(){
   document.getElementById('pm-modal').hidden = true;
   document.documentElement.style.overflow = ''; document.body.style.overflow = '';
+  if (_currentTab === 'yoy') { try { _yoyPageLock(true); } catch (e) {} }   // v3.78：全-比較はページのスクロールを止めたまま
 }
 function pmCurrent(){
   if (!document.getElementById('pm-modal').hidden) return { tab: 'info', f: pm.fnsku, close: closePmInfo };
@@ -11425,6 +11466,775 @@ function renderTrendView(){
 function trendBind(body){
   const s = body.querySelector('#trend-month'); if (s) s.addEventListener('change', e => { trendMonth = e.target.value; renderTrendView(); });
 }
+
+// ============================================
+// v3.78：全-比較（ADcheck v1.1493「全-比較」を流用）
+//   下の [B] は ADcheck の関数一式（データの読み方だけ Amacheck 用に差し替え。指標：KW→SP広告、20円→SB広告、実績額→広告費）
+//   商品ごとの数字は商品-売上データと同じ計算（psCompute）を月ごとに回す。広告の数字は ④／E がある月だけ
+//   (途中)/(フル)の切り替えは無し（過去の月は E＝月単位なので日数で切れない）。E がまだ無い月は「速報」（④のある日だけ）
+// ============================================
+let _currentTab = '';                 // 'yoy'＝全-比較を開いている（ADcheck の名前のまま）
+let productCache = {};                 // fnsku → { name, img, itemNumber(ASIN) }（描くたびに作り直す）
+let _cmpCostMode = 'alloc';            // 全-比較は全部の広告費を商品に割り当てる「配賦」が初期（直接だと SB の広告費が入らない）
+let _cmpCache = {};
+const _SROAS_COLORS = { g:'#1D9E75', y:'#BA7517', o:'#ED7D31', r:'#A32D2D', n:'var(--text3)' };
+function _sroasCat(v){ if (!(v > 0)) return 'n'; if (v >= 800) return 'g'; if (v >= 500) return 'y'; if (v >= 200) return 'o'; return 'r'; }
+function _daysWithData(){ return []; }
+function openRenewalGraph(code){ openProductModal(code, 'info'); }
+function _cmpBuildProducts(){
+  productCache = {};
+  products.forEach(p => { if (p && p.fnsku) productCache[p.fnsku] = { name: p.name || p.fnsku, img: p.imageUrl || amazonImageUrl(p.asin) || '', itemNumber: p.asin || '' }; });
+}
+// 月の一覧（'YYYYMM'）：出荷数か購入商品データ（④/E）のある月
+function _cmpYms(){
+  const s = new Set();
+  Object.keys(shipments || {}).forEach(ym => { if (/^\d{4}-\d{2}$/.test(ym) && Object.keys(shipments[ym] || {}).length) s.add(ym.replace('-', '')); });
+  Object.keys((purchData && purchData.day) || {}).forEach(d => { if (purchHasRows(purchData.day[d])) s.add(d.slice(0, 4) + d.slice(5, 7)); });
+  Object.keys((purchData && purchData.month) || {}).forEach(m => { if (purchHasRows(purchData.month[m])) s.add(m.replace('-', '')); });
+  return Array.from(s).filter(Boolean).sort();
+}
+// 1か月（'YYYY-MM'）の商品別：商品-売上データと同じ計算
+function _cmpMonth(ym){
+  const ck = _cmpCostMode + '|' + ym; if (_cmpCache[ck]) return _cmpCache[ck];
+  const sv = [psMonth, psDay, psCostMode]; let out = { src: 'none', nDays: 0, by: {} };
+  try {
+    psMonth = ym; psDay = ''; psCostMode = _cmpCostMode;
+    const c = psCompute();
+    out = { src: c.pr.src, nDays: c.pr.nDays, by: {} };
+    c.rows.forEach(r => { if (r.p && r.p.fnsku) out.by[r.p.fnsku] = r; });
+  } catch (e) { console.error(e); }
+  finally { psMonth = sv[0]; psDay = sv[1]; psCostMode = sv[2]; }
+  _cmpCache[ck] = out;
+  return out;
+}
+function _cmpIsPartial(ymc){ const m = _cmpMonth(ymc.length === 6 ? ymc.slice(0, 4) + '-' + ymc.slice(4, 6) : ymc); return m.src === 'daily'; }
+function _cmpSrcTag(ymc){
+  const m = _cmpMonth(ymc.slice(0, 4) + '-' + ymc.slice(4, 6));
+  if (m.src === 'daily') return '<div style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:4px;padding:0 5px;margin-top:2px;white-space:nowrap" title="E（月別の確定）がまだ無いので、④購入商品データ（日別）' + m.nDays + '日分だけで集計">速報 ④' + m.nDays + '日</div>';
+  if (m.src === 'none') return '<div style="font-size:10px;color:var(--text3);margin-top:2px;white-space:nowrap" title="④/E が無いので、広告の数字はありません">広告データなし</div>';
+  return '';
+}
+// 寄与度トップ20の商品別（ADcheck の _yoyTopAgg と同じ形）。ym='YYYY-MM'
+function _yoyTopAgg(ym){
+  const M = _cmpMonth(ym), noPd = M.src === 'none', m = {};
+  Object.keys(M.by).forEach(code => {
+    const r = M.by[code];
+    const x = { tot: r.total || 0, ad: 0, kw: 0, sp: 0, spKw: 0, od: 0, odKw: 0, cl: 0, clKw: 0, ca: 0 };
+    if (!noPd) { x.ad = r.ad || 0; x.kw = r.spAllS || 0; x.sp = r.cost || 0; x.spKw = r.spAllC || 0; x.od = r.units || 0; x.odKw = r.spAllU || 0; }
+    if (!x.tot && !x.ad && !x.sp) return;
+    x.seo = noPd ? 0 : Math.max(0, x.tot - x.ad);
+    x.ad20 = Math.max(0, x.ad - x.kw); x.sp20 = Math.max(0, x.sp - x.spKw); x.od20 = Math.max(0, x.od - x.odKw); x.cl20 = 0;
+    m[code] = x;
+  });
+  return m;
+}
+// 商品一覧の月の商品別（ADcheck の getMonthAgg の形）。ym='YYYY-MM'
+function getMonthAgg(ym){
+  const M = _cmpMonth(ym), noPd = M.src === 'none', out = {};
+  Object.keys(M.by).forEach(code => { const r = M.by[code]; out[code] = { totSales: r.total || 0, rppSales: noPd ? 0 : (r.ad || 0), spend: noPd ? 0 : (r.cost || 0), sales720: noPd ? 0 : (r.ad || 0) }; });
+  return out;
+}
+function _monthAggUpToDay(ym){ return getMonthAgg(ym); }
+function _yoyMonthStats(){ return { spend: 0, sales720: 0 }; }
+function setCmpCostMode(m){ _cmpCostMode = m; _cmpCache = {}; renderYoy(); }
+function _renderCmpCostUI(){
+  const w = document.getElementById('cmpCostWrap'); if (!w) return;
+  const b = (v, l) => '<button type="button" onclick="setCmpCostMode(\'' + v + '\')" class="' + (_cmpCostMode === v ? 'on' : '') + '">' + l + '</button>';
+  w.innerHTML = '<span class="cmp-cm-l">広告費</span><span class="cmp-cm-seg">' + b('direct', '直接') + b('alloc', '配賦（参考）') + '</span>'
+    + '<button type="button" class="ps-help-badge" onclick="document.getElementById(\'ps-cost-help-modal\').hidden=false" title="「直接」と「配賦（参考）」の説明を見る">！</button>';
+}
+function renderCompareView(){
+  _cmpCache = {}; _cmpBuildProducts();
+  renderYoy();
+}
+
+let _yoyMode = 'mom';   // ★v1.1411★ 初期値＝前月比較（ボタンの一番左）。直近1年は商品の絞り込み中だけ使う
+let _yoyMonth = '';
+let _yoyPickA='', _yoyPickB='';
+function setYoyMode(m){ _yoyMode = m; _yoyFocus=null; _setYoyModeUI(); renderYoy(); }
+function setYoyMonth(v){ _yoyMonth = v; _yoyFocus=null; renderYoy(); }
+function setYoyPick(w,v){ if(w==='a')_yoyPickA=v; else _yoyPickB=v; _yoyFocus=null; renderYoy(); }
+// ★v1.1430★ 特定月比較：左右の月を入れ替える（画面に出ている値＝(途中)/(フル)の区別も含めて入れ替える）
+function swapYoyPick(){ const sa=document.getElementById('yoySelA'), sb=document.getElementById('yoySelB'); const a=(sa&&sa.value)||_yoyPickA, b=(sb&&sb.value)||_yoyPickB; _yoyPickA=b; _yoyPickB=a; _yoyFocus=null; renderYoy(); }
+function _setYoyModeUI(){
+  const base='font-size:12px;padding:6px 9px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;';   // ★v1.1431★ 14→9px
+  const on='border:1px solid #3b82f6;background:#3b82f6;color:#fff;';
+  const off='border:1px solid var(--border);background:var(--surface2);color:var(--text3);';
+  const a=document.getElementById('yoyModeYoy'), b=document.getElementById('yoyModeMom'), c=document.getElementById('yoyModePick'), d=document.getElementById('yoyModeYoy3');
+  if(a) a.style.cssText=base+((_yoyMode==='yoy')?on:off);
+  const y1=document.getElementById('yoyModeY1'); if(y1){ y1.style.cssText=base+((_yoyMode==='y1')?on:off); if((typeof _yoyView!=='undefined' && _yoyView!=='top') || (typeof _yoyFocusCode==='undefined' || !_yoyFocusCode)) y1.style.display='none'; }
+  if(d){ d.style.cssText=base+((_yoyMode==='yoy3')?on:off); if(typeof _yoyView!=='undefined' && _yoyView==='top') d.style.display='none'; }   // 3年分は商品一覧だけ
+  if(b) b.style.cssText=base+((_yoyMode==='mom')?on:off);
+  if(c) c.style.cssText=base+((_yoyMode==='pick')?on:off);
+  const pick=(_yoyMode==='pick');
+  const s1=document.getElementById('yoySel'); if(s1) s1.style.display=pick?'none':'';
+  const sa=document.getElementById('yoySelA'), sb=document.getElementById('yoySelB'), ar=document.getElementById('yoyPickArrow');
+  if(sa) sa.style.display=pick?'':'none'; if(sb) sb.style.display=pick?'':'none'; if(ar) ar.style.display=pick?'':'none';
+}
+function _ymAdd(ym, d){ let y=+ym.slice(0,4), m=+ym.slice(4,6)-1+d; y+=Math.floor(m/12); m=((m%12)+12)%12; return String(y)+String(m+1).padStart(2,'0'); }
+let _yoyHideUp=false;
+let _yoyHideDown=false;
+let _yoyFocus=null;
+function setYoyFocus(code){ _yoyFocus=(_yoyFocus===code)?null:code; renderYoy(); }
+function toggleYoyLine(t){ if(t==='up') _yoyHideUp=!_yoyHideUp; else _yoyHideDown=!_yoyHideDown; renderYoy(); }
+let _yoyColorFilter = new Set();
+function toggleYoyColor(c){ if(_yoyColorFilter.has(c)) _yoyColorFilter.delete(c); else _yoyColorFilter.add(c); renderYoy(); }
+const _YOYCOL={blue:'#2563eb',green:'#16a34a',yellow:'#ca8a04',red:'#dc2626'};
+function _yoyCat(cur, prev){ if(cur<=0||prev<=0) return null; if(cur>=prev*1.2) return 'blue'; if(cur>prev) return 'green'; if(cur===prev) return null; if(cur>=prev*0.8) return 'yellow'; return 'red'; }
+function _yoyLatestColor(p){ const n=p.v.length; return (n>=2)?_yoyCat(p.v[n-1].s, p.v[n-2].s):null; }
+function _setYoyColorUI(){
+  const base='font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;';
+  const off='border:1px solid var(--border);background:var(--surface2);color:var(--text3);';
+  const map={blue:['yoyColBlue','#2563eb'],green:['yoyColGreen','#16a34a'],yellow:['yoyColYellow','#ca8a04'],red:['yoyColRed','#dc2626']};
+  Object.keys(map).forEach(c=>{ const id=map[c][0], col=map[c][1]; const el=document.getElementById(id); if(!el) return; const ml=(c==='blue')?'margin-left:12px;':''; el.style.cssText=ml+base+(_yoyColorFilter.has(c)?('border:1px solid '+col+';background:'+col+';color:#fff;'):off); });
+}
+function _setYoyLineUI(){
+  const base='font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;';
+  const off='border:1px solid var(--border);background:var(--surface2);color:var(--text3);text-decoration:line-through;';
+  const up=document.getElementById('yoyTglUp'), dn=document.getElementById('yoyTglDown');
+  if(up) up.style.cssText='margin-left:12px;'+base+(_yoyHideUp?off:'border:1px solid #16a34a;background:#16a34a;color:#fff;');
+  if(dn) dn.style.cssText=base+(_yoyHideDown?off:'border:1px solid #dc2626;background:#dc2626;color:#fff;');
+}
+// getMonthAgg の「日数を maxDay 日までに限定」した版（途中比較用・キャッシュしない）
+// ══ ★v1.1393★ 全-比較：寄与度トップ20（全-月別データの補助） ══
+//   上段＝今月（選んだ月）、下段＝比較月（前月／前年同月／特定月）。指標ごとに、その月の全体に占める割合が大きい上位10商品。
+//   ROAS・獲得単価は割合ではなく「その商品があることで全体の値がどれだけ動いているか」（全体の値 − その商品を除いた値）の大きい順。
+//   今月が途中なら、比較月も同じ日まで（全-比較の他の表示と同じ）。
+let _yoyView = (function(){ try{ return localStorage.getItem('amacheck_cmp_view') || 'top'; }catch(e){ return 'top'; } })();
+let _yoyY1Back = false;
+function setYoyView(v){ _yoyView = v; if (v === 'top' && _yoyY1Back) { _yoyMode = 'y1'; _yoyY1Back = false; } try{ localStorage.setItem('amacheck_cmp_view', v); }catch(e){} renderYoy(); }
+function _setYoyViewUI(){
+  const top = (_yoyView === 'top');
+  const a = document.getElementById('yoyViewTop'), b = document.getElementById('yoyViewList');
+  if (a){ a.style.background = top ? '#475569' : 'var(--surface)'; a.style.color = top ? '#fff' : '#475569'; }
+  if (b){ b.style.background = top ? 'var(--surface)' : '#475569'; b.style.color = top ? '#475569' : '#fff'; }
+  ['yoyModeYoy3','yoyTglUp','yoyTglDown','yoyColBlue','yoyColGreen','yoyColYellow','yoyColRed'].forEach(id => { const el = document.getElementById(id); if (el) el.style.display = top ? 'none' : ''; });
+  // 凡例（売上 前期比）は最初に見つけた時に id を付けておく（style を書き換えると属性の文字列が変わり探せなくなるため）
+  let lg = document.getElementById('yoyLegend');
+  if (!lg) { lg = [...document.querySelectorAll('#tab-yoy [style*="margin-left"]')].find(e => e.id !== 'yoyTopRight' && /前期比/.test(e.textContent)); if (lg) lg.id = 'yoyLegend'; }
+  if (lg) lg.style.display = top ? 'none' : 'flex';
+  const ca = document.getElementById('yoyCompareArea'), ta = document.getElementById('yoyTopArea');
+  if (ca) ca.style.display = top ? 'none' : '';
+  if (ta) ta.style.display = top ? '' : 'none';
+  if (typeof _fitYoyTopArea === 'function') _fitYoyTopArea();
+  const pw = document.getElementById('yoyTopRight'); if (pw) pw.style.display = top ? 'inline-flex' : 'none';
+  const nv = document.getElementById('yoyMetricNav'); if (nv) nv.style.display = top ? 'flex' : 'none';
+  const iw = document.getElementById('yoyImpWrap'); if (iw) iw.style.display = top ? 'inline-flex' : 'none';
+}
+// 期間内の商品別集計（ym='YYYY-MM'、maxDay=何日まで）
+const YOYTOP_N = 20;
+// ★v1.1427★ 寄与度トップ20の画像が読めなかったときの代わり（58pxのまま。66pxの共通版だと商品名にかぶる）
+function _ytImgErr(el){ try{ const d = document.createElement('div'); d.style.cssText = 'width:58px;height:58px;box-sizing:border-box;margin:0 auto;border-radius:8px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text3)'; d.textContent = '画像'; el.replaceWith(d); }catch(e){} }
+// ★v1.1422★ 「広告なし」をオレンジのバッジで目立たせる（big＝絞り込み中の表用）
+function _yoyNoAdBadge(big){ return '<span style="display:inline-block;font-family:\'Noto Sans JP\',sans-serif;font-size:'+(big?'11':'10')+'px;font-weight:800;line-height:'+(big?'16':'13')+'px;padding:0 '+(big?'8':'7')+'px;border-radius:9px;background:#fff7ed;color:#c2410c;border:1px solid #fb923c;letter-spacing:.05em;vertical-align:middle" title="この月は広告費0円（売上だけある）">広告なし</span>'; }
+// ★v1.1414★ 寄与度の向きで絞る：all＝影響の大きい順（＋−混在）／neg＝マイナス寄与（全体を悪くしている：ROAS系は−pt、獲得単価は＋¥）だけ大きい順／pos＝プラス寄与だけ大きい順
+let _yoyImpMode = 'all';
+function _yoyImpPick(list, isCpa){
+  if (_yoyImpMode === 'all') return list;
+  const bad = x => isCpa ? x.imp > 0 : x.imp < 0;
+  return list.filter(x => _yoyImpMode === 'neg' ? bad(x) : (!bad(x) && x.imp !== 0));   // list は影響の大きい順なので並びはそのまま
+}
+function setYoyImpMode(m){ _yoyImpMode = m; const a = document.getElementById('yoyTopArea'); if (a) a.scrollLeft = 0; renderYoyTop(); }
+function _renderYoyImpUI(){
+  const w = document.getElementById('yoyImpWrap'); if (!w) return;
+  w.style.display = (_yoyView === 'top') ? 'inline-flex' : 'none';
+  const b = (v, lbl, col, tip) => { const on = (_yoyImpMode === v); return '<button onclick="setYoyImpMode(\''+v+'\')" title="'+tip+'" style="font-size:12px;padding:6px 8px;border-radius:6px;cursor:pointer;font-weight:700;white-space:nowrap;border:1px solid '+(on?col:'var(--border)')+';background:'+(on?col:'var(--surface2)')+';color:'+(on?'#fff':'var(--text3)')+'">'+lbl+'</button>'; };
+  w.innerHTML = b('all','+-両方','#475569','影響の大きい順（＋も−も）')   // ★v1.1426★ 表記変更（旧：すべて）
+    + b('neg','ROAS寄与度-','#dc2626','全体のROASを下げている商品だけ、影響の大きい順（−pt）')   // ★v1.1418★ 表記変更（旧：マイナス寄与度高い）
+    + b('pos','ROAS寄与度+','#16a34a','全体のROASを上げている商品だけ、影響の大きい順（＋pt）');   // ★v1.1418★ 表記変更（旧：プラス寄与度高い）
+}
+// ★v1.1409★ 絞り込み中（商品1つ）の表だけの並び：総売上・売上ROAS → ROAS系 → 売上系 → 実績額系 → 獲得単価
+const _YOYFOCUS_ORDER = ['sroas','roas','roasKw','roas20','tot','seo','ad','kw','ad20','sp','spKw','sp20','cpa'];   // ★v1.1416★ ★v1.1425★ CVR系を追加（絞り込み中だけ）
+function _yoyMetricsFor(focus){ return focus ? _YOYFOCUS_ORDER.map(k => _YOYALL_METRICS().find(m => m.k === k)).filter(Boolean).concat(_YOYTOP_METRICS.filter(m => _YOYFOCUS_ORDER.indexOf(m.k) < 0)) : _YOYTOP_METRICS; }
+// ★v1.1425★ 絞り込み中だけ出す指標：CVR＝注文数÷クリック数（寄与度＝全体CVR − その商品を除いた全体CVR）
+// ★v1.1426★ ROAS系の分母（実績額）の呼び名
+const _YOY_SP_LABEL = { sp:'広告費', spKw:'広告費-SP', sp20:'広告費-SB' };
+const _YOYFOCUS_EXTRA = [];   // Amacheck：商品ごとのクリック数が無いので CVR は出さない
+function _YOYALL_METRICS(){ return _YOYTOP_METRICS.concat(_YOYFOCUS_EXTRA); }
+// ★v1.1428★ 同じ系統（g）のまとまりの境目を太線で区切る。list の中で「前の指標とグループが変わる」指標のキーを返す
+const _YOY_GRP_LINE = '3px solid #64748b';
+function _yoyGroupStarts(list){ const st = new Set(); list.forEach((mt, i) => { if (i > 0 && mt.g !== list[i-1].g) st.add(mt.k); }); return st; }   // ★v1.1398★ 20位まで（左右スクロール）
+// ★v1.1419★ ROAS寄与度-／+ のときは ROAS系（売上ROAS・ROAS・ROAS-KW・ROAS-20）だけを出す（ボタン・表・エクスポートとも）
+// ★v1.1421★ ただし商品を絞り込んでいる間は、ROAS寄与度-／+ でも全指標を出す
+function _yoyShownMetrics(focus){ return _yoyMetricsFor(focus).filter(mt => focus || _yoyImpMode === 'all' || mt.type === 'roas'); }
+// ★v1.1427★ 色は商品-売上データの列の色にそろえた（総売上・売上ROAS＝青、売上＝緑、実績額＝黄、獲得単価＝紫、CVR＝オレンジ、ROAS＝ピンク）
+const _YOYTOP_METRICS = [   // Amacheck：KW→SP広告、20円→SB広告、実績額→広告費、獲得単価＝広告費÷広告経由の個数（④/E の注文点数）
+  { k:'sroas', g:'sroas', label:'売上ROAS', col:'#1d4ed8', bg:'#bfdbfe', type:'roas', num:'tot', den:'sp' },
+  { k:'roas', g:'roas', label:'ROAS',      col:'#be123c', bg:'#fecdd3', type:'roas', num:'ad', den:'sp' },
+  { k:'roasKw', g:'roas', label:'ROAS-SP', col:'#e11d48', bg:'#ffe4e8', type:'roas', num:'kw', den:'spKw' },
+  { k:'roas20', g:'roas', label:'ROAS-SB', col:'#f43f5e', bg:'#fff1f2', type:'roas', num:'ad20', den:'sp20' },
+  { k:'tot', g:'sales',  label:'推計総売上', col:'#1d4ed8', bg:'#bfdbfe', type:'amt' },
+  { k:'seo', g:'sales',  label:'SEO売上',   col:'#2563eb', bg:'#dbeafe', type:'amt' },
+  { k:'ad', g:'ad',   label:'広告売上',   col:'#166534', bg:'#ceead4', type:'amt' },
+  { k:'kw', g:'ad',   label:'広告売上-SP', col:'#15803d', bg:'#bbf7d0', type:'amt' },
+  { k:'ad20', g:'ad', label:'広告売上-SB', col:'#047857', bg:'#d1fae5', type:'amt' },
+  { k:'sp', g:'sp',   label:'広告費',     col:'#854d0e', bg:'#fef08a', type:'amt' },
+  { k:'spKw', g:'sp', label:'広告費-SP',  col:'#a16207', bg:'#fef9c3', type:'amt' },
+  { k:'sp20', g:'sp', label:'広告費-SB',  col:'#b45309', bg:'#fefce8', type:'amt' },
+  { k:'cpa', g:'cpa',  label:'獲得単価',   col:'#6d28d9', bg:'#ddd6fe', type:'cpa' },
+];
+// 1か月分：指標ごとの上位10と合計
+function _yoyTopCalc(agg){
+  const codes = Object.keys(agg);
+  const sum = k => codes.reduce((t,c) => t + (agg[c][k] || 0), 0);
+  const T = { tot:sum('tot'), seo:sum('seo'), ad:sum('ad'), kw:sum('kw'), ad20:sum('ad20'), sp:sum('sp'), spKw:sum('spKw'), sp20:sum('sp20'), od:sum('od'), odKw:sum('odKw'), od20:sum('od20'), cl:sum('cl'), clKw:sum('clKw'), cl20:sum('cl20') };
+  const out = {};
+  _YOYALL_METRICS().forEach(mt => {
+    let list = [];
+    if (mt.type === 'amt'){
+      const tot = T[mt.k];
+      const all = codes.map(c => ({ code:c, v:agg[c][mt.k] || 0 })).filter(x => x.v > 0).sort((a,b) => b.v - a.v)
+        .map(x => Object.assign(x, { share: tot > 0 ? x.v / tot * 100 : 0 }));
+      out[mt.k] = { total: tot, list: all.slice(0, YOYTOP_N), all };
+    } else if (mt.type === 'roas'){
+      // ROAS／ROAS-KW／ROAS-20：売上(num) ÷ 実績額(den)。その商品を除いたときとの差で並べる
+      const N = mt.num, D = mt.den;
+      const R = T[D] > 0 ? T[N] / T[D] * 100 : 0;
+      // 広告費0円でも売上がある商品も入れる（全体を押し上げる分＝その商品の売上÷全体の実績額）。商品ROASは「広告なし」
+      list = codes.filter(c => { const d = agg[c][D] || 0, n = agg[c][N] || 0; return (d > 0 || n > 0) && T[D] - d > 0; }).map(c => {
+        const a = agg[c], d = a[D] || 0, n = a[N] || 0; const without = (T[N] - n) / (T[D] - d) * 100;
+        return { code:c, v: d > 0 ? n / d * 100 : null, imp: R - without, sp: d };   // ★v1.1426★ sp＝その商品の実績額（分母）
+      }).sort((a,b) => Math.abs(b.imp) - Math.abs(a.imp));
+      out[mt.k] = { total: R, list: _yoyImpPick(list, false).slice(0, YOYTOP_N), all: list };
+    } else if (mt.type === 'cpa'){
+      const C = T.od > 0 ? T.sp / T.od : 0;
+      list = codes.filter(c => (agg[c].sp || 0) > 0 && T.od - (agg[c].od || 0) > 0).map(c => {
+        const a = agg[c]; const without = (T.sp - a.sp) / (T.od - (a.od || 0));
+        return { code:c, v: (a.od > 0 ? a.sp / a.od : null), imp: C - without };
+      }).sort((a,b) => Math.abs(b.imp) - Math.abs(a.imp));
+      out.cpa = { total: C, list: _yoyImpPick(list, true).slice(0, YOYTOP_N), all: list };
+    } else if (mt.type === 'cvr'){
+      // ★v1.1425★ CVR／CVR-KW／CVR-20：注文数(num) ÷ クリック数(den)。その商品を除いたときとの差で並べる
+      const N = mt.num, D = mt.den;
+      const R = T[D] > 0 ? T[N] / T[D] * 100 : 0;
+      list = codes.filter(c => (agg[c][D] || 0) > 0 && T[D] - (agg[c][D] || 0) > 0).map(c => {
+        const a = agg[c], d = a[D] || 0, n = a[N] || 0; const without = (T[N] - n) / (T[D] - d) * 100;
+        return { code:c, v: n / d * 100, imp: R - without };
+      }).sort((a,b) => Math.abs(b.imp) - Math.abs(a.imp));
+      out[mt.k] = { total: R, list: _yoyImpPick(list, false).slice(0, YOYTOP_N), all: list };
+    }
+  });
+  return out;
+}
+// 月の選択肢と、今月・比較月・何日までを決める（全-比較の他の表示と同じルール）
+function _yoyTopPeriods(){
+  const yms = _cmpYms();
+  if (!yms.length) return null;
+  const curYm = '999999';   // Amacheck：(途中)/(フル)は使わない（過去の月は E＝月単位なので日数で切れない）
+  const ymDash = m => m.slice(0,4) + '-' + m.slice(4,6);
+  const optHtml = (m, cm, full) => { const lbl = m.slice(0,4) + '/' + m.slice(4,6);
+    if (m >= curYm) return '<option value="'+m+'"'+((m===cm && !full)?' selected':'')+'>'+lbl+'(途中)</option><option value="'+m+'#full"'+((m===cm && full)?' selected':'')+'>'+lbl+'(フル)</option>';
+    return '<option value="'+m+'"'+((m===cm)?' selected':'')+'>'+lbl+'</option>'; };
+  const cut = m => { const dw = _daysWithData(ymDash(m)); return dw.length ? (parseInt(dw[dw.length-1].slice(8,10),10) || 31) : 31; };
+  let top, cmp, partial = false, cutoff = 31;
+  if (_yoyMode === 'pick'){
+    let pa = _yoyPickA || '', pb = _yoyPickB || '', af = false, bf = false;
+    if (pa.slice(-5) === '#full'){ af = true; pa = pa.slice(0,-5); }
+    if (pb.slice(-5) === '#full'){ bf = true; pb = pb.slice(0,-5); }
+    // ★v1.1430★ 左（A）＝上の段（比較される側）、右（B）＝下の段（比較する月）。以前は逆だった
+    top = (pa && yms.includes(pa)) ? pa : yms[yms.length-1];
+    cmp = (pb && yms.includes(pb)) ? pb : (yms[yms.length-2] || yms[0]);
+    const tp = (top >= curYm) && !af, cp = (cmp >= curYm) && !bf;
+    partial = tp || cp; if (partial) cutoff = cut(tp ? top : cmp);
+    const sa = document.getElementById('yoySelA'), sb = document.getElementById('yoySelB');
+    if (sa) sa.innerHTML = [...yms].reverse().map(m => optHtml(m, top, af)).join('');
+    if (sb) sb.innerHTML = [...yms].reverse().map(m => optHtml(m, cmp, bf)).join('');
+  } else {
+    let sm = _yoyMonth || '', sf = false;
+    if (sm.slice(-5) === '#full'){ sf = true; sm = sm.slice(0,-5); }
+    top = (sm && yms.includes(sm)) ? sm : yms[yms.length-1];
+    partial = (top >= curYm) && !sf; if (partial) cutoff = cut(top);
+    cmp = (_yoyMode === 'mom') ? _ymAdd(top, -1) : _ymAdd(top, -12);
+    const sel = document.getElementById('yoySel');
+    if (sel){ let h = ''; [...yms].reverse().forEach(m => { const lbl = m.slice(0,4)+'/'+m.slice(4,6);
+      if (m >= curYm){ h += '<option value="'+m+'"'+((m===top && partial)?' selected':'')+'>'+lbl+'(途中)</option>'; h += '<option value="'+m+'#full"'+((m===top && !partial && sf)?' selected':'')+'>'+lbl+'(フル)</option>'; }
+      else h += '<option value="'+m+'"'+((m===top && !partial)?' selected':'')+'>'+lbl+'</option>'; }); sel.innerHTML = h; }
+  }
+  // ★v1.1410★ 表示する月の並び（上から）。直近1年＝選んだ月から12か月さかのぼる（途中の月は最新月だけ）
+  const modeLbl = (_yoyMode === 'mom') ? '前月' : (_yoyMode === 'pick' ? '比較する月' : '前年同月');
+  let months;
+  if (_yoyMode === 'y1') {
+    months = [];
+    for (let i = 0; i < 12; i++) { const m = _ymAdd(top, -i); if (m < yms[0]) break; months.push({ ym:m, title: i === 0 ? '今月' : (i + 'か月前'), md: (i === 0 && partial) ? cutoff : null }); }
+  } else {
+    months = [ { ym:top, title:'今月', md: partial ? cutoff : null }, { ym:cmp, title:modeLbl, md: partial ? cutoff : null } ];
+  }
+  return { top, cmp, partial, cutoff, ymDash, months };
+}
+// ★v1.1402★ 選択枠：数（なし/1/2/3）を選べる。クリックで空いている枠に入れて固定、もう一度クリックで外す。
+//   枠がいっぱいのときに他の商品をクリックしても何も起きない。枠ごとに色が違う。ダブルクリックで商品の詳細
+const _YOYPIN_COLORS = ['#f59e0b', '#2563eb', '#16a34a'];
+const _YOYPIN_BG     = ['#fffbeb', '#eff6ff', '#f0fdf4'];
+let _yoyPinN = 2;   // ★v1.1414★ 選択枠は常に2つ（なし/1/2 の切り替えは廃止）
+let _yoyTopPins = [];          // 枠の番号順（空きは null）
+let _yoyTopHover = null;
+function _yoyTopPaint(code){
+  const slot = _yoyTopPins.indexOf(code);
+  const hov = (_yoyTopHover === code);
+  document.querySelectorAll('#yoyTopArea .yt-tile[data-code="'+code+'"]').forEach(el => {
+    if (slot >= 0) { el.style.outline = '2px solid ' + _YOYPIN_COLORS[slot]; el.style.background = _YOYPIN_BG[slot]; }
+    else if (hov) { el.style.outline = '2px dashed #94a3b8'; el.style.background = '#f8fafc'; }
+    else { el.style.outline = ''; el.style.background = ''; }
+  });
+}
+function _yoyTopHi(code, on){ const prev = _yoyTopHover; _yoyTopHover = on ? code : null; if (prev && prev !== code) _yoyTopPaint(prev); _yoyTopPaint(code); }
+function _yoyTopPin(code){
+  if (_yoyPinN <= 0) return;                              // 選択枠なし
+  const k = _yoyTopPins.indexOf(code);
+  if (k >= 0) { _yoyTopPins[k] = null; _yoyTopPaint(code); _renderYoyPinUI(); return; }   // もう一度クリック＝外す
+  for (let i = 0; i < Math.min(_yoyPinN, 2); i++) { if (!_yoyTopPins[i]) { _yoyTopPins[i] = code; _yoyTopPaint(code); _renderYoyPinUI(); return; } }
+  // 枠がいっぱい → 何もしない
+}
+function setYoyPinN(n){
+  _yoyPinN = n; try { localStorage.setItem('amacheck_cmp_pin_n', String(n)); } catch(e){}
+  const drop = _yoyTopPins.slice(n).filter(Boolean);
+  _yoyTopPins = _yoyTopPins.slice(0, n);
+  drop.forEach(_yoyTopPaint);
+  _renderYoyPinUI();
+}
+function _renderYoyPinUI(){
+  const w = document.getElementById('yoyPinWrap'); if (!w) return;
+  const rg = document.getElementById('yoyTopRight'); if (rg) rg.style.display = (_yoyView === 'top') ? 'inline-flex' : 'none';
+  const b = (v, lbl) => { const on = (_yoyPinN === v); return '<button onclick="setYoyPinN('+v+')" style="font-size:12px;padding:5px 11px;border-radius:6px;cursor:pointer;font-weight:700;border:1px solid '+(on?'#475569':'var(--border)')+';background:'+(on?'#475569':'var(--surface2)')+';color:'+(on?'#fff':'var(--text3)')+'">'+lbl+'</button>'; };
+  const esc = t => String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  // ★v1.1403★ 選んだ商品の欄は常に2つ分・同じ幅で表示（選んでも外しても周りが動かない）
+  let chips = '';
+  for (let i = 0; i < 2; i++) {
+    const usable = i < _yoyPinN;
+    const c = usable ? _yoyTopPins[i] : null; const pc = c ? (productCache[c] || {}) : null;
+    const nm = c ? (pc.manualName || pc.name || c) : (usable ? '未選択' : '—');
+    chips += '<span title="'+esc(c ? nm : '')+'" style="display:inline-flex;align-items:center;justify-content:space-between;gap:4px;flex:0 1 130px;width:130px;min-width:52px;box-sizing:border-box;height:28px;padding:0 8px;border-radius:6px;border:2px '+(usable?'solid':'dashed')+' '+(usable?_YOYPIN_COLORS[i]:'var(--border)')+';background:'+(c?_YOYPIN_BG[i]:'var(--surface)')+';font-size:11px;font-weight:700;color:'+(c?'var(--text)':'var(--text3)')+';opacity:'+(usable?'1':'.5')+';cursor:'+(c?'pointer':'default')+'"'+(c?' onclick="_yoyTopPin(\''+esc(c)+'\')"':'')+'><span style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:0">'+esc(nm)+'</span>'+(c?'<span style="color:var(--text3);flex:0 0 auto">✕</span>':'')+'</span>';
+  }
+  w.innerHTML = '<span style="display:flex;gap:6px;min-width:0;width:100%">'+chips+'</span>';   // ★v1.1431★ 幅が足りないときは枠が細くなる（2段目に落ちない）
+  w.style.visibility = ''; w.style.display = _yoyFocusCode ? 'none' : 'inline-flex';   // ★v1.1418★ 絞り込み中は選択枠を消して場所も空ける（見えない枠の幅でエクスポートが2段目に落ちていた）
+}
+// ★v1.1402★ 寄与度トップのエクスポート（CSV・Excelでそのまま開ける）
+let _yoyTopLast = null;
+function exportYoyTop(){
+  if (!_yoyTopLast) { try { renderYoyTop(); } catch(e){} }
+  const L = _yoyTopLast; if (!L) { alert('エクスポートできるデータがありません'); return; }
+  const { P, M } = L;
+  const ym = m => m.slice(0,4) + '/' + m.slice(4,6);
+  const q = v => { const t = (v == null) ? '' : String(v); return /[",\n]/.test(t) ? '"' + t.replace(/"/g,'""') + '"' : t; };
+  const rows = [['指標','区分','年月','期間','全体(合計)','順位','商品管理番号','商品番号','商品名','値','値の単位','構成比(%)','全体への影響','影響の単位']];
+  const push = (mt, kubun, month, period, r) => {
+    const tot = mt.type === 'amt' ? Math.round(r.total) : (mt.type === 'roas' ? (r.total ? r.total.toFixed(1) : '') : (mt.type === 'cvr' ? (r.total ? r.total.toFixed(2) : '') : (r.total ? Math.round(r.total) : '')));
+    r.list.forEach((x, i) => {
+      const pc = productCache[x.code] || {};
+      const name = pc.manualName || pc.name || x.code;
+      let v = '', vu = '', sh = '', im = '', iu = '';
+      if (mt.type === 'amt') { v = Math.round(x.v); vu = '円'; sh = x.share.toFixed(1); }
+      else if (mt.type === 'roas') { v = (x.v == null) ? '' : x.v.toFixed(1); vu = (x.v == null) ? '広告なし' : '%'; im = x.imp.toFixed(1); iu = 'pt'; }
+      else if (mt.type === 'cvr') { v = x.v.toFixed(2); vu = '%'; im = x.imp.toFixed(2); iu = 'pt'; }
+      else { v = (x.v == null) ? '' : Math.round(x.v); vu = (x.v == null) ? '個数0' : '円'; im = Math.round(x.imp); iu = '円'; }
+      rows.push([mt.label, kubun, month, period, tot, i + 1, x.code, pc.itemNumber || '', name, v, vu, sh, im, iu]);
+    });
+  };
+  _yoyShownMetrics(!!_yoyFocusCode).forEach(mt => { M.forEach(m => push(mt, m.title, ym(m.ym), m.md ? ('1〜' + m.md + '日') : '月全体', m.res[mt.k])); });
+  const csv = '﻿' + rows.map(r => r.map(q).join(',')).join('\r\n');
+  const shop = (typeof _getSessionShopId === 'function' ? (_getSessionShopId() || '') : '');
+  const last = M[M.length - 1].ym;
+  const fn = '寄与度トップ' + YOYTOP_N + '_' + (shop ? shop + '_' : '') + (_yoyMode === 'y1' ? ('直近1年_' + last + '-' + P.top) : (P.top + (P.partial ? '(1-' + P.cutoff + ')' : '') + '_vs_' + P.cmp)) + '.csv';
+  const blob = new Blob([csv], { type: 'text/csv;charset=utf-8' });
+  const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = fn;
+  document.body.appendChild(a); a.click(); setTimeout(() => { URL.revokeObjectURL(a.href); a.remove(); }, 500);
+}
+// ★v1.1404★ 商品で絞り込み：タイルの「絞込」を押すと、全指標・両方の月でその商品だけを表示（順位は全商品の中での順位）
+let _yoyFocusCode = null;
+let _yoyModeBeforeFocus = null;
+function setYoyTopFocus(code){
+  const was = _yoyFocusCode;
+  _yoyFocusCode = (_yoyFocusCode === code) ? null : (code || null);
+  // ★v1.1411★ 絞り込みを始めたら「直近1年」、やめたら絞り込み前の比較に戻す
+  if (!was && _yoyFocusCode) { _yoyModeBeforeFocus = _yoyMode; _yoyMode = 'y1'; }
+  else if (was && !_yoyFocusCode) { if (_yoyMode === 'y1') _yoyMode = _yoyModeBeforeFocus || 'mom'; _yoyModeBeforeFocus = null; }
+  try { _setYoyModeUI(); } catch(e){} const a = document.getElementById('yoyTopArea'); if (a) { a.scrollTop = 0; a.scrollLeft = 0; } renderYoyTop(); }
+// ★v1.1407★ 指標ボタン：押すとその指標の段まで表の中をスクロール（絞り込み中はその列まで横に）。今見ている指標のボタンが光る
+function _renderYoyNav(){
+  const nav = document.getElementById('yoyMetricNav'); if (!nav) return;
+  nav.style.display = (_yoyView === 'top') ? 'flex' : 'none';
+  // ★v1.1418★ ROAS寄与度-／+ を押している間は、ROAS系（売上ROAS・ROAS・ROAS-KW・ROAS-20）のボタンだけ出す
+  const _navL = _yoyShownMetrics(!!_yoyFocusCode), _navGS = _yoyGroupStarts(_navL);   // ★v1.1428★ グループの境目に区切り
+  nav.innerHTML = _navL.map(mt => (_navGS.has(mt.k) ? '<span style="align-self:stretch;width:2px;margin:2px 4px;background:#cbd5e1;border-radius:1px"></span>' : '') + '<button class="yt-navbtn" data-mk="'+mt.k+'" onclick="_yoyNavGo(\''+mt.k+'\')" style="font-size:12px;padding:5px 12px;border-radius:999px;cursor:pointer;font-weight:700;white-space:nowrap;border:1.5px solid '+mt.col+';background:'+mt.bg+';color:'+mt.col+'">'+mt.label+'</button>').join('');
+  _yoyNavSpy();
+}
+function _yoyNavGo(k){
+  const a = document.getElementById('yoyTopArea'); if (!a) return;
+  const el = document.getElementById(_yoyFocusCode ? 'yt-col-'+k : 'yt-blk-'+k); if (!el) return;
+  const ar = a.getBoundingClientRect(), er = el.getBoundingClientRect();
+  const scale = (a.offsetHeight > 0 && ar.height > 0) ? ar.height / a.offsetHeight : 1;
+  if (_yoyFocusCode) a.scrollTo({ left: Math.max(0, a.scrollLeft + (er.left - ar.left) / scale - 140), behavior:'smooth' });
+  else a.scrollTo({ top: Math.max(0, a.scrollTop + (er.top - ar.top) / scale), behavior:'smooth' });
+  _yoyNavMark(k);
+}
+function _yoyNavMark(k){
+  document.querySelectorAll('#yoyMetricNav .yt-navbtn').forEach(b => {
+    const mt = _YOYALL_METRICS().find(m => m.k === b.dataset.mk); const on = (b.dataset.mk === k);
+    b.style.background = on ? mt.col : mt.bg; b.style.color = on ? '#fff' : mt.col;
+  });
+}
+function _yoyNavSpy(){
+  if (_yoyFocusCode) return;
+  const a = document.getElementById('yoyTopArea'); if (!a || a.offsetParent === null) return;
+  const SM = _yoyShownMetrics(false); if (!SM.length) return;
+  const top = a.getBoundingClientRect().top + 4; let cur = SM[0].k;
+  SM.forEach(mt => { const el = document.getElementById('yt-blk-'+mt.k); if (el && el.getBoundingClientRect().top <= top) cur = mt.k; });
+  if (a.scrollTop + a.clientHeight >= a.scrollHeight - 2) cur = SM[SM.length-1].k;   // 一番下まで来たら最後の指標
+  _yoyNavMark(cur);
+}
+function renderYoyTop(){
+  const area = document.getElementById('yoyTopArea'); if (!area) return;
+  if (_yoyMode === 'yoy3'){ _yoyMode = 'yoy'; _setYoyModeUI(); }   // 3年分はこの表示では使わない
+  if (_yoyMode === 'y1' && !_yoyFocusCode){ _yoyMode = _yoyModeBeforeFocus || 'mom'; _setYoyModeUI(); }   // 直近1年は絞り込み中だけ
+  _setYoyModeUI();
+  const P = _yoyTopPeriods();
+  if (!P){ area.innerHTML = '<div style="padding:40px;text-align:center;color:var(--text3)">データがありません</div>'; return; }
+  const md = P.partial ? P.cutoff : 31;
+  const M = P.months.map(m => Object.assign({}, m, { res: _yoyTopCalc(_yoyTopAgg(P.ymDash(m.ym), m.md || 31)) })).map(m => { if (_cmpMonth(P.ymDash(m.ym)).src === 'none') Object.keys(m.res).forEach(k => { if (k !== 'tot') m.res[k].noData = true; }); return m; });   // Amacheck：④/E の無い月は広告まわりの伸び率を出さない
+  _yoyTopLast = { P, M };
+  const esc = t => String(t == null ? '' : t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const yen = v => '¥' + Math.round(v).toLocaleString();
+  const lbl = m => m.slice(0,4) + '/' + m.slice(4,6) + (P.partial ? '（1〜' + md + '日）' : '');
+  const modeLbl = (_yoyMode === 'mom') ? '前月' : (_yoyMode === 'pick' ? '比較する月' : '前年同月');
+  // ★v1.1459★ 伸び率＝すぐ下の行（比較月）を100%としたときの、この行の金額。金額の指標だけ
+  const growth = (a, b) => { if (b === null) return '<span style="color:var(--text3)">—</span>'; a = a || 0; b = b || 0;
+    if (b > 0){ const g = Math.round(a / b * 100); return '<span style="color:'+(g >= 100 ? '#16a34a' : '#dc2626')+'">'+g.toLocaleString()+'%</span>'; }
+    return a > 0 ? '<span style="color:#2563eb">新規</span>' : '<span style="color:var(--text3)">—</span>'; };
+  // 途中の月とまるまる1か月を比べると伸び率がおかしくなるので、日数の条件が同じ行どうしだけ比べる
+  const belowOf = (i) => (M[i+1] && (!!M[i].md === !!M[i+1].md) && !_cmpIsPartial(M[i].ym) && !_cmpIsPartial(M[i+1].ym)) ? M[i+1] : null;   // Amacheck：速報（④の一部の日だけ）の月は伸び率を出さない
+  const belowVal = (below, code) => { if (!below) return 0; if (below.noData) return null; const o = (below.all || []).find(y => y.code === code); return o ? (o.v || 0) : 0; };
+  const tile = (mt, x, i, otherRes, isTop) => {
+    const pc = productCache[x.code] || {}; const name = pc.manualName || pc.name || x.code; const img = pc.manualImg || pc.img || '';
+    const imgEl = img ? '<img loading="lazy" src="'+esc(img)+'" onerror="_ytImgErr(this)" style="width:58px;height:58px;box-sizing:border-box;object-fit:cover;border-radius:8px;border:1px solid var(--border);display:block;margin:0 auto">'
+                      : '<div style="width:58px;height:58px;box-sizing:border-box;margin:0 auto;border-radius:8px;background:var(--surface2);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;font-size:9px;color:var(--text3)">画像</div>';
+    let l1 = '', l2 = '';
+    if (mt.type === 'amt'){
+      l1 = yen(x.v); l2 = x.share.toFixed(1) + '%';
+    } else if (mt.type === 'roas'){
+      l1 = (x.v == null) ? _yoyNoAdBadge(false) : Math.round(x.v) + '%';
+      const up = x.imp >= 0; l2 = '<span style="color:'+(up?'#16a34a':'#dc2626')+'">'+(up?'+':'−')+Math.abs(x.imp).toFixed(1)+'pt</span>';
+    } else if (mt.type === 'cvr'){
+      l1 = x.v.toFixed(2) + '%'; const up = x.imp >= 0; l2 = '<span style="color:'+(up?'#16a34a':'#dc2626')+'">'+(up?'+':'−')+Math.abs(x.imp).toFixed(2)+'pt</span>';
+    } else {
+      l1 = (x.v == null) ? '個数0' : yen(x.v);
+      const bad = x.imp > 0; l2 = '<span style="color:'+(bad?'#dc2626':'#16a34a')+'">'+(x.imp>=0?'+':'−')+yen(Math.abs(x.imp)).slice(1).replace(/^/,'¥')+'</span>';
+    }
+    // もう片方の月での順位（上段なら比較月での順位、下段なら今月での順位）
+    const oi = otherRes ? otherRes.list.findIndex(y => y.code === x.code) : -1;
+    const rankTag = '<div style="font-size:10px;color:var(--text3);line-height:13px;height:13px">' + (oi >= 0 ? (oi+1)+'位' : '圏外') + '</div>';
+    return '<div class="yt-tile" data-code="'+esc(x.code)+'" title="'+esc(name)+'\n（クリックで選択枠に入れる・もう一度で外す／ダブルクリックで詳細）" onclick="_yoyTopPin(\''+esc(x.code)+'\')" ondblclick="openRenewalGraph(\''+esc(x.code)+'\')" onmouseenter="_yoyTopHi(\''+esc(x.code)+'\',true)" onmouseleave="_yoyTopHi(\''+esc(x.code)+'\',false)" style="cursor:pointer;flex:0 0 74px;width:74px;box-sizing:border-box;text-align:center;position:relative;padding:6px 1px 4px;border-radius:8px">'
+      // ★v1.1423★ 横幅を詰める（108→74px）。順位は画像の左上、絞込ボタンは画像の右下に重ねる
+      + '<div style="position:relative;width:58px;height:58px;margin:0 auto">' + imgEl
+      +   '<div style="position:absolute;top:-5px;left:-7px;min-width:18px;height:18px;padding:0 3px;box-sizing:border-box;border-radius:9px;background:'+(i<3?mt.col:'#94a3b8')+';color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:1;box-shadow:0 0 0 2px var(--surface)">'+(i+1)+'</div>'
+      +   '<button onclick="event.stopPropagation();setYoyTopFocus(\''+esc(x.code)+'\')" ondblclick="event.stopPropagation()" onmouseenter="this.style.background=\'#0f766e\';this.style.color=\'#fff\'" onmouseleave="this.style.background=\''+(_yoyFocusCode===x.code?'#0f766e':'#ecfdf5')+'\';this.style.color=\''+(_yoyFocusCode===x.code?'#fff':'#0f766e')+'\'" title="'+(_yoyFocusCode===x.code?'絞り込みを解除':'この商品だけを表示')+'" style="position:absolute;right:-6px;bottom:0;z-index:2;height:16px;padding:0 5px;font-size:9px;line-height:13px;font-weight:800;border-radius:5px;cursor:pointer;box-shadow:0 1px 3px rgba(15,118,110,.35);border:1.5px solid #0f766e;background:'+(_yoyFocusCode===x.code?'#0f766e':'#ecfdf5')+';color:'+(_yoyFocusCode===x.code?'#fff':'#0f766e')+'">'+(_yoyFocusCode===x.code?'解除':'絞込')+'</button>'
+      + '</div>'
+      + '<div style="font-size:10px;color:var(--text2);margin-top:3px;line-height:14px;height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(name)+'</div>'
+      + '<div style="font-family:inherit;font-variant-numeric:tabular-nums;font-weight:700;font-size:11px;color:var(--text);line-height:15px;height:15px">'+l1+'</div>'
+      + '<div style="position:relative;font-family:inherit;font-variant-numeric:tabular-nums;font-weight:700;font-size:11px;color:'+mt.col+';line-height:15px;height:15px">'+l2
+      + '</div>'
+      + (mt.type === 'roas' ? '<div style="font-family:inherit;font-variant-numeric:tabular-nums;font-size:10px;color:var(--text2);line-height:14px;height:14px;white-space:nowrap">'+yen(x.sp || 0)+'</div>' : '')   // ★v1.1426★ 実績額
+      + ((mt.type === 'amt' && otherRes) ? '<div style="font-family:inherit;font-variant-numeric:tabular-nums;font-weight:700;font-size:11px;line-height:15px;height:15px;white-space:nowrap" title="下の月を100%としたときの、この月の金額">'+growth(x.v, belowVal(otherRes, x.code))+'</div>' : '')   // ★v1.1459★ 伸び率
+      + '</div>';
+  };
+  // ★v1.1396★ 1位の左に、各行が何の数字かを書く見出し列（タイルと同じ高さで揃える）
+  const labelCol = (mt, isTop, hasBelow) => {
+    const n1 = mt.type === 'amt' ? mt.label : (mt.type === 'roas' ? mt.label : '獲得単価');
+    const n2 = mt.type === 'amt' ? '構成比' : '全体への影響';
+    const ln = (t, h, extra) => '<div style="font-size:9px;font-weight:700;color:var(--text3);line-height:'+h+'px;height:'+h+'px;white-space:nowrap;'+(extra||'')+'">'+t+'</div>';
+    return '<div style="flex:0 0 66px;width:66px;box-sizing:border-box;text-align:center;padding:6px 2px 4px 0;border-right:1px dashed var(--border2);margin-right:2px;position:sticky;left:218px;z-index:3;background:var(--surface);align-self:stretch;box-shadow:5px 0 6px -5px rgba(0,0,0,.18)">'
+      + '<div style="height:58px"></div>'
+      + ln('商品名', 14, 'margin-top:3px')
+      + ln(n1, 15) + ln(n2, 15, 'color:'+mt.col)
+      + (mt.type === 'roas' ? ln(_YOY_SP_LABEL[mt.den] || '広告費', 14) : '')   // ★v1.1426★
+      + ((mt.type === 'amt' && hasBelow) ? '<div title="下の月を100%としたときの、この月の金額" style="font-size:9px;font-weight:700;color:var(--text3);line-height:15px;height:15px;white-space:nowrap">伸び率</div>' : '')   // ★v1.1459★
+      + '</div>';
+  };
+  const totTxt = (mt, r) => mt.type === 'amt' ? yen(r.total) : (mt.type === 'roas' ? (r.total ? Math.round(r.total) + '%' : '—') : (mt.type === 'cvr' ? (r.total ? r.total.toFixed(2) + '%' : '—') : (r.total ? yen(r.total) : '—')));
+  const note = mt => mt.type === 'amt' ? '数字＝金額／全体に占める割合／伸び率（下の月＝100%）' : (mt.type === 'roas' ? '数字＝商品の'+mt.label+'／全体の'+mt.label+'を動かしている幅（+押し上げ・−押し下げ）' : '数字＝商品の獲得単価（広告費÷広告経由の個数）／全体の獲得単価を動かしている幅（+高くしている・−安くしている）');
+  // ★v1.1394★ 指標ごとに「今月」の行と「比較月」の行を上下に並べる。指標名は2行の中央、その右に月、続けて1〜10位
+  // ★v1.1432★ 月の列を 128→88px に詰めた（見出し列の固定位置も 258→218px）。桁の多い合計は文字を小さく
+  const monthCell = (title, ym, mt, r, isTop, mmd, below) => '<div style="width:88px;flex:0 0 88px;box-sizing:border-box;padding:8px 6px;border-right:1px solid var(--border);background:'+(isTop?'#f8fafc':'#f1f5f9')+';display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:sticky;left:130px;z-index:3">'
+      + '<div style="display:inline-block;align-self:center;font-size:10px;font-weight:700;color:#fff;background:'+(isTop?'#334155':'#64748b')+';border-radius:4px;padding:1px 6px">'+title+'</div>'
+      + '<div style="font-family:inherit;font-variant-numeric:tabular-nums;font-size:14px;font-weight:700;color:var(--text);margin-top:3px;white-space:nowrap">'+ym.slice(0,4)+'/'+ym.slice(4,6)+'</div>'
+      + (mmd ? '<div style="font-size:10px;color:var(--text2);white-space:nowrap">1〜'+mmd+'日</div>' : _cmpSrcTag(ym))
+      + '<div style="font-size:10px;color:var(--text3);margin-top:4px">'+(mt.type==='amt'?'合計':'全体')+'</div>'
+      + (() => { const t = totTxt(mt, r); return '<div style="font-family:inherit;font-variant-numeric:tabular-nums;font-size:'+(t.length > 8 ? 11 : 13)+'px;font-weight:700;color:'+mt.col+';white-space:nowrap">'+t+'</div>'; })()
+      + ((mt.type === 'amt' && below) ? '<div title="下の月を100%としたときの、この月の合計" style="font-size:9px;color:var(--text3);margin-top:3px">伸び率</div><div style="font-family:inherit;font-variant-numeric:tabular-nums;font-size:12px;font-weight:700">'+growth(r.total, below.noData ? null : below.total)+'</div>' : '')   // ★v1.1459★
+      + '</div>';
+  const rowHtml = (title, ym, mt, r, other, isTop, mmd) => '<div style="display:flex;align-items:stretch;'+(isTop?'':'border-top:1px dashed var(--border2);')+'">'
+      + monthCell(title, ym, mt, r, isTop, mmd, other)
+      + '<div style="display:flex;gap:4px;padding:8px 10px;flex:0 0 auto;flex-wrap:nowrap;align-items:flex-start">'
+      +   (_yoyFocusCode
+            ? (() => { const k = (r.all || []).findIndex(y => y.code === _yoyFocusCode);
+                       return labelCol(mt, isTop, !!other) + (k >= 0 ? tile(mt, r.all[k], k, other, isTop) + '<div style="align-self:center;font-size:11px;color:var(--text3);padding-left:6px;white-space:nowrap">全'+r.all.length+'商品中 '+(k+1)+'位</div>'
+                                                             : '<div style="align-self:center;padding:0 12px;color:var(--text3);font-size:12px;white-space:nowrap">この月は数字がありません</div>'); })()
+            : (r.list.length ? labelCol(mt, isTop, !!other) + r.list.map((x,i) => tile(mt, x, i, other, isTop)).join('') : '<div style="padding:18px;color:var(--text3);font-size:12px">データがありません</div>'))
+      + '</div></div>';
+  // ★v1.1398★ 左右スクロールは表全体で1本（今月・比較月が一緒に動く）。指標名・月・見出し列は左に固定
+  let html = '';
+  if (_yoyFocusCode) {
+    const fpc = productCache[_yoyFocusCode] || {}; const fnm = fpc.manualName || fpc.name || _yoyFocusCode; const fimg0 = fpc.manualImg || fpc.img || '';
+    // ★v1.1425★ 商品画像は表の左の列から、この帯の中へ移した（空いた横幅にCVR系の列を入れる）
+    html += '<div style="position:sticky;top:0;left:0;z-index:6;display:flex;align-items:center;gap:10px;padding:4px 12px 4px 4px;margin-bottom:8px;background:#ecfdf5;border:1px solid #0f766e;border-radius:8px;font-size:12px;font-weight:700;color:#0f766e;width:max-content">'
+      + (fimg0 ? '<img src="'+esc(fimg0)+'" onerror="this.style.display=\'none\'" style="width:34px;height:34px;object-fit:cover;border-radius:6px;border:1px solid var(--border);flex:0 0 auto;background:#fff">' : '')
+      + '<span>絞り込み中：</span><span style="color:var(--text)">'+esc(fnm)+'</span><span style="font-family:inherit;font-variant-numeric:tabular-nums;color:var(--text3);font-weight:400">'+esc(fpc.itemNumber||'')+' '+esc(_yoyFocusCode)+'</span>'
+      + '<button onclick="setYoyTopFocus(null)" style="font-size:11px;padding:3px 10px;border-radius:5px;border:1px solid #0f766e;background:#0f766e;color:#fff;cursor:pointer;font-weight:700">解除してトップ'+YOYTOP_N+'に戻る</button></div>';
+  }
+  // ★v1.1405★ 絞り込み中：指標を横に並べた表（列＝指標、行＝今月／比較月）。色の選択枠は使わない
+  if (_yoyFocusCode) {
+    const fpc = productCache[_yoyFocusCode] || {}; const fimg = fpc.manualImg || fpc.img || '';
+    const _fGS = _yoyGroupStarts(_yoyShownMetrics(true));   // ★v1.1428★ グループの頭の列は左を太線に
+    const _bl = mt => 'border-left:' + (_fGS.has(mt.k) ? _YOY_GRP_LINE : '1px solid var(--border)') + ';';
+    const cell = (mt, r, below) => {
+      const all = (r && r.all) || []; const k = all.findIndex(y => y.code === _yoyFocusCode);
+      if (k < 0) return '<td style="padding:10px 4px;'+_bl(mt)+'text-align:center;color:var(--text3);font-size:11px;vertical-align:middle">—<div style="font-size:9px;margin-top:2px">数字なし</div></td>';
+      const x = all[k];
+      let l1 = '', l2 = '';
+      if (mt.type === 'amt'){ l1 = yen(x.v); l2 = x.share.toFixed(1) + '%'; }
+      else if (mt.type === 'cvr'){ l1 = x.v.toFixed(2) + '%'; const up = x.imp >= 0; l2 = '<span style="color:'+(up?'#16a34a':'#dc2626')+'">'+(up?'+':'−')+Math.abs(x.imp).toFixed(2)+'pt</span>'; }
+      else if (mt.type === 'roas'){ l1 = (x.v == null) ? _yoyNoAdBadge(true) : Math.round(x.v) + '%'; const up = x.imp >= 0; l2 = '<span style="color:'+(up?'#16a34a':'#dc2626')+'">'+(up?'+':'−')+Math.abs(x.imp).toFixed(1)+'pt</span>'; }
+      else { l1 = (x.v == null) ? '個数0' : yen(x.v); const bad = x.imp > 0; l2 = '<span style="color:'+(bad?'#dc2626':'#16a34a')+'">'+(x.imp>=0?'+':'−')+'¥'+Math.round(Math.abs(x.imp)).toLocaleString()+'</span>'; }
+      return '<td style="padding:8px 4px;'+_bl(mt)+'text-align:center;vertical-align:middle;white-space:nowrap">'
+        + '<div style="display:inline-flex;align-items:baseline;gap:3px"><span style="display:inline-flex;align-items:center;justify-content:center;min-width:20px;height:20px;padding:0 5px;border-radius:10px;background:'+(k<3?mt.col:'#94a3b8')+';color:#fff;font-size:11px;font-weight:800">'+(k+1)+'</span><span style="font-size:9px;color:var(--text3)">位／'+all.length+'</span></div>'
+        + '<div style="font-family:inherit;font-variant-numeric:tabular-nums;font-weight:700;font-size:13px;color:var(--text);margin-top:4px">'+l1+'</div>'
+        + '<div style="font-family:inherit;font-variant-numeric:tabular-nums;font-weight:700;font-size:12px;color:'+mt.col+'">'+l2+'</div>'
+        + (mt.type === 'roas' ? '<div style="font-family:inherit;font-variant-numeric:tabular-nums;font-size:10px;color:var(--text2);margin-top:1px" title="'+(_YOY_SP_LABEL[mt.den] || '広告費')+'">'+(_YOY_SP_LABEL[mt.den] || '広告費')+' '+yen(x.sp || 0)+'</div>' : '')   // ★v1.1426★
+        + ((mt.type === 'amt' && below) ? '<div title="下の月を100%としたときの、この月の金額" style="font-family:inherit;font-variant-numeric:tabular-nums;font-weight:700;font-size:11px;margin-top:1px"><span style="font-family:inherit;font-size:9px;color:var(--text3);font-weight:600">伸び率 </span>'+growth(x.v, belowVal(below, x.code))+'</div>' : '')   // ★v1.1459★
+        + '<div style="font-size:9px;color:var(--text3);margin-top:2px">'+(mt.type==='amt'?'合計 ':'全体 ')+totTxt(mt, r)+'</div>'
+        + '</td>';
+    };
+    const head = _yoyShownMetrics(true).map(mt => '<th id="yt-col-'+mt.k+'" data-mk="'+mt.k+'" style="padding:8px 5px;background:'+mt.bg+';color:'+mt.col+';font-size:12px;font-weight:800;'+_bl(mt)+'white-space:nowrap;min-width:80px">'+mt.label+'<div style="font-size:9px;font-weight:600;color:var(--text3);margin-top:2px">'+(mt.type==='amt'?'金額／構成比':'値／全体への影響')+'</div></th>').join('');
+    const mrow = (title, ym, res, isTop, mmd, belowRes) => '<tr style="border-top:'+(isTop?'0':'1px dashed var(--border2)')+'">'
+      + '<td style="position:sticky;left:0;z-index:2;background:'+(isTop?'#f8fafc':'#f1f5f9')+';padding:8px 12px;white-space:nowrap;border-right:1px solid var(--border)">'
+      +   '<div style="display:inline-block;font-size:10px;font-weight:700;color:#fff;background:'+(isTop?'#334155':'#64748b')+';border-radius:4px;padding:1px 6px">'+title+'</div>'
+      +   '<div style="font-family:inherit;font-variant-numeric:tabular-nums;font-size:14px;font-weight:700;margin-top:3px">'+ym.slice(0,4)+'/'+ym.slice(4,6)+'</div>'
+      +   (mmd ? '<div style="font-size:10px;color:var(--text2)">1〜'+mmd+'日</div>' : _cmpSrcTag(ym))
+      + '</td>' + _yoyShownMetrics(true).map(mt => cell(mt, res[mt.k], belowRes ? belowRes[mt.k] : null)).join('') + '</tr>';
+    html += '<div style="display:flex;align-items:flex-start;gap:12px;width:max-content;min-width:100%">'
+      + '<table style="border-collapse:collapse;background:var(--surface);border:1px solid var(--border);border-radius:10px;overflow:hidden">'
+      +   '<thead><tr><th style="position:sticky;left:0;z-index:3;background:var(--surface2);padding:8px 12px;font-size:11px;color:var(--text3);border-right:1px solid var(--border)">月</th>'+head+'</tr></thead>'
+      +   '<tbody>' + M.map((m, i) => mrow(m.title, m.ym, m.res, i === 0, m.md, belowOf(i) ? belowOf(i).res : null)).join('') + '</tbody></table></div>';
+    area.innerHTML = html;
+    _renderYoyPinUI();
+    _renderYoyImpUI();
+    _renderYoyNav(); _yoyNavMark('');
+    _fitYoyTopArea();
+    return;
+  }
+  html += '<div style="border:1px solid var(--border);border-radius:10px;background:var(--surface);width:max-content;min-width:100%">';
+  const SM = _yoyShownMetrics(false); const _tGS = _yoyGroupStarts(SM);   // ★v1.1428★ グループの境目は太線、同じグループ内は細線
+  SM.forEach((mt, mi) => {
+    html += '<div id="yt-blk-'+mt.k+'" data-mk="'+mt.k+'" style="display:flex;align-items:stretch;'+(mi?(_tGS.has(mt.k)?'border-top:'+_YOY_GRP_LINE+';':'border-top:1px solid var(--border2);'):'')+'">'
+      + '<div style="width:130px;flex:0 0 130px;box-sizing:border-box;padding:10px 12px;background:'+mt.bg+';border-right:1px solid var(--border);display:flex;flex-direction:column;justify-content:center;align-items:center;text-align:center;position:sticky;left:0;z-index:4'+(mi===0?';border-top-left-radius:10px':'')+(mi===SM.length-1?';border-bottom-left-radius:10px':'')+'">'
+      +   '<div style="font-size:15px;font-weight:800;color:'+mt.col+'">'+mt.label+'</div>'
+      +   '<div style="font-size:9px;color:var(--text3);margin-top:6px;line-height:1.4">'+note(mt)+'</div>'
+      + '</div>'
+      + '<div style="flex:1 0 auto;display:flex;flex-direction:column">'
+      +   M.map((m, i) => rowHtml(m.title, m.ym, mt, m.res[mt.k], (belowOf(i) ? belowOf(i).res[mt.k] : null), i === 0, m.md)).join('')   // ★v1.1459★ すぐ下の行（比較月）を渡す
+      + '</div></div>';
+  });
+  area.innerHTML = html + '</div>';
+  _yoyTopPins.forEach(c => { if (c) _yoyTopPaint(c); });
+  _renderYoyPinUI();
+  _renderYoyImpUI();
+  _renderYoyNav();
+  _fitYoyTopArea();
+}
+// ★v1.1398★ 表の高さを画面の下端に合わせる（ズーム時に下が画面外へはみ出し、ページと表の二重スクロールで見にくくなっていた）
+function _fitYoyTopArea(){ _fitYoyBox('yoyTopArea'); _fitYoyBox('yoyCompareArea'); }
+function _fitYoyBox(id){
+  const a = document.getElementById(id);
+  if (!a) return;
+  a.style.overscrollBehavior = 'contain';
+  const apply = () => {
+    if (!a || a.offsetParent === null) return;
+    const r = a.getBoundingClientRect();
+    const scale = (a.offsetHeight > 0 && r.height > 0) ? r.height / a.offsetHeight : 1;   // ズーム倍率（画面px ÷ CSS px）
+    const top = r.top + (window.scrollY || 0);    // ページを少し下げていても、ページ先頭からの位置で計算（どちらも画面px）
+    const avail = Math.floor((window.innerHeight - top - 14) / scale);
+    if (avail > 220) a.style.maxHeight = avail + 'px';
+  };
+  requestAnimationFrame(() => requestAnimationFrame(apply));
+  setTimeout(apply, 150);
+  setTimeout(apply, 900);    // ★v1.1406★ 上のタブ行・件数・画像などが後から読み込まれて位置が変わる分も拾う
+  a._fitApply = apply;
+}
+// ★v1.1406★ 表の下端が画面の下端からずれていたら（空きが出た／はみ出した）その場で合わせ直す
+function _yoyFitCheck(){
+  if (typeof _currentTab === 'undefined' || _currentTab !== 'yoy') return;
+  const a = document.getElementById(_yoyView === 'top' ? 'yoyTopArea' : 'yoyCompareArea');
+  if (!a || a.offsetParent === null) return;
+  const gap = window.innerHeight - 14 - a.getBoundingClientRect().bottom;
+  if (Math.abs(gap) > 4 && a.scrollHeight > a.clientHeight + 4) { if (a._fitApply) a._fitApply(); else _fitYoyBox(a.id); }
+}
+window.addEventListener('load', () => { try { _yoyFitCheck(); } catch(e){} });
+document.addEventListener('mousemove', (function(){ let t = 0; return function(){ const n = Date.now(); if (n - t < 400) return; t = n; try { _yoyFitCheck(); } catch(e){} }; })(), { passive: true });
+// ★v1.1399★ 全-比較を開いている間は外側（ページ）のスクロールを止め、表の中だけをスクロールさせる
+function _yoyPageLock(on){
+  const de = document.documentElement;
+  if (on) { de.style.overflow = 'hidden'; try { window.scrollTo(0, 0); } catch(e){} }
+  else if (de.style.overflow === 'hidden') de.style.overflow = '';
+  if (on) _fitYoyTopArea();
+}
+// 表の外（月の切り替えボタンの上など）でホイールを回したときも、表の中をスクロールさせる
+document.addEventListener('wheel', function(e){
+  if (typeof _currentTab === 'undefined' || _currentTab !== 'yoy') return;
+  try { _yoyFitCheck(); } catch(_e){}
+  const box = document.getElementById(_yoyView === 'top' ? 'yoyTopArea' : 'yoyCompareArea');
+  if (!box || box.offsetParent === null || box.contains(e.target)) return;
+  const panel = document.getElementById('tab-yoy');
+  if (!panel || !panel.contains(e.target)) return;
+  let dy = e.deltaY; if (e.deltaMode === 1) dy *= 16; else if (e.deltaMode === 2) dy *= box.clientHeight;
+  box.scrollTop += dy; e.preventDefault();
+}, { passive: false });
+
+function renderYoy(){
+  _renderCmpCostUI();   // Amacheck
+  _setYoyModeUI();
+  _setYoyLineUI();
+  _setYoyColorUI();
+  _setYoyViewUI();
+  if(_yoyView==='top'){ renderYoyTop(); return; }   // ★v1.1393★ 寄与度トップ20
+  if(_yoyMode==='y1'){ _yoyMode=_yoyModeBeforeFocus||'mom'; _yoyY1Back=true; _setYoyModeUI(); }   // ★v1.1410★ 商品一覧に直近1年は無いので前年同月比で表示
+  const area=document.getElementById('yoyCompareArea');
+  if(!area) return;
+  const yms=_cmpYms();
+  const curYm='999999';
+  const completed=yms.filter(m=>m<curYm);
+  const sel=document.getElementById('yoySel');
+  if(!yms.length){ if(sel) sel.innerHTML=''; area.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">データがありません</div>'; return; }
+  const ymDash=m=>m.slice(0,4)+'-'+m.slice(4,6);
+  let periods; let isPartial=false; let cutoffDay=31; let _partialRefYm='';
+  if(_yoyMode==='pick'){
+    // A/B とも '202609'(途中) / '202609#full'(フル) を許容
+    let _pa=_yoyPickA||'', _pb=_yoyPickB||'', _aFull=false, _bFull=false;
+    if(_pa.slice(-5)==='#full'){ _aFull=true; _pa=_pa.slice(0,-5); }
+    if(_pb.slice(-5)==='#full'){ _bFull=true; _pb=_pb.slice(0,-5); }
+    let A=(_pa && yms.includes(_pa))?_pa:(yms[yms.length-2]||yms[0]);
+    let B=(_pb && yms.includes(_pb))?_pb:(yms[yms.length-1]);
+    const aPartial=(A>=curYm)&&!_aFull, bPartial=(B>=curYm)&&!_bFull;
+    isPartial=aPartial||bPartial;
+    if(isPartial){ _partialRefYm=aPartial?A:B; const _dw=_daysWithData(ymDash(_partialRefYm)); if(_dw.length){ cutoffDay=parseInt(_dw[_dw.length-1].slice(8,10),10)||31; } }
+    const _opt=(m,cm,full)=>{
+      const lbl=m.slice(0,4)+'/'+m.slice(4,6);
+      if(m>=curYm){
+        return '<option value="'+m+'"'+((m===cm && !full)?' selected':'')+'>'+lbl+'(途中)</option>'
+             + '<option value="'+m+'#full"'+((m===cm && full)?' selected':'')+'>'+lbl+'(フル)</option>';
+      }
+      return '<option value="'+m+'"'+((m===cm)?' selected':'')+'>'+lbl+'</option>';
+    };
+    const selA=document.getElementById('yoySelA'), selB=document.getElementById('yoySelB');
+    if(selA) selA.innerHTML=[...yms].reverse().map(m=>_opt(m,A,_aFull)).join('');
+    if(selB) selB.innerHTML=[...yms].reverse().map(m=>_opt(m,B,_bFull)).join('');
+    periods=[A,B];
+  } else {
+    // _yoyMonth は '202609'(途中) または '202609#full'(フル) の形式
+    let _selFull=false, _selM=_yoyMonth||'';
+    if(_selM.slice(-5)==='#full'){ _selFull=true; _selM=_selM.slice(0,-5); }
+    const later=(_selM && yms.includes(_selM))?_selM:yms[yms.length-1];
+    isPartial=(later>=curYm)&&!_selFull;   // 途中月かつ(途中)選択時のみ日数を揃える
+    if(isPartial){ _partialRefYm=later; const _dw=_daysWithData(ymDash(later)); if(_dw.length){ cutoffDay=parseInt(_dw[_dw.length-1].slice(8,10),10)||31; } }
+    if(sel){
+      let _h='';
+      [...yms].reverse().forEach(m=>{
+        const lbl=m.slice(0,4)+'/'+m.slice(4,6);
+        if(m>=curYm){
+          _h+='<option value="'+m+'"'+((m===later && isPartial)?' selected':'')+'>'+lbl+'(途中)</option>';
+          _h+='<option value="'+m+'#full"'+((m===later && !isPartial && _selFull)?' selected':'')+'>'+lbl+'(フル)</option>';
+        } else {
+          _h+='<option value="'+m+'"'+((m===later && !isPartial)?' selected':'')+'>'+lbl+'</option>';
+        }
+      });
+      sel.innerHTML=_h;
+    }
+    if(_yoyMode==='yoy'){ periods=[_ymAdd(later,-12), later]; }
+    else if(_yoyMode==='yoy3'){ periods=[_ymAdd(later,-24), _ymAdd(later,-12), later]; }
+    else { periods=[_ymAdd(later,-2), _ymAdd(later,-1), later]; }
+  }
+  const lastK=periods.length-1;
+  const maps=periods.map(pm=>{ const dash=ymDash(pm); const agg=(isPartial?_monthAggUpToDay(dash,cutoffDay):(getMonthAgg(dash)||{})); const mp={}; Object.keys(agg).forEach(code=>{ const a=agg[code]; let sp=a.spend||0, s7=a.sales720||0; if(sp===0 && s7===0){ const st=_yoyMonthStats(code, dash, isPartial?cutoffDay:31); sp=st.spend; s7=st.sales720; } mp[code]={ s:a.totSales||0, sp:sp, seo:Math.max(0,(a.totSales||0)-(a.rppSales||0)), pf:Math.round(s7*0.45-sp) }; }); return mp; });
+  const allCodes=new Set(); maps.forEach(mp=>Object.keys(mp).forEach(c=>allCodes.add(c)));
+  let prods=[...allCodes].map(code=>{ const pc=productCache[code]||{}; const v=maps.map(mp=>mp[code]||{s:0,sp:0,seo:0,pf:0}); return { code, name:(pc.manualName||pc.name||code), img:(pc.manualImg||pc.img||''), v }; })
+    .filter(p=> p.v[lastK].s>1000);
+  if(!prods.length){ area.innerHTML='<div style="padding:40px;text-align:center;color:var(--text3)">比較できる売上データがありません</div>'; return; }
+  const top=[...prods].sort((a,b)=>b.v[lastK].s-a.v[lastK].s);
+  const rowH=48, headerH=32, labelH=27, TW=452; let gapW=48;
+  if(periods.length===2){ const _aw=(area.clientWidth||1100); gapW=Math.min(900, Math.max(160, _aw-TW*2-6)); }
+  const orders=periods.map((_,k)=> [...top].sort((a,b)=>b.v[k].s-a.v[k].s));
+  const idxs=orders.map(ord=>{ const m={}; ord.forEach((p,i)=>m[p.code]=i); return m; });
+  const yen=v=>'¥'+Math.round(v).toLocaleString();
+  const fmt=v=> v>0?yen(v):'<span style="color:var(--text3)">—</span>';
+  const fmtP=v=> v>0?'<span style="color:#16a34a">'+yen(v)+'</span>':(v<0?'<span style="color:#dc2626">-'+yen(-v)+'</span>':'<span style="color:var(--text3)">—</span>');
+  const esc=t=>String(t).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');
+  const colH='<div style="display:flex;height:'+headerH+'px;align-items:center;border-bottom:2px solid var(--border);font-size:11px;font-weight:700;color:var(--text3);background:var(--surface2)">'
+    +'<div style="width:48px;text-align:center">画像</div>'
+    +'<div style="flex:1;padding-left:8px">商品名</div>'
+    +'<div style="width:80px;text-align:right;padding-right:8px">推計総売上</div>'
+    +'<div style="width:70px;text-align:right;padding-right:8px">広告費</div>'
+    +'<div style="width:80px;text-align:right;padding-right:8px">SEO売上</div>'
+    +'<div style="width:64px;text-align:right;padding-right:10px">売上ROAS</div></div>';
+  // \u9752\u30fb\u7dd1\u30fb\u9ec4\u30fb\u8d64\u3044\u305a\u308c\u3082\u3001\u91d1\u984d\u306e\u300c\u771f\u4e0b\u30fb\u4e2d\u592e\u63c3\u3048\u300d\u3067\u524d\u5e74\u6bd4\uff05\uff08120\uff05=2\u5272\u5897 / 80\uff05=2\u5272\u6e1b\uff09\u3092\u5c0f\u3055\u304f\u8868\u793a
+  const _cellUp=(numHtml,cat,cur,prev)=> (cat&&prev>0)
+    ? '<div style="display:inline-block;text-align:center">'+numHtml+'<div style="font-size:9px;line-height:1.05;margin-top:1px;color:'+_YOYCOL[cat]+';font-weight:700">'+Math.round(cur/prev*100)+'\uff05</div></div>'
+    : numHtml;
+  const tableHtml=(ord,k)=>{
+    let h='';
+    ord.forEach(p=>{ const vv=p.v[k]; const _r=(vv.sp>0)?Math.round(vv.s/vv.sp*100):0; const roasCell=(vv.sp>0)?('<span style="color:'+_SROAS_COLORS[_sroasCat(_r)]+';font-weight:700">'+_r+'%</span>'):'<span style="color:var(--text3)">\u2014</span>';
+      const ps=(k>0)?(p.v[k-1].s||0):0;
+      let salesCell;
+      if(vv.s<=0){ salesCell=fmt(vv.s); }
+      else { const _cat=(k>0)?_yoyCat(vv.s, ps):null; salesCell=_cellUp((_cat?('<span style="color:'+_YOYCOL[_cat]+';font-weight:700">'+yen(vv.s)+'</span>'):yen(vv.s)),_cat,vv.s,ps); }
+      const psSeo=(k>0)?(p.v[k-1].seo||0):0; let seoCell;
+      if(vv.seo<=0){ seoCell=fmt(vv.seo); }
+      else { const _c2=(k>0)?_yoyCat(vv.seo, psSeo):null; seoCell=_cellUp((_c2?('<span style="color:'+_YOYCOL[_c2]+';font-weight:700">'+yen(vv.seo)+'</span>'):yen(vv.seo)),_c2,vv.seo,psSeo); }
+      const im=p.img?'<img src="'+esc(p.img)+'" style="width:44px;height:44px;object-fit:contain;border-radius:4px">':'<div style="width:44px;height:44px;background:var(--surface2);border-radius:4px"></div>';
+      const foc=(_yoyFocus===p.code);
+      h+='<div onclick="setYoyFocus(\''+p.code+'\')" style="display:flex;height:'+rowH+'px;align-items:center;border-bottom:1px solid var(--border);cursor:pointer;'+(foc?'background:#fef9c3;':'')+'">'
+        +'<div style="width:48px;display:flex;justify-content:center">'+im+'</div>'
+        +'<div style="flex:1;padding-left:8px;overflow:hidden;min-width:0"><div style="font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">'+esc(p.name)+'</div><div style="overflow:hidden;text-overflow:ellipsis;white-space:nowrap"><span onclick="event.stopPropagation()" onmousedown="event.stopPropagation()" title="ダブルクリックで選択→Ctrl+Cでコピー" style="font-size:10px;color:var(--text3);font-family:inherit;font-variant-numeric:tabular-nums;user-select:text;-webkit-user-select:text;cursor:text">'+esc(p.code)+'</span></div></div>'
+        +'<div style="width:80px;text-align:right;padding-right:8px;font-variant-numeric:tabular-nums;font-size:12px">'+salesCell+'</div>'
+        +'<div style="width:70px;text-align:right;padding-right:8px;font-variant-numeric:tabular-nums;font-size:12px">'+fmt(vv.sp)+'</div>'
+        +'<div style="width:80px;text-align:right;padding-right:8px;font-variant-numeric:tabular-nums;font-size:12px">'+seoCell+'</div>'
+        +'<div style="width:64px;text-align:right;padding-right:10px;font-variant-numeric:tabular-nums;font-size:12px">'+roasCell+'</div></div>';
+    });
+    return h;
+  };
+  const bodyH=top.length*rowH;
+  const svgBetween=(kL,kR)=>{
+    let lines='';
+    top.forEach(p=>{
+      if(p.v[kL].s<=0 || p.v[kR].s<=0) return;
+      const yL=idxs[kL][p.code]*rowH+rowH/2;
+      const yR=idxs[kR][p.code]*rowH+rowH/2;
+      const same=idxs[kR][p.code]===idxs[kL][p.code];
+      const up=idxs[kR][p.code]<idxs[kL][p.code];
+      if(_yoyFocus){ if(p.code!==_yoyFocus) return; }
+      else { if(!same){ if(up && _yoyHideUp) return; if(!up && _yoyHideDown) return; } if(_yoyColorFilter.size){ const lc=_yoyLatestColor(p); if(!lc || !_yoyColorFilter.has(lc)) return; } }
+      const col=same?'#9ca3af':(up?'#16a34a':'#dc2626');
+      const sw=(_yoyFocus===p.code)?3.6:2.4, op=(_yoyFocus===p.code)?'1':'0.8';
+      lines+='<line x1="0" y1="'+yL+'" x2="'+gapW+'" y2="'+yR+'" stroke="'+col+'" stroke-width="'+sw+'" opacity="'+op+'"/>';
+    });
+    return '<svg width="'+gapW+'" height="'+bodyH+'" style="display:block">'+lines+'</svg>';
+  };
+  const note=_yoyMode==='pick'?['','']:(_yoyMode==='yoy'?['去年同月','今年同月']:(_yoyMode==='yoy3'?['2年前','1年前','選択月']:['2ヶ月前','前月','選択月']));
+  const lblStyle='text-align:center;font-weight:700;font-size:12px;height:'+labelH+'px;line-height:'+labelH+'px;color:var(--text2);background:var(--surface)';
+  const minW=TW*periods.length+gapW*(periods.length-1);
+  const dayTag=isPartial?('・'+cutoffDay+'日まで'):'';
+  const headBlock=k=>'<div style="width:'+TW+'px;flex-shrink:0;border:1px solid var(--border);border-radius:6px 6px 0 0;overflow:hidden">'
+    +'<div style="'+lblStyle+'">'+periods[k].slice(0,4)+'/'+periods[k].slice(4,6)+(note[k]?'（'+note[k]+dayTag+'）':(isPartial?'（'+cutoffDay+'日まで）':''))+'</div>'+colH+'</div>';
+  const rowsBlock=k=>'<div style="width:'+TW+'px;flex-shrink:0;border:1px solid var(--border);border-top:none;border-radius:0 0 6px 6px;overflow:hidden">'+tableHtml(orders[k],k)+'</div>';
+  const gapSpacer='<div style="width:'+gapW+'px;flex-shrink:0"></div>';
+  const svgCol=(kL,kR)=>'<div style="width:'+gapW+'px;flex-shrink:0">'+svgBetween(kL,kR)+'</div>';
+  let _hd='', _bd='';
+  for(let k=0;k<periods.length;k++){ if(k>0){ _hd+=gapSpacer; _bd+=svgCol(k-1,k); } _hd+=headBlock(k); _bd+=rowsBlock(k); }
+  const head='<div style="display:flex;align-items:flex-end;position:sticky;top:0;z-index:10;background:var(--surface);min-width:'+minW+'px">'+_hd+'</div>';
+  const body='<div style="display:flex;align-items:flex-start;min-width:'+minW+'px">'+_bd+'</div>';
+  const _lm=_partialRefYm||periods[lastK];
+  const partialBanner=isPartial?('<div style="padding:7px 12px;margin-bottom:10px;background:#fef3c7;border:1px solid #fbbf24;border-radius:6px;font-size:12px;font-weight:700;color:#92400e">📅 各月とも「'+cutoffDay+'日まで」の途中集計で比較中（例：'+_lm.slice(0,4)+'/'+_lm.slice(4,6)+'/'+cutoffDay+' 時点／比較先も同じ '+cutoffDay+' 日まで）。ドロップダウンで「(フル)」を選ぶと月末までの成績になります。</div>'):'';
+  area.innerHTML=partialBanner+'<div style="position:relative">'+head+body+'</div>';
+}
+
+// ==== 全-比較ここまで ====
 
 // v3.56：CTR・個数用の素の値（区分＝spKw/spSh/spAu/sbDg/sbSk）
 const GX_BLK = ['spKw', 'spSh', 'spAu', 'sbDg', 'sbSk'];
