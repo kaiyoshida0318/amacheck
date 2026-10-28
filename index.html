@@ -1594,6 +1594,24 @@
   /* v3.91：【入札単価対策】・KW-全体データ・注視分 */
   .tab-group.tg-bid   { color: #c026d3; }
   #kwall-view .kw-wrap, #kwwatch-view .kw-wrap { width: calc((100vw - 24px) / var(--pz, 1)); margin-left: calc(50% - (50vw - 12px) / var(--pz, 1)); max-height: calc((100vh - 290px) / var(--pz, 1)); }
+  /* v3.97：KW-全体データの操作の帯 */
+  #kwall-view .kwa-tools { width: calc((100vw - 24px) / var(--pz, 1)); margin-left: calc(50% - (50vw - 12px) / var(--pz, 1)); box-sizing: border-box; }   /* 表と同じ幅 */
+  .kwa-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; margin: 0 0 10px; padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
+  .kwa-grp { display: inline-flex; align-items: center; gap: 8px; }
+  .kwa-sep { width: 1px; align-self: stretch; background: var(--border); }
+  .kwa-flex { flex: 1 1 0; min-width: 0; }
+  .kwa-tools .graph-seg.sm button { padding: 6px 12px; font-size: 13.5px; }
+  .kwa-chip { display: inline-flex; align-items: center; gap: 6px; height: 34px; padding: 0 12px; border: 1px solid var(--border); border-radius: 999px; background: #fff; color: var(--text-secondary); font-size: 13px; font-weight: 700; cursor: pointer; font-family: inherit; white-space: nowrap; }
+  .kwa-chip:hover { border-color: #a78bfa; color: var(--black); }
+  .kwa-chip .kwa-chk-i { width: 15px; height: 15px; border-radius: 4px; border: 1.5px solid #cbd5e1; display: inline-flex; align-items: center; justify-content: center; font-size: 11px; line-height: 1; color: #fff; }
+  .kwa-chip.on { background: #f5f3ff; border-color: var(--purple); color: var(--purple); }
+  .kwa-chip.on .kwa-chk-i { background: var(--purple); border-color: var(--purple); }
+  .kwa-chip em { font-style: normal; font-size: 11.5px; font-weight: 800; background: #fed7aa; color: #9a3412; border-radius: 999px; padding: 0 7px; line-height: 18px; }
+  .kwa-chip.cand.on { background: #fff7ed; border-color: #ea580c; color: #c2410c; }
+  .kwa-chip.cand.on .kwa-chk-i { background: #ea580c; border-color: #ea580c; }
+  .kwa-tools .kwa-legend { margin-left: 0; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-tertiary); white-space: nowrap; }
+  .kwa-tools .kwa-legend .kw-dot { margin-left: 6px; }
+  .kwa-tools .graph-select.kwa-q { width: 240px; height: 34px; padding: 0 12px; font-size: 13.5px; border-radius: 999px; }
   .kwa-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin: 0 0 8px; }
   .kwa-lbl { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
   .kwa-lbl.kwa-gap { margin-left: 14px; }
@@ -2266,7 +2284,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.96</span>
+    <span class="version">v3.97</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -11691,21 +11709,23 @@ function renderKwAllView(){
   const kf = KF[kwaSort] || KF.cost, dir = kwaDir === 'asc' ? 1 : -1;
   list.sort((a, b) => { const x = kf(a), y = kf(b); if (x == null && y == null) return b.t.cost - a.t.cost; if (x == null) return 1; if (y == null) return -1; return (x - y) * dir || (b.t.cost - a.t.cost); });
   const totCost = list.reduce((s, x) => s + (x.t.cost || 0), 0);
-  const nW = list.filter(x => kwIsWatched(x.e.key)).length;
 
-  let h = '<div class="kwa-bar">'
-    + '<span class="kwa-lbl">期間</span>' + kwSegHtml('kwa-period', KWA_PERIODS, kwaPeriod)
-    + '<span class="kwa-note">' + from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + nDays + '日）</span>'
-    + '<input type="search" class="graph-select kwa-q" id="kwa-q" placeholder="KW・ASIN・キャンペーン・商品名で検索" value="' + escapeHtml(kwaQ) + '">'
+  // v3.97：操作は1つの帯にまとめる（期間・広告タイプ ｜ 注視候補・停止中・表示0 ｜ 右に ROAS の色と検索）。期間の日付はボタンに乗せると出る
+  const rangeTip = from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + nDays + '日）';
+  const chip = (id, on, label, tip, cls) => '<button type="button" class="kwa-chip' + (cls ? ' ' + cls : '') + (on ? ' on' : '') + '" id="' + id + '" title="' + escapeHtml(tip) + '"><span class="kwa-chk-i">' + (on ? '✓' : '') + '</span>' + label + '</button>';
+  let h = '<div class="kwa-tools">'
+    + '<div class="kwa-grp" title="' + escapeHtml(rangeTip) + '"><span class="kwa-lbl">期間</span>' + kwSegHtml('kwa-period', KWA_PERIODS, kwaPeriod) + '</div>'
+    + '<div class="kwa-grp"><span class="kwa-lbl">広告タイプ</span>' + kwSegHtml('kwa-type', [['all', 'すべて'], ['SP', 'SP', 'スポンサープロダクト'], ['SB', 'SB', 'スポンサーブランド']], kwaType) + '</div>'
+    + '<span class="kwa-sep"></span>'
+    + '<div class="kwa-grp">'
+    + chip('kwa-cand', kwaCand, '注視候補だけ<em>' + candSet.size + '</em>', 'この期間で、広告費が上位' + KWA_CAND_N + '位以内 かつ ROAS ' + Math.round(KWA_CAND_ROAS * 100) + '%未満のKW（インパクトが大きくて効率が悪いもの）', 'cand')
+    + chip('kwa-stop', kwaStop, '停止中も出す', '止まっているKWも表に出します')
+    + chip('kwa-zero', kwaZero, '表示0も出す', 'この期間に表示も広告費も0のKWも表に出します')
+    + '</div>'
+    + '<span class="kwa-flex"></span>'
+    + '<span class="kwa-legend" title="判定・ROAS の色"><span class="kw-dot hi"></span>300%〜<span class="kw-dot mid"></span>200%〜<span class="kw-dot lo"></span>〜199%</span>'
+    + '<input type="search" class="graph-select kwa-q" id="kwa-q" placeholder="🔍 KW・ASIN・商品名で検索" title="KW・ASIN・キャンペーン・商品名で探せます" value="' + escapeHtml(kwaQ) + '">'
     + '</div>';
-  h += '<div class="kwa-bar kwa-bar2">'
-    + '<span class="kwa-lbl">広告タイプ</span>' + kwSegHtml('kwa-type', [['all', 'すべて'], ['SP', 'SP', 'スポンサープロダクト'], ['SB', 'SB', 'スポンサーブランド']], kwaType)   // v3.95
-    + '<button type="button" class="kwa-cand' + (kwaCand ? ' on' : '') + '" id="kwa-cand" title="この期間で、広告費が上位' + KWA_CAND_N + '位以内 かつ ROAS ' + Math.round(KWA_CAND_ROAS * 100) + '%未満のKW（インパクトが大きくて効率が悪いもの）">注視候補だけ（' + candSet.size + '）</button>'
-    + '<label class="kw-chk"><input type="checkbox" id="kwa-stop"' + (kwaStop ? ' checked' : '') + '> 停止中も出す</label>'
-    + '<label class="kw-chk" title="この期間に表示も広告費も0のKWも出します"><input type="checkbox" id="kwa-zero"' + (kwaZero ? ' checked' : '') + '> 表示0の行も出す</label>'
-    + '<span class="kwa-legend">ROAS：<span class="kw-dot hi"></span>300%以上　<span class="kw-dot mid"></span>200〜299%　<span class="kw-dot lo"></span>199%以下</span>'
-    + '</div>';
-  h += '<div class="kw-count"><b>' + list.length + '件</b><span class="kwa-cnt2">（うち注視 ' + nW + '件）　データの最新日 ' + ix.latest.replace(/-/g, '/') + '</span><span class="kw-hint">行を押すと、そのKWの日別・月別の推移が開きます。右端の注視に☑すると【入札単価対策】に出ます</span></div>';
   const th = (k, l, cls) => '<th class="sortable' + (cls ? ' ' + cls : '') + (kwaSort === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwaSort === k ? (kwaDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
   h += '<div class="table-wrap kw-wrap kwa-wrap"><table class="kw-table kwa-table"><thead><tr><th class="kw-jh">判定</th><th>商品</th><th>KW／ターゲット</th>'
     + th('bid', '入札額', 'num') + th('cost', '広告費<span class="kwa-hs">ページ内割合</span>', 'num') + th('sales', '売上', 'num') + th('roas', 'ROAS', 'num') + th('acos', 'ACOS', 'num') + th('cvr', 'CVR', 'num')
@@ -11736,8 +11756,8 @@ function renderKwAllView(){
   });
   body.querySelectorAll('#kwa-type button').forEach(b => b.addEventListener('click', () => { kwaType = b.dataset.v; renderKwAllView(); }));
   on('#kwa-cand', 'click', () => { kwaCand = !kwaCand; renderKwAllView(); });
-  on('#kwa-stop', 'change', e => { kwaStop = e.target.checked; renderKwAllView(); });
-  on('#kwa-zero', 'change', e => { kwaZero = e.target.checked; renderKwAllView(); });
+  on('#kwa-stop', 'click', () => { kwaStop = !kwaStop; renderKwAllView(); });
+  on('#kwa-zero', 'click', () => { kwaZero = !kwaZero; renderKwAllView(); });
   body.querySelectorAll('.kwa-table th.sortable').forEach(t => t.addEventListener('click', () => {
     const k = t.dataset.k;
     if (kwaSort === k) kwaDir = kwaDir === 'desc' ? 'asc' : 'desc'; else { kwaSort = k; kwaDir = 'desc'; }
