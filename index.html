@@ -874,8 +874,10 @@
   table.ad-table tr.ad-cl-bot td { border-bottom: 2px dashed var(--clc) !important; }
   table.ad-table tr.ad-cl-top td:first-child { border-left: 2px dashed var(--clc) !important; }
   table.ad-table tr.ad-cl-top td:last-child, table.ad-table tr.ad-pct-row.ad-cl-bot td:last-child { border-right: 2px dashed var(--clc) !important; }
-  .ad-cl-badges { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 3px; }
-  .ad-cl-badges span { display: inline-block; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; max-width: 100%; white-space: normal; line-height: 1.3; text-align: left; word-break: break-all; }
+  .ad-cl-badges { display: flex; align-items: center; gap: 2px; margin-top: 1px; min-width: 0; }
+  .ad-cl-badges span { display: block; color: #fff; font-size: 9.5px; font-weight: 700; padding: 0 4px; border-radius: 3px; min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 14px; }
+  .ad-cl-badges em { font-style: normal; font-size: 9px; font-weight: 700; color: var(--text-tertiary); white-space: nowrap; flex-shrink: 0; }
+  table.ad-table tr.ad-cl-top td.ad-daycol { padding-top: 3px; padding-bottom: 3px; }
   table.ad-table tr.ad-seo-row td { background: #eef4fb !important; padding: 0; text-align: left; border-bottom: 1px solid var(--border); }
   .ad-seo-box { padding: 10px 14px 12px; }
   .ad-seo-h { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); margin-bottom: 10px; }
@@ -2140,7 +2142,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.73</span>
+    <span class="version">v3.74</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -9327,7 +9329,8 @@ function renderAdTableCore(){
     const cls = isM && adClShow ? clMap[r.ym] : null;
     const clCol = cls ? (cls[0].color || CL_COLORS[0]) : '';
     const clNotes = cls ? cls.filter(l => String(l.note || '').trim()) : [];
-    const clBadges = clNotes.length ? '<div class="ad-cl-badges">' + clNotes.map(l => '<span style="background:' + (l.color || CL_COLORS[0]) + '">' + escapeHtml(l.note) + '</span>').join('') + '</div>' : '';
+    // v3.74：バッジは1行だけ（長いメモは … で切る。全文はマウスを乗せると出る）。2件以上ある月は「他n件」
+    const clBadges = clNotes.length ? '<div class="ad-cl-badges"><span style="background:' + (clNotes[0].color || CL_COLORS[0]) + '">' + escapeHtml(clNotes[0].note) + '</span>' + (clNotes.length > 1 ? '<em>他' + (clNotes.length - 1) + '件</em>' : '') + '</div>' : '';
     const dayTitle = cls ? ' title="' + escapeHtml(clNotes.map(l => l.date + ' ' + l.note).join(' / ') || '変更記録') + '"' : '';
     html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + (yoyMode && r._grpTop ? ' ad-yoy-top' : '') + (pctOn ? ' ad-has-pct' : '') + (cls ? ' ad-cl-top' + (pctOn ? '' : ' ad-cl-bot') : '') + '"' + (cls ? ' style="--clc:' + clCol + '"' : '') + '>'
       + '<td class="' + dayCls + '"' + (pctOn ? ' rowspan="2"' : '') + dayAttr + dayTitle + dayClick + '>' + r.label + clBadges + '</td>'
