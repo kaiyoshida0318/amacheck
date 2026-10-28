@@ -2162,7 +2162,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.80</span>
+    <span class="version">v3.81</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2422,7 +2422,9 @@
       <div id="yoyCompareArea" style="position:relative;overflow:auto;max-height:72vh"></div>
       <div id="yoyMetricNav" style="display:none;flex-wrap:wrap;gap:6px;margin:0 0 10px"></div>
       <div id="yoyTopArea" style="display:none;overflow:auto;max-height:76vh" onscroll="_yoyNavSpy()"></div>
-  </div>
+    </div>
+</div>
+  </div><!-- /compare-view（v3.81：閉じタグが2つ足りず、後ろの画面・モーダルが全-比較の中に入って見えなくなっていたのを直した） -->
   <div id="pl-view" hidden>
     <div id="pl-body"></div>
   </div>
