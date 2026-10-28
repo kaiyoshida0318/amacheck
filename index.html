@@ -859,8 +859,55 @@
   .ad-day-banner button:hover { background: rgba(255,255,255,.15); }
   table.ad-table .ad-daycut-lbl { display: inline-block; margin-top: 3px; background: #0f766e; color: #fff; font-size: 10px; font-weight: 800; padding: 1px 5px; border-radius: 4px; white-space: nowrap; letter-spacing: 0; }
   table.ad-table td.ad-daycol.ad-daycut { background: #e6f4f1; color: #0f766e; }
+  /* v3.73：SEO売上トップ15・比率表記・変更記録 */
+  .ad-switches { display: inline-flex; align-items: center; gap: 6px; }
+  .ad-switches[hidden] { display: none; }
+  .ad-tg { font-size: 12px; padding: 4px 11px 4px 6px; border-radius: 999px; cursor: pointer; white-space: nowrap; display: inline-flex; align-items: center; gap: 6px; font-weight: 700; border: 1px solid #d1d5db; background: #f3f4f6; color: #9ca3af; font-family: inherit; }
+  .ad-tg.on { color: #fff; }
+  .ad-tg:hover { filter: brightness(0.97); }
+  .ad-tg-knob { position: relative; display: inline-block; width: 22px; height: 12px; border-radius: 6px; flex-shrink: 0; }
+  .ad-tg-knob span { position: absolute; top: 1px; width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
+  .ad-cl-edit { font-size: 12px; padding: 4px 11px; border-radius: 6px; border: 1px solid #d1d5db; background: #f3f4f6; color: #6b7280; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
+  table.ad-table tr.ad-has-pct td { border-bottom: none; }
+  table.ad-table tr.ad-pct-row td { padding: 0 4px 5px; font-size: 11.5px; font-weight: 700; }
+  table.ad-table tr.ad-cl-top td { border-top: 3px dashed var(--clc) !important; }
+  table.ad-table tr.ad-cl-bot td { border-bottom: 2px dashed var(--clc) !important; }
+  table.ad-table tr.ad-cl-top td:first-child { border-left: 2px dashed var(--clc) !important; }
+  table.ad-table tr.ad-cl-top td:last-child, table.ad-table tr.ad-pct-row.ad-cl-bot td:last-child { border-right: 2px dashed var(--clc) !important; }
+  .ad-cl-badges { display: flex; flex-direction: column; align-items: flex-start; gap: 2px; margin-top: 3px; }
+  .ad-cl-badges span { display: inline-block; color: #fff; font-size: 10px; font-weight: 700; padding: 1px 5px; border-radius: 4px; max-width: 100%; white-space: normal; line-height: 1.3; text-align: left; word-break: break-all; }
+  table.ad-table tr.ad-seo-row td { background: #eef4fb !important; padding: 0; text-align: left; border-bottom: 1px solid var(--border); }
+  .ad-seo-box { padding: 10px 14px 12px; }
+  .ad-seo-h { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); margin-bottom: 10px; }
+  .ad-seo-lg { font-weight: 600; margin-left: 10px; font-size: 11.5px; color: var(--text-tertiary); }
+  .ad-seo-list { display: flex; flex-wrap: wrap; gap: 16px; }
+  .ad-seo-it { width: 72px; text-align: center; cursor: pointer; }
+  .ad-seo-img { position: relative; width: 66px; height: 66px; margin: 0 auto; }
+  .ad-seo-img .ph { width: 66px; height: 66px; border-radius: 8px; border: 1px solid var(--border); }
+  .ad-seo-rk { position: absolute; top: -6px; left: -6px; min-width: 18px; height: 18px; border-radius: 9px; background: #94a3b8; color: #fff; font-size: 10.5px; font-weight: 800; line-height: 18px; padding: 0 4px; }
+  .ad-seo-rk.top { background: #1565C0; }
+  .ad-seo-v { font-size: 12px; font-weight: 800; margin-top: 4px; white-space: nowrap; }
+  .ad-seo-c { font-size: 10px; font-weight: 800; }
+  .ad-seo-none { font-size: 13px; color: var(--text-tertiary); padding: 4px 2px; }
+  .gcl-box { background: #fff; border-radius: 12px; width: 560px; max-width: 96vw; max-height: 80vh; display: flex; flex-direction: column; overflow: hidden; box-shadow: 0 20px 60px rgba(0,0,0,.2); }
+  .gcl-head { display: flex; justify-content: space-between; gap: 12px; padding: 18px 20px 10px; }
+  .gcl-sub { font-size: 12px; color: var(--text-tertiary); margin-top: 4px; }
+  .gcl-x { border: none; background: rgba(0,0,0,.08); border-radius: 50%; width: 32px; height: 32px; cursor: pointer; flex-shrink: 0; justify-content: center; }
+  .gcl-tools { padding: 0 20px 10px; border-bottom: 1px solid var(--border); }
+  .gcl-rows { flex: 1 1 auto; overflow-y: auto; padding: 10px 20px; min-height: 80px; }
+  .gcl-row { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .gcl-date { width: 140px; font-size: 13px; padding: 5px 6px; }
+  .gcl-note { flex: 1; min-width: 0; font-size: 13px; padding: 6px 8px; }
+  .gcl-cols { display: inline-flex; gap: 3px; }
+  .gcl-col { width: 18px; height: 18px; border-radius: 50%; border: 2px solid transparent; padding: 0; cursor: pointer; }
+  .gcl-col.on { border-color: #111; }
+  .gcl-del { border: none; background: none; color: #9ca3af; cursor: pointer; font-size: 14px; padding: 4px; }
+  .gcl-del:hover { color: #dc2626; background: none; }
+  .gcl-empty { font-size: 13px; color: var(--text-tertiary); padding: 14px 0; text-align: center; }
+  .gcl-foot { display: flex; justify-content: flex-end; gap: 8px; padding: 12px 20px; border-top: 1px solid var(--border); }
   /* v3.69：前年同月比・差異 */
   table.ad-table.ad-yoy col.col-day { width: 66px; }
+  #ad-product-wrap[hidden] { display: none !important; }
   table.ad-table.ad-yoy td.ad-daycol { font-size: 12.5px; white-space: nowrap; padding-left: 4px; padding-right: 4px; }
   table.ad-table tr.ad-yoy-top td { border-top: 3px solid #666; }
   table.ad-table tr.ad-diff td { background: #eef2f7 !important; padding: 4px 2px; border-top: 1px dashed #94a3b8; vertical-align: middle; }
@@ -1901,6 +1948,13 @@
   .adkw-hide-btns { position: absolute; right: 16px; z-index: 40; display: flex; flex-direction: column; align-items: stretch; gap: 3px; }
   .adkw-hide-btns[hidden] { display: none; }
   .adkw-hide-btns button { justify-content: center; white-space: nowrap; padding: 2px 8px !important; line-height: 1.25; font-size: 11px !important; border-radius: 5px; }   /* v3.60：できるだけ小さく */
+  .adkw-hide-btns button[hidden] { display: none; }
+  /* v3.72：ヘッダーを隠す／ヘッダー2まで隠す はグレーのボタン */
+  .adkw-hide-btns button, .adkw-hide-btns button.utility { background: #eef0f3; color: #4b5563; border: 1px solid #c9ced6; font-weight: 600; }
+  .adkw-hide-btns button:hover, .adkw-hide-btns button.utility:hover { background: #e2e5ea; color: #1f2937; border-color: #9ca3af; }
+  /* v3.71：ヘッダーを隠している間は、ボタンだけの細い行 */
+  .adkw-hide-btns.thin { position: static; flex-direction: row; justify-content: flex-end; align-items: center; gap: 6px; padding: 3px 16px; border-bottom: 1px solid var(--border); background: var(--bg-secondary); }
+  body.header-hidden .container { padding-top: 6px; }
   .kw-clear { margin: 0 12px 0 0; border: 1px solid var(--purple); background: #fff; color: var(--purple); border-radius: 7px; padding: 4px 12px; font-size: 12.5px; font-weight: 700; cursor: pointer; font-family: inherit; }
   .kw-clear:hover { background: var(--purple); color: #fff; }
   .kw-count { display: flex; align-items: center; gap: 4px; flex-wrap: wrap; }
@@ -2086,7 +2140,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.70</span>
+    <span class="version">v3.73</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2150,7 +2204,7 @@
     </button>
   </div>
 </nav>
-<!-- 商品-KWデータ：ヘッダーを隠す／ヘッダー2まで隠す（位置は kwPlaceHideBtns） -->
+<!-- v3.71：全ページ共通の「ヘッダーを隠す」（商品-KWデータでは「ヘッダー2まで隠す」も）。位置は kwPlaceHideBtns -->
 <div class="adkw-hide-btns" id="adkw-hide-btns" hidden>
   <button type="button" class="utility toggle-header-btn" id="toggle-header-adkw" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;">ヘッダーを隠す</button>
   <button type="button" class="utility" id="kw-steps-toggle" style="font-size:12px;">ヘッダー2まで隠す</button>
@@ -2201,7 +2255,6 @@
       <span id="product-count" style="color:var(--text-tertiary);font-size:13px;"></span>
       <div class="spacer"></div>
       <button class="danger" id="delete-selected" disabled><svg class="icn"><use href="#i-trash"/></svg> 選択を削除 <span id="selected-count"></span></button>
-      <button class="utility toggle-header-btn" id="toggle-header-master" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;">ヘッダーを隠す</button>
     </div>
     <div class="master-card">
       <div id="master-list-wrap"></div>
@@ -2223,7 +2276,6 @@
         <span class="lg-shlo">少ない 下位5</span>
       </span>
       <div class="spacer toast-slot" id="ship-toast-slot"></div>
-      <button class="utility toggle-header-btn" id="toggle-header" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;">ヘッダーを隠す</button>
     </div>
     <div id="shipment-body"></div>
   </div>
@@ -2248,7 +2300,6 @@
       <div class="spacer"></div>
       <span class="ps-colwrap"><button type="button" class="ps-btn" id="ps-colbtn">項目調整</button><div class="ps-colpanel" id="ps-colpanel" hidden></div></span>
       <button type="button" class="ps-btn" id="ps-csv">CSV出力</button>
-      <button class="utility toggle-header-btn" id="toggle-header-psales" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;">ヘッダーを隠す</button>
     </div>
     <div id="psales-body"></div>
   </div>
@@ -2275,7 +2326,7 @@
         <input type="date" id="ad-range-end" title="表示する期間の最後の日" style="font-size:13px;padding:5px 8px;">
       </span>
       <select id="ad-year-select" hidden></select>
-      <label style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);" title="キャンペーン（広告商品）で絞り込み">
+      <label id="ad-product-wrap" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--text-secondary);" title="キャンペーン（広告商品）で絞り込み">
         <select id="ad-product-select" style="font-size:13px;padding:6px 8px;"></select>
       </label>
       <span class="ad-legend">配色:
@@ -2287,12 +2338,17 @@
         <span class="lg-mid" style="margin-left:6px;">※広告費は安いほど青</span>
       </span>
       <div class="spacer"></div>
+      <span class="ad-switches" id="ad-switches" hidden><!-- v3.73：月別のときだけ -->
+        <button type="button" class="ad-tg" id="ad-sw-seo" data-sw="seo"></button>
+        <button type="button" class="ad-tg" id="ad-sw-pct" data-sw="pct"></button>
+        <button type="button" class="ad-tg" id="ad-sw-cl" data-sw="cl"></button>
+        <button type="button" class="ad-cl-edit" id="ad-cl-edit" title="変更記録（ショップ全体）を追加・編集">📝 変更記録編集</button>
+      </span>
       <span class="adg-tip" data-tip="説明を見る">
         <button class="utility" id="open-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button>
       </span>
       <button class="utility" id="open-ad-recon" style="font-size:12px;" title="月ごとに、月末データ（B）と日別の広告データ（①）・KWデータ（③）の広告費を比べます"><svg class="icn"><use href="#i-check"/></svg> 月末データと照合</button>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
-      <button class="utility toggle-header-btn" id="toggle-header-ad" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;">ヘッダーを隠す</button>
     </div>
     <div id="ad-body"></div>
   </div>
@@ -2800,6 +2856,15 @@
 <div class="toast" id="toast"></div>
 <!-- KW推移モーダル（商品-KWデータ）。表示倍率（.container の zoom）の外に置く -->
 <div class="kwm-bg" id="kwm-modal" hidden><div class="kwm-box" id="kwm-box"></div></div>
+<!-- v3.73：変更記録（ショップ全体）の編集 -->
+<div class="modal-bg" id="gcl-modal" hidden style="z-index:9000;">
+  <div class="gcl-box">
+    <div class="gcl-head"><div><h3 style="margin:0;font-size:17px;">変更記録</h3><div class="gcl-sub">全-月別データの表で、その月を点線の枠で囲み、メモをバッジで出します（色＝枠とバッジの色）</div></div><button type="button" class="gcl-x" id="gcl-x" title="閉じる">✕</button></div>
+    <div class="gcl-tools"><button type="button" class="confirm" id="gcl-add">＋ 追加</button></div>
+    <div class="gcl-rows" id="gcl-rows"></div>
+    <div class="gcl-foot"><button type="button" id="gcl-cancel">キャンセル</button><button type="button" class="primary" id="gcl-save">保存</button></div>
+  </div>
+</div>
 <!-- v3.66：商品モーダル（全体情報） -->
 <div class="pm-bg" id="pm-modal" hidden><div class="pm-card" id="pm-card"></div></div>
 <!-- 広告データの照合（v3.07）：月末B と 日別① と KW③ の広告費 -->
@@ -2935,6 +3000,7 @@ const STORAGE_PL = 'amacheck_pl_v1';
 const STORAGE_RETURNS = 'amacheck_returns_v1';
 const STORAGE_CAT = 'amacheck_categories_v1';
 const STORAGE_CAMPURL = 'amacheck_campurl_v1';   // v3.14：キャンペーン名 → 広告管理画面のURL
+const STORAGE_CHGLOG = 'amacheck_changelog_v1';   // v3.73：変更記録（ショップ全体。全-月別データの点線枠）
 const STORAGE_PURCH = 'amacheck_purchase_v1';   // v3.41：④／E 購入商品データ（買われた商品別の広告売上）
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
 
@@ -3031,6 +3097,8 @@ function saveAdKwData(){ return persistKey(STORAGE_ADKW, adKwData); }
 //   行 = { t:'SP'|'SB', c:キャンペーン名, id, adv:広告対象ASIN, a:購入ASIN, r:'p'(宣伝商品)|'h'(Halo), n:商品購入数, u:注文点数, s:売上 }
 let purchData = { day: {}, month: {} };
 function savePurchData(){ return persistKey(STORAGE_PURCH, purchData); }
+let globalChangeLogs = [];
+function saveChangeLogs(){ return persistKey(STORAGE_CHGLOG, globalChangeLogs); }
 // ===== KWデータの点検（v3.06）=====
 // Amazon はキーワード単位の日別データを約5か月分しか残さない。それより前の日を取ると、
 //  ・ふつうの日 → 全行の費用が ¥0、・月の1日 → その月全体の合計が1日分として返る。
@@ -3229,7 +3297,7 @@ const CAMP_URL_OLD = {
 function saveCampUrls(){ return persistKey(STORAGE_CAMPURL, campUrls); }
 function campUrlOf(name){ const u = campUrls && campUrls[String(name || '').trim()]; return (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : ''; }
 
-const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH];
+const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH, STORAGE_CHGLOG];
 
 // ==== 永続化: IndexedDB（大容量）優先。使えない時は localStorage(圧縮) にフォールバック ====
 function idbOpen(){
@@ -3259,7 +3327,7 @@ function persistKey(key, obj){
   const r = lzSet(key, obj); scheduleSync(); return r;
 }
 function amacheckStateMap(){
-  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData };
+  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData, [STORAGE_CHGLOG]: globalChangeLogs };
 }
 
 // ================= GitHub クラウド同期 =================
@@ -3378,6 +3446,8 @@ async function bootstrap(){
   plData = await load(STORAGE_PL, {});
   returnsData = await load(STORAGE_RETURNS, {});
   categories = await load(STORAGE_CAT, {});
+  globalChangeLogs = await load(STORAGE_CHGLOG, []);   // v3.73
+  if (!Array.isArray(globalChangeLogs)) globalChangeLogs = [];
   purchData = await load(STORAGE_PURCH, null);
   if (!purchData || typeof purchData !== 'object' || Array.isArray(purchData)) purchData = { day: {}, month: {} };
   if (!purchData.day || typeof purchData.day !== 'object') purchData.day = {};
@@ -3493,15 +3563,13 @@ function init(){
     t.addEventListener('click', () => { switchView(t.dataset.tab); t.blur(); });
   });
   document.querySelectorAll('[data-back]').forEach(b => b.addEventListener('click', () => switchView('master')));
-  document.getElementById('toggle-header').addEventListener('click', toggleHeader);
-  document.getElementById('toggle-header-master').addEventListener('click', toggleHeader);
-  document.getElementById('toggle-header-ad').addEventListener('click', toggleHeader);
   document.getElementById('toggle-header-adkw').addEventListener('click', toggleHeader);
   document.getElementById('kw-steps-toggle').addEventListener('click', kwToggleSteps);
   document.getElementById('close-kw-help').addEventListener('click', closeKwHelp);
   document.getElementById('kw-help-modal').addEventListener('click', e => { if (e.target.id === 'kw-help-modal') closeKwHelp(); });
   document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('kw-help-modal').hidden) closeKwHelp(); });
   window.addEventListener('resize', adjustHiddenTableHeight);
+  window.addEventListener('load', kwPlaceHideBtns);   // v3.71：フォントの読み込みでタブの行の高さが変わるため
   // セール設定
   document.getElementById('open-sale').addEventListener('click', openSaleModal);
   document.getElementById('open-export').addEventListener('click', openExportModal);
@@ -3667,6 +3735,14 @@ function init(){
   }
   document.getElementById('ad-month-select').addEventListener('change', (e) => { adMonth = e.target.value; renderAdTable(); });
   document.querySelectorAll('#ad-tblmode [data-ad-tm]').forEach(b => b.addEventListener('click', () => setAdTableMode(b.dataset.adTm)));   // v3.69
+  document.querySelectorAll('#ad-switches [data-sw]').forEach(b => b.addEventListener('click', () => setAdSwitch(b.dataset.sw)));   // v3.73
+  document.getElementById('ad-cl-edit').addEventListener('click', openGlobalChangeLog);
+  document.getElementById('gcl-add').addEventListener('click', addGlobalClRow);
+  document.getElementById('gcl-save').addEventListener('click', saveGlobalChangeLog);
+  document.getElementById('gcl-cancel').addEventListener('click', closeGlobalChangeLog);
+  document.getElementById('gcl-x').addEventListener('click', closeGlobalChangeLog);
+  document.getElementById('gcl-modal').addEventListener('mousedown', e => { if (e.target.id === 'gcl-modal') closeGlobalChangeLog(); });
+  document.addEventListener('keydown', e => { if (e.key === 'Escape' && !document.getElementById('gcl-modal').hidden) closeGlobalChangeLog(); });
   document.getElementById('ad-year-select').addEventListener('change', (e) => { adYear = e.target.value; renderAdTable(); });
   document.getElementById('ad-product-select').addEventListener('change', (e) => { adProduct = e.target.value; renderAdTable(); });
   document.querySelectorAll('[data-ad-daymode]').forEach(btn => btn.addEventListener('click', () => setAdDayMode(btn.dataset.adDaymode)));
@@ -7254,18 +7330,25 @@ function kwToggleSteps(){
   else { kwStepsHidden = false; if (hdr && !kwStepsPrevHeader) toggleHeader(); }
   renderAdKwView();
 }
-// 「ヘッダーを隠す」「ヘッダー2まで隠す」：タブ行の右端に縦に2つ（ヘッダーを隠している間は画面の右上）。商品-KWデータのときだけ出す
+// v3.71：「ヘッダーを隠す」は全ページ共通で1つ。タブの行の右端（撤退済み商品の右の画面端）に置く（ADcheck の「上部を隠す」と同じ）。
+//   隠している間は、そのボタンだけの細い行になる。商品-KWデータでは「ヘッダー2まで隠す」も並ぶ
 function kwPlaceHideBtns(){
   const box = document.getElementById('adkw-hide-btns'); if (!box) return;
+  const hidden = document.body.classList.contains('header-hidden');
   const v = document.getElementById('adkw-view');
-  const show = !!(v && !v.hidden && kwDates().length);
-  box.hidden = !show; if (!show) return;
+  const kwOn = !!(v && !v.hidden && kwDates().length);
+  box.hidden = false;
   const sb = document.getElementById('kw-steps-toggle');
-  sb.textContent = kwStepsHidden ? 'ヘッダー2を表示' : 'ヘッダー2まで隠す';   // v3.60：矢印なし
-  sb.title = kwStepsHidden ? 'ヘッダー2（期間・キャンペーン・詳しい条件）を表示' : 'ヘッダー・タブと、ヘッダー2（期間・キャンペーン・詳しい条件）をまとめて隠して、表を広く';
+  sb.hidden = !kwOn;
+  if (kwOn) {
+    sb.textContent = kwStepsHidden ? 'ヘッダー2を表示' : 'ヘッダー2まで隠す';   // v3.60：矢印なし
+    sb.title = kwStepsHidden ? 'ヘッダー2（期間・キャンペーン・詳しい条件）を表示' : 'ヘッダー・タブと、ヘッダー2（期間・キャンペーン・詳しい条件）をまとめて隠して、表を広く';
+  }
+  box.classList.toggle('thin', hidden);
+  if (hidden) { box.style.top = ''; return; }
   const row = document.querySelector('.tabs .tab-row');
   let top = 8;
-  if (!document.body.classList.contains('header-hidden') && row) { const r = row.getBoundingClientRect(); top = r.top + window.scrollY + (r.height - box.firstElementChild.offsetHeight) / 2; }
+  if (row) { const r = row.getBoundingClientRect(); top = r.top + window.scrollY + (r.height - box.offsetHeight) / 2; }
   box.style.top = Math.round(top) + 'px';
 }
 // 隠しているときは、表の下端を画面の下まで伸ばす（ページの表示倍率 zoom を考慮）
@@ -8902,7 +8985,134 @@ function updateAdDayModeUI(cut){
   const sb = box.querySelector('[data-ad-daymode="same"]'); if (sb) sb.title = '今月と同じ日数（各月 1〜' + cut + '日）だけを合計して比べます';
 }
 
+// ============================================
+// v3.73：全-月別データ「SEO売上トップ15」「比率表記」「変更記録」（ADcheck v1.1492 を流用）
+//   スイッチの状態は保存しない（開き直すと トップ15 OFF・比率 OFF・変更記録 ON）
+// ============================================
+let adSeoShow = false, adPctMode = false, adClShow = true;
+const CL_COLORS = ['#f97316', '#dc2626', '#d97706', '#16a34a', '#0ea5e9', '#7c3aed', '#db2777'];
+function adTgHtml(on, color, label){
+  return '<span class="ad-tg-knob" style="background:' + (on ? 'rgba(255,255,255,.45)' : '#cbd5e1') + '"><span style="left:' + (on ? '11px' : '1px') + '"></span></span>' + label;
+}
+function adPaintSwitches(){
+  const box = document.getElementById('ad-switches'); if (!box) return;
+  box.hidden = adPeriod !== 'monthly';
+  [['ad-sw-seo', adSeoShow, '#1565C0', 'SEO売上トップ15'], ['ad-sw-pct', adPctMode, '#16a34a', '比率表記'], ['ad-sw-cl', adClShow, '#f97316', '変更記録']].forEach(([id, on, col, lb]) => {
+    const b = document.getElementById(id); if (!b) return;
+    b.classList.toggle('on', on); b.style.background = on ? col : ''; b.style.borderColor = on ? col : '';
+    b.innerHTML = adTgHtml(on, col, lb); b.title = lb + '：' + (on ? '表示中（押すと消す）' : '表示しない（押すと出す）');
+  });
+}
+function setAdSwitch(k){
+  if (k === 'seo') adSeoShow = !adSeoShow; else if (k === 'pct') adPctMode = !adPctMode; else if (k === 'cl') adClShow = !adClShow;
+  renderAdTable();
+}
+// ---- SEO売上トップ15：商品ごとの SEO売上＝推計総売上 − 広告売上（商品-売上データと同じ計算。④／E がある月だけ）----
+let _adSeoCache = {};
+function adSeoByMonth(ym){
+  if (_adSeoCache[ym] !== undefined) return _adSeoCache[ym];
+  const sv = [psMonth, psDay]; let out = null;
+  try {
+    psMonth = ym; psDay = '';
+    const c = psCompute();
+    if (c.pr.src !== 'none') {
+      out = { src: c.pr.src, nDays: c.pr.nDays, by: {} };
+      c.rows.forEach(r => { if (r.p && r.ad != null) out.by[r.asin] = { p: r.p, seo: Math.max(0, (r.total || 0) - r.ad) }; });
+    }
+  } catch (e) { console.error(e); out = null; }
+  finally { psMonth = sv[0]; psDay = sv[1]; }
+  _adSeoCache[ym] = out;
+  return out;
+}
+function adSeoChg(cur, prev){
+  if (prev == null) return { col: '#64748b', txt: '' };          // 前月の購入商品データが無い
+  if (!(prev > 0)) return { col: '#64748b', txt: '新' };
+  const p = (cur - prev) / prev * 100, r = Math.round(Math.abs(p));
+  if (p >= 20) return { col: '#1565C0', txt: '▲' + r + '%' };
+  if (p >= 10) return { col: '#2E7D32', txt: '▲' + r + '%' };
+  if (p <= -20) return { col: '#A32D2D', txt: '▼' + r + '%' };
+  if (p <= -10) return { col: '#BA7517', txt: '▼' + r + '%' };
+  return { col: '#1a1a1a', txt: (p >= 0 ? '+' : '-') + r + '%' };
+}
+function adSeoRowHtml(ym, ncol){
+  const cur = adSeoByMonth(ym), prev = adSeoByMonth(gYmAdd(ym, -1));
+  let h = '<tr class="ad-seo-row"><td colspan="' + ncol + '"><div class="ad-seo-box"><div class="ad-seo-h">◎ ' + ym.replace('-', '/') + ' SEO売上トップ15商品'
+    + (cur && cur.src === 'daily' ? '<span class="pm-src pm-src-d" style="margin-left:6px;" title="E（月別の確定）がまだ無いので、④購入商品データ ' + cur.nDays + '日分（④のある日だけ）で計算">速報</span>' : '')
+    + '<span class="ad-seo-lg">（数字の色＝前月比：<b style="color:#1565C0">+20%↑</b> <b style="color:#2E7D32">+10%↑</b> <b>中間</b> <b style="color:#BA7517">-10%↓</b> <b style="color:#A32D2D">-20%↓</b>）</span></div>';
+  if (!cur) return h + '<div class="ad-seo-none">この月は購入商品データ（④／E）が無いため、商品ごとの広告売上・SEO売上が分かりません</div></div></td></tr>';
+  const list = Object.keys(cur.by).map(a => Object.assign({ a }, cur.by[a])).filter(x => x.seo > 0).sort((x, y) => y.seo - x.seo).slice(0, 15);
+  if (!list.length) return h + '<div class="ad-seo-none">この月はSEO売上のある商品がありません</div></div></td></tr>';
+  h += '<div class="ad-seo-list">';
+  list.forEach((x, i) => {
+    const pv = prev ? (prev.by[x.a] ? prev.by[x.a].seo : 0) : null, c = adSeoChg(x.seo, pv);
+    h += '<div class="ad-seo-it" data-fnsku="' + escapeHtml(x.p.fnsku) + '" title="' + escapeHtml(x.p.name || '') + '｜押すと商品の画面">'
+      + '<div class="ad-seo-img">' + productImageHtml(x.p, 66) + '<span class="ad-seo-rk' + (i < 3 ? ' top' : '') + '">' + (i + 1) + '</span></div>'
+      + '<div class="ad-seo-v" style="color:' + c.col + '">¥' + Math.round(x.seo).toLocaleString() + '</div>'
+      + (c.txt ? '<div class="ad-seo-c" style="color:' + c.col + '">' + c.txt + '</div>' : '') + '</div>';
+  });
+  return h + '</div></div></td></tr>';
+}
+// ---- 比率表記：SEO売上・広告売上（総売上に対する比率）----
+function adPctColor(v){ return v < 30 ? '#1d4ed8' : v < 40 ? '#3b82f6' : v < 50 ? '#60a5fa' : v < 60 ? '#fb7185' : v < 70 ? '#ef4444' : '#b91c1c'; }
+function adPctRowHtml(total, seo, adS, has, extraCls){
+  const pc = v => '<span style="color:' + adPctColor(v) + '">' + (Math.round(v * 10) / 10).toFixed(1) + '%</span>';
+  const ok = total > 0 && has;
+  let h = '<tr class="ad-pct-row' + (extraCls || '') + '"><td class="adc-sales adc-gstart"></td>'
+    + '<td class="adc-sales-l1">' + (ok ? pc(Math.max(0, seo) / total * 100) : '') + '</td>'
+    + '<td class="adc-sales-l2">' + (ok ? pc(adS / total * 100) : '') + '</td><td class="adc-sales-l3"></td><td class="adc-sales-l4"></td>';
+  [['adc-sp', 'g'], ['adc-sp-b1', 'b'], ['adc-sp-b2', 'b'], ['adc-sb', 'g'], ['adc-sb-b1', 'b'], ['adc-sb-b2', 'b']].forEach(([c, s]) => { h += '<td class="' + c + (s === 'g' ? ' adc-gstart' : ' adc-bstart') + '"></td><td class="' + c + '"></td><td class="' + c + '"></td>'; });
+  return h + '</tr>';
+}
+// ---- 変更記録（ショップ全体）：globalChangeLogs = [{ date:'YYYY-MM-DD', note, color }]（新しい順）----
+function adClByMonth(){
+  const m = {};
+  (globalChangeLogs || []).forEach(l => { if (!l || !l.date) return; (m[String(l.date).slice(0, 7)] = m[String(l.date).slice(0, 7)] || []).push(l); });
+  return m;
+}
+let gclWork = [];
+function openGlobalChangeLog(){
+  gclWork = (globalChangeLogs || []).map(l => ({ date: l.date || '', note: l.note || '', color: l.color || CL_COLORS[0] }));
+  document.getElementById('gcl-modal').hidden = false;
+  gclRender();
+}
+function closeGlobalChangeLog(){ document.getElementById('gcl-modal').hidden = true; }
+function gclRead(){
+  document.querySelectorAll('#gcl-rows .gcl-row').forEach((row, i) => { if (!gclWork[i]) return; gclWork[i].date = row.querySelector('.gcl-date').value; gclWork[i].note = row.querySelector('.gcl-note').value; });
+}
+function gclSort(){ gclWork.sort((a, b) => String(b.date || '').localeCompare(String(a.date || ''))); }
+function gclRender(){
+  const box = document.getElementById('gcl-rows'); if (!box) return;
+  if (!gclWork.length) { box.innerHTML = '<div class="gcl-empty">記録がありません。「＋ 追加」で足してください。</div>'; return; }
+  box.innerHTML = gclWork.map((l, i) => '<div class="gcl-row" data-i="' + i + '"><input type="date" class="gcl-date" value="' + escapeHtml(l.date) + '"><input type="text" class="gcl-note" value="' + escapeHtml(l.note) + '" placeholder="メモ（例：予算の仕組みを変更）">'
+    + '<span class="gcl-cols">' + CL_COLORS.map(c => '<button type="button" class="gcl-col' + (c === l.color ? ' on' : '') + '" data-c="' + c + '" style="background:' + c + '" title="この色にする"></button>').join('') + '</span>'
+    + '<button type="button" class="gcl-del" title="この行を消す">✕</button></div>').join('');
+  box.querySelectorAll('.gcl-row').forEach(row => {
+    const i = +row.dataset.i;
+    row.querySelector('.gcl-date').addEventListener('change', () => { gclRead(); gclSort(); gclRender(); });
+    row.querySelectorAll('.gcl-col').forEach(b => b.addEventListener('click', () => { gclRead(); gclWork[i].color = b.dataset.c; gclRender(); }));
+    row.querySelector('.gcl-del').addEventListener('click', () => { gclRead(); gclWork.splice(i, 1); gclRender(); });
+  });
+}
+function addGlobalClRow(){ gclRead(); gclWork.unshift({ date: todayStr(), note: '', color: CL_COLORS[0] }); gclRender(); }
+function saveGlobalChangeLog(){
+  gclRead();
+  globalChangeLogs = gclWork.filter(l => l.date || String(l.note || '').trim()).map(l => ({ date: l.date, note: String(l.note || '').trim(), color: l.color || CL_COLORS[0] }));
+  globalChangeLogs.sort((a, b) => String(b.date || '').localeCompare(String(a.date || '')));
+  saveChangeLogs();
+  closeGlobalChangeLog();
+  renderAdTable();   // 保存したらすぐ表に出す（ADcheck では描き直していなかった点を直す）
+  toast('変更記録を保存しました');
+}
+
+// v3.71：全-月別データは年・キャンペーンを選ばない（全部の月・全キャンペーン）。日別のキャンペーンの選択はそのまま残す
 function renderAdTable(){
+  const sv = adProduct;
+  if (adPeriod === 'monthly') adProduct = 'all';
+  _adSeoCache = {};
+  try { renderAdTableCore(); } finally { adProduct = sv; }
+  try { adPaintSwitches(); } catch (e) {}
+}
+function renderAdTableCore(){
   const body = document.getElementById('ad-body');
   if (!body) return;
   populateAdMonthYear();
@@ -8955,13 +9165,7 @@ function renderAdTable(){
       });
       return { label, ym: prefix, m: agg, total: totalSalesForMonth(prefix, adProduct, dayCut), sale: monthOverlapsSale(prefix) };
     };
-    if (adTableMode === 'normal') {
-      for (let mo = 1; mo <= 12; mo++) {
-        const prefix = adYear + '-' + String(mo).padStart(2, '0');
-        if (prefix > rowsEnd.slice(0, 7)) break;
-        rows.push(monthRow(prefix, mo + '月'));
-      }
-    } else {   // v3.69：前年同月比は全部の年（データのある月だけ）
+    {   // v3.69：全部の年（データのある月だけ）。v3.71：通常も同じ（年のドロップダウンは廃止）
       const endYm = rowsEnd.slice(0, 7);
       const yms = Object.keys(adData).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).map(d => d.slice(0, 7)).concat(Object.keys(shipments).filter(k => /^\d{4}-\d{2}$/.test(k))).sort();
       if (yms.length) for (let ym = yms[0]; ym <= endYm; ym = gYmAdd(ym, 1)) {
@@ -8974,6 +9178,7 @@ function renderAdTable(){
   rows.reverse();   // 月日別グラフに合わせて、新しい行が上
   const yoyMode = adPeriod === 'monthly' && adTableMode !== 'normal';
   if (yoyMode) rows = adYoyOrder(rows);
+  else rows.forEach(r => { r._grpTop = false; });
 
   let html = '';
   if (adPeriod === 'daily' && isAdMonthClosed(adMonth)) {
@@ -8990,7 +9195,7 @@ function renderAdTable(){
   html += '<div class="table-wrap">'
     + (dayCut ? ('<div class="ad-day-banner"><span class="adb-tag">月途中</span>各月 1〜' + dayCut + '日 だけの合計です（月全体の数字ではありません）'
       + '<button type="button" onclick="setAdDayMode(\'full\')">月全体に戻す</button></div>') : '')
-    + '<table class="ad-table' + (yoyMode ? ' ad-yoy' : '') + '">'
+    + '<table class="ad-table' + (adPeriod === 'monthly' ? ' ad-yoy' : '') + '">'
     + adColgroup()
     + '<thead>'
     + '<tr>'
@@ -9079,6 +9284,7 @@ function renderAdTable(){
 
   // v3.69：前年同月比差異：2行以上ある組の最後の行の下に「差異」（1行目−2行目。金額の列だけ）
   const diffAfter = {};
+  const clMap = adClByMonth();   // v3.73
   if (yoyMode && adTableMode === 'yoydiff') {
     const groups = []; rows.forEach((r, i) => { if (i === 0 || r._grpTop) groups.push([]); groups[groups.length - 1].push(i); });
     const latestYm = rows.length ? rows.map(r => r.ym).sort().slice(-1)[0] : '';
@@ -9115,8 +9321,16 @@ function renderAdTable(){
       ? (' data-saletip="' + String(saleTip).replace(/"/g, '&quot;') + '"')
       : (nonSaleTitle ? (' title="' + String(nonSaleTitle).replace(/"/g, '&quot;') + '"') : '');
     const dayClick = dayClickable ? (' onclick="openAdAddForDay(' + r.label + ')"') : '';
-    html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + (yoyMode && r._grpTop ? ' ad-yoy-top' : '') + '">'
-      + '<td class="' + dayCls + '"' + dayAttr + dayClick + '>' + r.label + '</td>'
+    // v3.73：月別の 比率表記（月の列を2行ぶち抜き）・変更記録（点線枠とバッジ）
+    const isM = adPeriod === 'monthly' && r.ym;
+    const pctOn = isM && adPctMode;
+    const cls = isM && adClShow ? clMap[r.ym] : null;
+    const clCol = cls ? (cls[0].color || CL_COLORS[0]) : '';
+    const clNotes = cls ? cls.filter(l => String(l.note || '').trim()) : [];
+    const clBadges = clNotes.length ? '<div class="ad-cl-badges">' + clNotes.map(l => '<span style="background:' + (l.color || CL_COLORS[0]) + '">' + escapeHtml(l.note) + '</span>').join('') + '</div>' : '';
+    const dayTitle = cls ? ' title="' + escapeHtml(clNotes.map(l => l.date + ' ' + l.note).join(' / ') || '変更記録') + '"' : '';
+    html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + (yoyMode && r._grpTop ? ' ad-yoy-top' : '') + (pctOn ? ' ad-has-pct' : '') + (cls ? ' ad-cl-top' + (pctOn ? '' : ' ad-cl-bot') : '') + '"' + (cls ? ' style="--clc:' + clCol + '"' : '') + '>'
+      + '<td class="' + dayCls + '"' + (pctOn ? ' rowspan="2"' : '') + dayAttr + dayTitle + dayClick + '>' + r.label + clBadges + '</td>'
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
       + tcell(total, 'adc-sales adc-gstart', 'total')
       + tcell(seo, 'adc-sales-l1', 'seo')
@@ -9132,10 +9346,13 @@ function renderAdTable(){
       + trip(s.sb.douga, c.sb.douga, 'adc-sb-b1', 'b', 'dgS', 'dgC', 'dgR')
       + trip(s.sb.shokore, c.sb.shokore, 'adc-sb-b2', 'b', 'skS', 'skC', 'skR')
       + '</tr>';
+    if (pctOn) html += adPctRowHtml(total, seo, adSales, has, cls ? ' ad-cl-bot" style="--clc:' + clCol : '');
     if (diffAfter[ri]) html += diffAfter[ri];
+    if (isM && adSeoShow) html += adSeoRowHtml(r.ym, 24);
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+  body.querySelectorAll('.ad-seo-it').forEach(el => el.addEventListener('click', () => openProductModal(el.dataset.fnsku, 'info')));   // v3.73
   if (document.body.classList.contains('header-hidden')) adjustHiddenTableHeight();
 }
 
@@ -9651,7 +9868,6 @@ function initPsalesView(){
   on('ps-search', 'input', e => { psSearch = e.target.value; renderPsalesTable(); });
   on('ps-csv', 'click', psExportCsv);
   on('ps-colbtn', 'click', () => { psColPanel = !psColPanel; psRenderColPanel(); });
-  on('toggle-header-psales', 'click', toggleHeader);
   // v3.48：「直接／配賦」の説明
   const hm = document.getElementById('ps-cost-help-modal');
   on('ps-cost-help', 'click', () => { if (hm) hm.hidden = false; });
@@ -9684,7 +9900,8 @@ function populateAdMonthYear(){
   }
   if (ys) ys.value = adYear;
   if (ms) ms.hidden = (adPeriod !== 'daily');
-  if (ys) ys.hidden = (adPeriod !== 'monthly' || adTableMode !== 'normal');   // v3.69：前年同月比は全部の年を使うので年は選ばない
+  if (ys) ys.hidden = true;   // v3.71：年のドロップダウンは廃止（全-月別データは全部の月を並べる）
+  const pw = document.getElementById('ad-product-wrap'); if (pw) pw.hidden = (adPeriod === 'monthly');   // v3.71：全-月別データはキャンペーンを選ばない
   const tm = document.getElementById('ad-tblmode');
   if (tm) { tm.hidden = (adPeriod !== 'monthly'); tm.querySelectorAll('button').forEach(b => b.classList.toggle('active', b.dataset.adTm === adTableMode)); }
   const dt = document.getElementById('ad-daily-toggle');
@@ -10531,12 +10748,12 @@ function placeToast(el){
     midY = r.top + r.height / 2;
   } else {
     // ヒント帯が無い（月別）時：合計出荷数の右〜「出荷数データを追加」の左の間（配色の凡例に一時的に重ねる）
-    const tot = view.querySelector('.ship-total'), btn = document.getElementById('toggle-header');   // v3.65：「最終取込」の印は廃止。「ヘッダーを隠す」の左まで
+    const tot = view.querySelector('.ship-total'), btn = document.getElementById('ship-toast-slot');   // v3.71：「ヘッダーを隠す」はタブの行へ移ったので、ツールバーの空き（右端）まで
     if (!tot || !btn || btn.offsetParent === null) return;
     const a = tot.getBoundingClientRect(), b = btn.getBoundingClientRect();
     if (Math.abs(a.top - b.top) > 20) return;   // ツールバーが折り返している時は従来位置
     minLeft = a.right + 10;
-    rightEdge = b.left - 10;
+    rightEdge = b.right - 10;
     midY = b.top + b.height / 2;
   }
   if (rightEdge - minLeft < 160) return;
