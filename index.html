@@ -1813,6 +1813,10 @@
   .pm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.45); z-index: 9200; display: flex; align-items: flex-start; justify-content: center; padding: 20px; }
   .pm-bg[hidden] { display: none; }
   .pm-card { background: #fff; width: 96vw; max-width: 1400px; max-height: 100%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; }
+  /* v3.96：商品モーダルの「全体情報」と「KW推移」は同じ大きさ・同じ位置（画面いっぱい。タブを切り替えても枠が動かない） */
+  .pm-bg { padding: 4vh 12px 0; }
+  .pm-card, .kwm-box.pm-mode { width: calc(100vw - 24px); max-width: none; min-width: 0; height: 92vh; max-height: 92vh; }
+  .kwm-box.pm-mode { margin-top: 1.5vh; }   /* .kwm-bg の padding-top 2.5vh と合わせて 4vh */
   .pm-tabs { display: flex; align-items: flex-end; gap: 4px; padding: 10px 16px 0 24px; border-bottom: 1px solid var(--border); background: #fff; flex-shrink: 0; }
   .pm-tab { padding: 9px 20px; border: none; background: none; cursor: pointer; font-size: 14.5px; font-weight: 600; color: var(--text-tertiary); border-bottom: 2.5px solid transparent; font-family: inherit; border-radius: 0; }
   .pm-tab:hover { color: var(--black); background: none; }
@@ -2262,7 +2266,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.95</span>
+    <span class="version">v3.96</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
