@@ -421,6 +421,7 @@
   table.ad-table .ad-daycol.ad-sale { background: rgba(194,24,91,0.12); box-shadow: inset 3px 0 0 var(--sale); color: var(--sale); }
   .ad-saletip-pop { position: fixed; z-index: 9999; background: #1f2937; color: #fff; font-size: 12px; font-weight: 600; padding: 6px 9px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.3); pointer-events: none; white-space: nowrap; opacity: 0; }
   .ad-saletip-pop.show { opacity: 1; }
+  .ad-saletip-pop.cmp-tip { white-space: pre-line; max-width: 360px; line-height: 1.5; }
   /* v3.75：変更記録のホバー（白いカード。記録ごとに設定した色の日付タグ＋メモ全文） */
   .ad-saletip-pop.cl { background: #fff; color: #1f2937; border: 1px solid #d1d5db; white-space: normal; max-width: 380px; padding: 9px 11px; font-weight: 500; box-shadow: 0 8px 24px rgba(0,0,0,.18); }
   .ad-saletip-pop .clp-h { font-size: 11px; font-weight: 800; color: #6b7280; margin-bottom: 6px; }
@@ -2168,7 +2169,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.84</span>
+    <span class="version">v3.85</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -11557,7 +11558,22 @@ function _renderCmpCostUI(){
   w.innerHTML = '<span class="cmp-cm-l">広告費</span><span class="cmp-cm-seg">' + b('direct', '直接') + b('alloc', '配賦（参考）') + '</span>'
     + '<button type="button" class="ps-help-badge" onclick="document.getElementById(\'ps-cost-help-modal\').hidden=false" title="「直接」と「配賦（参考）」の説明を見る">！</button>';
 }
+// v3.85：全-比較のタイル・絞込ボタンの説明を、乗せたらすぐ出す（title だとブラウザの待ち時間がある）
+function initCmpTip(){
+  if (window._cmpTipReady) return; window._cmpTipReady = true;
+  const tip = document.createElement('div'); tip.className = 'ad-saletip-pop cmp-tip'; document.body.appendChild(tip);
+  let act = null;
+  const place = e => { let x = e.clientX + 14, y = e.clientY + 16; const w = tip.offsetWidth, h = tip.offsetHeight; if (x + w > window.innerWidth - 8) x = e.clientX - w - 12; if (y + h > window.innerHeight - 8) y = e.clientY - h - 12; tip.style.left = x + 'px'; tip.style.top = y + 'px'; };
+  document.addEventListener('mouseover', e => {
+    const el = e.target && e.target.closest ? e.target.closest('#tab-yoy [data-ytip]') : null;
+    if (el) { if (act !== el) { act = el; tip.textContent = el.getAttribute('data-ytip'); } tip.classList.add('show'); place(e); }
+    else if (act) { act = null; tip.classList.remove('show'); }
+  });
+  document.addEventListener('mousemove', e => { if (act) place(e); });
+  document.addEventListener('scroll', () => { if (act) { act = null; tip.classList.remove('show'); } }, true);
+}
 function renderCompareView(){
+  initCmpTip();
   _cmpCache = {}; _cmpBuildProducts();
   renderYoy();
 }
@@ -11936,11 +11952,11 @@ function renderYoyTop(){
     // もう片方の月での順位（上段なら比較月での順位、下段なら今月での順位）
     const oi = otherRes ? otherRes.list.findIndex(y => y.code === x.code) : -1;
     const rankTag = '<div style="font-size:10px;color:var(--text3);line-height:13px;height:13px">' + (oi >= 0 ? (oi+1)+'位' : '圏外') + '</div>';
-    return '<div class="yt-tile" data-code="'+esc(x.code)+'" title="'+esc(name)+'\n（クリックで選択枠に入れる・もう一度で外す／ダブルクリックで詳細）" onclick="_yoyTopPin(\''+esc(x.code)+'\')" ondblclick="openRenewalGraph(\''+esc(x.code)+'\')" onmouseenter="_yoyTopHi(\''+esc(x.code)+'\',true)" onmouseleave="_yoyTopHi(\''+esc(x.code)+'\',false)" style="cursor:pointer;flex:0 0 74px;width:74px;box-sizing:border-box;text-align:center;position:relative;padding:6px 1px 4px;border-radius:8px">'
+    return '<div class="yt-tile" data-code="'+esc(x.code)+'" data-ytip="'+esc(name)+'\n（クリックで選択枠に入れる・もう一度で外す／ダブルクリックで詳細）" onclick="_yoyTopPin(\''+esc(x.code)+'\')" ondblclick="openRenewalGraph(\''+esc(x.code)+'\')" onmouseenter="_yoyTopHi(\''+esc(x.code)+'\',true)" onmouseleave="_yoyTopHi(\''+esc(x.code)+'\',false)" style="cursor:pointer;flex:0 0 74px;width:74px;box-sizing:border-box;text-align:center;position:relative;padding:6px 1px 4px;border-radius:8px">'
       // ★v1.1423★ 横幅を詰める（108→74px）。順位は画像の左上、絞込ボタンは画像の右下に重ねる
       + '<div style="position:relative;width:58px;height:58px;margin:0 auto">' + imgEl
       +   '<div style="position:absolute;top:-5px;left:-7px;min-width:18px;height:18px;padding:0 3px;box-sizing:border-box;border-radius:9px;background:'+(i<3?mt.col:'#94a3b8')+';color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:1;box-shadow:0 0 0 2px var(--surface)">'+(i+1)+'</div>'
-      +   '<button onclick="event.stopPropagation();setYoyTopFocus(\''+esc(x.code)+'\')" ondblclick="event.stopPropagation()" onmouseenter="this.style.background=\'#0f766e\';this.style.color=\'#fff\'" onmouseleave="this.style.background=\''+(_yoyFocusCode===x.code?'#0f766e':'#ecfdf5')+'\';this.style.color=\''+(_yoyFocusCode===x.code?'#fff':'#0f766e')+'\'" title="'+(_yoyFocusCode===x.code?'絞り込みを解除':'この商品だけを表示')+'" style="position:absolute;left:-6px;bottom:0;z-index:2;height:16px;padding:0 5px;font-size:9px;line-height:13px;font-weight:800;border-radius:5px;cursor:pointer;box-shadow:0 1px 3px rgba(15,118,110,.35);border:1.5px solid #0f766e;background:'+(_yoyFocusCode===x.code?'#0f766e':'#ecfdf5')+';color:'+(_yoyFocusCode===x.code?'#fff':'#0f766e')+'">'+(_yoyFocusCode===x.code?'解除':'絞込')+'</button>'
+      +   '<button onclick="event.stopPropagation();setYoyTopFocus(\''+esc(x.code)+'\')" ondblclick="event.stopPropagation()" onmouseenter="this.style.background=\'#0f766e\';this.style.color=\'#fff\'" onmouseleave="this.style.background=\''+(_yoyFocusCode===x.code?'#0f766e':'#ecfdf5')+'\';this.style.color=\''+(_yoyFocusCode===x.code?'#fff':'#0f766e')+'\'" data-ytip="'+(_yoyFocusCode===x.code?'絞り込みを解除':'この商品だけを表示')+'" style="position:absolute;left:-6px;bottom:0;z-index:2;height:16px;padding:0 5px;font-size:9px;line-height:13px;font-weight:800;border-radius:5px;cursor:pointer;box-shadow:0 1px 3px rgba(15,118,110,.35);border:1.5px solid #0f766e;background:'+(_yoyFocusCode===x.code?'#0f766e':'#ecfdf5')+';color:'+(_yoyFocusCode===x.code?'#fff':'#0f766e')+'">'+(_yoyFocusCode===x.code?'解除':'絞込')+'</button>'
       + '</div>'
       + '<div style="font-size:10px;color:var(--text2);margin-top:3px;line-height:14px;height:14px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">'+esc(name)+'</div>'
       + '<div style="font-family:inherit;font-variant-numeric:tabular-nums;font-weight:700;font-size:11px;color:var(--text);line-height:15px;height:15px">'+l1+'</div>'
