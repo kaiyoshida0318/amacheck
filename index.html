@@ -1679,6 +1679,12 @@
   /* v3.78：全-比較（ADcheck の色の名前を、この画面の中だけで定義） */
   .cmp-root { --surface: #fff; --surface2: #f3f2ef; --border: rgba(0,0,0,0.08); --border2: rgba(0,0,0,0.14); --text: #1a1a1a; --text2: #666; --text3: #999; color: var(--text); font-size: 13px; }
   .cmp-root button { display: inline-block; }
+  /* v3.82：全-比較は画面の端まで（全-月別データの表と同じ考え方。ズーム中は --pz で割り戻す） */
+  #compare-view .cmp-root { width: calc((100vw - 24px) / var(--pz, 1)); margin-left: calc(50% - (50vw - 12px) / var(--pz, 1)); margin-right: calc(50% - (50vw - 12px) / var(--pz, 1)); box-sizing: border-box; }
+  #compare-view #yoyTopArea > div { justify-content: flex-start; }
+  /* v3.83：商品のタイル（画像とその下の表記）と左の見出し列を1.3倍に。見出し列は zoom の分だけ固定位置（left）を割り戻す */
+  #compare-view #yoyTopArea .yt-tile { zoom: 1.3; }
+  #compare-view #yoyTopArea .yt-lab { zoom: 1.3; left: calc(218px / 1.3) !important; }
   .cmp-root button:hover { filter: brightness(0.97); }
   .cmp-cm { display: inline-flex; align-items: center; gap: 5px; margin-left: 6px; }
   .cmp-cm-l { font-size: 12px; font-weight: 700; color: var(--text2); }
@@ -2162,7 +2168,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.81</span>
+    <span class="version">v3.83</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -11949,7 +11955,7 @@ function renderYoyTop(){
     const n1 = mt.type === 'amt' ? mt.label : (mt.type === 'roas' ? mt.label : '獲得単価');
     const n2 = mt.type === 'amt' ? '構成比' : '全体への影響';
     const ln = (t, h, extra) => '<div style="font-size:9px;font-weight:700;color:var(--text3);line-height:'+h+'px;height:'+h+'px;white-space:nowrap;'+(extra||'')+'">'+t+'</div>';
-    return '<div style="flex:0 0 66px;width:66px;box-sizing:border-box;text-align:center;padding:6px 2px 4px 0;border-right:1px dashed var(--border2);margin-right:2px;position:sticky;left:218px;z-index:3;background:var(--surface);align-self:stretch;box-shadow:5px 0 6px -5px rgba(0,0,0,.18)">'
+    return '<div class="yt-lab" style="flex:0 0 66px;width:66px;box-sizing:border-box;text-align:center;padding:6px 2px 4px 0;border-right:1px dashed var(--border2);margin-right:2px;position:sticky;left:218px;z-index:3;background:var(--surface);align-self:stretch;box-shadow:5px 0 6px -5px rgba(0,0,0,.18)">'
       + '<div style="height:58px"></div>'
       + ln('商品名', 14, 'margin-top:3px')
       + ln(n1, 15) + ln(n2, 15, 'color:'+mt.col)
