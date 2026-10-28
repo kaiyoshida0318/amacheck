@@ -1634,17 +1634,18 @@
   table.kwa-table th, table.kwa-table td { padding: 5px 8px; vertical-align: middle; }
   table.kwa-table thead th { font-size: 12.5px; line-height: 1.25; z-index: 3; }
   .kwa-hs { display: block; font-size: 10px; font-weight: 600; color: var(--text-tertiary); }
-  table.kwa-table td.kwa-prod { width: 170px; max-width: 170px; white-space: normal; }
+  table.kwa-table td.kwa-prod { width: 240px; max-width: 240px; white-space: normal; }
   table.kwa-table td.kwa-prod.none { color: var(--text-tertiary); text-align: center; }
   .kwa-pw { display: flex; align-items: center; gap: 7px; }
   .kwa-img { flex: 0 0 auto; cursor: pointer; display: inline-flex; border-radius: 6px; }
   .kwa-img:hover { outline: 2px solid var(--purple); outline-offset: 1px; }
-  .kwa-pn { font-size: 11.5px; line-height: 1.3; color: var(--text-secondary); white-space: normal; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
-  .kwa-pn em { font-style: normal; margin-left: 4px; color: var(--purple); font-weight: 700; }
-  table.kwa-table td.kwa-kw { max-width: 300px; }
+  .kwa-pn { font-size: 11.5px; line-height: 1.35; color: var(--text-secondary); min-width: 0; display: flex; flex-direction: column; }
+  .kwa-pn1 { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .kwa-pn em { font-style: normal; color: var(--purple); font-weight: 700; white-space: nowrap; }
+  table.kwa-table td.kwa-kw { max-width: 230px; }
   .kwa-w { display: flex; align-items: center; min-width: 0; }
   .kwa-w b { font-size: 14px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; color: var(--black); user-select: text; }
-  .kwa-sub { font-size: 11.5px; color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 300px; }
+  .kwa-sub { font-size: 11.5px; color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 230px; }
   .kwa-sh { font-size: 10.5px; color: #b45309; font-weight: 600; }
   .kwa-bchg { font-size: 10.5px; font-weight: 700; white-space: nowrap; }
   .kwa-bchg.dn { color: #2563eb; } .kwa-bchg.up { color: #ea580c; }
@@ -2284,7 +2285,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.97</span>
+    <span class="version">v3.98</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -11616,7 +11617,7 @@ function kwProdCell(ps){
   if (!ps || !ps.length) return '<td class="kwa-prod none" title="このキャンペーンの商品が分かりません（広告キャンペーンの設定に ASIN を入れると出ます）">—</td>';
   const p = ps[0], more = ps.length - 1;
   return '<td class="kwa-prod" data-fnsku="' + escapeHtml(p.fnsku || '') + '" title="' + escapeHtml(ps.map(x => x.name || x.asin).join('\n')) + '"><div class="kwa-pw"><span class="kwa-img" title="押すと商品の画面">' + productImageHtml(p, 34) + '</span>'
-    + '<span class="kwa-pn">' + escapeHtml(p.name || p.asin || '') + (more ? '<em>他' + more + '商品</em>' : '') + '</span></div></td>';
+    + '<span class="kwa-pn"><span class="kwa-pn1">' + escapeHtml(p.name || p.asin || '') + '</span>' + (more ? '<em>他' + more + '商品</em>' : '') + '</span></div></td>';   // v3.98：商品名は1行、他○商品は2行目
 }
 function kwWordCell(e, stopped){
   const cg = e.campaign + (e.adGroup && e.adGroup !== e.campaign ? ' ／ ' + e.adGroup : '');
@@ -11735,7 +11736,7 @@ function renderKwAllView(){
     const sh = totCost > 0 && t.cost > 0 ? (Math.round(t.cost / totCost * 1000) / 10) : null;
     h += '<tr class="kw-row kwa-row' + (on ? ' kww-on' : '') + (x.stopped ? ' kw-stopped' : '') + '" data-key="' + escapeHtml(x.e.key) + '">'
       + '<td class="kw-jc">' + kwJudge(t.judge) + '</td>' + kwProdCell(x.ps) + kwWordCell(x.e, x.stopped)
-      + '<td class="num">' + kwYen(x.e.bidNow) + kwBidChgHtml(x.lastChg) + '</td>'
+      + '<td class="num">' + kwYen(x.e.bidNow) + '</td>'   // v3.98：入札額の下の変更日はなし
       + '<td class="num strong">' + kwYen(t.cost) + (sh != null ? '<div class="kwa-sh">' + sh + '%</div>' : '') + '</td>'
       + '<td class="num">' + kwYen(t.sales) + '</td><td class="num strong ' + kwCls(t.judge) + '">' + kwRoasTxt(t.roas) + '</td><td class="num">' + kwPct(t.acos) + '</td><td class="num">' + kwPct(t.cvr) + '</td>'
       + '<td class="num">' + kwNum(t.clicks) + '</td><td class="num">' + kwNum(x.c3) + '</td><td class="num">' + kwYen(t.cpc) + '</td><td class="num">' + kwNum(t.imp) + '</td><td class="num">' + kwPct(t.ctr, 2) + '</td>'
