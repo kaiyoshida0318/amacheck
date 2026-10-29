@@ -1699,6 +1699,7 @@
   .kwmm-rb em { font-style: normal; font-size: 9px; font-weight: 600; opacity: .8; }
   .kwmm-foot { margin-top: 6px; font-size: 11.5px; color: var(--text-tertiary); }
   /* v4.02：注視分-KW一覧 */
+  table.kww-table th.kww-xh, table.kww-table td.kww-xc { text-align: center; }
   table.kww-table td.kww-at { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
   table.kww-table td.kww-mc { white-space: normal; width: 230px; }
   .kww-memo-v { max-width: 230px; font-size: 12.5px; line-height: 1.4; color: var(--black); padding: 3px 6px; border: 1px dashed transparent; border-radius: 6px; cursor: pointer; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
@@ -2339,7 +2340,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v4.03</span>
+    <span class="version">v4.04</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -11918,7 +11919,7 @@ function renderKwWatchView(){
     + '<span class="kwa-flex"></span><span class="kwa-lbl">注視 ' + items.length + '件</span></div>';
   h += '<div class="table-wrap kw-wrap kwa-wrap kww-wrap"><table class="kw-table kwa-table kww-table"><thead><tr>' + th('name', '商品') + '<th>KW／ターゲット</th>'
     + th('bid', '入札額<span class="kwa-hs">最新</span>', 'num') + th('at', '注視<br>チェック日')
-    + KWW_COLS.map(([k, l]) => th(k, l, 'num')).join('') + '<th>メモ</th><th></th></tr></thead><tbody>';
+    + KWW_COLS.map(([k, l]) => th(k, l, 'num')).join('') + '<th>メモ</th><th class="kww-xh">注視</th></tr></thead><tbody>';   // v4.04：外すの列の見出し
   items.forEach(x => {
     const e = x.e;
     h += '<tr class="kw-row kwa-row kww-row' + (x.stopped ? ' kw-stopped' : '') + '" data-key="' + escapeHtml(x.k) + '">';
