@@ -2285,7 +2285,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v3.98</span>
+    <span class="version">v4.00</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -11704,7 +11704,7 @@ function renderKwAllView(){
   const candSet = new Set(base.filter(x => x.t.cost > 0).sort((a, b) => b.t.cost - a.t.cost).slice(0, KWA_CAND_N).filter(x => x.t.roas < KWA_CAND_ROAS).map(x => x.e.key));
   let list = base;
   const q = kwaQ.trim().toLowerCase();
-  if (q) list = list.filter(x => [x.e.target, x.e.campaign, x.e.adGroup, x.e.match].concat(x.ps.map(p => (p.name || '') + ' ' + (p.asin || '') + ' ' + (p.sku || ''))).join(' ').toLowerCase().indexOf(q) > -1);
+  if (q) list = list.filter(x => String(x.e.target || '').toLowerCase().indexOf(q) > -1);   // v4.00：検索は KW・ASINターゲットだけ（商品名・キャンペーン名では探さない）
   if (kwaCand) list = list.filter(x => candSet.has(x.e.key));
   const KF = { cost: x => x.t.cost, sales: x => x.t.sales, roas: x => x.t.roas, acos: x => x.t.acos, cvr: x => x.t.cvr, clicks: x => x.t.clicks, c3: x => x.c3, cpc: x => x.t.cpc, imp: x => x.t.imp, ctr: x => x.t.ctr, bid: x => x.e.bidNow };
   const kf = KF[kwaSort] || KF.cost, dir = kwaDir === 'asc' ? 1 : -1;
@@ -11723,9 +11723,9 @@ function renderKwAllView(){
     + chip('kwa-stop', kwaStop, '停止中も出す', '止まっているKWも表に出します')
     + chip('kwa-zero', kwaZero, '表示0も出す', 'この期間に表示も広告費も0のKWも表に出します')
     + '</div>'
+    + '<input type="search" class="graph-select kwa-q" id="kwa-q" placeholder="🔍 KW・ASINで検索" title="KW（キーワード）と ASIN ターゲットだけを探します。商品名・キャンペーン名では探しません" value="' + escapeHtml(kwaQ) + '">'   // v3.99：検索は「表示0も出す」のすぐ右
     + '<span class="kwa-flex"></span>'
-    + '<span class="kwa-legend" title="判定・ROAS の色"><span class="kw-dot hi"></span>300%〜<span class="kw-dot mid"></span>200%〜<span class="kw-dot lo"></span>〜199%</span>'
-    + '<input type="search" class="graph-select kwa-q" id="kwa-q" placeholder="🔍 KW・ASIN・商品名で検索" title="KW・ASIN・キャンペーン・商品名で探せます" value="' + escapeHtml(kwaQ) + '">'
+    + '<span class="kwa-legend" title="判定・ROAS の色"><span class="kw-dot hi"></span>300%〜<span class="kw-dot mid"></span>200%〜<span class="kw-dot lo"></span>〜199%</span>'   // 色の説明は右端
     + '</div>';
   const th = (k, l, cls) => '<th class="sortable' + (cls ? ' ' + cls : '') + (kwaSort === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwaSort === k ? (kwaDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
   h += '<div class="table-wrap kw-wrap kwa-wrap"><table class="kw-table kwa-table"><thead><tr><th class="kw-jh">判定</th><th>商品</th><th>KW／ターゲット</th>'
