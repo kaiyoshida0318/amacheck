@@ -1611,6 +1611,7 @@
   .kwa-chip.cand.on .kwa-chk-i { background: #ea580c; border-color: #ea580c; }
   .kwa-tools .kwa-legend { margin-left: 0; display: inline-flex; align-items: center; gap: 4px; font-size: 12px; color: var(--text-tertiary); white-space: nowrap; }
   .kwa-tools .kwa-legend .kw-dot { margin-left: 6px; }
+  .kwa-tools .graph-select.kwa-camp { height: 36px; padding: 0 10px; font-size: 13.5px; min-width: 260px; max-width: 420px; }
   .kwa-tools .graph-select.kwa-q { width: 240px; height: 34px; padding: 0 12px; font-size: 13.5px; border-radius: 999px; }
   .kwa-bar { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 10px; margin: 0 0 8px; }
   .kwa-lbl { font-size: 13px; font-weight: 700; color: var(--text-secondary); }
@@ -2285,7 +2286,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v4.00</span>
+    <span class="version">v4.01</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -11668,7 +11669,7 @@ const kwSegHtml = (id, items, cur) => '<div class="graph-seg sm kwa-seg" id="' +
 
 // ---------------- KW-全体データ ----------------
 // 有効な（止まっていない）KW・ASIN ターゲットを全部、広告費の大きい順に。注視候補＝広告費が上位20位以内 かつ ROAS 200%未満
-let kwaPeriod = 'last30', kwaSort = 'cost', kwaDir = 'desc', kwaQ = '', kwaCand = false, kwaStop = false, kwaZero = false, kwaType = 'all', _kwaKeys = [], _kwaQTimer = null;
+let kwaPeriod = 'last30', kwaSort = 'cost', kwaDir = 'desc', kwaQ = '', kwaCand = false, kwaStop = false, kwaZero = false, kwaCamp = '', _kwaKeys = [], _kwaQTimer = null;
 const KWA_PERIODS = [['last7', '直近7日'], ['last30', '直近30日'], ['thism', '今月'], ['prevm', '先月']];
 const KWA_CAND_N = 20, KWA_CAND_ROAS = 2;
 function kwaRange(latest){
@@ -11689,11 +11690,10 @@ function renderKwAllView(){
   const prevWrap = body.querySelector('.kwa-wrap'), keepTop = prevWrap ? prevWrap.scrollTop : 0;
   const [from, to] = kwaRange(ix.latest);
   const nDays = kwDayList(from, to).length;
-  const stopMap = kwStopMap(kwActiveCampSet()).map, cpm = kwCampProdMap();
+  const act = kwActiveCampSet(), stopMap = kwStopMap(act).map, cpm = kwCampProdMap();
   const t3 = gAddDays(to, -2), chgFrom = gAddDays(ix.latest, -59);
   let base = [];
   ix.by.forEach(e => {
-    if (kwaType !== 'all' && e.type !== kwaType) return;   // v3.95：すべて／SP／SB
     const stopped = stopMap.has(e.key.slice(2));
     if (stopped && !kwaStop) return;
     const t = kwSum(e.rows, from, to);
@@ -11701,6 +11701,10 @@ function renderKwAllView(){
     const lc = e.bidChanges.length ? e.bidChanges[e.bidChanges.length - 1] : null;
     base.push({ e, t, c3: kwSum(e.rows, t3, to).clicks, stopped, ps: cpm.get(String(e.campaign || '').trim()) || [], lastChg: lc && lc.d >= chgFrom ? lc : null });
   });
+  // v4.01：キャンペーン（KW-日月別データと同じドロップダウン）。選べるのは、いま表に出せるKWのあるキャンペーン
+  const camps = Array.from(new Set(base.map(x => String(x.e.campaign || '')))).filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'));
+  if (kwaCamp && camps.indexOf(kwaCamp) < 0) kwaCamp = '';
+  if (kwaCamp) base = base.filter(x => x.e.campaign === kwaCamp);
   const candSet = new Set(base.filter(x => x.t.cost > 0).sort((a, b) => b.t.cost - a.t.cost).slice(0, KWA_CAND_N).filter(x => x.t.roas < KWA_CAND_ROAS).map(x => x.e.key));
   let list = base;
   const q = kwaQ.trim().toLowerCase();
@@ -11716,7 +11720,8 @@ function renderKwAllView(){
   const chip = (id, on, label, tip, cls) => '<button type="button" class="kwa-chip' + (cls ? ' ' + cls : '') + (on ? ' on' : '') + '" id="' + id + '" title="' + escapeHtml(tip) + '"><span class="kwa-chk-i">' + (on ? '✓' : '') + '</span>' + label + '</button>';
   let h = '<div class="kwa-tools">'
     + '<div class="kwa-grp" title="' + escapeHtml(rangeTip) + '"><span class="kwa-lbl">期間</span>' + kwSegHtml('kwa-period', KWA_PERIODS, kwaPeriod) + '</div>'
-    + '<div class="kwa-grp"><span class="kwa-lbl">広告タイプ</span>' + kwSegHtml('kwa-type', [['all', 'すべて'], ['SP', 'SP', 'スポンサープロダクト'], ['SB', 'SB', 'スポンサーブランド']], kwaType) + '</div>'
+    + '<div class="kwa-grp"><span class="kwa-lbl">キャンペーン</span><select class="graph-select kwa-camp" id="kwa-camp"><option value="">すべて（' + camps.length + '件）</option>'
+    + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwaCamp ? ' selected' : '') + '>' + escapeHtml(c) + ((act && act.set.size && !act.set.has(String(c).trim())) ? '（停止中）' : '') + '</option>').join('') + '</select></div>'   // v4.01
     + '<span class="kwa-sep"></span>'
     + '<div class="kwa-grp">'
     + chip('kwa-cand', kwaCand, '注視候補だけ<em>' + candSet.size + '</em>', 'この期間で、広告費が上位' + KWA_CAND_N + '位以内 かつ ROAS ' + Math.round(KWA_CAND_ROAS * 100) + '%未満のKW（インパクトが大きくて効率が悪いもの）', 'cand')
@@ -11755,7 +11760,7 @@ function renderKwAllView(){
     clearTimeout(_kwaQTimer); const v = e.target.value;
     _kwaQTimer = setTimeout(() => { kwaQ = v; renderKwAllView(); const i = document.getElementById('kwa-q'); if (i) { i.focus(); i.setSelectionRange(i.value.length, i.value.length); } }, 300);
   });
-  body.querySelectorAll('#kwa-type button').forEach(b => b.addEventListener('click', () => { kwaType = b.dataset.v; renderKwAllView(); }));
+  on('#kwa-camp', 'change', e => { kwaCamp = e.target.value; renderKwAllView(); });
   on('#kwa-cand', 'click', () => { kwaCand = !kwaCand; renderKwAllView(); });
   on('#kwa-stop', 'click', () => { kwaStop = !kwaStop; renderKwAllView(); });
   on('#kwa-zero', 'click', () => { kwaZero = !kwaZero; renderKwAllView(); });
