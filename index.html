@@ -460,6 +460,8 @@
   .adg { color: #fff; font-size: 13px; }
   .adg-sales { background: #16a34a; }
   .adg-sp { background: #2563eb; }
+  .ps-gtag { display: inline-block; background: #fff; border-radius: 4px; padding: 0 5px; margin-right: 6px; font-size: 0.85em; font-weight: 800; line-height: 1.45; vertical-align: 1px; }   /* v4.05：商品-売上データの見出しの SP／SB の札 */
+  .ps-gtag.sp { color: #2563eb; } .ps-gtag.sb { color: #7e22ce; }
   .adg-sb { background: #7e22ce; }
   .adh { font-size: 12px; }
   /* サブ見出し（全体＝濃い／広告売上＝中／内訳＝親色を段階的に薄くしたグラデーション）。
@@ -1665,39 +1667,39 @@
   .kwmm-sec + .kwmm-sec { border-top: 2px solid var(--border); margin-top: 12px; }
   .kwmm-head { position: sticky; top: 0; left: 0; z-index: 6; display: flex; align-items: center; gap: 10px; padding: 8px 12px; background: var(--bg-card); }
   .kwmm-himg { cursor: pointer; display: inline-flex; }
-  .kwmm-hn { font-size: 15px; font-weight: 800; }
-  .kwmm-hs { font-size: 11.5px; color: var(--text-tertiary); font-family: ui-monospace, Menlo, monospace; }
-  table.kwmm-tbl { border-collapse: separate; border-spacing: 0; font-size: 12px; }
-  table.kwmm-tbl thead th { position: sticky; top: 0; z-index: 5; background: var(--bg-secondary); font-weight: 800; font-size: 12px; padding: 6px 10px; box-shadow: inset 0 -1px 0 #c8ccd2; white-space: nowrap; text-align: center; }
-  table.kwmm-tbl td { border-bottom: 1px solid #eef0f3; padding: 5px 10px; white-space: nowrap; }
+  .kwmm-hn { font-size: 16.5px; font-weight: 800; }
+  .kwmm-hs { font-size: 13px; color: var(--text-tertiary); font-family: ui-monospace, Menlo, monospace; }
+  table.kwmm-tbl { border-collapse: separate; border-spacing: 0; font-size: 14px; }
+  table.kwmm-tbl thead th { position: sticky; top: 0; z-index: 5; background: var(--bg-secondary); font-weight: 800; font-size: 14px; padding: 7px 10px; box-shadow: inset 0 -1px 0 #c8ccd2; white-space: nowrap; text-align: center; }
+  table.kwmm-tbl td { border-bottom: 1px solid #eef0f3; padding: 6px 12px; white-space: nowrap; }
   table.kwmm-tbl tr.kwmm-bstart > td { border-top: 2.5px solid #94a3b8; }
   table.kwmm-tbl tbody tr:first-child > td { border-top: none; }
-  .kwmm-tbl .kwmm-left { width: 190px; min-width: 190px; max-width: 190px; white-space: normal !important; text-align: center; vertical-align: middle; background: #fff; border-right: 1px solid #eef0f3; }
+  .kwmm-tbl .kwmm-left { width: 210px; min-width: 210px; max-width: 210px; white-space: normal !important; text-align: center; vertical-align: middle; background: #fff; border-right: 1px solid #eef0f3; }
   .kwmm-tbl td.kwmm-dot { width: 22px; text-align: center; padding: 0 4px; }
   .kwmm-dot i { display: inline-block; width: 10px; height: 10px; border-radius: 50%; }
-  .kwmm-tbl td.kwmm-item { font-weight: 800; text-align: center; min-width: 104px; font-size: 11.5px; }
-  .kwmm-tbl td.kwmm-v { text-align: right; font-variant-numeric: tabular-nums; min-width: 82px; font-size: 11.5px; }
-  .kwmm-tbl th.kwmm-v { min-width: 82px; }
-  .kwmm-sok { display: block; font-size: 9.5px; font-weight: 700; color: #92400e; background: #fef3c7; border-radius: 4px; margin-top: 1px; }
+  .kwmm-tbl td.kwmm-item { font-weight: 800; text-align: center; min-width: 120px; font-size: 13.5px; }
+  .kwmm-tbl td.kwmm-v { text-align: right; font-variant-numeric: tabular-nums; min-width: 96px; font-size: 14px; }
+  .kwmm-tbl th.kwmm-v { min-width: 96px; }
+  .kwmm-sok { display: block; font-size: 11px; font-weight: 700; color: #92400e; background: #fef3c7; border-radius: 4px; margin-top: 1px; }
   .kwmm-tbl td.kwmm-graphs { vertical-align: top; padding: 8px 10px; background: #fff; border-left: 1px solid #eef0f3; }
-  .kwmm-grid { display: grid; grid-template-columns: repeat(3, 262px); gap: 8px; }
+  .kwmm-grid { display: grid; grid-template-columns: repeat(3, 292px); gap: 10px; }
   .kwmm-g { border: 1px solid var(--border); border-radius: 6px; padding: 4px 6px 4px; height: fit-content; }
   .kwmm-g.empty { border: none; }
-  .kwmm-gt { font-size: 11px; font-weight: 800; text-align: center; color: var(--text-secondary); }
-  .kwmm-gc { width: 250px; height: 112px; }
-  .kwmm-gp { display: flex; justify-content: space-around; padding-left: 28px; font-size: 10px; font-weight: 800; }
-  .kwmm-ln { font-size: 13px; font-weight: 800; line-height: 1.4; word-break: break-all; }
+  .kwmm-gt { font-size: 13px; font-weight: 800; text-align: center; color: var(--text-secondary); }
+  .kwmm-gc { width: 280px; height: 128px; }
+  .kwmm-gp { display: flex; justify-content: space-around; padding-left: 34px; font-size: 12px; font-weight: 800; }
+  .kwmm-ln { font-size: 15px; font-weight: 800; line-height: 1.4; word-break: break-all; }
   .kwmm-ln.kw { cursor: pointer; font-weight: 700; }
   .kwmm-ln.kw:hover { color: var(--purple); text-decoration: underline; }
   .kwmm-ln .kw-badge { margin-right: 4px; }
-  .kwmm-wb { display: inline-block; margin-left: 4px; font-size: 10px; font-weight: 800; color: #fff; background: #dc2626; border-radius: 4px; padding: 0 4px; vertical-align: 1px; }
-  .kwmm-ls { font-size: 10.5px; color: var(--text-tertiary); margin-top: 3px; line-height: 1.4; word-break: break-all; }
-  .kwmm-wn { margin-top: 8px; font-size: 11px; font-weight: 700; color: #a21caf; }
-  .kwmm-rt { margin-top: 10px; font-size: 10px; color: var(--text-tertiary); }
+  .kwmm-wb { display: inline-block; margin-left: 4px; font-size: 11.5px; font-weight: 800; color: #fff; background: #dc2626; border-radius: 4px; padding: 0 4px; vertical-align: 1px; }
+  .kwmm-ls { font-size: 12px; color: var(--text-tertiary); margin-top: 3px; line-height: 1.4; word-break: break-all; }
+  .kwmm-wn { margin-top: 8px; font-size: 13px; font-weight: 700; color: #a21caf; }
+  .kwmm-rt { margin-top: 10px; font-size: 12px; color: var(--text-tertiary); }
   .kwmm-rb { display: flex; justify-content: center; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
-  .kwmm-rb span { display: inline-flex; flex-direction: column; align-items: center; min-width: 36px; border: 1px solid; border-radius: 4px; padding: 1px 3px; font-size: 11px; font-weight: 800; }
-  .kwmm-rb em { font-style: normal; font-size: 9px; font-weight: 600; opacity: .8; }
-  .kwmm-foot { margin-top: 6px; font-size: 11.5px; color: var(--text-tertiary); }
+  .kwmm-rb span { display: inline-flex; flex-direction: column; align-items: center; min-width: 40px; border: 1px solid; border-radius: 4px; padding: 1px 4px; font-size: 13px; font-weight: 800; }
+  .kwmm-rb em { font-style: normal; font-size: 10.5px; font-weight: 600; opacity: .8; }
+  .kwmm-foot { margin-top: 6px; font-size: 13px; color: var(--text-tertiary); }
   /* v4.02：注視分-KW一覧 */
   table.kww-table th.kww-xh, table.kww-table td.kww-xc { text-align: center; }
   table.kww-table td.kww-at { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
@@ -2340,7 +2342,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v4.04</span>
+    <span class="version">v4.05</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -4141,7 +4143,7 @@ function switchView(name, fromPop){
   if (name === 'adkw') renderAdKwView();
   if (name === 'kwall') renderKwAllView();
   if (name === 'kwwatch') renderKwWatchView();
-  if (name === 'kwwtrend') renderKwWTrendView();
+  if (name === 'kwwtrend') { kwmmPeriod = null; renderKwWTrendView(); }   // v4.05：開くたびに期間は自動（14日まで満了／15日から当月込）
   kwPlaceHideBtns();
   updateActiveTab(name);
   // ブラウザ履歴に積む（popstateからの呼び出しは積まない）
@@ -10030,7 +10032,7 @@ function renderPsalesTable(){
   segs.forEach(sg => {
     if (sg.col) { h1 += '<th rowspan="3" class="adg ' + sg.G.cls + ' ps-gcol" title="' + escapeHtml(sg.G.label) + '（隠しています）"><button type="button" class="ps-gbtn" data-g="' + sg.G.g + '" title="' + escapeHtml(sg.G.label) + 'を表示">表示</button><div class="ps-gvt">' + ({ all: '全体', sp: 'SP', sb: 'SB' }[sg.G.g] || '') + '</div></th>'; return; }
     const G = gIdx[sg.G.g]; if (!G) return;
-    h1 += '<th colspan="' + G.n + '" class="adg ' + G.cls + ' ps-ghead"><span>' + G.label + '</span><button type="button" class="ps-gbtn" data-g="' + G.g + '" title="' + escapeHtml(G.label) + 'を隠す（その分、残りの文字が大きくなります）">隠す</button></th>';
+    h1 += '<th colspan="' + G.n + '" class="adg ' + G.cls + ' ps-ghead"><span>' + (G.g === 'sp' || G.g === 'sb' ? '<span class="ps-gtag ' + G.g + '">' + G.g.toUpperCase() + '</span>' : '') + G.label + '</span><button type="button" class="ps-gbtn" data-g="' + G.g + '" title="' + escapeHtml(G.label) + 'を隠す（その分、残りの文字が大きくなります）">隠す</button></th>';
     if (G.g === 'all') {
       cols.filter(c => c.g === 'all').forEach((c, ci) => { h2 += '<th rowspan="2" class="adh ' + c.cls + (ci === 0 ? ' adc-gstart' : '') + ' ps-sortable' + sortCls(c.k) + '" data-k="' + c.k + '" title="' + escapeHtml(c.tip || '') + '｜クリックで並べ替え">' + escapeHtml(c.label).replace(/\n/g, '<br>') + '</th>'; });
     } else {
@@ -12003,7 +12005,7 @@ function kwwMemoOpen(k){
 //   ・商品全体（初期）：注視KWのある商品ごとに「商品全体」ブロック（商品-売上データと同じ計算。広告費は全-比較と同じ直接／配賦）
 //   ・商品を選ぶ：商品全体 → KW全体（その商品が入っているキャンペーンの③の合計）→ 注視KWごと
 //   ・期間：前月まで（満了）＝データの最新日が月末でなければその月を外す／当月込。/1日＝暦日（最新日の月は経過日、速報の月は④のある日数）
-let kwmmPeriod = 'done', kwmmProd = '__ALL__', _kwmmCharts = [], _kwmmObs = null, _kwmmPend = {};
+let kwmmPeriod = null, kwmmProd = '__ALL__', _kwmmCharts = [], _kwmmObs = null, _kwmmPend = {};
 const KWMM_COL = { sales: ['#a5d6a7', '#d7ecd9', '#43a047'], sales2: ['#dcedc8', '#f1f8e9', '#43a047'], cost: ['#ffe0b2', '#fff3e0', '#f59e0b'], cost2: ['#ffe0b2', '#fff8e1', '#f59e0b'],
   roas: ['#bbdefb', '#e3f2fd', '#1e88e5'], ship: ['#d1c4e9', '#ede7f6', '#7e57c2'], price: ['#b2dfdb', '#e0f2f1', '#00897b'], cvr: ['#f8bbd0', '#fce4ec', '#ec407a'],
   ctr: ['#ffcdd2', '#ffebee', '#e53935'], cpc: ['#ffe8cc', '#fff8e1', '#ffa726'], bid: ['#e9d5ff', '#faf5ff', '#9333ea'] };
@@ -12027,10 +12029,12 @@ function kwmmLatest(){
   const a = Object.keys(adData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort(), la = a[a.length - 1] || '', lk = kwIndex().latest || '';
   return la > lk ? la : lk;
 }
+// v4.05：期間を選んでいない（タブを開いた直後）は、最新日が14日まで＝前月まで（満了）、15日以降＝当月込
+function kwmmPer(latest){ return kwmmPeriod || (+String(latest || '').slice(8, 10) >= 15 ? 'cur' : 'done'); }
 function kwmmMonths(latest){
   let ym = latest.slice(0, 7);
   const partial = latest < ym + '-' + String(daysInMonth(ym)).padStart(2, '0');
-  if (kwmmPeriod === 'done' && partial) ym = gYmAdd(ym, -1);
+  if (kwmmPer(latest) === 'done' && partial) ym = gYmAdd(ym, -1);
   return { months: [3, 2, 1, 0].map(i => gYmAdd(ym, -i)), partial };
 }
 // 商品の1か月（商品-売上データと同じ計算）
@@ -12096,7 +12100,7 @@ function kwmmBlockHtml(o){
         const id = 'kwmm-c' + (++kwmmBlockHtml.n), color = KWMM_COL[itm[3]][2];
         _kwmmPend[id] = { labels: o.labels, data: o.vals.map(v => v.none ? null : itm[1](v)), color, fmt: itm[2] };
         const pc = itm[4] && itm[4].pct ? o.vals.map(v => { const x = v.none ? null : itm[4].pct(v); return '<span>' + (x == null ? '' : Math.round(x * 100) + '%') + '</span>'; }).join('') : '';
-        h += '<div class="kwmm-g"><div class="kwmm-gt">' + lb + '</div><div class="kwmm-gc"><canvas id="' + id + '" width="250" height="112"></canvas></div>'
+        h += '<div class="kwmm-g"><div class="kwmm-gt">' + lb + '</div><div class="kwmm-gc"><canvas id="' + id + '" width="280" height="128"></canvas></div>'
           + (pc ? '<div class="kwmm-gp" style="color:' + itm[4].pc + '">' + pc + '</div>' : '') + '</div>';
       });
       h += '</div></td>';
@@ -12144,8 +12148,8 @@ function renderKwWTrendView(){
   const curYmL = (+latest.slice(5, 7)) + '月';
   let h = '<div class="kwa-tools kwmm-tools"><div class="kwa-grp"><span class="kwa-lbl">商品</span><select class="graph-select kwa-camp" id="kwmm-prod"><option value="__ALL__">商品全体（' + prods.length + '商品）</option>'
     + prods.map(o => '<option value="' + escapeHtml(o.p.fnsku) + '"' + (o.p.fnsku === kwmmProd ? ' selected' : '') + '>' + escapeHtml(o.p.name || o.p.asin) + '（注視KW ' + o.keys.length + '）</option>').join('') + '</select></div>'
-    + '<div class="kwa-grp"><span class="kwa-lbl">期間</span>' + kwSegHtml('kwmm-per', [['done', '前月まで（満了）'], ['cur', '当月込']], kwmmPeriod) + '</div>'
-    + '<span class="kwa-note">' + (partial ? (kwmmPeriod === 'done' ? '途中の' + curYmL + '（' + kwMd(latest) + 'まで）は除外' : curYmL + 'は' + kwMd(latest) + 'までの途中経過') : '') + '</span>'
+    + '<div class="kwa-grp"><span class="kwa-lbl">期間</span>' + kwSegHtml('kwmm-per', [['done', '前月まで（満了）'], ['cur', '当月込']], kwmmPer(latest)) + '</div>'
+    + '<span class="kwa-note">' + (partial ? (kwmmPer(latest) === 'done' ? '途中の' + curYmL + '（' + kwMd(latest) + 'まで）は除外' : curYmL + 'は' + kwMd(latest) + 'までの途中経過') : '') + '</span>'
     + '<span class="kwa-flex"></span><span class="kwa-note">広告費は ' + (_cmpCostMode === 'alloc' ? '配賦（参考）' : '直接') + '（全-比較の切り替えと同じ）</span></div>';
   h += '<div class="kwmm-scroll" id="kwmm-scroll">';
   if (!prods.length) h += '<div class="pm-empty">注視KWのキャンペーンから商品が分かりません（広告キャンペーンの設定に ASIN を入れると出ます）</div>';
@@ -12199,7 +12203,7 @@ function renderKwWTrendView(){
       type: 'line',
       data: { labels: cfg.labels, datasets: [{ data: cfg.data, borderColor: cfg.color, backgroundColor: cfg.color + '22', fill: true, tension: 0.25, pointRadius: 3, pointBackgroundColor: cfg.color, borderWidth: 2, spanGaps: true }] },
       options: { responsive: false, animation: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + kwmmFmt(cfg.fmt, c.raw) } } },
-        scales: { x: { grid: { display: false }, ticks: { font: { size: 10 }, color: '#94a3b8' } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 10 }, color: '#94a3b8', maxTicksLimit: 4, callback: v => kwmmTick(cfg.fmt, v) } } } }
+        scales: { x: { grid: { display: false }, ticks: { font: { size: 12 }, color: '#64748b' } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11.5 }, color: '#64748b', maxTicksLimit: 4, callback: v => kwmmTick(cfg.fmt, v) } } } }
     }));
   };
   const root = document.getElementById('kwmm-scroll');
