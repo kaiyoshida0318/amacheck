@@ -1595,7 +1595,7 @@
   .tab-group.tg-bid   { color: #c026d3; }
   #kwall-view .kw-wrap, #kwwatch-view .kw-wrap { width: calc((100vw - 24px) / var(--pz, 1)); margin-left: calc(50% - (50vw - 12px) / var(--pz, 1)); max-height: calc((100vh - 290px) / var(--pz, 1)); }
   /* v3.97：KW-全体データの操作の帯 */
-  #kwall-view .kwa-tools { width: calc((100vw - 24px) / var(--pz, 1)); margin-left: calc(50% - (50vw - 12px) / var(--pz, 1)); box-sizing: border-box; }   /* 表と同じ幅 */
+  #kwall-view .kwa-tools, #kwwatch-view .kwa-tools { width: calc((100vw - 24px) / var(--pz, 1)); margin-left: calc(50% - (50vw - 12px) / var(--pz, 1)); box-sizing: border-box; }   /* 表と同じ幅 */
   .kwa-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; margin: 0 0 10px; padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
   .kwa-grp { display: inline-flex; align-items: center; gap: 8px; }
   .kwa-sep { width: 1px; align-self: stretch; background: var(--border); }
@@ -1659,6 +1659,20 @@
   table.kw-table tr.kww-on td { background: #fdf4ff; }
   table.kw-table tr.kww-on:hover td { background: #fae8ff; }
   /* 注視分-KW一覧 */
+  /* v4.02：注視分-KW一覧 */
+  table.kww-table td.kww-at { white-space: nowrap; font-variant-numeric: tabular-nums; color: var(--text-secondary); }
+  table.kww-table td.kww-mc { white-space: normal; width: 230px; }
+  .kww-memo-v { max-width: 230px; font-size: 12.5px; line-height: 1.4; color: var(--black); padding: 3px 6px; border: 1px dashed transparent; border-radius: 6px; cursor: pointer; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; word-break: break-all; }
+  .kww-memo-v:hover { border-color: #c4b5fd; background: #faf5ff; }
+  .kww-memo-v.empty { color: var(--text-tertiary); }
+  .ad-saletip-pop.kww-memo-tip { white-space: pre-wrap; max-width: 420px; font-size: 12.5px; line-height: 1.5; font-weight: 500; }
+  .kww-mm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9500; display: flex; align-items: center; justify-content: center; }
+  .kww-mm-bg[hidden] { display: none; }
+  .kww-mm-box { background: #fff; width: min(560px, 94vw); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); padding: 16px 18px; }
+  .kww-mm-h { display: flex; align-items: baseline; gap: 10px; margin-bottom: 10px; font-size: 15px; }
+  .kww-mm-kw { font-size: 12.5px; color: var(--text-tertiary); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+  .kww-mm-ta { width: 100%; box-sizing: border-box; min-height: 160px; resize: vertical; font-size: 14px; line-height: 1.6; padding: 10px 12px; border: 1px solid var(--border); border-radius: 8px; font-family: inherit; }
+  .kww-mm-ft { display: flex; justify-content: flex-end; gap: 8px; margin-top: 12px; }
   .kww-note { font-size: 12.5px; color: var(--text-secondary); background: #fdf4ff; border: 1px solid #f5d0fe; border-radius: 8px; padding: 7px 10px; margin: 0 0 8px; line-height: 1.6; }
   table.kww-table td.kww-c { line-height: 1.25; }
   .kww-a { font-weight: 700; font-size: 14px; }
@@ -2286,7 +2300,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v4.01</span>
+    <span class="version">v4.02</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -11568,7 +11582,7 @@ const kwWKey = r => 'M|' + kwMatchKey(r);
 const kwIsWatched = k => !!(kwWatch && kwWatch[k]);
 function kwWatchSet(k, on){
   if (!k) return;
-  if (on) { if (!kwWatch[k]) kwWatch[k] = { at: kwIndex().latest || todayStr(), base: '', memo: '' }; }
+  if (on) { if (!kwWatch[k]) kwWatch[k] = { at: todayStr(), base: '', memo: '' }; }   // v4.02：at＝☑した日（注視チェック日）
   else delete kwWatch[k];
   saveKwWatch(); kwWatchSync();
 }
@@ -11777,12 +11791,7 @@ window.renderKwAllView = renderKwAllView;
 
 // ---------------- 注視分：共通 ----------------
 let kwwDays = 14;
-function kwwBase(w, e){
-  if (w && w.base) return { d: w.base, src: 'manual' };
-  const c = e && e.bidChanges.length ? e.bidChanges[e.bidChanges.length - 1] : null;
-  if (c) return { d: c.d, src: 'bid', c };
-  return { d: (w && w.at) || '', src: 'at' };
-}
+function kwwBase(w, e){ return { d: (w && w.at) || '', src: 'at' }; }   // v4.02：基準日はやめて「注視チェック日」（注視に☑した日）
 // 前後の比較：後＝基準日〜（最大 N 日・データの最新日まで）、前＝基準日の前の同じ日数。
 //   1日あたりは「③KWデータのある日数」で割る（取り込んでいない日があっても低く出ない）
 function kwwDataDays(f, t){ const ds = kwIndex().dset; return kwDayList(f, t).filter(d => ds.has(d)).length; }
@@ -11841,7 +11850,9 @@ function kwwItems(){
 function kwwProdName(x){ return x.ps.length ? (x.ps[0].name || x.ps[0].asin || '') : '￿'; }
 
 // ---------------- 注視分-KW一覧 ----------------
-let kwwSort = 'cost';
+// v4.02：入札額＝最新、ほか＝選んだ月の合計（途中の月はデータの最新日まで）。並びは列の見出しを押して（初期＝注視チェック日の古い順）
+let kwwSortKey = 'at', kwwSortDir = 'asc', kwwMonth = '';
+const KWW_COLS = [['cost', '広告費', 'yen'], ['sales', '売上', 'yen'], ['roas', 'ROAS', 'roas'], ['clicks', 'クリック', 'num'], ['cpc', 'CPC', 'yen'], ['imp', '表示', 'num'], ['cvr', 'CVR', 'pct']];
 function renderKwWatchView(){
   const body = document.getElementById('kwwatch-body'); if (!body) return;
   const ix = kwIndex();
@@ -11849,43 +11860,41 @@ function renderKwWatchView(){
   const items = kwwItems();
   if (!items.length) { body.innerHTML = kwwEmptyHtml(); kwWatchSync(); return; }
   const prevWrap = body.querySelector('.kwa-wrap'), keepTop = prevWrap ? prevWrap.scrollTop : 0;
-  items.forEach(x => { x.cmp = x.e ? kwwCompare(x.e, x.base.d, ix.latest, kwwDays) : null; });
-  const perDay = (x, k) => x.cmp && x.cmp.A && x.cmp.A[k] != null ? x.cmp.A[k] / x.cmp.n : -1;
-  const roasD = x => (x.cmp && x.cmp.A && x.cmp.B && x.cmp.A.roas != null && x.cmp.B.roas != null) ? x.cmp.A.roas - x.cmp.B.roas : 1e9;
-  const SORTS = { cost: (a, b) => perDay(b, 'cost') - perDay(a, 'cost'), roasd: (a, b) => roasD(a) - roasD(b) || perDay(b, 'cost') - perDay(a, 'cost'),
-    base: (a, b) => String(b.base.d).localeCompare(String(a.base.d)) || perDay(b, 'cost') - perDay(a, 'cost'),
-    at: (a, b) => String(b.w.at || '').localeCompare(String(a.w.at || '')) || perDay(b, 'cost') - perDay(a, 'cost'),
-    prod: (a, b) => kwwProdName(a).localeCompare(kwwProdName(b), 'ja') || perDay(b, 'cost') - perDay(a, 'cost') };
-  items.sort(SORTS[kwwSort] || SORTS.cost);
+  const months = kwMonthsWithData();   // 新しい順
+  if (!kwwMonth || months.indexOf(kwwMonth) < 0) kwwMonth = months[0];
+  const [mf, mt] = kwMonthRangeOf(kwwMonth);
+  items.forEach(x => { x.T = (x.e && x.e.rows.some(r => r.ds >= mf && r.ds <= mt)) ? kwSum(x.e.rows, mf, mt) : null; });
+  const val = (x, k) => k === 'at' ? (x.w.at || '') : (k === 'bid' ? (x.e ? x.e.bidNow : null) : (k === 'name' ? kwwProdName(x) : (x.T ? x.T[k] : null)));
+  const dir = kwwSortDir === 'asc' ? 1 : -1;
+  items.sort((a, b) => {
+    const x = val(a, kwwSortKey), y = val(b, kwwSortKey);
+    if (typeof x === 'string' || typeof y === 'string') return (String(x || '').localeCompare(String(y || ''), 'ja') * dir) || String(a.k).localeCompare(String(b.k), 'ja');
+    if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
+    return (x - y) * dir;
+  });
   const keys = items.map(x => x.k);
-  let h = '<div class="kwa-bar">'
-    + '<span class="kwa-lbl">比べる日数</span>' + kwSegHtml('kww-days', [[7, '7日'], [14, '14日'], [30, '30日']], kwwDays)
-    + '<span class="kwa-lbl">並べ替え</span><select class="graph-select kwa-sel" id="kww-sort">'
-    + [['cost', '広告費/日（基準日から）の多い順'], ['roasd', 'ROASが下がった順'], ['base', '基準日の新しい順'], ['at', '注視に入れた日の新しい順'], ['prod', '商品順']].map(([v, l]) => '<option value="' + v + '"' + (v === kwwSort ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>'
-    + '<span class="kwa-lbl kwa-gap">基準日をまとめて</span><input type="date" class="graph-select kwa-date" id="kww-bulk-date" value="' + escapeHtml(ix.latest) + '" max="' + escapeHtml(ix.latest) + '">'
-    + '<button type="button" class="kwa-bulk" id="kww-bulk-set" title="注視しているKW全部の基準日を、この日にします（あとで1つずつ直せます）">全部この日にする</button>'
-    + '<button type="button" class="kwa-bulk gray" id="kww-bulk-auto" title="手で入れた基準日を消して、全部「自動（入札額を最後に変えた日）」に戻します">全部を自動に戻す</button>'
-    + '</div>';
-  h += '<div class="kww-note">基準日＝<b>入札額を最後に変えた日</b>（③KWデータで入札額が変わった日。自動）。日付を入れると、その日で比べます。'
-    + '<b>後</b>＝基準日〜データの最新日（最大' + kwwDays + '日）、<b>前</b>＝基準日の前の同じ日数。広告費・売上・クリック・表示は1日あたり。データの最新日 ' + ix.latest.replace(/-/g, '/') + '</div>';
-  h += '<div class="kw-count"><b>注視 ' + items.length + '件</b><span class="kw-hint">KWを押すと、そのKWの日別・月別の推移（入札額の変更の札つき）が開きます</span></div>';
-  h += '<div class="table-wrap kw-wrap kwa-wrap kww-wrap"><table class="kw-table kwa-table kww-table"><thead><tr><th>商品</th><th>KW／ターゲット</th><th class="num">入札額</th><th>基準日</th>'
-    + KWW_MET.map(m => '<th class="num">' + m[1] + '<span class="kwa-hs">後 ／ 前</span></th>').join('') + '<th>メモ</th><th></th></tr></thead><tbody>';
+  const th = (k, l, cls) => '<th class="sortable' + (cls ? ' ' + cls : '') + (kwwSortKey === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwwSortKey === k ? (kwwSortDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
+  let h = '<div class="kwa-tools kww-tools"><div class="kwa-grp" title="入札額は最新の値、ほかの数字はこの月の合計（途中の月はデータの最新日まで）"><span class="kwa-lbl">月</span><select class="graph-select kwa-camp" id="kww-month">'
+    + months.map(m => '<option value="' + m + '"' + (m === kwwMonth ? ' selected' : '') + '>' + kwMonthLabel(m) + '</option>').join('') + '</select></div>'
+    + '<span class="kwa-flex"></span><span class="kwa-lbl">注視 ' + items.length + '件</span></div>';
+  h += '<div class="table-wrap kw-wrap kwa-wrap kww-wrap"><table class="kw-table kwa-table kww-table"><thead><tr>' + th('name', '商品') + '<th>KW／ターゲット</th>'
+    + th('bid', '入札額<span class="kwa-hs">最新</span>', 'num') + th('at', '注視<br>チェック日')
+    + KWW_COLS.map(([k, l]) => th(k, l, 'num')).join('') + '<th>メモ</th><th></th></tr></thead><tbody>';
   items.forEach(x => {
-    const e = x.e, auto = kwwBase(Object.assign({}, x.w, { base: '' }), e).d;
+    const e = x.e;
     h += '<tr class="kw-row kwa-row kww-row' + (x.stopped ? ' kw-stopped' : '') + '" data-key="' + escapeHtml(x.k) + '">';
     if (!e) {
       const p = x.k.split('|');
       h += '<td class="kwa-prod none">—</td><td class="kwa-kw"><div class="kwa-w"><b>' + escapeHtml(p[3] || '') + '</b></div><div class="kwa-sub">' + escapeHtml((p[4] || '') + '・' + (p[1] || '')) + '</div></td>'
-        + '<td colspan="' + (2 + KWW_MET.length) + '" class="kww-nodata">③KWデータにこのKWがありません（データを消した可能性があります）</td>';
+        + '<td class="num">—</td><td class="kww-at">' + escapeHtml(String(x.w.at || '').replace(/-/g, '/')) + '</td>'
+        + '<td colspan="' + KWW_COLS.length + '" class="kww-nodata">③KWデータにこのKWがありません（データを消した可能性があります）</td>';
     } else {
       h += kwProdCell(x.ps) + kwWordCell(e, x.stopped) + '<td class="num">' + kwYen(e.bidNow) + '</td>'
-        + '<td class="kww-bd"><input type="date" class="kww-base" data-wkey="' + escapeHtml(x.k) + '" data-auto="' + escapeHtml(auto) + '" value="' + escapeHtml(x.base.d) + '" max="' + escapeHtml(ix.latest) + '" title="比べる基準の日（変えると手入力になります）">'
-        + '<div class="kww-bl">' + kwwBaseLabel(x.base) + (x.base.src === 'manual' ? '<button type="button" class="kww-auto" data-wkey="' + escapeHtml(x.k) + '" title="自動（' + escapeHtml(auto.replace(/-/g, '/')) + '）に戻す">自動に戻す</button>' : '') + '</div>'
-        + '<div class="kww-per">' + (x.cmp ? '後 ' + x.cmp.n + '日 ／ 前 ' + x.cmp.nB + '日' + (x.cmp.n < kwDayList(x.cmp.aFrom, x.cmp.aTo).length || x.cmp.nB < kwDayList(x.cmp.bFrom, x.cmp.bTo).length ? '<span title="③KWデータを取り込んでいない日は数えていません">*</span>' : '') : '基準日が最新日より後です') + '</div></td>'
-        + KWW_MET.map(m => kwwCell(x.cmp, m)).join('');
+        + '<td class="kww-at">' + escapeHtml(String(x.w.at || '').replace(/-/g, '/')) + '</td>'
+        + KWW_COLS.map(([k, , f]) => { const v = x.T ? x.T[k] : null; return '<td class="num' + (k === 'cost' ? ' strong' : '') + (k === 'roas' ? ' strong ' + kwCls(kwJudgeOf(v)) : '') + '">' + (x.T ? kwwFmt(f, v) : '—') + '</td>'; }).join('');
     }
-    h += '<td class="kww-mc"><input type="text" class="kww-memo" data-wkey="' + escapeHtml(x.k) + '" value="' + escapeHtml(x.w.memo || '') + '" placeholder="メモ（例：10/20 入札を下げた）"></td>'
+    const memo = String(x.w.memo || '');
+    h += '<td class="kww-mc"><div class="kww-memo-v' + (memo ? '' : ' empty') + '" data-wkey="' + escapeHtml(x.k) + '">' + (memo ? escapeHtml(memo) : '＋ メモ') + '</div></td>'
       + '<td class="kww-xc"><button type="button" class="kww-x" data-wkey="' + escapeHtml(x.k) + '" title="注視から外す">外す</button></td></tr>';
   });
   h += '</tbody></table></div>';
@@ -11893,26 +11902,60 @@ function renderKwWatchView(){
   const wrap = body.querySelector('.kwa-wrap'); if (wrap && keepTop) wrap.scrollTop = keepTop;
 
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
-  body.querySelectorAll('#kww-days button').forEach(b => b.addEventListener('click', () => { kwwDays = +b.dataset.v; renderKwWatchView(); }));
-  on('#kww-sort', 'change', e => { kwwSort = e.target.value; renderKwWatchView(); });
-  on('#kww-bulk-set', 'click', () => {
-    const d = (document.getElementById('kww-bulk-date') || {}).value; if (!d) { toast('日付を入れてください'); return; }
-    if (!confirm('注視している ' + items.length + '件すべての基準日を ' + d.replace(/-/g, '/') + ' にします。よろしいですか？')) return;
-    Object.keys(kwWatch).forEach(k => { kwWatch[k].base = d; }); saveKwWatch(); renderKwWatchView(); toast('基準日を ' + d.replace(/-/g, '/') + ' にしました');
+  on('#kww-month', 'change', e => { kwwMonth = e.target.value; renderKwWatchView(); });
+  body.querySelectorAll('.kww-table th.sortable').forEach(t => t.addEventListener('click', () => {
+    const k = t.dataset.k;
+    if (kwwSortKey === k) kwwSortDir = kwwSortDir === 'asc' ? 'desc' : 'asc';
+    else { kwwSortKey = k; kwwSortDir = (k === 'at' || k === 'name') ? 'asc' : 'desc'; }
+    renderKwWatchView();
+  }));
+  // メモ：乗せると全文、押すと書き直す画面
+  body.querySelectorAll('.kww-memo-v').forEach(d => {
+    d.addEventListener('mouseenter', () => { const w = kwWatch[d.dataset.wkey]; if (w && w.memo) kwwMemoTip(d, w.memo); });
+    d.addEventListener('mouseleave', () => kwwMemoTip(null));
+    d.addEventListener('click', ev => { ev.stopPropagation(); kwwMemoTip(null); kwwMemoOpen(d.dataset.wkey); });
   });
-  on('#kww-bulk-auto', 'click', () => { Object.keys(kwWatch).forEach(k => { kwWatch[k].base = ''; }); saveKwWatch(); renderKwWatchView(); toast('基準日を全部「自動」に戻しました'); });
-  body.querySelectorAll('input.kww-base').forEach(i => { i.addEventListener('click', e => e.stopPropagation()); i.addEventListener('change', () => {
-    const w = kwWatch[i.dataset.wkey]; if (!w) return;
-    w.base = (i.value && i.value !== i.dataset.auto) ? i.value : ''; saveKwWatch(); renderKwWatchView();
-  }); });
-  body.querySelectorAll('.kww-auto').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); const w = kwWatch[b.dataset.wkey]; if (w) { w.base = ''; saveKwWatch(); renderKwWatchView(); } }));
-  body.querySelectorAll('input.kww-memo').forEach(i => { i.addEventListener('click', e => e.stopPropagation()); i.addEventListener('change', () => { const w = kwWatch[i.dataset.wkey]; if (w) { w.memo = i.value.trim(); saveKwWatch(); } }); });
   body.querySelectorAll('.kww-x').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); kwWatchSet(b.dataset.wkey, false); renderKwWatchView(); toast('注視から外しました'); }));
   kwBindRows(body, () => keys);
   _kwExtLast = null;
   kwWatchSync();
 }
 window.renderKwWatchView = renderKwWatchView;
+// メモの全文（乗せたとき）。el=null で消す
+let _kwwTip = null;
+function kwwMemoTip(el, text){
+  if (!_kwwTip) { _kwwTip = document.createElement('div'); _kwwTip.className = 'ad-saletip-pop kww-memo-tip'; document.body.appendChild(_kwwTip); }
+  if (!el) { _kwwTip.classList.remove('show'); return; }
+  _kwwTip.textContent = text; _kwwTip.classList.add('show');
+  const r = el.getBoundingClientRect(), w = _kwwTip.offsetWidth, h = _kwwTip.offsetHeight;
+  let x = Math.max(6, Math.min(window.innerWidth - w - 6, r.right - w)), y = r.bottom + 4;
+  if (y + h > window.innerHeight - 6) y = Math.max(6, r.top - h - 4);
+  _kwwTip.style.left = x + 'px'; _kwwTip.style.top = y + 'px';
+}
+// メモを書く画面（長い文も全部見える）
+function kwwMemoOpen(k){
+  const w = kwWatch[k]; if (!w) return;
+  let bg = document.getElementById('kww-memo-modal');
+  if (!bg) {
+    bg = document.createElement('div'); bg.id = 'kww-memo-modal'; bg.className = 'kww-mm-bg';
+    bg.innerHTML = '<div class="kww-mm-box"><div class="kww-mm-h"><b>メモ</b><span class="kww-mm-kw"></span></div><textarea class="kww-mm-ta" placeholder="例：10/20 入札を¥80→¥60に下げた。1週間後にROASを確認"></textarea>'
+      + '<div class="kww-mm-ft"><button type="button" class="utility kww-mm-cancel">やめる</button><button type="button" class="primary kww-mm-save">保存</button></div></div>';
+    document.body.appendChild(bg);
+    const close = () => { bg.hidden = true; };
+    bg.addEventListener('mousedown', e => { if (e.target === bg) close(); });
+    bg.querySelector('.kww-mm-cancel').addEventListener('click', close);
+    bg.querySelector('.kww-mm-save').addEventListener('click', () => {
+      const kk = bg.dataset.key, ww = kwWatch[kk]; if (ww) { ww.memo = bg.querySelector('.kww-mm-ta').value.trim(); saveKwWatch(); }
+      close(); kwRefreshWatchViews(); toast('メモを保存しました');
+    });
+    bg.addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) bg.querySelector('.kww-mm-save').click(); });
+  }
+  const p = k.split('|');
+  bg.dataset.key = k;
+  bg.querySelector('.kww-mm-kw').textContent = (p[3] || '') + '（' + (p[4] || '') + '・' + (p[1] || '') + '）';
+  const ta = bg.querySelector('.kww-mm-ta'); ta.value = w.memo || '';
+  bg.hidden = false; ta.focus(); ta.setSelectionRange(ta.value.length, ta.value.length);
+}
 
 // ---------------- 注視分-推移 ----------------
 // 注視KWを商品ごとにまとめ、KWごとに小さなグラフ（日別／週別／月別）。基準日に縦の破線、入札額は紫の階段の線
@@ -11962,8 +12005,8 @@ function renderKwWTrendView(){
     + (kwtUnit === 'daily' ? kwSegHtml('kwt-span', [[30, '30日'], [60, '60日'], [90, '90日']], kwtSpan) : '')
     + '<span class="kwa-lbl">グラフ</span><select class="graph-select kwa-sel" id="kwt-metric">' + KWT_METRICS.map(([v, l]) => '<option value="' + v + '"' + (v === kwtMetric ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>'
     + '</div>';
-  h += '<div class="kww-note">' + unitTxt + '。棒・ROAS などは<b>1日あたり</b>。<span class="kwt-key"><i class="kwt-k-base"></i>オレンジの破線＝基準日</span><span class="kwt-key"><i class="kwt-k-bid"></i>紫の線＝入札額</span>'
-    + '　下の数字＝基準日の前後' + kwwDays + '日の比較（日数は「注視分-KW一覧」の「比べる日数」）。グラフの見出しを押すと詳しい推移が開きます。</div>';
+  h += '<div class="kww-note">' + unitTxt + '。棒・ROAS などは<b>1日あたり</b>。<span class="kwt-key"><i class="kwt-k-base"></i>オレンジの破線＝注視チェック日</span><span class="kwt-key"><i class="kwt-k-bid"></i>紫の線＝入札額</span>'
+    + '　下の数字＝注視チェック日の前' + kwwDays + '日→後' + kwwDays + '日。グラフの見出しを押すと詳しい推移が開きます。</div>';
   const keys = [];
   const cards = [];
   shown.forEach(g => {
@@ -11978,7 +12021,7 @@ function renderKwWTrendView(){
         + '<div class="kwa-w"><span class="kw-badge ' + escapeHtml(e.type.toLowerCase()) + '">' + escapeHtml(e.type) + '</span><b>' + escapeHtml(e.target || '（なし）') + '</b>' + (x.stopped ? '<span class="kw-stop">停</span>' : '') + '<span class="kwt-bid">入札 ' + kwYen(e.bidNow) + '</span></div>'
         + '<div class="kwa-sub">' + escapeHtml((e.match || '') + '・' + (e.campaign || '')) + '</div></div>'
         + '<div class="kwt-cv"><canvas id="kwt-cv-' + i + '"></canvas></div>'
-        + '<div class="kwt-foot"><span class="kwt-base">基準日 ' + (x.base.d ? x.base.d.replace(/-/g, '/') : '—') + ' ' + kwwBaseLabel(x.base) + (cmp ? '　後' + cmp.n + '日 vs 前' + cmp.nB + '日' : '') + '</span><div class="kwt-ms">' + mini + '</div>'
+        + '<div class="kwt-foot"><span class="kwt-base">注視チェック日 ' + (x.base.d ? x.base.d.replace(/-/g, '/') : '—') + (cmp ? '　前' + cmp.nB + '日→後' + cmp.n + '日' : '') + '</span><div class="kwt-ms">' + mini + '</div>'
         + (x.w.memo ? '<div class="kwt-memo">📝 ' + escapeHtml(x.w.memo) + '</div>' : '') + '</div></div>';
     });
     h += '</div></div>';
@@ -12035,7 +12078,7 @@ function renderKwWTrendView(){
         ctx.save(); ctx.strokeStyle = '#f97316'; ctx.lineWidth = 1.6; ctx.setLineDash([4, 3]);
         ctx.beginPath(); ctx.moveTo(px, ca.top); ctx.lineTo(px, ca.bottom); ctx.stroke(); ctx.setLineDash([]);
         ctx.font = 'bold 10px sans-serif'; ctx.fillStyle = '#f97316'; ctx.textBaseline = 'top';
-        const txt = '基準日', w = ctx.measureText(txt).width; ctx.fillText(txt, Math.min(ca.right - w, px + 3), ca.top + 1);
+        const txt = 'チェック', w = ctx.measureText(txt).width; ctx.fillText(txt, Math.min(ca.right - w, px + 3), ca.top + 1);
         ctx.restore();
       } }]
     }));
