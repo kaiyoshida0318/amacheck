@@ -1781,6 +1781,13 @@
   /* KW推移モーダルの「注視」ボタン */
   .kwm-watch { margin-left: 10px; border: 1.5px solid #c026d3; color: #a21caf; background: #fff; border-radius: 7px; padding: 3px 10px; font-weight: 800; font-size: 13px; cursor: pointer; font-family: inherit; white-space: nowrap; flex: 0 0 auto; }
   .kwm-watch:hover { background: #fdf4ff; }
+  /* v4.13：KW推移モーダルのメモ欄（注視中のKW） */
+  .kwm-memo { display: flex; align-items: flex-start; gap: 10px; padding: 8px 24px; background: #fffbeb; border-bottom: 1px solid #fde68a; flex-shrink: 0; }
+  .kwm-memo-l { flex: 0 0 auto; font-size: 13px; font-weight: 800; color: #92400e; padding-top: 6px; white-space: nowrap; }
+  .kwm-memo-l em { display: block; font-style: normal; font-size: 11px; font-weight: 600; color: #b45309; }
+  #kwm-memo-ta { flex: 1 1 auto; min-height: 32px; resize: none; font-size: 14px; line-height: 1.5; padding: 5px 10px; border: 1px solid #fcd34d; border-radius: 7px; background: #fff; font-family: inherit; overflow-y: auto; }
+  #kwm-memo-ta:focus { outline: none; border-color: #f59e0b; box-shadow: 0 0 0 3px rgba(245,158,11,0.18); }
+  .kwm-memo-st { flex: 0 0 auto; width: 74px; font-size: 12px; color: #15803d; font-weight: 700; padding-top: 7px; }
   .kwm-watch.on { background: #c026d3; color: #fff; }
   .tab {
     padding: 7px 10px 9px;
@@ -2365,7 +2372,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v4.11</span>
+    <span class="version">v4.13</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -3273,7 +3280,8 @@ const STORAGE_PL = 'amacheck_pl_v1';
 const STORAGE_RETURNS = 'amacheck_returns_v1';
 const STORAGE_CAT = 'amacheck_categories_v1';
 const STORAGE_CAMPURL = 'amacheck_campurl_v1';   // v3.14：キャンペーン名 → 広告管理画面のURL
-const STORAGE_KWWATCH = 'amacheck_kwwatch_v1';   // v3.91：注視しているKW（【入札単価対策】）
+const STORAGE_KWWATCH = 'amacheck_kwwatch_v1';
+const STORAGE_BIDHIST = 'amacheck_bidhist_v1';   // v4.12：③を取り込んだ時点の入札額の記録（入札を変えた日を正しく出すため）   // v3.91：注視しているKW（【入札単価対策】）
 const STORAGE_CHGLOG = 'amacheck_changelog_v1';   // v3.73：変更記録（ショップ全体。全-月別データの点線枠）
 const STORAGE_PURCH = 'amacheck_purchase_v1';   // v3.41：④／E 購入商品データ（買われた商品別の広告売上）
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
@@ -3571,7 +3579,7 @@ const CAMP_URL_OLD = {
 function saveCampUrls(){ return persistKey(STORAGE_CAMPURL, campUrls); }
 function campUrlOf(name){ const u = campUrls && campUrls[String(name || '').trim()]; return (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : ''; }
 
-const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH, STORAGE_CHGLOG, STORAGE_KWWATCH];
+const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH, STORAGE_CHGLOG, STORAGE_KWWATCH, STORAGE_BIDHIST];
 
 // ==== 永続化: IndexedDB（大容量）優先。使えない時は localStorage(圧縮) にフォールバック ====
 function idbOpen(){
@@ -3601,7 +3609,7 @@ function persistKey(key, obj){
   const r = lzSet(key, obj); scheduleSync(); return r;
 }
 function amacheckStateMap(){
-  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData, [STORAGE_CHGLOG]: globalChangeLogs, [STORAGE_KWWATCH]: kwWatch };
+  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData, [STORAGE_CHGLOG]: globalChangeLogs, [STORAGE_KWWATCH]: kwWatch, [STORAGE_BIDHIST]: kwBidHist };
 }
 
 // ================= GitHub クラウド同期 =================
@@ -3723,6 +3731,8 @@ async function bootstrap(){
   globalChangeLogs = await load(STORAGE_CHGLOG, []);   // v3.73
   if (!Array.isArray(globalChangeLogs)) globalChangeLogs = [];
   kwWatch = await load(STORAGE_KWWATCH, {});   // v3.91
+  kwBidHist = await load(STORAGE_BIDHIST, {});   // v4.12
+  if (!kwBidHist || typeof kwBidHist !== 'object' || Array.isArray(kwBidHist)) kwBidHist = {};
   if (!kwWatch || typeof kwWatch !== 'object' || Array.isArray(kwWatch)) kwWatch = {};
   purchData = await load(STORAGE_PURCH, null);
   if (!purchData || typeof purchData !== 'object' || Array.isArray(purchData)) purchData = { day: {}, month: {} };
@@ -3956,7 +3966,7 @@ function init(){
     if (document.getElementById('kwm-modal').hidden) return;
     if (e.key === 'Escape') { closeKwModal(); return; }
     const tag = (document.activeElement && document.activeElement.tagName) || '';
-    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && tag !== 'SELECT' && tag !== 'INPUT') { e.preventDefault(); kwmGo(e.key === 'ArrowUp' ? -1 : 1); }
+    if ((e.key === 'ArrowUp' || e.key === 'ArrowDown') && tag !== 'SELECT' && tag !== 'INPUT' && tag !== 'TEXTAREA') { e.preventDefault(); kwmGo(e.key === 'ArrowUp' ? -1 : 1); }
   });
   document.getElementById('close-share-help').addEventListener('click', closeShareHelp);
   document.getElementById('close-kw-check').addEventListener('click', closeKwCheck);
@@ -6788,7 +6798,7 @@ function applyReportAll(){
       // v3.06：同じ日の広告データと比べて、Amazon の保存期間切れの形（費用ほぼ0／1か月分）の日は取り込まない
       const kwSkipped = [];
       _rpt.kw.forEach(k => k.dates.forEach(d => { const c = kwDayCheck(d, k.byDate[d]); if (c.kind === 'bad') { kwSkipped.push(d); return; } adKwData[d] = k.byDate[d]; kwDays.add(d); lastYm = lastYm || d.slice(0, 7); }));
-      if (kwDays.size) saveAdKwData();
+      if (kwDays.size) { saveAdKwData(); try { kwBidRecord(Array.from(kwDays)); } catch (e) { console.error(e); } }   // v4.12：取り込んだ時点の入札額を記録
       // ③ 月末データ（ファイルごとの月へ）
       if (mePlan) Object.keys(mePlan).sort().forEach(ym => {
         const slot = mePlan[ym];
@@ -7783,8 +7793,17 @@ function renderKwModal(){
     dispLabels = labels.map(m => m.replace('-', '/'));
   }
   // 入札額の変更（変更記録の代わり）：前の値と違う日／月
+  // v4.12：取り込んだ時点の記録（kwBidHist）がある日はそちらの値を使う。記録より前の日は③の値（取得時点の値なので日付は目安＝灰色の札）
+  const _bh = bidOk ? (kwBidHist[kwm.key] || []) : [], _bh0 = _bh.length ? _bh[0].d : null;
+  const _lblEnd = l => isDaily ? l : ((l + '-' + String(daysInMonth(l)).padStart(2, '0')) > (lastDs || '') ? lastDs : l + '-' + String(daysInMonth(l)).padStart(2, '0'));
+  if (bidOk && _bh0) labels.forEach(l => { const a = aggMap[l]; if (!a) return; const v = kwBidAt(kwm.key, _lblEnd(l)); if (v != null) a.bid = v; });
   const changes = [];
-  if (bidOk) { let prev = null; labels.forEach((l, i) => { const a = aggMap[l]; if (a && a.bid != null) { if (prev != null && a.bid !== prev) changes.push({ i, l, from: prev, to: a.bid }); prev = a.bid; } }); }
+  if (bidOk) { let prev = null; labels.forEach((l, i) => { const a = aggMap[l]; if (a && a.bid != null) { if (prev != null && a.bid !== prev) {
+    const approx = !_bh0 || _lblEnd(l) < _bh0;
+    const rec = approx ? null : _bh.slice(1).filter(x => x.d <= _lblEnd(l)).pop();
+    changes.push({ i, l, from: prev, to: a.bid, approx, rec }); } prev = a.bid; } }); }
+  // 取り込み日の札が、まだデータの無い日（例：今日取り込み、データは昨日まで）なら最後の日に出す
+  if (bidOk && isDaily && labels.length) _bh.slice(1).forEach(x => { const lastL = labels[labels.length - 1]; if (x.d > lastL && x.after <= lastL && !changes.some(c => c.rec === x)) { const a = aggMap[lastL]; if (a) { a.bid = x.bid; } changes.push({ i: labels.length - 1, l: lastL, from: x.from, to: x.bid, approx: false, rec: x, late: true }); } });
   const chgAt = {}; changes.forEach(c => { chgAt[c.l] = c; });
   const overlay = !isDaily && !kwm.view2y && KWM_LINE.has(kwm.metric);   // 月別・年重ね
 
@@ -7817,6 +7836,12 @@ function renderKwModal(){
     + '<div class="kwm-sub">' + sub + '</div></div>'
     + (lastAgg && lastAgg.bid != null ? '<div class="kwm-bidnow"><span>' + (stopHtml ? '停止前の入札額' : '現在の入札額') + '</span><b>¥' + Math.round(lastAgg.bid).toLocaleString() + '</b><em>' + lastDs.replace(/-/g, '/') + ' 時点</em></div>' : '')
     + '<button type="button" class="kwm-close" id="kwm-close" title="閉じる (Esc)"><svg class="icn"><use href="#i-x"/></svg></button></div>';
+  // v4.13：注視中のKWは、上にメモ欄（その場で書ける。打つと少し後に自動で保存）
+  if (bidOk && kwIsWatched(kwm.key)) {
+    const w = kwWatch[kwm.key];
+    h += '<div class="kwm-memo"><span class="kwm-memo-l">📝 メモ' + (w.at ? '<em>' + escapeHtml(String(w.at).replace(/-/g, '/')) + '〜注視</em>' : '') + '</span>'
+      + '<textarea id="kwm-memo-ta" rows="1" placeholder="例：10/20 入札を¥92→¥56に下げた。1週間後にROASを確認">' + escapeHtml(w.memo || '') + '</textarea><span class="kwm-memo-st" id="kwm-memo-st"></span></div>';
+  }
   h += '<div class="kwm-body' + (kwm.hideChart ? ' nochart' : '') + '">';
   h += '<div class="kwm-ctrl">' + seg('kwm-period', [['daily', '日別'], ['monthly', '月別']], kwm.period);
   if (isDaily) {
@@ -7828,7 +7853,7 @@ function renderKwModal(){
   h += '<select class="kwm-select" id="kwm-metric">' + KWM_METRICS.filter(([k]) => bidOk || k !== 'bid').map(([k, l]) => '<option value="' + k + '"' + (k === kwm.metric ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>';
   h += '</div>';
   const bidLineOn = kwm.metric === 'all' && bidOk && !kwm.hiddenSeries.has('bid');
-  h += '<div class="kwm-note">※ ' + (bidLineOn ? '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の階段の線</span>＝入札額（右端の紫の目盛り）。札は変えた' + (isDaily ? '日' : '月') : '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の縦線</span>＝入札額を変えた' + (isDaily ? '日' : '月')) + (isDaily ? '／<span style="color:#c2185b;font-weight:700;">ピンクの帯</span>＝セール期間' : '') + '　ROAS の色：<span class="kw-r-hi">300%以上</span>・<span class="kw-r-mid">200〜299%</span>・<span class="kw-r-lo">199%以下</span>' + (!isDaily && labels.length && labels[labels.length - 1] === (lastDs || '').slice(0, 7) && lastDs.slice(8, 10) !== String(daysInMonth(lastDs.slice(0, 7))).padStart(2, '0') ? '　／　' + lastDs.slice(0, 7).replace('-', '/') + ' は途中の月（' + (+lastDs.slice(8, 10)) + '日まで）' : '') + '</div>';
+  h += '<div class="kwm-note">※ ' + (bidLineOn ? '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の階段の線</span>＝入札額（右端の紫の目盛り）。札は変えた' + (isDaily ? '日' : '月') + (changes.some(c => c.approx) ? '（<span style="color:#6b7280;font-weight:700;">灰色の札</span>＝目安：③の入札額は取得した時点の値のため、変えた日は正確でない）' : '') : '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の縦線</span>＝入札額を変えた' + (isDaily ? '日' : '月')) + (isDaily ? '／<span style="color:#c2185b;font-weight:700;">ピンクの帯</span>＝セール期間' : '') + '　ROAS の色：<span class="kw-r-hi">300%以上</span>・<span class="kw-r-mid">200〜299%</span>・<span class="kw-r-lo">199%以下</span>' + (!isDaily && labels.length && labels[labels.length - 1] === (lastDs || '').slice(0, 7) && lastDs.slice(8, 10) !== String(daysInMonth(lastDs.slice(0, 7))).padStart(2, '0') ? '　／　' + lastDs.slice(0, 7).replace('-', '/') + ' は途中の月（' + (+lastDs.slice(8, 10)) + '日まで）' : '') + '</div>';
 
   // ---- 系列 ----
   let datasets = [], years = null, xLabels = dispLabels;
@@ -7915,6 +7940,17 @@ function renderKwModal(){
     if (bodyEl && _keepScroll) bodyEl.scrollTop = _keepScroll;
   }
   on('#kwm-close', 'click', closeKwModal);
+  { // v4.13：メモ欄（高さは中身に合わせる。打ち終わって0.6秒で保存）
+    const ta = box.querySelector('#kwm-memo-ta'), st = box.querySelector('#kwm-memo-st');
+    if (ta) {
+      const fit = () => { ta.style.height = 'auto'; ta.style.height = Math.min(160, ta.scrollHeight + 2) + 'px'; }; fit();
+      let tm = null; const k = kwm.key;
+      const save = () => { const w = kwWatch[k]; if (!w) return; const v = ta.value.trim(); if ((w.memo || '') === v) return; w.memo = v; saveKwWatch(); if (st) { st.textContent = '保存しました'; setTimeout(() => { if (st) st.textContent = ''; }, 1500); } };
+      ta.addEventListener('input', () => { fit(); if (st) st.textContent = ''; clearTimeout(tm); tm = setTimeout(save, 600); });
+      ta.addEventListener('blur', () => { clearTimeout(tm); save(); });
+      ta.addEventListener('keydown', e => { if (e.key === 'Escape') { clearTimeout(tm); save(); } });
+    }
+  }
   on('#kwm-watch', 'click', () => { kwWatchSet(kwm.key, !kwIsWatched(kwm.key)); renderKwModal(); toast(kwIsWatched(kwm.key) ? '注視に入れました' : '注視から外しました'); });   // v3.91
   on('#kwm-prev', 'click', () => kwmGo(-1));
   on('#kwm-next', 'click', () => kwmGo(1));
@@ -7971,7 +8007,7 @@ function renderKwModal(){
         tooltip: { itemSort: (a, b) => a.datasetIndex - b.datasetIndex, callbacks: {
           title: (items) => { const i = items[0].dataIndex; return overlay ? xLabels[i] : (isDaily ? graphPeriodText(labels[i]) : labels[i].replace('-', '/')); },
           label: (c) => { const k = overlay ? M : (c.dataset.key || M); return ' ' + c.dataset.label + '：' + kwmFmt(k, c.raw); },
-          afterBody: (items) => { if (overlay) return ''; const l = labels[items[0].dataIndex]; const c = chgAt[l]; const out = []; if (c) out.push('入札額を変更 ¥' + Math.round(c.from) + '→¥' + Math.round(c.to)); if (isDaily && dateInAnySale(l)) out.push('セール：' + saleNamesForDate(l).join(' / ')); return out; }
+          afterBody: (items) => { if (overlay) return ''; const l = labels[items[0].dataIndex]; const c = chgAt[l]; const out = []; if (c) { out.push('入札額を変更 ¥' + Math.round(c.from) + '→¥' + Math.round(c.to)); if (c.approx) out.push('（目安：③の入札額はレポートを取得した時点の値なので、変えた日は正確ではありません）'); else if (c.rec) out.push('（' + kwMd(c.rec.after) + '〜' + kwMd(c.rec.d) + 'の取り込みの間に変更）'); } if (isDaily && dateInAnySale(l)) out.push('セール：' + saleNamesForDate(l).join(' / ')); return out; }
         } }
       },
       scales
@@ -8012,27 +8048,27 @@ function renderKwModal(){
         if (bidLine && chart.scales.y2) {   // v3.17：入札額の線を出している時は、縦線はやめて、変えた所に小さな札だけ
           const y2 = chart.scales.y2; ctx.save(); ctx.font = 'bold 12px sans-serif'; ctx.textBaseline = 'middle';
           changes.forEach(c => {
-            const px = x.getPixelForValue(c.i), py = y2.getPixelForValue(c.to);
-            ctx.fillStyle = KWM_BID_COLOR; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
-            const txt = '¥' + Math.round(c.from) + '→¥' + Math.round(c.to), w = ctx.measureText(txt).width + 12, hgt = 19;
+            const px = x.getPixelForValue(c.i), py = y2.getPixelForValue(c.to), col = c.approx ? '#9ca3af' : KWM_BID_COLOR;
+            ctx.fillStyle = col; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
+            const txt = (c.approx ? '目安 ' : '') + '¥' + Math.round(c.from) + '→¥' + Math.round(c.to), w = ctx.measureText(txt).width + 12, hgt = 19;
             // v3.25：札は階段の90度の角（前の入札額の高さ）に。下げた時は角の上、上げた時は角の下。横は変えた点を中心に
             const pyOld = y2.getPixelForValue(c.from), down = c.to < c.from;
             const bx = Math.max(ca.left, Math.min(ca.right - w, px - w / 2));
             const by = down ? Math.max(ca.top + 2, pyOld - hgt - 6) : Math.min(ca.bottom - hgt - 2, pyOld + 6);
-            ctx.fillStyle = '#fff'; ctx.strokeStyle = KWM_BID_COLOR; ctx.lineWidth = 1.5; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, w, hgt, 4); else ctx.rect(bx, by, w, hgt); ctx.fill(); ctx.stroke();
-            ctx.fillStyle = KWM_BID_COLOR; ctx.fillText(txt, bx + 6, by + hgt / 2 + 0.5);
+            ctx.fillStyle = '#fff'; ctx.strokeStyle = col; ctx.lineWidth = 1.5; if (c.approx) ctx.setLineDash([3, 2]); ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, w, hgt, 4); else ctx.rect(bx, by, w, hgt); ctx.fill(); ctx.stroke(); ctx.setLineDash([]);
+            ctx.fillStyle = col; ctx.fillText(txt, bx + 6, by + hgt / 2 + 0.5);
           });
           ctx.restore(); return;
         }
         ctx.save();
         changes.forEach((c, n) => {
-          const px = x.getPixelForValue(c.i);
-          ctx.strokeStyle = KWM_BID_COLOR; ctx.globalAlpha = 0.85; ctx.lineWidth = 2.5; ctx.setLineDash([6, 3]);
+          const px = x.getPixelForValue(c.i), col = c.approx ? '#9ca3af' : KWM_BID_COLOR;
+          ctx.strokeStyle = col; ctx.globalAlpha = 0.85; ctx.lineWidth = 2.5; ctx.setLineDash([6, 3]);
           ctx.beginPath(); ctx.moveTo(px, ca.top); ctx.lineTo(px, ca.bottom); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha = 1;
-          const txt = '入札 ¥' + Math.round(c.from) + '→¥' + Math.round(c.to);
+          const txt = (c.approx ? '目安 ' : '') + '入札 ¥' + Math.round(c.from) + '→¥' + Math.round(c.to);
           ctx.font = 'bold 13px sans-serif'; const w = ctx.measureText(txt).width + 14, hgt = 21;
           let bx = Math.max(ca.left, Math.min(ca.right - w, px - w / 2)); const by = ca.top + 4 + (n % 2) * 26;
-          ctx.fillStyle = KWM_BID_COLOR; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, w, hgt, 4); else ctx.rect(bx, by, w, hgt); ctx.fill();
+          ctx.fillStyle = col; ctx.beginPath(); if (ctx.roundRect) ctx.roundRect(bx, by, w, hgt, 4); else ctx.rect(bx, by, w, hgt); ctx.fill();
           ctx.fillStyle = '#fff'; ctx.textBaseline = 'middle'; ctx.fillText(txt, bx + 6, by + hgt / 2 + 0.5);
         });
         ctx.restore();
@@ -11658,6 +11694,29 @@ function kwWatchSync(){
   const el = document.getElementById('tab-kwwatch-count'), n = Object.keys(kwWatch || {}).length;
   if (el) el.textContent = n ? '(' + n + ')' : '';
 }
+// v4.12：入札額の記録。③の「入札額」は、その日の値ではなく「レポートを取得した時点の値」が全部の日に入るため、
+//   日ごとの値を比べると、まとめて取り直した最初の日（例：10/1）に変えたように見えてしまう。
+//   そこで③を取り込むたびに、そのときの入札額を取り込んだ日付で残し、前回の記録と違えば「その取り込みで変わっていた」とする。
+//   kwBidHist[key] = [{ d:取り込んだ日, bid, seen:同じ値で最後に取り込んだ日, from:前の入札額, after:前回の値を最後に見た日 }]
+let kwBidHist = {};
+function saveBidHist(){ return persistKey(STORAGE_BIDHIST, kwBidHist); }
+function kwBidRecord(days){
+  const today = todayStr(), last = {};
+  (days || []).slice().sort().forEach(d => (adKwData[d] || []).forEach(r => { if (r.bid != null && r.bid !== '' && isFinite(+r.bid)) last['M|' + kwMatchKey(r)] = +r.bid; }));
+  let ch = false;
+  Object.keys(last).forEach(k => {
+    const h = kwBidHist[k] || (kwBidHist[k] = []), b = last[k], p = h[h.length - 1];
+    if (!p) { h.push({ d: today, bid: b, seen: today }); ch = true; }
+    else if (Math.abs(p.bid - b) > 0.001) { h.push({ d: today, bid: b, seen: today, from: p.bid, after: p.seen || p.d }); ch = true; }
+    else if (p.seen !== today) { p.seen = today; ch = true; }
+  });
+  if (ch) saveBidHist();
+}
+// その日（'YYYY-MM-DD'）に効いていた入札額（記録より前の日は null＝分からない）
+function kwBidAt(k, day){
+  const h = kwBidHist[k]; if (!h || !h.length || day < h[0].d) return null;
+  let v = null; for (let i = 0; i < h.length && h[i].d <= day; i++) v = h[i].bid; return v;
+}
 // ③KWデータをキーごとに日付順にまとめたもの（データが変わった時だけ作り直す）。入札額の変更もここで拾う
 let _kwIdx = null, _kwIdxSig = '';
 function kwIndex(){
@@ -12012,7 +12071,7 @@ function kwwMemoOpen(k){
     bg.querySelector('.kww-mm-cancel').addEventListener('click', close);
     bg.querySelector('.kww-mm-save').addEventListener('click', () => {
       const kk = bg.dataset.key, ww = kwWatch[kk]; if (ww) { ww.memo = bg.querySelector('.kww-mm-ta').value.trim(); saveKwWatch(); }
-      close(); kwRefreshWatchViews(); toast('メモを保存しました');
+      close(); kwRefreshWatchViews(); if (!document.getElementById('kwm-modal').hidden) renderKwModal(); toast('メモを保存しました');
     });
     bg.addEventListener('keydown', e => { if (e.key === 'Escape') { e.stopPropagation(); close(); } if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) bg.querySelector('.kww-mm-save').click(); });
   }
