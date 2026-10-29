@@ -1699,6 +1699,18 @@
   .kwmm-rb { display: flex; justify-content: center; gap: 3px; margin-top: 2px; flex-wrap: wrap; }
   .kwmm-rb span { display: inline-flex; flex-direction: column; align-items: center; min-width: 40px; border: 1px solid; border-radius: 4px; padding: 1px 4px; font-size: 13px; font-weight: 800; }
   .kwmm-rb em { font-style: normal; font-size: 10.5px; font-weight: 600; opacity: .8; }
+  .kwmm-head { justify-content: space-between; }
+  .ps-gtag.kwmm-ctag { color: #fff; font-size: 12px; } .ps-gtag.kwmm-ctag.sp { background: #2563eb; } .ps-gtag.kwmm-ctag.sb { background: #7e22ce; }
+  .kwmm-sub { margin-left: 8px; font-size: 12px; font-weight: 700; color: var(--text-secondary); background: var(--bg-secondary); border-radius: 4px; padding: 1px 6px; vertical-align: 2px; }
+  .kwmm-hn .kw-stop { vertical-align: 2px; }
+  .kwmm-go { margin-left: auto; }
+  .kwmm-kwl { margin-top: 5px; font-size: 13px; font-weight: 700; color: var(--black); cursor: pointer; line-height: 1.35; word-break: break-all; }
+  .kwmm-kwl span { display: block; font-size: 11px; font-weight: 500; color: var(--text-tertiary); }
+  .kwmm-kwl:hover { color: var(--purple); text-decoration: underline; }
+  .kwmm-ptg { margin-top: 10px; font-size: 12.5px; font-weight: 700; border: 1px solid #86efac; background: #f0fdf4; color: #15803d; border-radius: 7px; padding: 4px 10px; cursor: pointer; font-family: inherit; }
+  .kwmm-ptg:hover { background: #15803d; color: #fff; }
+  .kwmm-tbl td.kwmm-pname { white-space: normal; max-width: 160px; font-size: 12px; line-height: 1.3; }
+  .kwmm-v2 { font-size: 12px; font-weight: 700; }
   .kwmm-foot { margin-top: 6px; font-size: 13px; color: var(--text-tertiary); }
   /* v4.02：注視分-KW一覧 */
   table.kww-table th.kww-xh, table.kww-table td.kww-xc { text-align: center; }
@@ -2342,7 +2354,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v4.05</span>
+    <span class="version">v4.06</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2515,11 +2527,12 @@
     <div class="toolbar ps-toolbar">
       <select id="ps-month" title="月を選ぶ（確定＝E 月別あり／速報＝④日別の合計）"></select>
       <select id="ps-day"></select>
-      <input type="search" id="ps-search" class="ps-search" placeholder="商品名・SKU・ASIN で検索">
+      <!-- v4.06：広告費の切り替えと！は日選択の右 -->
       <span class="ps-cm-wrap" title="広告費を商品にどう割り当てるか&#10;直接：キャンペーンの費用を、宣伝した商品に全額（SB は宣伝商品が1つに決まらないので割り当てない）&#10;配賦（参考）：キャンペーンの費用を、そのキャンペーン経由で買われた商品の売上の比率で割り振る">広告費
         <span class="ps-cm" id="ps-costmode"><button type="button" data-v="direct">直接</button><button type="button" data-v="alloc">配賦（参考）</button></span>
         <button type="button" class="ps-help-badge" id="ps-cost-help" title="「直接」と「配賦（参考）」の説明を見る">！</button>
       </span>
+      <input type="search" id="ps-search" class="ps-search" placeholder="商品名・SKU・ASIN で検索">
       <span class="ps-filter" id="ps-filter"></span>
       <div class="spacer"></div>
       <span class="ps-colwrap"><button type="button" class="ps-btn" id="ps-colbtn">項目調整</button><div class="ps-colpanel" id="ps-colpanel" hidden></div></span>
@@ -12005,7 +12018,7 @@ function kwwMemoOpen(k){
 //   ・商品全体（初期）：注視KWのある商品ごとに「商品全体」ブロック（商品-売上データと同じ計算。広告費は全-比較と同じ直接／配賦）
 //   ・商品を選ぶ：商品全体 → KW全体（その商品が入っているキャンペーンの③の合計）→ 注視KWごと
 //   ・期間：前月まで（満了）＝データの最新日が月末でなければその月を外す／当月込。/1日＝暦日（最新日の月は経過日、速報の月は④のある日数）
-let kwmmPeriod = null, kwmmProd = '__ALL__', _kwmmCharts = [], _kwmmObs = null, _kwmmPend = {};
+let kwmmPeriod = null, _kwmmCharts = [], _kwmmObs = null, _kwmmPend = {};
 const KWMM_COL = { sales: ['#a5d6a7', '#d7ecd9', '#43a047'], sales2: ['#dcedc8', '#f1f8e9', '#43a047'], cost: ['#ffe0b2', '#fff3e0', '#f59e0b'], cost2: ['#ffe0b2', '#fff8e1', '#f59e0b'],
   roas: ['#bbdefb', '#e3f2fd', '#1e88e5'], ship: ['#d1c4e9', '#ede7f6', '#7e57c2'], price: ['#b2dfdb', '#e0f2f1', '#00897b'], cvr: ['#f8bbd0', '#fce4ec', '#ec407a'],
   ctr: ['#ffcdd2', '#ffebee', '#e53935'], cpc: ['#ffe8cc', '#fff8e1', '#ffa726'], bid: ['#e9d5ff', '#faf5ff', '#9333ea'] };
@@ -12054,19 +12067,6 @@ function kwmmKwVals(rows, ym, latest){
   rs.forEach(r => { if (r.bid != null && r.bid !== '' && isFinite(+r.bid)) bid = +r.bid; });
   return { n, cost: T.cost, sales: T.sales, clicks: T.clicks, imp: T.imp, orders: T.orders, roas: T.roas != null ? T.roas * 100 : null, cvr: T.cvr, cpc: T.cpc, ctr: T.ctr, bid };
 }
-// 項目：[見出し, 値の関数, 書式, 色の種類, グラフ（{ pct: 割合の関数 }）]
-const KWMM_PROD_ITEMS = [
-  ['売上', v => v.total, 'yen', 'sales'], ['SEO売上', v => v.seo, 'yen', 'sales'], ['広告売上', v => v.ad, 'yen', 'sales'],
-  ['売上/1日', v => kwmmDiv(v.total, v.n), 'yen', 'sales', {}], ['SEO売上/1日', v => kwmmDiv(v.seo, v.n), 'yen', 'sales', { pct: v => kwmmDiv(v.seo, v.total), pc: '#15803d' }], ['広告売上/1日', v => kwmmDiv(v.ad, v.n), 'yen', 'sales', { pct: v => kwmmDiv(v.ad, v.total), pc: '#15803d' }],
-  ['SP売上', v => v.spS, 'yen', 'sales2'], ['SB売上', v => v.sbS, 'yen', 'sales2'],
-  ['広告費', v => v.cost, 'yen', 'cost'], ['SP広告費', v => v.spC, 'yen', 'cost'], ['SB広告費', v => v.sbC, 'yen', 'cost'],
-  ['広告費/1日', v => kwmmDiv(v.cost, v.n), 'yen', 'cost2', {}], ['SP広告費/1日', v => kwmmDiv(v.spC, v.n), 'yen', 'cost2', { pct: v => kwmmDiv(v.spC, v.cost), pc: '#1d4ed8' }], ['SB広告費/1日', v => kwmmDiv(v.sbC, v.n), 'yen', 'cost2', { pct: v => kwmmDiv(v.sbC, v.cost), pc: '#1d4ed8' }],
-  ['売上ROAS', v => { const x = kwmmDiv(v.total, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', {}], ['ROAS/全体', v => { const x = kwmmDiv(v.ad, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', {}],
-  ['ROAS/SP', v => { const x = kwmmDiv(v.spS, v.spC); return x == null ? null : x * 100; }, 'roas', 'roas', {}], ['ROAS/SB', v => { const x = kwmmDiv(v.sbS, v.sbC); return x == null ? null : x * 100; }, 'roas', 'roas', {}],
-  ['出荷数', v => v.ship, 'num', 'ship'], ['出荷数/1日', v => kwmmDiv(v.ship, v.n), 'num1', 'ship', {}], ['平均単価', v => kwmmDiv(v.total, v.ship), 'yen', 'price', {}]
-];
-// グラフの並び（3つずつ。null＝空き）
-const KWMM_PROD_CHARTS = ['売上/1日', 'SEO売上/1日', '広告売上/1日', '広告費/1日', 'SP広告費/1日', 'SB広告費/1日', '売上ROAS', 'ROAS/SP', 'ROAS/SB', 'ROAS/全体', '出荷数/1日', '平均単価'];
 const KWMM_KW_ITEMS = [
   ['広告費', v => v.cost, 'yen', 'cost'], ['広告費/1日', v => kwmmDiv(v.cost, v.n), 'yen', 'cost2', {}],
   ['売上', v => v.sales, 'yen', 'sales'], ['売上/1日', v => kwmmDiv(v.sales, v.n), 'yen', 'sales', {}],
@@ -12075,12 +12075,6 @@ const KWMM_KW_ITEMS = [
   ['CTR', v => v.ctr, 'pct', 'ctr'], ['CPC', v => v.cpc, 'yen', 'cpc', {}], ['入札額', v => v.bid, 'yen', 'bid']
 ];
 const KWMM_KW_CHARTS = ['広告費/1日', '売上/1日', 'ROAS', 'クリック/1日', 'CPC', 'CVR'];
-// 注視KWのある商品：{ p, keys }（商品-売上データの商品マスタ順ではなく、最新月の広告費の多い順）
-function kwmmProducts(){
-  const m = new Map();
-  kwwItems().forEach(x => (x.ps || []).forEach(p => { if (!p || !p.fnsku) return; let o = m.get(p.fnsku); if (!o) m.set(p.fnsku, o = { p, keys: [] }); o.keys.push(x.k); }));
-  return Array.from(m.values());
-}
 // 1ブロック（左の欄＋項目の行＋右のグラフ）
 function kwmmBlockHtml(o){
   const n = o.items.length; let h = '';
@@ -12118,84 +12112,116 @@ function kwmmTheadHtml(months, srcs){
     + months.map((m, i) => '<th class="kwmm-v">' + (+m.slice(5, 7)) + '月' + (srcs && srcs[i] === 'daily' ? '<span class="kwmm-sok" title="E（月別の確定）がまだ無いので、④購入商品データのある日だけで計算">速報</span>' : '') + '</th>').join('')
     + '<th class="kwmm-graphs">推移グラフ</th></tr></thead>';
 }
-function kwmmProdHead(p, sub){
-  return '<div class="kwmm-head"><span class="kwmm-himg" data-fnsku="' + escapeHtml(p.fnsku || '') + '" title="押すと商品の画面">' + productImageHtml(p, 40) + '</span><div><div class="kwmm-hn">' + escapeHtml(p.name || p.asin || '') + '</div><div class="kwmm-hs">' + escapeHtml(p.asin || '') + (sub ? '　' + sub : '') + '</div></div></div>';
+// v4.06：キャンペーン単位に作り変え（Amazon は1つのKWが、キャンペーンの複数の商品にまたがって効くため）
+//   注視KWのあるキャンペーンごとに：①キャンペーン全体 → ②注視KWの合計 → ③それ以外のKW → ④宣伝している商品の合計（押すと商品ごと）
+// 項目：[見出し, 値の関数, 書式, 色の種類, グラフ（{ pct: 割合の関数, pc: 割合の色 }）]
+const KWMM_GRP_ITEMS = [
+  ['売上', v => v.total, 'yen', 'sales'], ['SEO売上', v => v.seo, 'yen', 'sales'], ['広告売上', v => v.ad, 'yen', 'sales'],
+  ['売上/1日', v => kwmmDiv(v.total, v.n), 'yen', 'sales', {}], ['SEO売上/1日', v => kwmmDiv(v.seo, v.n), 'yen', 'sales', { pct: v => kwmmDiv(v.seo, v.total), pc: '#15803d' }],
+  ['広告売上/1日', v => kwmmDiv(v.ad, v.n), 'yen', 'sales', { pct: v => kwmmDiv(v.ad, v.total), pc: '#15803d' }],
+  ['広告費（全キャンペーン）', v => v.cost, 'yen', 'cost'],
+  ['売上ROAS', v => { const x = kwmmDiv(v.total, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', {}],
+  ['ROAS/全体', v => { const x = kwmmDiv(v.ad, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', {}],
+  ['出荷数', v => v.ship, 'num', 'ship'], ['出荷数/1日', v => kwmmDiv(v.ship, v.n), 'num1', 'ship', {}]
+];
+const KWMM_GRP_CHARTS = ['売上/1日', 'SEO売上/1日', '広告売上/1日', '売上ROAS', 'ROAS/全体', '出荷数/1日'];
+const KWMM_SUBTYPE = { kw: 'KW', shohin: '商品', auto: 'オート', douga: '動画', shokore: '商品コレ' };
+let kwmmCamp = '__ALL__', kwmmOpenProd = {};
+// 宣伝している商品の合計（商品-売上データと同じ計算を足す）
+function kwmmGroupVals(ps, ym, latest){
+  const vs = ps.map(p => kwmmProdVals(p, ym, latest)), ok = vs.filter(v => !v.none);
+  const n = vs.length ? vs[0].n : 0, src = vs.length ? vs[0].src : 'none';
+  if (!ok.length) return { n, src, none: true };
+  const sum = k => { const xs = ok.map(v => v[k]).filter(x => x != null); return xs.length ? xs.reduce((s, x) => s + x, 0) : null; };
+  return { n, src, total: sum('total'), seo: sum('seo'), ad: sum('ad'), cost: sum('cost'), ship: sum('ship') };
 }
-function kwmmProdBlock(p, months, latest, nKw){
-  const vals = months.map(m => kwmmProdVals(p, m, latest));
-  const sum = k => vals.reduce((s, v) => s + (v.none || v[k] == null ? 0 : v[k]), 0);
-  const tot = sum('total'), seo = sum('seo'), cost = sum('cost');
-  const left = '<div class="kwmm-ln">商品全体</div>'
-    + kwmmRatioBoxes('SEO/広告比率', [['SEO', kwmmDiv(seo, tot)], ['広告', tot > 0 ? 1 - seo / tot : null]], '#15803d', '#eafaf0')
-    + kwmmRatioBoxes('SP/SB比率（広告費）', [['SP', kwmmDiv(sum('spC'), cost)], ['SB', kwmmDiv(sum('sbC'), cost)]], '#1d4ed8', '#eef4ff')
-    + (nKw ? '<div class="kwmm-wn">注視KW ' + nKw + '件</div>' : '');
-  return { html: kwmmBlockHtml({ left, items: KWMM_PROD_ITEMS, vals, charts: KWMM_PROD_CHARTS, labels: months.map(m => (+m.slice(5, 7)) + '月') }), srcs: vals.map(v => v.src), cost: vals[vals.length - 1].none ? 0 : (vals[vals.length - 1].cost || 0) };
+function kwmmCampList(){
+  const ix = kwIndex(), m = new Map();
+  Object.keys(kwWatch || {}).forEach(k => { const e = ix.by.get(k); if (!e) return; const c = String(e.campaign || '').trim(); let o = m.get(c); if (!o) m.set(c, o = { name: c, type: e.type, keys: [] }); o.keys.push(k); });
+  // ①の種類（KW／商品／オート／動画／商品コレ）と状態
+  const ds = Object.keys(adCampData || {}).sort();
+  for (let i = ds.length - 1; i >= 0; i--) {
+    const l = adCampData[ds[i]]; if (!Array.isArray(l)) continue;
+    l.forEach(c => { const o = m.get(String(c.name || '').trim()); if (o && !o.sub) { o.sub = KWMM_SUBTYPE[c.subtype] || ''; o.state = c.state || ''; } });
+    if (Array.from(m.values()).every(o => o.sub != null)) break;
+  }
+  return Array.from(m.values());
 }
 function renderKwWTrendView(){
   const body = document.getElementById('kwwtrend-body'); if (!body) return;
+  const prevSc = document.getElementById('kwmm-scroll'), keepTop = prevSc ? prevSc.scrollTop : 0;
   _kwmmCharts.forEach(c => { try { c.destroy(); } catch (e) {} }); _kwmmCharts = []; _kwmmPend = {}; kwmmBlockHtml.n = 0;
   if (_kwmmObs) { _kwmmObs.disconnect(); _kwmmObs = null; }
   const ix = kwIndex();
   if (!ix.ds.length) { body.innerHTML = kwNoDataHtml(); return; }
-  const prods = kwmmProducts();
   if (!Object.keys(kwWatch || {}).length) { body.innerHTML = kwwEmptyHtml(); kwWatchSync(); return; }
-  _cmpCache = {};   // データが変わっているかもしれないので、月の集計は作り直す
-  const latest = kwmmLatest(), { months, partial } = kwmmMonths(latest);
-  const lastYm = months[months.length - 1];
-  prods.forEach(o => { const v = kwmmProdVals(o.p, lastYm, latest); o.cost = v.none ? 0 : (v.cost || 0); });
-  prods.sort((a, b) => b.cost - a.cost || String(a.p.name || '').localeCompare(String(b.p.name || ''), 'ja'));
-  if (kwmmProd !== '__ALL__' && !prods.some(o => o.p.fnsku === kwmmProd)) kwmmProd = '__ALL__';
+  _cmpCache = {};
+  const latest = kwmmLatest(), { months, partial } = kwmmMonths(latest), lastYm = months[months.length - 1];
+  const labels = months.map(m => (+m.slice(5, 7)) + '月');
+  const cpm = kwCampProdMap();
+  const camps = kwmmCampList();
+  // 並び：最新月の③の広告費（このキャンペーンの全KW）の多い順
+  const campRows = new Map(); ix.by.forEach(e => { const c = String(e.campaign || '').trim(); let l = campRows.get(c); if (!l) campRows.set(c, l = []); e.rows.forEach(r => l.push(r)); });
+  camps.forEach(o => { const v = kwmmKwVals(campRows.get(o.name) || [], lastYm, latest); o.cost = v.none ? 0 : v.cost; o.ps = cpm.get(o.name) || []; });
+  camps.sort((a, b) => b.cost - a.cost || a.name.localeCompare(b.name, 'ja'));
+  if (kwmmCamp !== '__ALL__' && !camps.some(o => o.name === kwmmCamp)) kwmmCamp = '__ALL__';
   const curYmL = (+latest.slice(5, 7)) + '月';
-  let h = '<div class="kwa-tools kwmm-tools"><div class="kwa-grp"><span class="kwa-lbl">商品</span><select class="graph-select kwa-camp" id="kwmm-prod"><option value="__ALL__">商品全体（' + prods.length + '商品）</option>'
-    + prods.map(o => '<option value="' + escapeHtml(o.p.fnsku) + '"' + (o.p.fnsku === kwmmProd ? ' selected' : '') + '>' + escapeHtml(o.p.name || o.p.asin) + '（注視KW ' + o.keys.length + '）</option>').join('') + '</select></div>'
+  let h = '<div class="kwa-tools kwmm-tools"><div class="kwa-grp"><span class="kwa-lbl">キャンペーン</span><select class="graph-select kwa-camp" id="kwmm-camp"><option value="__ALL__">すべて（' + camps.length + '件）</option>'
+    + camps.map(o => '<option value="' + escapeHtml(o.name) + '"' + (o.name === kwmmCamp ? ' selected' : '') + '>' + escapeHtml(o.name) + '（注視KW ' + o.keys.length + '）</option>').join('') + '</select></div>'
     + '<div class="kwa-grp"><span class="kwa-lbl">期間</span>' + kwSegHtml('kwmm-per', [['done', '前月まで（満了）'], ['cur', '当月込']], kwmmPer(latest)) + '</div>'
     + '<span class="kwa-note">' + (partial ? (kwmmPer(latest) === 'done' ? '途中の' + curYmL + '（' + kwMd(latest) + 'まで）は除外' : curYmL + 'は' + kwMd(latest) + 'までの途中経過') : '') + '</span>'
-    + '<span class="kwa-flex"></span><span class="kwa-note">広告費は ' + (_cmpCostMode === 'alloc' ? '配賦（参考）' : '直接') + '（全-比較の切り替えと同じ）</span></div>';
+    + '<span class="kwa-flex"></span><span class="kwa-note">商品の広告費は ' + (_cmpCostMode === 'alloc' ? '配賦（参考）' : '直接') + '（全-比較の切り替えと同じ）</span></div>';
   h += '<div class="kwmm-scroll" id="kwmm-scroll">';
-  if (!prods.length) h += '<div class="pm-empty">注視KWのキャンペーンから商品が分かりません（広告キャンペーンの設定に ASIN を入れると出ます）</div>';
-  else if (kwmmProd === '__ALL__') {
-    prods.forEach(o => {
-      const b = kwmmProdBlock(o.p, months, latest, o.keys.length);
-      h += '<div class="kwmm-sec">' + kwmmProdHead(o.p) + '<table class="kwmm-tbl">' + kwmmTheadHtml(months, b.srcs) + '<tbody>' + b.html + '</tbody></table></div>';
-    });
-  } else {
-    const o = prods.find(x => x.p.fnsku === kwmmProd);
-    const b = kwmmProdBlock(o.p, months, latest, o.keys.length);
-    // KW全体：この商品が入っているキャンペーンの③の全行
-    const cpm = kwCampProdMap(), camps = new Set(); cpm.forEach((ps, c) => { if (ps.indexOf(o.p) > -1) camps.add(c); });
-    const allRows = []; ix.by.forEach(e => { if (camps.has(String(e.campaign || '').trim())) e.rows.forEach(r => allRows.push(r)); });
-    const kwAllVals = months.map(m => kwmmKwVals(allRows, m, latest));
-    let tb = b.html;
-    tb += kwmmBlockHtml({ left: '<div class="kwmm-ln">KW全体</div><div class="kwmm-ls">この商品が入っているキャンペーン ' + camps.size + '件の③の合計（他の商品と共通のキャンペーンは、その分も入る）</div>',
-      items: KWMM_KW_ITEMS.filter(x => x[0] !== '入札額'), vals: kwAllVals, charts: KWMM_KW_CHARTS, labels: months.map(m => (+m.slice(5, 7)) + '月') });
-    const kws = o.keys.map(k => ix.by.get(k)).filter(Boolean).map(e => ({ e, vals: months.map(m => kwmmKwVals(e.rows, m, latest)) }));
-    kws.forEach(x => { x.c4 = x.vals.reduce((s, v) => s + (v.none ? 0 : v.cost), 0); });
-    kws.sort((a, b) => b.c4 - a.c4);
-    kws.forEach(x => {
-      const e = x.e, w = kwWatch[e.key] || {};
-      const share = x.vals.map((v, i) => [(+months[i].slice(5, 7)) + '月', (v.none || kwAllVals[i].none) ? null : kwmmDiv(v.cost, kwAllVals[i].cost)]);
-      const left = '<div class="kwmm-ln kw kwa-row" data-key="' + escapeHtml(e.key) + '" title="押すと、このKWの日別の推移"><span class="kw-badge ' + escapeHtml(e.type.toLowerCase()) + '">' + escapeHtml(e.type) + '</span>' + escapeHtml(e.target || '（なし）') + '<span class="kwmm-wb">注視</span></div>'
-        + '<div class="kwmm-ls">' + escapeHtml((e.match || '') + '・' + (e.campaign || '')) + '</div>'
-        + (w.at ? '<div class="kwmm-ls">注視チェック日 ' + escapeHtml(String(w.at).replace(/-/g, '/')) + '</div>' : '')
-        + kwmmRatioBoxes('広告費 占有率（KW全体のうち）', share, '#b45309', '#fff3e0');
-      tb += kwmmBlockHtml({ left, items: KWMM_KW_ITEMS, vals: x.vals, charts: KWMM_KW_CHARTS, labels: months.map(m => (+m.slice(5, 7)) + '月') });
-    });
-    h += '<div class="kwmm-sec">' + kwmmProdHead(o.p, '注視KW ' + o.keys.length + '件') + '<table class="kwmm-tbl">' + kwmmTheadHtml(months, b.srcs) + '<tbody>' + tb + '</tbody></table></div>';
-  }
-  h += '</div><div class="kwmm-foot">※ 直近4か月。/1日＝÷日数（過去の月：暦日、最新日の月：経過日、速報の月：④のある日数）。商品全体は商品-売上データと同じ計算（売上＝推計総売上）。'
-    + (kwmmProd === '__ALL__' ? 'KW全体・注視KWごとの数字は、上の「商品」で商品を選ぶと出ます。' : 'KW全体・KWごとは③KWデータ（キャンペーン単位。商品ごとには分けられない）。') + '</div>';
+  const shown = kwmmCamp === '__ALL__' ? camps : camps.filter(o => o.name === kwmmCamp);
+  const wordList = keys => keys.map(k => { const e = ix.by.get(k); return '<div class="kwmm-kwl kwa-row" data-key="' + escapeHtml(k) + '" title="押すと、このKWの日別の推移">' + escapeHtml(e ? e.target : k.split('|')[3]) + '<span>' + escapeHtml(e ? e.match : '') + '</span></div>'; }).join('');
+  shown.forEach(o => {
+    const typeTag = '<span class="ps-gtag ' + (o.type === 'SB' ? 'sb' : 'sp') + ' kwmm-ctag">' + escapeHtml(o.type || '') + '</span>';
+    const cu = campUrlOf(o.name);
+    h += '<div class="kwmm-sec"><div class="kwmm-head"><div>' + '<div class="kwmm-hn">' + typeTag + escapeHtml(o.name) + (o.sub ? '<span class="kwmm-sub">' + escapeHtml(o.sub) + '</span>' : '') + (/PAUSED|ARCHIVED/i.test(o.state || '') ? '<span class="kw-stop">停止中</span>' : '') + '</div>'
+      + '<div class="kwmm-hs">宣伝している商品 ' + o.ps.length + '件' + (o.ps.length ? '：' + escapeHtml(o.ps.slice(0, 4).map(p => p.name || p.asin).join('、')) + (o.ps.length > 4 ? ' ほか' : '') : '（広告キャンペーンの設定に ASIN を入れると出ます）') + '</div></div>'
+      + (cu ? '<a class="kwm-camp-go kwmm-go" href="' + escapeHtml(cu) + '" target="_blank" rel="noopener">ページを開く ↗</a>' : '') + '</div>';
+    // ②③ ③KWデータ：このキャンペーンの全KW／注視KW／それ以外
+    const allRows = [], wRows = [], wset = new Set(o.keys);
+    ix.by.forEach(e => { if (String(e.campaign || '').trim() !== o.name) return; e.rows.forEach(r => { allRows.push(r); if (wset.has(e.key)) wRows.push(r); }); });
+    const wset2 = wRows; const oRows = allRows.filter(r => !wset.has(kwWKey(r)));
+    const allV = months.map(m => kwmmKwVals(allRows, m, latest)), wV = months.map(m => kwmmKwVals(wset2, m, latest)), oV = months.map(m => kwmmKwVals(oRows, m, latest));
+    const share = vs => vs.map((v, i) => [labels[i], (v.none || allV[i].none) ? null : kwmmDiv(v.cost, allV[i].cost)]);
+    const gv = months.map(m => kwmmGroupVals(o.ps, m, latest));
+    // キャンペーン全体＝③のこのキャンペーンの全KW・ASINターゲット（①のキャンペーン別は保存されていない日があるため、③でそろえる。注視KW＋それ以外＝全体）
+    let tb = kwmmBlockHtml({ left: '<div class="kwmm-ln">キャンペーン全体</div><div class="kwmm-ls">このキャンペーンの全KW・ASINターゲットの合計（③KWデータ）</div>', items: KWMM_KW_ITEMS.filter(x => x[0] !== '入札額'), vals: allV, charts: KWMM_KW_CHARTS, labels });
+    tb += kwmmBlockHtml({ left: '<div class="kwmm-ln">注視KW（' + o.keys.length + '件）の合計</div>' + wordList(o.keys) + kwmmRatioBoxes('広告費の割合（このキャンペーンのKWのうち）', share(wV), '#a21caf', '#fdf4ff'), items: KWMM_KW_ITEMS.filter(x => x[0] !== '入札額'), vals: wV, charts: KWMM_KW_CHARTS, labels });
+    tb += kwmmBlockHtml({ left: '<div class="kwmm-ln">それ以外のKW</div><div class="kwmm-ls">このキャンペーンの注視していないKW・ASINターゲット</div>' + kwmmRatioBoxes('広告費の割合', share(oV), '#b45309', '#fff3e0'), items: KWMM_KW_ITEMS.filter(x => x[0] !== '入札額'), vals: oV, charts: KWMM_KW_CHARTS, labels });
+    if (o.ps.length) {
+      const open = !!kwmmOpenProd[o.name];
+      tb += kwmmBlockHtml({ left: '<div class="kwmm-ln">宣伝している商品の合計（' + o.ps.length + '商品）</div><div class="kwmm-ls">商品-売上データと同じ計算（売上＝推計総売上）。広告費はその商品の全キャンペーン分</div>'
+        + '<button type="button" class="kwmm-ptg" data-camp="' + escapeHtml(o.name) + '">' + (open ? '▲ 商品ごとを閉じる' : '▼ 商品ごとを見る') + '</button>', items: KWMM_GRP_ITEMS, vals: gv, charts: KWMM_GRP_CHARTS, labels });
+      if (open) {
+        const pr = o.ps.map(p => ({ p, vs: months.map(m => kwmmProdVals(p, m, latest)) }));
+        pr.forEach(x => { x.t = x.vs.reduce((s, v) => s + (v.none ? 0 : (v.total || 0)), 0); });
+        pr.sort((a, b) => b.t - a.t);
+        pr.forEach((x, i) => {
+          tb += '<tr' + (i === 0 ? ' class="kwmm-bstart"' : '') + '>' + (i === 0 ? '<td class="kwmm-left" rowspan="' + pr.length + '"><div class="kwmm-ln">商品ごと</div><div class="kwmm-ls">売上（推計総売上）／売上ROAS</div></td>' : '')
+            + '<td class="kwmm-dot"></td><td class="kwmm-item kwmm-pname" style="background:' + KWMM_COL.sales2[0] + '" title="' + escapeHtml(x.p.name || '') + '">' + escapeHtml(x.p.name || x.p.asin) + '</td>'
+            + x.vs.map(v => { const sr = v.none ? null : kwmmDiv(v.total, v.cost); return '<td class="kwmm-v" style="background:' + KWMM_COL.sales2[1] + '">' + (v.none ? '-' : kwmmFmt('yen', v.total) + '<div class="kwmm-v2 ' + kwCls(kwJudgeOf(sr)) + '">' + (sr == null ? '-' : Math.round(sr * 100) + '%') + '</div>') + '</td>'; }).join('')
+            + (i === 0 ? '<td class="kwmm-graphs" rowspan="' + pr.length + '"></td>' : '') + '</tr>';
+        });
+      }
+    }
+    h += '<table class="kwmm-tbl">' + kwmmTheadHtml(months, gv.map(v => v.src)) + '<tbody>' + tb + '</tbody></table></div>';
+  });
+  if (!shown.length) h += '<div class="pm-empty">注視KWのキャンペーンがありません</div>';
+  h += '</div><div class="kwmm-foot">※ 直近4か月。キャンペーン全体・注視KW・それ以外のKW＝③KWデータ（注視KW＋それ以外＝キャンペーン全体）、宣伝している商品＝商品-売上データの計算。/1日＝÷③のある日数（商品は 過去の月：暦日、最新日の月：経過日、速報の月：④のある日数）。KW名を押すと、そのKWの日別の推移が開きます。</div>';
   body.innerHTML = h;
+  const sc = document.getElementById('kwmm-scroll'); if (sc && keepTop) sc.scrollTop = keepTop;
 
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
-  on('#kwmm-prod', 'change', e => { kwmmProd = e.target.value; renderKwWTrendView(); });
+  on('#kwmm-camp', 'change', e => { kwmmCamp = e.target.value; const s2 = document.getElementById('kwmm-scroll'); if (s2) s2.scrollTop = 0; renderKwWTrendView(); const s3 = document.getElementById('kwmm-scroll'); if (s3) s3.scrollTop = 0; });
   body.querySelectorAll('#kwmm-per button').forEach(b => b.addEventListener('click', () => { kwmmPeriod = b.dataset.v; renderKwWTrendView(); }));
-  body.querySelectorAll('.kwmm-himg[data-fnsku]').forEach(im => im.addEventListener('click', () => { if (im.dataset.fnsku) openProductModal(im.dataset.fnsku, 'info'); }));
-  const kwKeys = Array.from(body.querySelectorAll('.kwmm-ln.kw[data-key]')).map(d => d.dataset.key);
-  body.querySelectorAll('.kwmm-ln.kw[data-key]').forEach(d => d.addEventListener('click', () => kwOpenModalExt(d.dataset.key, kwKeys)));
-  // 表の見出しは、商品名の行のすぐ下で止める
+  body.querySelectorAll('.kwmm-ptg').forEach(b => b.addEventListener('click', () => { const c = b.dataset.camp; kwmmOpenProd[c] = !kwmmOpenProd[c]; renderKwWTrendView(); }));
+  const kwKeys = Array.from(body.querySelectorAll('.kwmm-kwl[data-key]')).map(d => d.dataset.key);
+  body.querySelectorAll('.kwmm-kwl[data-key]').forEach(d => d.addEventListener('click', () => kwOpenModalExt(d.dataset.key, kwKeys)));
   body.querySelectorAll('.kwmm-sec').forEach(sec => { const hd = sec.querySelector('.kwmm-head'); const hh = hd ? hd.offsetHeight - 1 : 0; sec.querySelectorAll('.kwmm-tbl thead th').forEach(th => { th.style.top = hh + 'px'; }); });
   kwWatchSync();
-  // グラフは見えるところだけ作る（商品が多くても重くならないように）
   if (typeof Chart === 'undefined') { body.querySelectorAll('.kwmm-gc').forEach(c => { c.innerHTML = '<div class="kwm-nochart">グラフの部品を読み込めませんでした</div>'; }); return; }
   const make = cv => {
     const cfg = _kwmmPend[cv.id]; if (!cfg) return; delete _kwmmPend[cv.id];
@@ -12206,9 +12232,8 @@ function renderKwWTrendView(){
         scales: { x: { grid: { display: false }, ticks: { font: { size: 12 }, color: '#64748b' } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11.5 }, color: '#64748b', maxTicksLimit: 4, callback: v => kwmmTick(cfg.fmt, v) } } } }
     }));
   };
-  const root = document.getElementById('kwmm-scroll');
   if ('IntersectionObserver' in window) {
-    _kwmmObs = new IntersectionObserver(ents => ents.forEach(en => { if (en.isIntersecting) { _kwmmObs.unobserve(en.target); make(en.target); } }), { root, rootMargin: '400px 0px' });
+    _kwmmObs = new IntersectionObserver(ents => ents.forEach(en => { if (en.isIntersecting) { _kwmmObs.unobserve(en.target); make(en.target); } }), { root: sc, rootMargin: '400px 0px' });
     body.querySelectorAll('.kwmm-gc canvas').forEach(cv => _kwmmObs.observe(cv));
   } else body.querySelectorAll('.kwmm-gc canvas').forEach(make);
 }
