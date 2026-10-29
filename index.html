@@ -2365,7 +2365,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v4.10</span>
+    <span class="version">v4.11</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -9512,8 +9512,8 @@ function renderAdTableCore(){
     + '<tr>'
     + '<th rowspan="3" class="ad-daycol">' + (adPeriod === 'monthly' ? ('月' + (dayCut ? '<br><span class="ad-daycut-lbl">1〜' + dayCut + '日</span>' : '')) : (adPeriod === 'last2m' ? '日付' : '日')) + '</th>'
     + '<th colspan="5" class="adg adg-sales">全体</th>'
-    + '<th colspan="9" class="adg adg-sp">スポンサープロダクト広告</th>'
-    + '<th colspan="9" class="adg adg-sb">スポンサーブランド広告</th>'
+    + '<th colspan="9" class="adg adg-sp"><span class="ps-gtag sp">SP</span>スポンサープロダクト広告</th>'   // v4.11：商品-売上データと同じ札
+    + '<th colspan="9" class="adg adg-sb"><span class="ps-gtag sb">SB</span>スポンサーブランド広告</th>'
     + '</tr>'
     + '<tr>'
     + '<th rowspan="2" class="adh adc-sales adc-gstart">推計総売上</th>'
