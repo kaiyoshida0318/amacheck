@@ -2354,7 +2354,7 @@
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
-    <span class="version">v4.06</span>
+    <span class="version">v4.08</span>
     <div class="zoom-controls">
       <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
       <span class="zoom-level" id="zoom-level">100%</span>
@@ -2528,13 +2528,13 @@
       <select id="ps-month" title="月を選ぶ（確定＝E 月別あり／速報＝④日別の合計）"></select>
       <select id="ps-day"></select>
       <!-- v4.06：広告費の切り替えと！は日選択の右 -->
-      <span class="ps-cm-wrap" title="広告費を商品にどう割り当てるか&#10;直接：キャンペーンの費用を、宣伝した商品に全額（SB は宣伝商品が1つに決まらないので割り当てない）&#10;配賦（参考）：キャンペーンの費用を、そのキャンペーン経由で買われた商品の売上の比率で割り振る">広告費
-        <span class="ps-cm" id="ps-costmode"><button type="button" data-v="direct">直接</button><button type="button" data-v="alloc">配賦（参考）</button></span>
-        <button type="button" class="ps-help-badge" id="ps-cost-help" title="「直接」と「配賦（参考）」の説明を見る">！</button>
+      <span class="ps-cm-wrap" title="広告費を商品にどう割り当てるか&#10;宣伝商品に全額：キャンペーンの費用を、宣伝した商品に全額（SB は宣伝商品が1つに決まらないので割り当てない）&#10;売上比で分ける：キャンペーンの費用を、そのキャンペーン経由で買われた商品の売上の比率で割り振る">広告費
+        <span class="ps-cm" id="ps-costmode"><button type="button" data-v="direct">宣伝商品に全額</button><button type="button" data-v="alloc">売上比で分ける</button></span>
+        <button type="button" class="ps-help-badge" id="ps-cost-help" title="「宣伝商品に全額」と「売上比で分ける」の説明を見る">！</button>
       </span>
+      <div class="spacer"></div><!-- v4.08：検索欄から右は右寄せ（項目調整のすぐ左） -->
       <input type="search" id="ps-search" class="ps-search" placeholder="商品名・SKU・ASIN で検索">
       <span class="ps-filter" id="ps-filter"></span>
-      <div class="spacer"></div>
       <span class="ps-colwrap"><button type="button" class="ps-btn" id="ps-colbtn">項目調整</button><div class="ps-colpanel" id="ps-colpanel" hidden></div></span>
       <button type="button" class="ps-btn" id="ps-csv">CSV出力</button>
     </div>
@@ -2621,7 +2621,7 @@
         <button id="yoyModeYoy3" onclick="setYoyMode('yoy3')" style="font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">前年同月比(3年分)</button>
         <button id="yoyModePick" onclick="setYoyMode('pick')" style="font-size:12px;padding:6px 14px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">特定月比較</button>
         <select id="yoySel" onchange="setYoyMonth(this.value)" style="margin-left:4px;font-size:12px;padding:6px 4px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer"></select><select id="yoySelA" onchange="setYoyPick('a',this.value)" style="display:none;margin-left:4px;font-size:12px;padding:6px 4px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer"></select><button id="yoyPickArrow" onclick="swapYoyPick()" title="左右の月を入れ替える" style="display:none;margin:0 2px;line-height:1;padding:6px 8px;border-radius:6px;border:1px solid #3b82f6;background:#eff6ff;color:#2563eb;font-weight:800;cursor:pointer" onmouseenter="this.style.background='#3b82f6';this.style.color='#fff'" onmouseleave="this.style.background='#eff6ff';this.style.color='#2563eb'"><svg width="16" height="14" viewBox="0 0 16 14" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="display:block"><path d="M1.5 4h12M10.5 1l3 3-3 3"/><path d="M14.5 10h-12M5.5 7l-3 3 3 3"/></svg></button><select id="yoySelB" onchange="setYoyPick('b',this.value)" style="display:none;font-size:12px;padding:6px 4px;border-radius:6px;border:1px solid var(--border);background:var(--surface);color:var(--text);cursor:pointer"></select>
-        <span class="cmp-cm" id="cmpCostWrap" title="広告費を商品にどう割り当てるか（商品-売上データの 直接／配賦 と同じ）"></span><span id="yoyImpWrap" style="display:none;margin-left:6px;gap:4px;align-items:center"></span><span id="yoyTopRight" style="display:none;margin-left:auto;align-items:center;justify-content:flex-end;gap:8px;flex:1 1 0;min-width:230px"><span id="yoyPinWrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-weight:600;flex:0 1 auto;min-width:0"></span><button id="yoyExportBtn" onclick="exportYoyTop()" title="今表示している寄与度トップ（全指標・今月と比較月）をCSVで保存" style="flex:0 0 auto;font-size:12px;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:700;border:1px solid #0f766e;background:#0f766e;color:#fff;white-space:nowrap">⬇ エクスポート</button></span><button id="yoyTglUp" onclick="toggleYoyLine('up')" style="margin-left:12px;font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid #16a34a;background:#16a34a;color:#fff;">上昇線</button>
+        <span class="cmp-cm" id="cmpCostWrap" title="広告費を商品にどう割り当てるか（商品-売上データの 宣伝商品に全額／売上比で分ける と同じ）"></span><span id="yoyImpWrap" style="display:none;margin-left:6px;gap:4px;align-items:center"></span><span id="yoyTopRight" style="display:none;margin-left:auto;align-items:center;justify-content:flex-end;gap:8px;flex:1 1 0;min-width:230px"><span id="yoyPinWrap" style="display:inline-flex;align-items:center;gap:6px;font-size:12px;color:var(--text2);font-weight:600;flex:0 1 auto;min-width:0"></span><button id="yoyExportBtn" onclick="exportYoyTop()" title="今表示している寄与度トップ（全指標・今月と比較月）をCSVで保存" style="flex:0 0 auto;font-size:12px;padding:6px 10px;border-radius:6px;cursor:pointer;font-weight:700;border:1px solid #0f766e;background:#0f766e;color:#fff;white-space:nowrap">⬇ エクスポート</button></span><button id="yoyTglUp" onclick="toggleYoyLine('up')" style="margin-left:12px;font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid #16a34a;background:#16a34a;color:#fff;">上昇線</button>
         <button id="yoyTglDown" onclick="toggleYoyLine('down')" style="font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid #dc2626;background:#dc2626;color:#fff;">下降線</button>
         <button id="yoyColBlue" onclick="toggleYoyColor('blue')" style="margin-left:12px;font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">青商品</button>
         <button id="yoyColGreen" onclick="toggleYoyColor('green')" style="font-size:12px;padding:6px 12px;border-radius:6px;cursor:pointer;white-space:nowrap;font-weight:600;border:1px solid var(--border);background:var(--surface2);color:var(--text3);">緑商品</button>
@@ -3172,11 +3172,11 @@
   </div>
 </div>
 <!-- KW-日月別データ：まとめ方・マッチの説明（openKwHelp） -->
-<!-- v3.48：商品-売上データ「広告費 直接／配賦（参考）」の説明 -->
+<!-- v3.48：商品-売上データ「広告費 直接／売上比で分ける」の説明 -->
 <div class="modal-bg" id="ps-cost-help-modal" hidden style="z-index:9400;"><!-- v3.70：商品モーダル（9200）の上にも出す -->
   <div class="modal adg-modal" style="max-width:880px;">
     <div class="adg-head">
-      <div><h3><span class="ps-help-badge" style="cursor:default;vertical-align:2px;">！</span> 広告費の「直接」と「配賦（参考）」</h3>
+      <div><h3><span class="ps-help-badge" style="cursor:default;vertical-align:2px;">！</span> 広告費の「宣伝商品に全額」と「売上比で分ける」</h3>
         <div class="sub" style="margin-bottom:0;">商品-売上データで、商品ごとの広告費をどう決めるかの2つの方法です。</div></div>
       <button class="icon-btn" id="close-ps-cost-help" title="閉じる" aria-label="閉じる"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
@@ -3187,12 +3187,12 @@
           <div class="psh-vs">でも</div>
           <div class="psh-box psh-cost"><b>広告費</b>は<br><span><em>キャンペーン単位</em>でしか分からない</span><div class="psh-src">① 広告データ</div></div>
         </div>
-        <p class="adg-p">Amazon は「商品ごとの広告費」を出していません。そこで、キャンペーンの広告費を商品に割り当てる方法を2つ用意しています。<b>どちらでも広告費の合計は同じ</b>で、どの商品の行に入れるかだけが違います（「直接」では SB の分はどの商品にも入りません）。</p>
+        <p class="adg-p">Amazon は「商品ごとの広告費」を出していません。そこで、キャンペーンの広告費を商品に割り当てる方法を2つ用意しています。<b>どちらでも広告費の合計は同じ</b>で、どの商品の行に入れるかだけが違います（「宣伝商品に全額」では SB の分はどの商品にも入りません）。</p>
       </section>
       <section class="adg-sec"><h4 class="adg-h"><span class="adg-num">2</span><span class="adg-htext">2つの方法</span></h4>
         <div class="psh-cards">
           <div class="psh-card psh-direct">
-            <div class="psh-ct"><span class="psh-tag" style="background:#7c3aed;">直接</span>宣伝した商品に全額（最初の表示）</div>
+            <div class="psh-ct"><span class="psh-tag" style="background:#7c3aed;">宣伝商品に全額</span>広告を出した商品に付ける（最初の表示）</div>
             <p>キャンペーンの広告費を、そのキャンペーンで<b>宣伝している商品（広告対象ASIN）</b>に全額付けます。</p>
             <ul>
               <li><span class="psh-sp">SP</span> 宣伝しているのは <b>SMLセット</b> だけ → SP の広告費は<b>全額 SMLセットの行</b>に入ります。</li>
@@ -3202,7 +3202,7 @@
             <div class="psh-warn">⚠️ SMLセットの広告から<b>他の商品が売れた分（Halo）</b>は、他の商品の行に入ります。なので SMLセットの ROAS は低めに見え、他の商品は広告費が0（売上ROAS・ROAS が「—」）になります。</div>
           </div>
           <div class="psh-card psh-alloc">
-            <div class="psh-ct"><span class="psh-tag" style="background:#0f766e;">配賦（参考）</span>売れた割合で割り振る</div>
+            <div class="psh-ct"><span class="psh-tag" style="background:#0f766e;">売上比で分ける</span>売れた割合で割り振る</div>
             <p>キャンペーンの広告費を、<b>そのキャンペーン経由で買われた商品の売上の比率</b>で各商品に割り振ります。SB の広告費も商品に入ります。</p>
             <div class="psh-ex">
               <div class="psh-ex-t">例：SP-KW キャンペーン　広告費 <b>¥100,000</b></div>
@@ -3215,7 +3215,7 @@
         </div>
       </section>
       <section class="adg-sec"><h4 class="adg-h"><span class="adg-num">3</span><span class="adg-htext">くらべると</span></h4>
-        <table class="kwh-tbl psh-tbl"><thead><tr><th></th><th><span class="psh-tag" style="background:#7c3aed;">直接</span></th><th><span class="psh-tag" style="background:#0f766e;">配賦（参考）</span></th></tr></thead><tbody>
+        <table class="kwh-tbl psh-tbl"><thead><tr><th></th><th><span class="psh-tag" style="background:#7c3aed;">宣伝商品に全額</span></th><th><span class="psh-tag" style="background:#0f766e;">売上比で分ける</span></th></tr></thead><tbody>
           <tr><td><b>SP の広告費</b></td><td>全額 SMLセット</td><td>SP 経由で売れた商品に、売上の比率で</td></tr>
           <tr><td><b>SB の広告費</b></td><td>商品には入れない（共通費）</td><td>SB 経由で売れた商品に、売上の比率で</td></tr>
           <tr><td><b>SMLセットの ROAS</b></td><td>低めに出る（Halo の売上が他の行へ）</td><td>キャンペーン全体の ROAS に近くなる</td></tr>
@@ -8234,12 +8234,12 @@ function buildAnalysisSheets(fromYm, toYm, want){
       });
     });
     sheets.push({ name: '購入商品_月別', rows: mRows, widths: [8, 6, 8, 30, 17, 12, 24, 12, 16, 30, 12, 10, 8, 8, 8, 10, 8] });
-    // 商品別×月：商品-売上データの計算（psCompute）を月ごとに「直接」「配賦」の両方で回す
+    // 商品別×月：商品-売上データの計算（psCompute）を月ごとに「宣伝商品に全額」「配賦」の両方で回す
     const keep = { m: psMonth, d: psDay, c: psCostMode };
     const pRows = [['年月', '購入商品データ', '集計した日数', 'ASIN', 'SKU', '商品名', 'カテゴリ', 'ステータス', '出荷数', '推計総売上', '広告売上', '広告売上_宣伝商品', '広告売上_Halo', '広告経由の点数', '推計SEO売上', '広告売上比率（%）',
       'SP広告売上', 'SP-KW売上', 'SP-商品売上', 'SP-オート売上', 'SB広告売上', 'SB-動画売上', 'SB-商品コレ売上',
-      '広告費_直接', 'SP広告費_直接', 'SB広告費_直接', 'ROAS_直接（倍）', '売上ROAS_直接（倍）',
-      '広告費_配賦', 'SP広告費_配賦', 'SB広告費_配賦', 'ROAS_配賦（倍）', '売上ROAS_配賦（倍）', 'SP-ROAS_配賦（倍）', 'SB-ROAS_配賦（倍）']];
+      '広告費_全額', 'SP広告費_全額', 'SB広告費_全額', 'ROAS_全額（倍）', '売上ROAS_全額（倍）',
+      '広告費_売上比', 'SP広告費_売上比', 'SB広告費_売上比', 'ROAS_売上比（倍）', '売上ROAS_売上比（倍）', 'SP-ROAS_売上比（倍）', 'SB-ROAS_売上比（倍）']];
     try {
       const yms = new Set();
       Object.keys(purchData.day || {}).forEach(d => yms.add(d.slice(0, 7))); Object.keys(purchData.month || {}).forEach(m => yms.add(m));
@@ -8293,7 +8293,7 @@ function buildAnalysisSheets(fromYm, toYm, want){
   D.push(['形式', '各シートは1行目が列名、2行目以降が1行＝1件の縦長データ。値が無い（未入力・計算不可）セルは空欄。フラグ列は 1＝はい／0＝いいえ。']);
   D.push(['重要な注意1', '「推計」と付く売上は、出荷数×販売価格（セール期間中の参加商品はセール価格）で計算した見込み値。実際の売上（Amazon 売上ダッシュボードの実額）は「全体収支_月別」の「総売上（実額）」のみ。両者は一致しない。']);
   D.push(['重要な注意2', '日別の広告データは、全キャンペーン（状態が有効・一時停止などに関係なく、その日に動きのあったもの）をキャンペーン名から「広告商品」「SP/SB」「種類」に分類して合算したもの。キャンペーン単位の行は「広告_キャンペーン別_日別」（取り込んだ日のみ）。月の広告実額（全体収支）とは集計元レポートが違うため一致しないことがある。']);
-  D.push(['重要な注意4', '「購入商品」「商品別_月別」の広告売上は、広告をクリックした人が実際に買った商品（購入ASIN）ごとの売上（Amazon 広告の新しいレポート画面＝2026年6月公開の統合レポート）。宣伝商品＝広告に出した商品そのものが売れた分、Halo＝広告経由で同じブランドの別の商品が売れた分。計算方法が①の広告データと違うため、合計は①と少しずれることがある。Amazon にデータが残っていない古い月は入っていない。広告費は商品ごとには取れないため、「直接」（キャンペーンの費用を宣伝した商品に全額。SB は宣伝商品が決まらないので商品に入れない）と「配賦」（キャンペーン経由の売上の比率で割り振り＝参考値）の2通りで載せている。']);
+  D.push(['重要な注意4', '「購入商品」「商品別_月別」の広告売上は、広告をクリックした人が実際に買った商品（購入ASIN）ごとの売上（Amazon 広告の新しいレポート画面＝2026年6月公開の統合レポート）。宣伝商品＝広告に出した商品そのものが売れた分、Halo＝広告経由で同じブランドの別の商品が売れた分。計算方法が①の広告データと違うため、合計は①と少しずれることがある。Amazon にデータが残っていない古い月は入っていない。広告費は商品ごとには取れないため、「宣伝商品に全額」（キャンペーンの費用を宣伝した商品に全額。SB は宣伝商品が決まらないので商品に入れない）と「売上比で分ける」（キャンペーン経由の売上の比率で割り振り＝参考値）の2通りで載せている。']);
   D.push(['重要な注意3', '全体収支の「粗利益」＝総売上（実額）−原価（出荷数×原価単価）。「実質利益」＝粗利益−広告費（実額）−保管費（実額）−FBA手数料（実額）−販売手数料（実額）。保管費・FBA手数料・販売手数料が未取込の月は0として計算している（「〜入力済み」列で確認できる）。']);
   D.push(['キーの対応', '商品は SKU／ASIN／FNSKU で各シートをつなげる（購入商品・商品別_月別は ASIN）。広告シートの「広告商品」は「広告商品_対応表」で対象ASIN、さらに「商品マスタ」のASINへつながる。セールは「セール期間」「セール価格」を参照。']);
   D.push([]);
@@ -8347,8 +8347,8 @@ function buildAnalysisSheets(fromYm, toYm, want){
     add('商品別_月別', '購入商品データ／集計した日数', '確定（E 月別）か速報（④ 日別の合計）か。速報の月は ④ のある日だけで、出荷数・推計総売上・広告費もその日にそろえて集計している（集計した日数＝その日数）。');
     add('商品別_月別', '広告売上（宣伝商品／Halo／SP・SB・種類別）', 'その商品が買われた広告売上と内訳。SP-KW・SP-商品・SP-オート、SB-動画・SB-商品コレはキャンペーン名から判定。');
     add('商品別_月別', '推計SEO売上／広告売上比率（%）', '推計総売上−広告売上（0未満は0）／広告売上÷推計総売上×100。');
-    add('商品別_月別', '広告費_直接／ROAS_直接／売上ROAS_直接', '直接＝キャンペーンの広告費を宣伝した商品に全額（SP は宣伝商品へ、SB はどの商品にも入れない）。ROAS＝広告売上÷広告費、売上ROAS＝推計総売上÷広告費（倍）。広告費0の商品は空欄。');
-    add('商品別_月別', '広告費_配賦／ROAS_配賦／売上ROAS_配賦', '配賦（参考）＝キャンペーンの広告費を、そのキャンペーン経由で買われた商品の売上比で割り振ったもの。同じキャンペーンの中ではどの商品も ROAS が同じになるため、商品の比較には「売上ROAS_配賦」や広告売上の内訳を使う。');
+    add('商品別_月別', '広告費_全額／ROAS_全額／売上ROAS_全額', '全額（宣伝商品に全額）＝キャンペーンの広告費を宣伝した商品に全額（SP は宣伝商品へ、SB はどの商品にも入れない）。ROAS＝広告売上÷広告費、売上ROAS＝推計総売上÷広告費（倍）。広告費0の商品は空欄。');
+    add('商品別_月別', '広告費_売上比／ROAS_売上比／売上ROAS_売上比', '売上比（売上比で分ける）＝キャンペーンの広告費を、そのキャンペーン経由で買われた商品の売上比で割り振ったもの。同じキャンペーンの中ではどの商品も ROAS が同じになるため、商品の比較には「売上ROAS_売上比」や広告売上の内訳を使う。');
   }
   if (want.ret) add('返品_月別', '（シート全体）', '1行＝1か月×1商品×商品の状態。返品数と、同じ月のその商品の出荷数。返品率＝返品数÷出荷数（Amacheck の画面では「欠陥品・不良品」の返品を使用）。');
   add('商品マスタ', '（シート全体）', '1行＝1商品。販売価格・原価単価・1個あたりの手数料。');
@@ -9664,7 +9664,7 @@ function renderAdTableCore(){
 //  ・広告売上は「実際に買われた商品（購入ASIN）」の行に入る（Amazon の統合レポート。宣伝商品／Halo）
 //  ・広告費は ① のキャンペーン別（adCampData）。商品への割り当ては
 //      直接：キャンペーンの費用を、宣伝した商品（広告対象ASIN）に全額。SB は宣伝商品が無いので割り当てない
-//      配賦（参考）：キャンペーンの費用を、そのキャンペーン経由の広告売上の比率で商品に割り振る
+//      売上比で分ける：キャンペーンの費用を、そのキャンペーン経由の広告売上の比率で商品に割り振る
 //  ・月は E（確定）があれば E、無ければ ④ の日別の合計（速報）
 //  ・ADcheck v1.1488「商品-売上データ」表の仕様を移植（検索・売上ROASの絞り込み・並べ替え・CSV・項目調整）
 // =====================================================================
@@ -9763,7 +9763,7 @@ const PS_BLOCKS = [
     { k: 'sroas', label: '売上\nROAS', w: 62, cls: 'adc-sales-l1', t: 'sroas', tip: '推計総売上 ÷ 広告費' },
     { k: 'seo', label: 'SEO売上', w: 86, cls: 'adc-sales-l1', t: 'yen', pct: 'seoP', tip: '推計総売上 − 広告売上（推計。0未満は0）。下の％は SEO売上と広告売上の割合' },
     { k: 'ad', label: '広告売上', w: 86, cls: 'adc-sales-l2', t: 'yen', pct: 'adP', tip: 'この商品が買われた広告売上（SP・SB の合計。宣伝商品＋Halo）' },
-    { k: 'cost', label: '広告費', w: 78, cls: 'adc-sales-l3', t: 'cost', tip: '広告費（直接／配賦の切り替えで変わる）' },
+    { k: 'cost', label: '広告費', w: 78, cls: 'adc-sales-l3', t: 'cost', tip: '広告費（宣伝商品に全額／売上比で分けるの切り替えで変わる）' },
     { k: 'roas', label: 'ROAS', w: 54, cls: 'adc-sales-l4', t: 'roas', tip: '広告売上 ÷ 広告費' }
   ] },
   { g: 'sp', label: 'スポンサープロダクト広告', cls: 'adg-sp', sub: [
@@ -10027,7 +10027,7 @@ function renderPsalesTable(){
   if (sumEl) sumEl.innerHTML = '<b>' + per + '</b>' + srcTag
     + '<span>推計総売上 <b>' + yen(cmp.totalSum) + '</b></span>'
     + (pr.src === 'none' ? '<span>広告売上 <b>—</b>（この期間の購入商品データがありません）</span>' : '<span>広告売上 <b>' + yen(cmp.adTotal) + '</b>（SP ' + yen(cmp.spTotal) + '・SB ' + yen(cmp.sbTotal) + '／うちHalo ' + yen(cmp.haloTotal) + '）</span>')
-    + '<span>広告費 <b>' + yen(cmp.costTotal) + '</b>（' + (psCostMode === 'alloc' ? '配賦' : '直接') + 'で商品に割り当て ' + yen(cmp.costAssigned)
+    + '<span>広告費 <b>' + yen(cmp.costTotal) + '</b>（' + (psCostMode === 'alloc' ? '売上比で分けて' : '宣伝商品に全額で') + '商品に割り当て ' + yen(cmp.costAssigned)
     + (unTot >= 1 ? '／<span class="ps-un" title="' + escapeHtml(unTip) + '">割り当てなし ' + yen(unTot) + '</span>' : '') + '）'
     + (cmp.fallbackDays ? '<span class="ps-un" title="この ' + cmp.fallbackDays + '日は①のキャンペーン別の数字が保存されていないため、①の種類別（KW・商品・オート・動画・商品コレ）の合計で割り当てています。耐火バッグ以外のキャンペーンの費用も含みます">※' + cmp.fallbackDays + '日は種類別の合計</span>' : '') + '</span>'
     + '<span class="ps-cnt">' + rows.length + '件</span>';
@@ -10067,7 +10067,7 @@ function renderPsalesTable(){
     if (vals.length >= 2 && new Set(vals.map(v => Math.round(v))).size === 1) psCommon[c.k] = vals[0];
   });
   Object.keys(psCommon).forEach(k => {
-    const v = psCommon[k], mark = '<span class="ps-common-h" style="color:' + psRoasColor(v) + '" title="配賦では、同じキャンペーンの中はどの商品も同じ ROAS になります（売上の比率で広告費を割るため）。商品どうしの比較には使えません"><small>共通</small>' + Math.round(v).toLocaleString() + '%</span>';
+    const v = psCommon[k], mark = '<span class="ps-common-h" style="color:' + psRoasColor(v) + '" title="「売上比で分ける」では、同じキャンペーンの中はどの商品も同じ ROAS になります（売上の比率で広告費を割るため）。商品どうしの比較には使えません"><small>共通</small>' + Math.round(v).toLocaleString() + '%</span>';
     h3 = h3.replace(new RegExp('(data-k="' + k + '"[^>]*>)([^<]*)(</th>)'), '$1$2' + mark + '$3');
   });
   const cell = (r, c, isFirstOfGroup, isFirstOfBlock) => {
@@ -10171,7 +10171,7 @@ function initPsalesView(){
   on('ps-search', 'input', e => { psSearch = e.target.value; renderPsalesTable(); });
   on('ps-csv', 'click', psExportCsv);
   on('ps-colbtn', 'click', () => { psColPanel = !psColPanel; psRenderColPanel(); });
-  // v3.48：「直接／配賦」の説明
+  // v3.48：「宣伝商品に全額／売上比で分ける」の説明
   const hm = document.getElementById('ps-cost-help-modal');
   on('ps-cost-help', 'click', () => { if (hm) hm.hidden = false; });
   on('close-ps-cost-help', 'click', () => { if (hm) hm.hidden = true; });
@@ -11464,8 +11464,8 @@ function pmRenderInfo(fresh){
     h += seg('pm-fy', [['jan', '1月始まり'], ['may', '5月始まり'], ['2y', '2年横並び']], pm.view2y ? '2y' : pm.fy);
   }
   h += '<select class="graph-select" id="pm-cat" style="font-weight:700;">' + PM_CAT_ORDER.map(k => '<option value="' + k + '"' + (k === pm.cat ? ' selected' : '') + '>' + PM_CATS[k].label + '</option>').join('') + '</select>';
-  h += '<span class="pm-cm" title="広告費の割り当て方（商品-売上データの 直接／配賦 と同じ）">広告費 ' + seg('pm-cost', [['direct', '直接'], ['alloc', '配賦（参考）']], pm.costMode)
-    + '<button type="button" class="ps-help-badge" id="pm-cost-help" title="「直接」と「配賦（参考）」の説明を見る">！</button></span>';   // v3.70：商品-売上データと同じ説明
+  h += '<span class="pm-cm" title="広告費の割り当て方（商品-売上データの 宣伝商品に全額／売上比で分ける と同じ）">広告費 ' + seg('pm-cost', [['direct', '宣伝商品に全額'], ['alloc', '売上比で分ける']], pm.costMode)
+    + '<button type="button" class="ps-help-badge" id="pm-cost-help" title="「宣伝商品に全額」と「売上比で分ける」の説明を見る">！</button></span>';   // v3.70：商品-売上データと同じ説明
   if (chart.keys) h += '<button class="graph-chip' + (pm.showSale ? ' on' : '') + '" id="pm-sale"><span class="dot"></span>セール期間を重ねる</button>';
   h += '</div>';
   // 系列のON/OFF
@@ -11488,7 +11488,7 @@ function pmRenderInfo(fresh){
     try { h += '<div class="pm-chart" id="pm-chart">' + graphSvg(chart, svgCat) + '<div class="graph-tip" id="pm-tip"></div></div>'; } finally { graphShowSale = sv; }
   }
   h += '<div class="graph-foot-note">※推計総売上＝出荷数×販売価格（セール中はセール価格）' + (pm.cat === 'sales' ? '（線）。棒＝SEO売上（下）＋広告売上（上）' : '') + '。広告の数字（広告売上・広告費・ROAS・個数）は、④購入商品データ（日別）か E（月別）がある期間だけ出ます（無い期間は「—」）。'
-    + (daily ? '' : '月別で E がまだ無い月は ④ の日別の合計（速報）で、④ のある日だけで集計します（グラフの白抜きの点・表の月の横の「速報」）。') + '広告費は「' + (pm.costMode === 'alloc' ? '配賦：キャンペーンの広告費を、そのキャンペーンで売れた売上の比率で各商品に割り当て（参考）' : '直接：SP は宣伝した商品に全額。SB は割り当てない') + '」。</div>';
+    + (daily ? '' : '月別で E がまだ無い月は ④ の日別の合計（速報）で、④ のある日だけで集計します（グラフの白抜きの点・表の月の横の「速報」）。') + '広告費は「' + (pm.costMode === 'alloc' ? '売上比で分ける：キャンペーンの広告費を、そのキャンペーンで売れた売上の比率で各商品に割り当て（参考）' : '宣伝商品に全額：SP は宣伝した商品に全額。SB は割り当てない') + '」。</div>';
   // 表（新しい順）
   if (rows.length) {
     const items = model.vis;
@@ -12015,7 +12015,7 @@ function kwwMemoOpen(k){
 // ---------------- 注視分-月別推移 ----------------
 // v4.03：ADcheck v1.1496「注視分-月別推移」を Amazon 向けに作り直し
 //   注視分-KW一覧＝KWの細かい推移、ここ＝その修正が商品全体（売上・売上ROAS など）にどう出たか を直近4か月の月別で見る
-//   ・商品全体（初期）：注視KWのある商品ごとに「商品全体」ブロック（商品-売上データと同じ計算。広告費は全-比較と同じ直接／配賦）
+//   ・商品全体（初期）：注視KWのある商品ごとに「商品全体」ブロック（商品-売上データと同じ計算。広告費は全-比較と同じ宣伝商品に全額／売上比で分ける）
 //   ・商品を選ぶ：商品全体 → KW全体（その商品が入っているキャンペーンの③の合計）→ 注視KWごと
 //   ・期間：前月まで（満了）＝データの最新日が月末でなければその月を外す／当月込。/1日＝暦日（最新日の月は経過日、速報の月は④のある日数）
 let kwmmPeriod = null, _kwmmCharts = [], _kwmmObs = null, _kwmmPend = {};
@@ -12170,7 +12170,7 @@ function renderKwWTrendView(){
     + camps.map(o => '<option value="' + escapeHtml(o.name) + '"' + (o.name === kwmmCamp ? ' selected' : '') + '>' + escapeHtml(o.name) + '（注視KW ' + o.keys.length + '）</option>').join('') + '</select></div>'
     + '<div class="kwa-grp"><span class="kwa-lbl">期間</span>' + kwSegHtml('kwmm-per', [['done', '前月まで（満了）'], ['cur', '当月込']], kwmmPer(latest)) + '</div>'
     + '<span class="kwa-note">' + (partial ? (kwmmPer(latest) === 'done' ? '途中の' + curYmL + '（' + kwMd(latest) + 'まで）は除外' : curYmL + 'は' + kwMd(latest) + 'までの途中経過') : '') + '</span>'
-    + '<span class="kwa-flex"></span><span class="kwa-note">商品の広告費は ' + (_cmpCostMode === 'alloc' ? '配賦（参考）' : '直接') + '（全-比較の切り替えと同じ）</span></div>';
+    + '<span class="kwa-flex"></span><span class="kwa-note">商品の広告費は ' + (_cmpCostMode === 'alloc' ? '売上比で分ける' : '宣伝商品に全額') + '（全-比較の切り替えと同じ）</span></div>';
   h += '<div class="kwmm-scroll" id="kwmm-scroll">';
   const shown = kwmmCamp === '__ALL__' ? camps : camps.filter(o => o.name === kwmmCamp);
   const wordList = keys => keys.map(k => { const e = ix.by.get(k); return '<div class="kwmm-kwl kwa-row" data-key="' + escapeHtml(k) + '" title="押すと、このKWの日別の推移">' + escapeHtml(e ? e.target : k.split('|')[3]) + '<span>' + escapeHtml(e ? e.match : '') + '</span></div>'; }).join('');
@@ -12394,8 +12394,8 @@ function setCmpCostMode(m){ _cmpCostMode = m; _cmpCache = {}; renderYoy(); }
 function _renderCmpCostUI(){
   const w = document.getElementById('cmpCostWrap'); if (!w) return;
   const b = (v, l) => '<button type="button" onclick="setCmpCostMode(\'' + v + '\')" class="' + (_cmpCostMode === v ? 'on' : '') + '">' + l + '</button>';
-  w.innerHTML = '<span class="cmp-cm-l">広告費</span><span class="cmp-cm-seg">' + b('direct', '直接') + b('alloc', '配賦（参考）') + '</span>'
-    + '<button type="button" class="ps-help-badge" onclick="document.getElementById(\'ps-cost-help-modal\').hidden=false" title="「直接」と「配賦（参考）」の説明を見る">！</button>';
+  w.innerHTML = '<span class="cmp-cm-l">広告費</span><span class="cmp-cm-seg">' + b('direct', '宣伝商品に全額') + b('alloc', '売上比で分ける') + '</span>'
+    + '<button type="button" class="ps-help-badge" onclick="document.getElementById(\'ps-cost-help-modal\').hidden=false" title="「宣伝商品に全額」と「売上比で分ける」の説明を見る">！</button>';
 }
 // v3.85：全-比較のタイル・絞込ボタンの説明を、乗せたらすぐ出す（title だとブラウザの待ち時間がある）
 function initCmpTip(){
