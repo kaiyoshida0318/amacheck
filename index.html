@@ -2371,7 +2371,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.14</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.15</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -3211,7 +3211,7 @@
       <section class="adg-sec"><h4 class="adg-h"><span class="adg-num">2</span><span class="adg-htext">2つの方法</span></h4>
         <div class="psh-cards">
           <div class="psh-card psh-direct">
-            <div class="psh-ct"><span class="psh-tag" style="background:#7c3aed;">宣伝商品に全額</span>広告を出した商品に付ける（最初の表示）</div>
+            <div class="psh-ct"><span class="psh-tag" style="background:#7c3aed;">宣伝商品に全額</span>広告を出した商品に付ける</div>
             <p>キャンペーンの広告費を、そのキャンペーンで<b>宣伝している商品（広告対象ASIN）</b>に全額付けます。</p>
             <ul>
               <li><span class="psh-sp">SP</span> 宣伝しているのは <b>SMLセット</b> だけ → SP の広告費は<b>全額 SMLセットの行</b>に入ります。</li>
@@ -3221,7 +3221,7 @@
             <div class="psh-warn">⚠️ SMLセットの広告から<b>他の商品が売れた分（Halo）</b>は、他の商品の行に入ります。なので SMLセットの ROAS は低めに見え、他の商品は広告費が0（売上ROAS・ROAS が「—」）になります。</div>
           </div>
           <div class="psh-card psh-alloc">
-            <div class="psh-ct"><span class="psh-tag" style="background:#0f766e;">売上比で分ける</span>売れた割合で割り振る</div>
+            <div class="psh-ct"><span class="psh-tag" style="background:#0f766e;">売上比で分ける</span>売れた割合で割り振る（最初の表示）</div>
             <p>キャンペーンの広告費を、<b>そのキャンペーン経由で買われた商品の売上の比率</b>で各商品に割り振ります。SB の広告費も商品に入ります。</p>
             <div class="psh-ex">
               <div class="psh-ex-t">例：SP-KW キャンペーン　広告費 <b>¥100,000</b></div>
@@ -9791,7 +9791,7 @@ function purchLatestYm(){
 }
 
 // ---------- 状態 ----------
-let psMonth = null, psDay = '', psSearch = '', psFilter = null, psSortKey = null, psSortDir = 'desc', psCostMode = 'direct', psColPanel = false;
+let psMonth = null, psDay = '', psSearch = '', psFilter = null, psSortKey = null, psSortDir = 'desc', psCostMode = 'alloc', psColPanel = false;
 let psHidden = (() => { try { return new Set(JSON.parse(localStorage.getItem('amacheck_ps_hidden') || '[]')); } catch (e) { return new Set(); } })();
 // v3.53：グループ（全体／SP／SB）ごとの隠す・表示。隠したグループは細い縦の帯になり、残りの列の文字が大きくなる
 let psGrpHidden = (() => { try { return new Set(JSON.parse(localStorage.getItem('amacheck_ps_grp') || '[]')); } catch (e) { return new Set(); } })();
@@ -11332,7 +11332,7 @@ function openProductModal(fnsku, tab){
   pm.fnsku = fnsku;
   if (tab === 'kw') return openPmKw(fnsku);
   if (tab === 'edit') { openEditModal(fnsku); pmFillEditTabs(); return; }
-  if (!pm.costMode) pm.costMode = psCostMode || 'direct';
+  if (!pm.costMode) pm.costMode = psCostMode || 'alloc';
   if (!pm.hidden) pm.hidden = pmDefaultHidden(pm.cat);
   document.getElementById('pm-modal').hidden = false;
   document.documentElement.style.overflow = 'hidden'; document.body.style.overflow = 'hidden';
