@@ -2365,10 +2365,10 @@
   .header-right { display: flex; align-items: center; gap: 8px; row-gap: 6px; flex-wrap: wrap; margin-left: auto; }
   .header-right .hg { display: flex; align-items: center; gap: 8px; }   /* まとまりの中は折り返さない */
   .header-right .hsep { width: 1px; height: 22px; background: rgba(0,0,0,0.14); margin: 0 6px; }   /* まとまりの間（29px）＞ まとまりの中（8px） */
-  .hbtn-o, .hbtn-ic, .hbtn-main, .hbtn-alert { font-family: inherit; font-size: 14px; line-height: 1.2; padding: 8px 14px; border-radius: 7px; white-space: nowrap; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
-  .hbtn-o { background: #fff; border: 1px solid rgba(0,0,0,0.16); color: #4b5563; font-weight: 700; }   /* v4.48：太さは全-比較のボタンと同じ 700 */   /* ときどき使う */
+  .hbtn-o, .hbtn-ic, .hbtn-main, .hbtn-alert { font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", Meiryo, sans-serif; font-weight: 500 !important; font-size: 13px; line-height: 1.2; padding: 8px 13px; border-radius: 7px; white-space: nowrap; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+  .hbtn-o { background: #fff; border: 1px solid rgba(0,0,0,0.16); color: #374151; }   /* v4.52：フォントと太さはタブ（全-推移など）と同じ Noto Sans JP・500 */   /* ときどき使う */
   .hbtn-o:hover { background: #f3f2ef; color: #1f2937; border-color: rgba(0,0,0,0.26); }
-  .hbtn-ic { background: #fff; border: 1px solid rgba(0,0,0,0.09); color: #8a8f98; font-weight: 700; }   /* 表示・データ（いちばん控えめ） */
+  .hbtn-ic { background: #fff; border: 1px solid rgba(0,0,0,0.09); color: #8a8f98; }   /* 表示・データ（いちばん控えめ） */
   .hbtn-ic:hover { background: #f3f2ef; color: #4b5563; }
   .hbtn-main { background: var(--logo-color); border: 1px solid var(--logo-color); color: #fff; font-weight: 700; }   /* 主役：1つだけ。ロゴと同じ橙（警告の赤と色で見分けられる） */
   .hbtn-main:hover { background: #b4440b; border-color: #b4440b; }
@@ -2376,8 +2376,8 @@
   .hbtn-alert:hover { background: #8e1515; border-color: #8e1515; }
   .hbtn-alert[hidden] { display: none; }
   .header-right .hzoom { opacity: .85; transform: none; padding: 1px; background: #f3f2ef; border-color: rgba(0,0,0,0.09); }
-  .header-right .hzoom .zoom-btn { font-size: 15px; padding: 4px 11px; color: #4b5563; }
-  .header-right .hzoom .zoom-level { font-size: 13px; font-weight: 700; color: #8a8f98; cursor: pointer; }
+  .header-right .hzoom .zoom-btn { font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", Meiryo, sans-serif; font-size: 14px; font-weight: 500; padding: 4px 10px; color: #4b5563; }
+  .header-right .hzoom .zoom-level { font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", Meiryo, sans-serif; font-size: 12px; font-weight: 500; color: #8a8f98; cursor: pointer; }
   .newtab-btn {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 7px 13px; border: 1px solid var(--border); border-radius: 9px;
@@ -2507,7 +2507,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.51</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.52</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
