@@ -2387,7 +2387,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.19</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.20</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -13053,9 +13053,8 @@ function renderYoyTop(){
     const n1 = mt.type === 'amt' ? mt.label : (mt.type === 'roas' ? mt.label : '獲得単価');
     const n2 = mt.type === 'amt' ? '構成比' : '全体への影響';
     const ln = (t, h, extra) => '<div style="font-size:9px;font-weight:700;color:var(--text3);line-height:'+h+'px;height:'+h+'px;white-space:nowrap;'+(extra||'')+'">'+t+'</div>';
-    return '<div class="yt-lab" style="flex:0 0 66px;width:66px;box-sizing:border-box;text-align:center;padding:6px 2px 4px 0;border-right:1px dashed var(--border2);margin-right:2px;position:sticky;left:218px;z-index:3;background:var(--surface);align-self:stretch;box-shadow:5px 0 6px -5px rgba(0,0,0,.18)">'
-      + '<div style="height:58px"></div>'
-      + ln('商品名', 14, 'margin-top:3px')
+    return '<div class="yt-lab" style="flex:0 0 66px;width:66px;box-sizing:border-box;text-align:center;padding:6px 2px 4px 0;border-right:1px dashed var(--border2);margin-right:2px;position:sticky;left:218px;z-index:3;background:var(--surface);align-self:stretch;box-shadow:5px 0 6px -5px rgba(0,0,0,.18);display:flex;flex-direction:column;justify-content:center;align-items:center">'   // v4.20：見出しは枠の上下の真ん中に
+      + ln((!_yoyFocusCode && _CMP_AD_KEYS.indexOf(mt.k) > -1) ? 'キャンペーン名' : (_cmpGroupMode === 'group' && !_yoyFocusCode ? 'グループ／商品' : '商品名'), 14)   // v4.20
       + ln(n1, 15) + ln(n2, 15, 'color:'+mt.col)
       + (mt.type === 'roas' ? ln(_YOY_SP_LABEL[mt.den] || '広告費', 14) : '')   // ★v1.1426★
       + ((mt.type === 'amt' && hasBelow) ? '<div title="下の月を100%としたときの、この月の金額" style="font-size:9px;font-weight:700;color:var(--text3);line-height:15px;height:15px;white-space:nowrap">伸び率</div>' : '')   // ★v1.1459★
