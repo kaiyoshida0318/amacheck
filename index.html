@@ -1951,6 +1951,16 @@
   .cp-sw-l { font-size: 11.5px; color: var(--text-tertiary); }
   .cp-sw { width: 24px; height: 24px; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); cursor: pointer; padding: 0; }
   .cp-sw.on { box-shadow: 0 0 0 2px var(--black); }
+  /* v4.29：地の色のペア（濃い＋少し淡い）・使っている色の点・文字の色の見本 */
+  .cp-pair { display: inline-flex; flex-direction: column; align-items: center; gap: 2px; padding: 3px 4px 2px; border: 1px solid var(--border); border-radius: 7px; background: #fff; }
+  .cp-pair-s { display: inline-flex; gap: 2px; }
+  .cp-pair-s .cp-sw { width: 22px; height: 22px; }
+  .cp-pair-l { font-size: 10px; color: var(--text-tertiary); line-height: 1; }
+  .cp-sw { position: relative; }
+  .cp-sw.used::after { content: ''; position: absolute; right: 2px; top: 2px; width: 5px; height: 5px; border-radius: 50%; background: #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.35); }
+  .cp-tc { display: inline-flex; align-items: center; gap: 4px; }
+  .cp-tc .cp-sw { width: 20px; height: 20px; }
+  .cp-tpl-restore { font-size: 11.5px; padding: 4px 8px; border: 1px dashed #0f766e; background: #fff; color: #0f766e; border-radius: 7px; cursor: pointer; font-family: inherit; }
   .cp-copy { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; margin-bottom: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; }
   .cp-copy.none { font-size: 12px; color: var(--text-tertiary); display: block; }
   .cp-copy-l { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); }
@@ -2460,7 +2470,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.28</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.29</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -12702,6 +12712,25 @@ const CAMP_TPL_BASE = [
   { name: '3行（見出し＋詳細2行）', base: true, lines: [{ size: 12, bold: true, x: 0, y: 7 }, { size: 8, bold: false, x: 0, y: 27 }, { size: 8, bold: false, x: 0, y: 39 }] }
 ];
 function saveCampTpls(){ return persistKey(STORAGE_CAMPTPL, campTpls); }
+// v4.29：最初からある型も消せる（消した印＝campTpls に { name, hide:true }。同期・バックアップにも入る）
+function campTplList(){
+  const hid = new Set(campTpls.filter(t => t && t.hide).map(t => t.name));
+  return CAMP_TPL_BASE.filter(t => !hid.has(t.name)).concat(campTpls.filter(t => t && !t.hide && Array.isArray(t.lines)));
+}
+function campTplDelete(name){
+  const base = CAMP_TPL_BASE.some(t => t.name === name);
+  campTpls = campTpls.filter(t => !(t && !t.hide && t.name === name));
+  if (base && !campTpls.some(t => t && t.hide && t.name === name)) campTpls.push({ name, hide: true });
+  saveCampTpls();
+}
+// v4.29：地の色は見本だけから選ぶ。系統ごとに「濃い色（標準）」と「少し淡い色」のペア。青＝SP・紫＝SB の最初の色
+const CAMP_BG_PAIRS = [
+  ['青', '#2563eb', '#5b8def'], ['紫', '#7e22ce', '#a35ae0'], ['水色', '#0284c7', '#3ba7dc'], ['緑', '#15803d', '#45a466'],
+  ['青緑', '#0f766e', '#3d9a92'], ['橙', '#c2410c', '#de7445'], ['赤', '#b91c1c', '#d65252'], ['ピンク', '#be185d', '#d9548c'],
+  ['茶', '#854d0e', '#ad7a3f'], ['灰', '#374151', '#6b7280']
+];
+// 文字の色も見本だけ（白・薄い灰・黄・黒）
+const CAMP_TEXT_COLORS = [['白', '#ffffff'], ['薄い灰', '#e5e7eb'], ['黄', '#fde047'], ['黒', '#111827']];
 // 型を当てる：行の数・大きさ・太字・位置は型から、文言と色は今の行（1行目は1行目…）から。足りない行は空・白
 function campTplApply(cfg, tpl){
   const old = cfg.lines || [];
@@ -12734,27 +12763,34 @@ function campPanelRender(){
         + '<div class="cp-copy-pv" id="cp-copy-pv"></div></div>';
     })()
     + (() => {   // v4.26：文字の配置の型
-      const all = CAMP_TPL_BASE.concat(campTpls);
+      const all = campTplList(), nHid = campTpls.filter(t => t && t.hide).length;
       return '<div class="cp-tpl"><span class="cp-copy-l">配置の型</span>' + all.map((t, i) => '<span class="cp-tpl-b"><button type="button" class="cp-tpl-btn" data-i="' + i + '" title="文字の大きさ・太字・位置だけをこの型にする（文言と色は今のまま）">' + escapeHtml(t.name) + '</button>'
-        + (t.base ? '' : '<button type="button" class="cp-tpl-del" data-i="' + (i - CAMP_TPL_BASE.length) + '" title="この型を消す">✕</button>') + '</span>').join('')
+        + '<button type="button" class="cp-tpl-del" data-i="' + i + '" title="この型を消す' + (t.base ? '（最初からある型。「最初の型を戻す」で戻せます）' : '') + '">✕</button></span>').join('')
+        + (all.length ? '' : '<span class="cp-sw-l">型はありません</span>')
+        + (nHid ? '<button type="button" class="cp-tpl-restore" id="cp-tpl-restore" title="消した最初からの型（2行・3行）を戻す">最初の型を戻す</button>' : '')
         + '<span class="cp-tpl-add"><input type="text" id="cp-tpl-name" placeholder="型の名前"><button type="button" class="kwa-bulk gray" id="cp-tpl-save" title="今の行の数・大きさ・太字・位置を型として残す（色と文言は残さない）">今の配置を型に追加</button></span></div>';
     })()
-    + (() => {   // v4.26：地の色（使っている色を横に並べて選べる）
-      const used = []; ['#2563eb', '#7e22ce'].concat(Object.keys(campPanels || {}).map(k => campPanels[k] && campPanels[k].bg)).forEach(v => { v = String(v || '').toLowerCase(); if (/^#[0-9a-f]{6}$/.test(v) && used.indexOf(v) < 0) used.push(v); });
-      return '<div class="cp-bg-row"><label class="cp-bg">地の色 <input type="color" id="cp-bg" value="' + escapeHtml(c.bg) + '"></label><span class="cp-sw-l">使っている色</span>'
-        + used.map(v => '<button type="button" class="cp-sw' + (v === String(c.bg).toLowerCase() ? ' on' : '') + '" data-c="' + v + '" style="background:' + v + '" title="' + v + '"></button>').join('') + '</div>';
+    + (() => {   // v4.29：地の色は見本から（系統ごとに 濃い色＋少し淡い色 のペア）。使っている色には小さな点
+      const cur = String(c.bg || '').toLowerCase();
+      const used = new Set(Object.keys(campPanels || {}).filter(k => k !== _cpWork.name).map(k => String((campPanels[k] || {}).bg || '').toLowerCase()));
+      const inPal = CAMP_BG_PAIRS.some(x => x[1] === cur || x[2] === cur);
+      const sw = (v, nm) => '<button type="button" class="cp-sw' + (v === cur ? ' on' : '') + (used.has(v) ? ' used' : '') + '" data-c="' + v + '" style="background:' + v + '" title="' + nm + (used.has(v) ? '（ほかのパネルで使っている）' : '') + '"></button>';
+      return '<div class="cp-bg-row"><span class="cp-copy-l">地の色</span>'
+        + CAMP_BG_PAIRS.map(x => '<span class="cp-pair" title="' + x[0] + '系">' + '<span class="cp-pair-s">' + sw(x[1], x[0] + '（標準）') + sw(x[2], x[0] + '（少し淡い）') + '</span><span class="cp-pair-l">' + x[0] + '</span></span>').join('')
+        + (inPal ? '' : '<span class="cp-sw-l">今の色 <span class="cp-sw on" style="display:inline-block;vertical-align:middle;background:' + escapeHtml(c.bg) + '"></span> は見本にない色です</span>')
+        + '</div>';
     })();
   c.lines.forEach((l, i) => {
     h += '<div class="cp-line" data-i="' + i + '"><div class="cp-r1"><span class="cp-no">' + (i + 1) + '行目</span><input type="text" class="cp-t" value="' + escapeHtml(l.t) + '" placeholder="文言（例：耐火バッグ KW）">'
       + '<button type="button" class="cp-del" title="この行を消す">✕</button></div>'
       + '<div class="cp-r2"><label>大きさ<input type="number" class="cp-size" min="6" max="30" step="0.5" value="' + (+l.size || 10) + '">px</label>'
-      + '<label>色<input type="color" class="cp-color" value="' + escapeHtml(l.color || '#ffffff') + '"></label>'
+      + '<span class="cp-tc">色' + CAMP_TEXT_COLORS.map(x => '<button type="button" class="cp-sw cp-tsw' + (x[1] === String(l.color || '#ffffff').toLowerCase() ? ' on' : '') + '" data-c="' + x[1] + '" style="background:' + x[1] + '" title="' + x[0] + '"></button>').join('') + '</span>'   // v4.29：文字の色も見本だけ
       + '<label><input type="checkbox" class="cp-bold"' + (l.bold ? ' checked' : '') + '>太字</label></div>'
       + '<div class="cp-r3"><label>横<input type="range" class="cp-x" min="-29" max="29" step="1" value="' + (+l.x || 0) + '"><output>' + (+l.x || 0) + '</output></label>'
       + '<label>縦<input type="range" class="cp-y" min="-4" max="56" step="1" value="' + (+l.y || 0) + '"><output>' + (+l.y || 0) + '</output></label></div></div>';
   });
   h += (n < 4 ? '<button type="button" class="kwa-bulk gray cp-add">＋ 行を足す</button>' : '') + '</div></div>'
-    + '<div class="kww-mm-ft"><button type="button" class="utility cp-reset" style="margin-right:auto;" title="SP／SB と「キャンペーン」の最初の形に戻す">最初の形に戻す</button><button type="button" class="utility cp-cancel">やめる</button><button type="button" class="primary cp-save">保存</button></div></div>';
+    + '<div class="kww-mm-ft">' + (campPanels[_cpWork.name] ? '<button type="button" class="utility cp-clear" style="color:#dc2626;border-color:#fca5a5;" title="このキャンペーンに保存した設定を消して、最初の形（SP 青／SB 紫）に戻す。すぐ保存します">設定を消す</button>' : '') + '<button type="button" class="utility cp-reset" style="margin-right:auto;" title="SP／SB と「キャンペーン」の最初の形に戻す（保存を押すまでは記録しない）">最初の形に戻す</button><button type="button" class="utility cp-cancel">やめる</button><button type="button" class="primary cp-save">保存</button></div></div>';
   bg.innerHTML = h;
   const prev = () => {
     const html = campPanelInner(c);
@@ -12762,15 +12798,15 @@ function campPanelRender(){
     const b2 = document.getElementById('cp-prev-s'); if (b2) b2.innerHTML = '<div class="yt-camp" style="background:' + escapeHtml(c.bg) + '">' + html + '</div>';
   };
   prev();
-  bg.querySelector('#cp-bg').addEventListener('input', e => { c.bg = e.target.value; prev(); bg.querySelectorAll('.cp-sw').forEach(x => x.classList.toggle('on', x.dataset.c === String(c.bg).toLowerCase())); });
-  bg.querySelectorAll('.cp-sw').forEach(b => b.addEventListener('click', () => { c.bg = b.dataset.c; const ip = bg.querySelector('#cp-bg'); if (ip) ip.value = c.bg; prev(); bg.querySelectorAll('.cp-sw').forEach(x => x.classList.toggle('on', x === b)); }));   // v4.26
-  bg.querySelectorAll('.cp-tpl-btn').forEach(b => b.addEventListener('click', () => { const t = CAMP_TPL_BASE.concat(campTpls)[+b.dataset.i]; if (!t) return; campTplApply(c, t); campPanelRender(); }));
-  bg.querySelectorAll('.cp-tpl-del').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.i; const t = campTpls[i]; if (!t) return; campTpls.splice(i, 1); saveCampTpls(); campPanelRender(); toast('型「' + t.name + '」を消しました'); }));
+  bg.querySelectorAll('.cp-bg-row .cp-sw[data-c]').forEach(b => b.addEventListener('click', () => { c.bg = b.dataset.c; campPanelRender(); }));   // v4.29
+  bg.querySelectorAll('.cp-tpl-btn').forEach(b => b.addEventListener('click', () => { const t = campTplList()[+b.dataset.i]; if (!t) return; campTplApply(c, t); campPanelRender(); }));
+  bg.querySelectorAll('.cp-tpl-del').forEach(b => b.addEventListener('click', () => { const t = campTplList()[+b.dataset.i]; if (!t) return; campTplDelete(t.name); campPanelRender(); toast('型「' + t.name + '」を消しました'); }));   // v4.29：最初からある型も消せる
+  { const rs = bg.querySelector('#cp-tpl-restore'); if (rs) rs.addEventListener('click', () => { campTpls = campTpls.filter(t => !(t && t.hide)); saveCampTpls(); campPanelRender(); toast('最初の型を戻しました'); }); }
   { const sv = bg.querySelector('#cp-tpl-save'); if (sv) sv.addEventListener('click', () => {
       const nm = (bg.querySelector('#cp-tpl-name').value || '').trim(); if (!nm) { toast('型の名前を入れてください'); return; }
       if (!c.lines.length) { toast('行が1つもありません'); return; }
       const t = { name: nm, lines: c.lines.map(l => ({ size: +l.size || 10, bold: !!l.bold, x: +l.x || 0, y: +l.y || 0 })) };
-      const j = campTpls.findIndex(x => x.name === nm); if (j > -1) campTpls[j] = t; else campTpls.push(t);
+      const j = campTpls.findIndex(x => x && !x.hide && x.name === nm); if (j > -1) campTpls[j] = t; else campTpls.push(t);
       saveCampTpls(); campPanelRender(); toast('型「' + nm + '」を' + (j > -1 ? '上書きしました' : '追加しました'));
     }); }
   { // v4.24：コピー
@@ -12790,7 +12826,7 @@ function campPanelRender(){
     const bind = (sel, ev, fn) => { const el = row.querySelector(sel); if (el) el.addEventListener(ev, () => { fn(el); prev(); }); };
     bind('.cp-t', 'input', el => { l.t = el.value; });
     bind('.cp-size', 'input', el => { l.size = Math.max(6, Math.min(30, +el.value || 10)); });
-    bind('.cp-color', 'input', el => { l.color = el.value; });
+    row.querySelectorAll('.cp-tsw').forEach(b => b.addEventListener('click', () => { l.color = b.dataset.c; row.querySelectorAll('.cp-tsw').forEach(x => x.classList.toggle('on', x === b)); prev(); }));   // v4.29
     bind('.cp-bold', 'change', el => { l.bold = el.checked; });
     bind('.cp-x', 'input', el => { l.x = +el.value; el.nextElementSibling.textContent = el.value; });
     bind('.cp-y', 'input', el => { l.y = +el.value; el.nextElementSibling.textContent = el.value; });
@@ -12799,6 +12835,10 @@ function campPanelRender(){
   const add = bg.querySelector('.cp-add'); if (add) add.addEventListener('click', () => { c.lines.push({ t: '', size: 9, color: '#ffffff', bold: false, x: 0, y: 46 }); campPanelRender(); });
   bg.querySelector('.cp-reset').addEventListener('click', () => { _cpWork.cfg = campPanelDefault(_cpWork.type); campPanelRender(); });
   bg.querySelector('.cp-cancel').addEventListener('click', () => { bg.hidden = true; });
+  { const cl = bg.querySelector('.cp-clear'); if (cl) cl.addEventListener('click', () => {   // v4.29：保存した設定を消す
+      if (!confirm('「' + _cpWork.name + '」のパネルの設定を消して、最初の形に戻しますか？')) return;
+      delete campPanels[_cpWork.name]; saveCampPanels(); bg.hidden = true; try { renderYoy(); } catch (e) {} toast('パネルの設定を消しました');
+    }); }
   bg.querySelector('.cp-save').addEventListener('click', () => {
     const d = campPanelDefault(_cpWork.type);
     if (JSON.stringify(c) === JSON.stringify(d)) delete campPanels[_cpWork.name]; else campPanels[_cpWork.name] = c;
