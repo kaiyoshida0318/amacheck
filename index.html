@@ -2492,7 +2492,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.44</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.45</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -9893,7 +9893,7 @@ function renderAdTableCore(){
     const spS = s.sp.kw + s.sp.shohin + s.sp.auto, sbS = s.sb.douga + s.sb.shokore, adS = spS + sbS;
     const spC = c.sp.kw + c.sp.shohin + c.sp.auto, sbC = c.sb.douga + c.sb.shokore, adC = spC + sbC;
     const has = adRowHasData(r.m), total = r.total || 0;
-    if (total > 0) { pushVal('total', total); pushVal('seo', total - adS); }
+    if (total > 0) { pushVal('total', total); pushVal('seo', total - adS); if (has && adC > 0) pushVal('sR', total / adC); }
     if (has) {
       pushVal('adS', adS); pushVal('adC', adC); if (adC > 0) pushVal('adR', adS / adC);
       pushVal('spS', spS); pushVal('spC', spC); if (spC > 0) pushVal('spR', spS / spC);
@@ -9984,11 +9984,7 @@ function renderAdTableCore(){
       + '<td class="' + dayCls + '"' + (pctOn ? ' rowspan="2"' : '') + dayAttr + dayTitle + dayClick + '>' + r.label + clBadges + '</td>'
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
       + tcell(total, 'adc-sales adc-gstart', 'total')
-      + (() => {   // v4.43：売上ROAS＝推計総売上÷広告費。v4.44：色は商品-売上データの売上ROAS と同じ（800%以上 緑・500〜800% 茶・200〜500% 橙・200%未満 赤。太字）
-        if (!(total > 0 && has && adCost > 0)) return '<td class="adc-sales ad-roas"></td>';
-        const v = Math.round(total / adCost * 100), col = (PS_SROAS_CATS.find(x => x[0] === psSroasCat(v)) || [])[2];
-        return '<td class="adc-sales ad-roas" style="color:' + col + ';font-weight:700">' + v.toLocaleString() + '%</td>';
-      })()
+      + '<td class="adc-sales ad-roas' + ((total > 0 && has && adCost > 0) ? tierClass('sR', total / adCost) : '') + '">' + ((total > 0 && has && adCost > 0) ? fmtRoas(total / adCost) : '') + '</td>'   // v4.43：売上ROAS＝推計総売上÷広告費。色はほかの列と同じ上位・下位の配色（v4.45：v4.44 の商品-売上データの色は取り消し）
       + tcell(seo, 'adc-sales-l1', 'seo')
       + dcell(adSales, 'adc-sales-l2', 'adS')
       + dcell(adCost, 'adc-sales-l3', 'adC')
