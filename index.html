@@ -2470,7 +2470,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.29</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.30</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -12790,7 +12790,7 @@ function campPanelRender(){
       + '<label>縦<input type="range" class="cp-y" min="-4" max="56" step="1" value="' + (+l.y || 0) + '"><output>' + (+l.y || 0) + '</output></label></div></div>';
   });
   h += (n < 4 ? '<button type="button" class="kwa-bulk gray cp-add">＋ 行を足す</button>' : '') + '</div></div>'
-    + '<div class="kww-mm-ft">' + (campPanels[_cpWork.name] ? '<button type="button" class="utility cp-clear" style="color:#dc2626;border-color:#fca5a5;" title="このキャンペーンに保存した設定を消して、最初の形（SP 青／SB 紫）に戻す。すぐ保存します">設定を消す</button>' : '') + '<button type="button" class="utility cp-reset" style="margin-right:auto;" title="SP／SB と「キャンペーン」の最初の形に戻す（保存を押すまでは記録しない）">最初の形に戻す</button><button type="button" class="utility cp-cancel">やめる</button><button type="button" class="primary cp-save">保存</button></div></div>';
+    + '<div class="kww-mm-ft"><button type="button" class="utility cp-reset" style="margin-right:auto;" title="SP／SB と「キャンペーン」の最初の形に戻す（保存を押すまでは記録しない）">最初の形に戻す</button><button type="button" class="utility cp-cancel">やめる</button><button type="button" class="primary cp-save">保存</button></div></div>';
   bg.innerHTML = h;
   const prev = () => {
     const html = campPanelInner(c);
@@ -12835,10 +12835,6 @@ function campPanelRender(){
   const add = bg.querySelector('.cp-add'); if (add) add.addEventListener('click', () => { c.lines.push({ t: '', size: 9, color: '#ffffff', bold: false, x: 0, y: 46 }); campPanelRender(); });
   bg.querySelector('.cp-reset').addEventListener('click', () => { _cpWork.cfg = campPanelDefault(_cpWork.type); campPanelRender(); });
   bg.querySelector('.cp-cancel').addEventListener('click', () => { bg.hidden = true; });
-  { const cl = bg.querySelector('.cp-clear'); if (cl) cl.addEventListener('click', () => {   // v4.29：保存した設定を消す
-      if (!confirm('「' + _cpWork.name + '」のパネルの設定を消して、最初の形に戻しますか？')) return;
-      delete campPanels[_cpWork.name]; saveCampPanels(); bg.hidden = true; try { renderYoy(); } catch (e) {} toast('パネルの設定を消しました');
-    }); }
   bg.querySelector('.cp-save').addEventListener('click', () => {
     const d = campPanelDefault(_cpWork.type);
     if (JSON.stringify(c) === JSON.stringify(d)) delete campPanels[_cpWork.name]; else campPanels[_cpWork.name] = c;
