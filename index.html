@@ -1507,7 +1507,7 @@
     margin-left: calc(50% - (50vw - 12px) / var(--pz, 1));
     margin-right: calc(50% - (50vw - 12px) / var(--pz, 1));
   }
-  #psales-view .toolbar { gap: 10px; margin-bottom: 8px; }
+  #psales-view .toolbar { gap: 10px; margin-bottom: 8px; position: sticky; top: calc(var(--chrome-h, 0px) / var(--pz, 1)); z-index: 30; background: var(--bg); padding-top: 6px; padding-bottom: 6px; }   /* v4.57：ページをスクロールしても、ヘッダー・タブのすぐ下に残る */
   #psales-view .toolbar select { font-size: 13px; padding: 6px 8px; }
   .ps-search { font-size: 13px; padding: 6px 10px; width: 210px; border: 1px solid var(--border-strong); border-radius: 8px; }
   .ps-cm-wrap { display: inline-flex; align-items: center; gap: 6px; font-size: 12.5px; color: var(--text-secondary); font-weight: 600; }
@@ -1578,6 +1578,7 @@
   .ps-src-d { background: #fef3c7; color: #92400e; border: 1px solid #fcd34d; }
   .ps-src-n { background: #f1f5f9; color: #64748b; border: 1px solid #cbd5e1; }
   #psales-view .ps-wrap { overflow: auto; }
+  body:not(.header-hidden) #psales-view .table-wrap { max-height: calc((100vh - var(--chrome-h, 0px)) / var(--pz, 1) - 100px); }   /* v4.57：ヘッダー・タブ・ツールバーの下にちょうど収める（ページ自体はスクロールしない＝表の見出しが隠れない） */
   table.ps-table { table-layout: fixed; }
   table.ps-table td { font-size: var(--ps-fs, 13px); padding: 5px 4px 13px; position: relative; vertical-align: middle; font-variant-numeric: tabular-nums; }
   table.ps-table .ps-v { line-height: 1.2; }
@@ -2513,7 +2514,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.56</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.57</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
