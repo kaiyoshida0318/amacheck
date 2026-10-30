@@ -2470,7 +2470,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.37</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.38</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -3409,6 +3409,43 @@ const STORAGE_CAMPURL = 'amacheck_campurl_v1';   // v3.14：キャンペーン�
 const STORAGE_KWWATCH = 'amacheck_kwwatch_v1';
 const STORAGE_BIDHIST = 'amacheck_bidhist_v1';
 const STORAGE_CAMPPANEL = 'amacheck_camppanel_v1';
+// ============================================
+// v4.38：グラフ配色（共通）＝ Ycheck v1.1006 の共通仕様書（spec_chart_colors.md／chart_colors.js）と同じ値。
+//   決まり：同じ項目はどのグラフでも同じ色／売上＝寒色・費用＝くすんだ暖色・合計＝濃いグレー／内訳は同じ色の濃い・薄い／色の定義はここだけ。
+//   値は必ず 6桁の #rrggbb（塗りで color + '22' のように透明度を足すため）。
+// ============================================
+const CC = {
+  // ---- 売上（寒色） ----
+  tot: '#334155', seo: '#7c3aed', seoDark: '#6d28d9', seoLight: '#c4b5fd', ad: '#3b82f6', adDark: '#1d4ed8', adLight: '#93c5fd', soikomi: '#0d9488',
+  // ---- 費用（暖色を少しくすませる） ----
+  cost: '#b91c1c', costDark: '#7f1d1d', costLight: '#fca5a5', pr: '#ca8a04', cpa: '#ea580c', cpaDark: '#9a3412', cpaLight: '#fdba74',
+  // ---- 比率・単価の線 ----
+  roas: '#10b981', roasDark: '#047857', roasLight: '#6ee7b7', salesRoas: '#0891b2', cvr: '#4f46e5', cvrDark: '#3730a3', cvrLight: '#a5b4fc', prRate: '#be185d', bid: '#7c2d12',
+  // ---- 目盛り・文字 ----
+  axis: '#64748b', grid: 'rgba(0,0,0,0.06)',
+  // ---- Amacheck で足したもの（同じ決まりで。共通仕様書には無い項目） ----
+  gross: '#0d9488', profit: '#115e59',       // 粗利益＝ティール（Amazon に送り込み売上は無いので、その色を利益に）、実質利益＝その濃いほう
+  prDark: '#854d0e',                          // 諸費用：保管費＝pr（黄土＝2つ目の費用）、FBA手数料＝その濃いほう
+  ctr: '#be185d', ctrDark: '#831843', ctrLight: '#f9a8d4',   // CTR＝濃いピンク（料率の色。Amazon に料率は無い）
+  clk: '#475569', clkDark: '#1e293b', clkLight: '#8896ab',   // クリック数＝スレート（量。総売上の濃いグレーと同じ系統だが、同じグラフには出ない）
+  imp: '#94a3b8',                             // 表示回数＝薄いスレート
+  cpc: '#b7795a',                             // CPC＝入札額（こげ茶）の薄いほう（クリック＆CPC・入札額 で一緒に出るため）
+  share: '#65a30d'                            // 上部シェア＝黄緑
+};
+// 2段の内訳（Amazon は SP／SB の下に SP-KW・SP-商品／SB-動画・SB-商品コレ がある）も同じ色の濃淡で：
+//   濃い順 SP-KW → SP → SP-商品 → 合計 → SB-動画 → SB → SB-商品コレ（SP＝濃いほう、SB＝薄いほう）
+function ccMix(a, b, t){ const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const x = p(a), y = p(b); return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
+function ccFam(k){
+  const B = CC[k], D = CC[k + 'Dark'] || ccMix(B, '#000000', 0.3), L = CC[k + 'Light'] || ccMix(B, '#ffffff', 0.5);
+  return { all: B, sp: D, sb: L, spKw: ccMix(D, '#000000', 0.35), spSh: ccMix(D, B, 0.5), sbDg: ccMix(L, B, 0.5), sbSk: ccMix(L, '#ffffff', 0.35) };
+}
+// 文字の読みやすさ：薄い色の上は濃い文字（ccInk）、白地に薄い色の文字は少し濃くする（ccText）
+function ccLum(c){ if (!/^#[0-9a-f]{6}$/i.test(c || '')) return 0; const v = [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16) / 255); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; }
+function ccInk(bg){ return ccLum(bg) > 0.6 ? '#1f2937' : '#fff'; }
+function ccText(c){ return ccLum(c) > 0.55 ? ccMix(c, '#000000', 0.4) : c; }
+// 年を重ねるグラフ：同じ項目の色のまま、古い年ほど薄く（rec＝何年前か）
+function ccYear(c, rec){ return (rec > 0 && /^#[0-9a-f]{6}$/i.test(c)) ? ccMix(c, '#ffffff', Math.min(0.55, 0.22 * rec)) : c; }
+const CCF = { ad: ccFam('ad'), cost: ccFam('cost'), roas: ccFam('roas'), cvr: ccFam('cvr'), ctr: ccFam('ctr'), clk: ccFam('clk') };
 const STORAGE_ANALYZE = 'amacheck_analyze_v1';   // v4.37：確認メモ（分析ボタン。ADcheck v1.1510 の確認メモを移植）
 const STORAGE_CAMPTPL = 'amacheck_camptpl_v1';   // v4.26：パネルの文字の配置の型（自分で足した分）   // v4.23：全-比較のキャンペーンのパネルの文言・色・位置   // v4.12：③を取り込んだ時点の入札額の記録（入札を変えた日を正しく出すため）   // v3.91：注視しているKW（【入札単価対策】）
 const STORAGE_CHGLOG = 'amacheck_changelog_v1';   // v3.73：変更記録（ショップ全体。全-月別データの点線枠）
@@ -7830,9 +7867,9 @@ const KWM_METRICS = Object.keys(KWM_COMBOS).map(k => [k, KWM_COMBOS[k].label]).c
 // 前の版で選んでいた指標（広告売上だけ など）は、それを含む組み合わせへ
 function kwmNormMetric(m){ if (KWM_COMBOS[m] || KWM_SINGLES.some(x => x[0] === m)) return m; return ({ sales: 'all', cost: 'all', clicks: 'c_click', imp: 'c_ctr', orders: 'c_cvr', share: 'c_share' })[m] || 'all'; }
 const KWM_LINE = new Set(['roas', 'cvr', 'ctr', 'cpc', 'bid', 'share']);   // 折れ線（月別は年ごとに重ねる）
-const KWM_COLOR = { sales: '#2563eb', cost: '#dc2626', roas: '#1D9E75', cvr: '#7c3aed', ctr: '#0891b2', cpc: '#ea580c', clicks: '#0ea5e9', imp: '#64748b', orders: '#16a34a', bid: '#9333ea', share: '#d97706' };
+const KWM_COLOR = { sales: CC.ad, cost: CC.cost, roas: CC.roas, cvr: CC.cvr, ctr: CC.ctr, cpc: CC.cpc, clicks: CC.clk, imp: CC.imp, orders: CC.ad, bid: CC.bid, share: CC.share };   // v4.38：グラフ配色（CC）
 const KWM_LABEL = { sales: '広告売上', cost: '広告費', roas: 'ROAS', cvr: 'CVR', ctr: 'CTR', cpc: 'CPC', clicks: 'クリック', imp: '表示', orders: '注文', bid: '入札額', share: '上部シェア' };
-const KWM_BID_COLOR = '#9333ea';
+const KWM_BID_COLOR = CC.bid;   // v4.38
 const kwmUnit = k => (k === 'sales' || k === 'cost' || k === 'cpc' || k === 'bid') ? 'yen' : ((k === 'roas' || k === 'cvr' || k === 'ctr' || k === 'share') ? 'pct' : 'num');
 function kwmFmt(k, v){
   if (v == null || isNaN(v)) return '—';
@@ -8141,8 +8178,8 @@ function renderKwModal(){
   }
   const tickCb = (k) => (v) => kwmUnit(k) === 'yen' ? '¥' + Math.round(v).toLocaleString() : (kwmUnit(k) === 'pct' ? (Math.abs(v) < 10 && v % 1 ? v.toFixed(1) : Math.round(v)) + '%' : (v % 1 ? '' : Math.round(v).toLocaleString()));
   const scales = {
-    x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 13 }, autoSkip: true, maxRotation: 0 } },
-    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 13 }, callback: tickCb(_cmb ? _cmb.bars[0] : M) } }
+    x: { grid: { color: CC.grid }, ticks: { color: CC.axis, font: { size: 13 }, autoSkip: true, maxRotation: 0 } },
+    y: { beginAtZero: true, grid: { color: CC.grid }, ticks: { color: CC.axis, font: { size: 13 }, callback: tickCb(_cmb ? _cmb.bars[0] : M) } }
   };
   if (M === 'roas') scales.y.suggestedMax = 300;   // ROAS は 0〜300% を最低限の目盛りに（3色の境目が見える）
   if (_cmb) { const lk = _cmb.lines[0]; scales.y1 = { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: KWM_COLOR[lk], font: { size: 13 }, callback: tickCb(lk) } }; if (lk === 'roas') scales.y1.suggestedMax = 300; }
@@ -11404,83 +11441,83 @@ function toast(msg, action){
 // ============================================
 const GRAPH_CATEGORIES = {
   sales: { label: '売上・利益', yen: true, items: [
-    { key: 'salesActual', label: '総売上', color: '#2563eb' },
-    { key: 'adSalesActual', label: '広告売上', color: '#ea580c' },
-    { key: 'seoActual', label: 'SEO売上', color: '#9333ea' },
-    { key: 'grossActual', label: '粗利益', color: '#16a34a' },
-    { key: 'profitActual', label: '実質利益', color: '#15803d' },
-    { key: 'adCostActual', label: '広告費', color: '#dc2626' },
+    { key: 'salesActual', label: '総売上', color: CC.tot },
+    { key: 'adSalesActual', label: '広告売上', color: CC.ad },
+    { key: 'seoActual', label: 'SEO売上', color: CC.seo },
+    { key: 'grossActual', label: '粗利益', color: CC.gross },
+    { key: 'profitActual', label: '実質利益', color: CC.profit },
+    { key: 'adCostActual', label: '広告費', color: CC.cost },
   ] },
   salesShare: { label: '売上-割合(SEO/広告)', yen: false, pct: true, fixed100: true, items: [   // v3.21：総売上のうち SEO と 広告 の割合
-    { key: 'seoShare', label: 'SEO売上 割合', color: '#9333ea' },
-    { key: 'adSalesShare', label: '広告売上 割合', color: '#ea580c' },
+    { key: 'seoShare', label: 'SEO売上 割合', color: CC.seo },
+    { key: 'adSalesShare', label: '広告売上 割合', color: CC.ad },
   ] },
   adcost: { label: '広告-実績額', yen: true, items: [
-    { key: 'adcActualTotal',    label: '合計',              color: '#dc2626' },
-    { key: 'adcActualSp',       label: 'SP広告',            color: '#2563eb' },
-    { key: 'adcActualSb',       label: 'SB広告',            color: '#ea580c' },
-    { key: 'adcActualSpKw',     label: 'SP広告-KW',         color: '#0891b2' },
-    { key: 'adcActualSpShohin', label: 'SP広告-商品',       color: '#7c3aed' },
-    { key: 'adcActualSbDouga',  label: 'SB広告-KW-動画',    color: '#d97706' },
-    { key: 'adcActualSbShokore',label: 'SB広告-KW-商品コレ', color: '#db2777' },
+    { key: 'adcActualTotal',    label: '合計',              color: CCF.cost.all },
+    { key: 'adcActualSp',       label: 'SP広告',            color: CCF.cost.sp },
+    { key: 'adcActualSb',       label: 'SB広告',            color: CCF.cost.sb },
+    { key: 'adcActualSpKw',     label: 'SP広告-KW',         color: CCF.cost.spKw },
+    { key: 'adcActualSpShohin', label: 'SP広告-商品',       color: CCF.cost.spSh },
+    { key: 'adcActualSbDouga',  label: 'SB広告-KW-動画',    color: CCF.cost.sbDg },
+    { key: 'adcActualSbShokore',label: 'SB広告-KW-商品コレ', color: CCF.cost.sbSk },
   ] },
   adshareSpSb: { label: '広告-割合(SP/SB)', yen: false, pct: true, fixed100: true, items: [
-    { key: 'adcSpShare', label: 'SP広告 割合', color: '#2563eb' },
-    { key: 'adcSbShare', label: 'SB広告 割合', color: '#ea580c' },
+    { key: 'adcSpShare', label: 'SP広告 割合', color: CCF.cost.sp },
+    { key: 'adcSbShare', label: 'SB広告 割合', color: CCF.cost.sb },
   ] },
   adshareSpKwSh: { label: 'SP広告-割合', yen: false, pct: true, fixed100: true, items: [
-    { key: 'adcSpKwShare',     label: 'SP広告-KW 割合',   color: '#0891b2' },
-    { key: 'adcSpShohinShare', label: 'SP広告-商品 割合', color: '#7c3aed' },
+    { key: 'adcSpKwShare',     label: 'SP広告-KW 割合',   color: CCF.cost.spKw },
+    { key: 'adcSpShohinShare', label: 'SP広告-商品 割合', color: CCF.cost.spSh },
   ] },
   adshareSbDgSk: { label: 'SB広告-割合', yen: false, pct: true, fixed100: true, items: [
-    { key: 'adcSbDougaShare',   label: 'SB広告-KW-動画 割合',   color: '#d97706' },
-    { key: 'adcSbShokoreShare', label: 'SB広告-KW-商品コレ 割合', color: '#db2777' },
+    { key: 'adcSbDougaShare',   label: 'SB広告-KW-動画 割合',   color: CCF.cost.sbDg },
+    { key: 'adcSbShokoreShare', label: 'SB広告-KW-商品コレ 割合', color: CCF.cost.sbSk },
   ] },
   roas: { label: '広告-ROAS', yen: false, dec: true, items: [
-    { key: 'roasActual', label: '広告ROAS(全体)', color: '#dc2626' },
-    { key: 'roasActualSpKw', label: 'SP-KW', color: '#0891b2' },
-    { key: 'roasActualSpShohin', label: 'SP-商品', color: '#7c3aed' },
-    { key: 'roasActualSbDouga', label: 'SB-動画', color: '#d97706' },
-    { key: 'roasActualSbShokore', label: 'SB-商品コレ', color: '#db2777' },
+    { key: 'roasActual', label: '広告ROAS(全体)', color: CCF.roas.all },
+    { key: 'roasActualSpKw', label: 'SP-KW', color: CCF.roas.spKw },
+    { key: 'roasActualSpShohin', label: 'SP-商品', color: CCF.roas.spSh },
+    { key: 'roasActualSbDouga', label: 'SB-動画', color: CCF.roas.sbDg },
+    { key: 'roasActualSbShokore', label: 'SB-商品コレ', color: CCF.roas.sbSk },
   ] },
   cvr: { label: '広告-CVR', yen: false, pct: true, dec2: true, items: [
-    { key: 'cvr',          label: 'CVR(全体)',  color: '#dc2626' },
-    { key: 'cvrSpKw',      label: 'SP-KW',     color: '#0891b2' },
-    { key: 'cvrSpShohin',  label: 'SP-商品',    color: '#7c3aed' },
-    { key: 'cvrSbDouga',   label: 'SB-動画',    color: '#d97706' },
-    { key: 'cvrSbShokore', label: 'SB-商品コレ', color: '#db2777' },
+    { key: 'cvr',          label: 'CVR(全体)',  color: CCF.cvr.all },
+    { key: 'cvrSpKw',      label: 'SP-KW',     color: CCF.cvr.spKw },
+    { key: 'cvrSpShohin',  label: 'SP-商品',    color: CCF.cvr.spSh },
+    { key: 'cvrSbDouga',   label: 'SB-動画',    color: CCF.cvr.sbDg },
+    { key: 'cvrSbShokore', label: 'SB-商品コレ', color: CCF.cvr.sbSk },
   ] },
   // v3.56：CTR（左の軸・%）＋クリック数（右の軸・回）。CTR は ③KWデータ（表示回数がある日だけ）、クリック数は ①広告データ
   ctr: { label: '広告-CTR＆クリック数', yen: false, pct: true, dec2: true, barY1: true, axisL: 'CTR（%）', axisR: 'クリック数（回）', items: [
-    { key: 'ctr',          label: 'CTR(全体)',    color: '#dc2626' },
-    { key: 'ctrSpKw',      label: 'CTR SP-KW',    color: '#0891b2' },
-    { key: 'ctrSpShohin',  label: 'CTR SP-商品',   color: '#7c3aed' },
-    { key: 'ctrSbDouga',   label: 'CTR SB-動画',   color: '#d97706' },
-    { key: 'ctrSbShokore', label: 'CTR SB-商品コレ', color: '#db2777' },
-    { key: 'clk',          label: 'クリック数(全体)',    color: '#16a34a', y2: true, soft: true },   // v3.57：CTR(全体)の赤と離して緑
-    { key: 'clkSpKw',      label: 'クリック数 SP-KW',    color: '#0891b2', y2: true, soft: true },
-    { key: 'clkSpShohin',  label: 'クリック数 SP-商品',   color: '#7c3aed', y2: true, soft: true },
-    { key: 'clkSbDouga',   label: 'クリック数 SB-動画',   color: '#d97706', y2: true, soft: true },
-    { key: 'clkSbShokore', label: 'クリック数 SB-商品コレ', color: '#db2777', y2: true, soft: true },
+    { key: 'ctr',          label: 'CTR(全体)',    color: CCF.ctr.all },
+    { key: 'ctrSpKw',      label: 'CTR SP-KW',    color: CCF.ctr.spKw },
+    { key: 'ctrSpShohin',  label: 'CTR SP-商品',   color: CCF.ctr.spSh },
+    { key: 'ctrSbDouga',   label: 'CTR SB-動画',   color: CCF.ctr.sbDg },
+    { key: 'ctrSbShokore', label: 'CTR SB-商品コレ', color: CCF.ctr.sbSk },
+    { key: 'clk',          label: 'クリック数(全体)',    color: CCF.clk.all, y2: true, soft: true },   // v4.38：クリック数＝スレート（CC.clk）
+    { key: 'clkSpKw',      label: 'クリック数 SP-KW',    color: CCF.clk.spKw, y2: true, soft: true },
+    { key: 'clkSpShohin',  label: 'クリック数 SP-商品',   color: CCF.clk.spSh, y2: true, soft: true },
+    { key: 'clkSbDouga',   label: 'クリック数 SB-動画',   color: CCF.clk.sbDg, y2: true, soft: true },
+    { key: 'clkSbShokore', label: 'クリック数 SB-商品コレ', color: CCF.clk.sbSk, y2: true, soft: true },
   ] },
   // v3.56：広告経由で売れた個数（④購入商品データの注文点数。月別は E を優先、④が無い日は ① の注文数で代用）
   units: { label: '広告-個数', yen: false, items: [
-    { key: 'unAll',       label: '合計',          color: '#dc2626' },
-    { key: 'unSp',        label: 'SP広告',        color: '#2563eb' },
-    { key: 'unSb',        label: 'SB広告',        color: '#ea580c' },
-    { key: 'unSpKw',      label: 'SP広告-KW',     color: '#0891b2' },
-    { key: 'unSpShohin',  label: 'SP広告-商品',    color: '#7c3aed' },
-    { key: 'unSbDouga',   label: 'SB広告-KW-動画',  color: '#d97706' },
-    { key: 'unSbShokore', label: 'SB広告-KW-商品コレ', color: '#db2777' },
+    { key: 'unAll',       label: '合計',          color: CCF.ad.all },
+    { key: 'unSp',        label: 'SP広告',        color: CCF.ad.sp },
+    { key: 'unSb',        label: 'SB広告',        color: CCF.ad.sb },
+    { key: 'unSpKw',      label: 'SP広告-KW',     color: CCF.ad.spKw },
+    { key: 'unSpShohin',  label: 'SP広告-商品',    color: CCF.ad.spSh },
+    { key: 'unSbDouga',   label: 'SB広告-KW-動画',  color: CCF.ad.sbDg },
+    { key: 'unSbShokore', label: 'SB広告-KW-商品コレ', color: CCF.ad.sbSk },
   ] },
   fees: { label: '諸費用', yen: true, items: [
-    { key: 'storage', label: '保管費', color: '#0891b2' },
-    { key: 'fbaFee', label: 'FBA手数料(送料)', color: '#a16207' },
+    { key: 'storage', label: '保管費', color: CC.pr },
+    { key: 'fbaFee', label: 'FBA手数料(送料)', color: CC.prDark },
   ] },
   shipment: { label: '出荷数', yen: false, items: [
-    { key: 'totalQty', label: '総出荷数', color: '#2563eb' },
-    { key: 'seoQty', label: 'SEO出荷数', color: '#9333ea' },
-    { key: 'adQty', label: '広告出荷数', color: '#ea580c' },
+    { key: 'totalQty', label: '総出荷数', color: CC.tot },
+    { key: 'seoQty', label: 'SEO出荷数', color: CC.seo },
+    { key: 'adQty', label: '広告出荷数', color: CC.ad },
   ] },
 };
 // 指定色を少しだけ白寄りに（ボタンの薄め表示用）
@@ -11535,10 +11572,10 @@ const pm = { fnsku: null, grain: 'daily', month: null, preset: '30', endYm: null
 const PM_CAT_ORDER = ['sales', 'salesShare', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'units', 'adBreak', 'shipment'];   // v4.18：平均単価はなくした（推計総売上÷出荷数＝登録した売価に戻るだけのため）
 const PM_CATS = {
   sales: { label: '売上・利益', yen: true, items: [
-    { key: 'salesActual', label: '推計総売上', color: '#2563eb' },
-    { key: 'adSalesActual', label: '広告売上', color: '#ea580c' },
-    { key: 'seoActual', label: 'SEO売上', color: '#9333ea' },
-    { key: 'adCostActual', label: '広告費', color: '#dc2626' },
+    { key: 'salesActual', label: '推計総売上', color: CC.tot },
+    { key: 'adSalesActual', label: '広告売上', color: CC.ad },
+    { key: 'seoActual', label: 'SEO売上', color: CC.seo },
+    { key: 'adCostActual', label: '広告費', color: CC.cost },
   ] },
   salesShare: GRAPH_CATEGORIES.salesShare,
   adcost: { label: '広告-実績額', yen: true, bar: true, items: GRAPH_CATEGORIES.adcost.items },
@@ -11546,25 +11583,25 @@ const PM_CATS = {
   adshareSpKwSh: GRAPH_CATEGORIES.adshareSpKwSh,
   adshareSbDgSk: GRAPH_CATEGORIES.adshareSbDgSk,
   roas: { label: '広告-ROAS', yen: false, pct: true, items: [
-    { key: 'roasAll', label: '広告ROAS(全体)', color: '#dc2626' },
-    { key: 'roasSp', label: 'SP広告', color: '#2563eb' },
-    { key: 'roasSb', label: 'SB広告', color: '#ea580c' },
-    { key: 'roasSpKw', label: 'SP-KW', color: '#0891b2' },
-    { key: 'roasSpShohin', label: 'SP-商品', color: '#7c3aed' },
-    { key: 'roasSbDouga', label: 'SB-動画', color: '#d97706' },
-    { key: 'roasSbShokore', label: 'SB-商品コレ', color: '#db2777' },
-    { key: 'sroas', label: '売上ROAS', color: '#16a34a' },
+    { key: 'roasAll', label: '広告ROAS(全体)', color: CCF.roas.all },
+    { key: 'roasSp', label: 'SP広告', color: CCF.roas.sp },
+    { key: 'roasSb', label: 'SB広告', color: CCF.roas.sb },
+    { key: 'roasSpKw', label: 'SP-KW', color: CCF.roas.spKw },
+    { key: 'roasSpShohin', label: 'SP-商品', color: CCF.roas.spSh },
+    { key: 'roasSbDouga', label: 'SB-動画', color: CCF.roas.sbDg },
+    { key: 'roasSbShokore', label: 'SB-商品コレ', color: CCF.roas.sbSk },
+    { key: 'sroas', label: '売上ROAS', color: CC.salesRoas },
   ] },
   units: { label: '広告-個数', yen: false, bar: true, items: GRAPH_CATEGORIES.units.items },
   adBreak: { label: '広告売上の内訳(宣伝商品/Halo)', yen: true, bar: true, items: [
-    { key: 'prom', label: '宣伝商品として', color: '#ea580c' },
-    { key: 'halo', label: 'Halo（別の商品の広告経由）', color: '#f59e0b' },
-    { key: 'adSalesActual', label: '広告売上(合計)', color: '#dc2626' },
+    { key: 'prom', label: '宣伝商品として', color: CC.adDark },
+    { key: 'halo', label: 'Halo（別の商品の広告経由）', color: CC.adLight },
+    { key: 'adSalesActual', label: '広告売上(合計)', color: CC.ad },
   ] },
   shipment: { label: '出荷数', yen: false, bar: true, items: [
-    { key: 'totalQty', label: '総出荷数', color: '#2563eb' },
-    { key: 'adQty', label: '広告経由の個数', color: '#ea580c' },
-    { key: 'seoQty', label: 'SEO出荷数', color: '#9333ea' },
+    { key: 'totalQty', label: '総出荷数', color: CC.tot },
+    { key: 'adQty', label: '広告経由の個数', color: CC.ad },
+    { key: 'seoQty', label: 'SEO出荷数', color: CC.seo },
   ] },
 };
 function pmDefaultHidden(cat){
@@ -11772,12 +11809,12 @@ function pmRenderInfo(fresh){
   h += '</div>';
   // 系列のON/OFF
   h += '<div class="graph-items pm-items">';
-  cat.items.forEach(it => { const off = pm.hidden.has(it.key); h += '<button class="graph-item-btn' + (off ? ' off' : '') + '" data-k="' + it.key + '" style="' + (off ? '' : 'background:' + (it.soft ? softColor(it.color) : it.color)) + '"><span class="dot"></span>' + it.label + '</button>'; });
+  cat.items.forEach(it => { const off = pm.hidden.has(it.key); h += '<button class="graph-item-btn' + (off ? ' off' : '') + '" data-k="' + it.key + '" style="' + (off ? '' : (b => 'background:' + b + ';color:' + ccInk(b))(it.soft ? softColor(it.color) : it.color)) + '"><span class="dot"></span>' + it.label + '</button>'; });
   h += '</div>';
   if (chart.years) {
     h += '<div class="graph-years pm-years"><span class="graph-lbl">' + (pm.fy === 'may' ? '年度' : '年') + '</span>';
     chart.years.forEach((yr, yi) => {
-      const rec = chart.years.length - 1 - yi, col = chart.multi ? '#4b5563' : GRAPH_FY_PALETTE[yi % GRAPH_FY_PALETTE.length], dash = GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length];
+      const rec = chart.years.length - 1 - yi, col = chart.multi ? '#4b5563' : ((chart.datasets.find(d => d.year === yr) || {}).color || CC.axis), dash = GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length];
       h += '<button class="graph-yr-btn' + (pm.hiddenFY.has(yr) ? ' off' : '') + '" data-y="' + yr + '"><svg width="34" height="10"><line x1="1" y1="5" x2="33" y2="5" stroke="' + col + '" stroke-width="' + (rec === 0 ? 3 : 2) + '"' + (dash.length ? ' stroke-dasharray="' + dash.join(' ') + '"' : '') + '/></svg>' + chart.yrLabel(yr) + '</button>';
     });
     h += '</div>';
@@ -11796,7 +11833,7 @@ function pmRenderInfo(fresh){
     const items = model.vis;
     const fmtOf = it => (it.y2 ? { yen: false } : cat);
     h += '<div class="pm-tbl-title">' + (daily ? '日別' : '月別') + '</div>';
-    h += '<table class="graph-table pm-table"><thead><tr><th>' + (daily ? '日付' : '月') + '</th>' + items.map(it => '<th style="color:' + it.color + '">' + pmEsc(it.label) + '</th>').join('') + '</tr></thead><tbody>';
+    h += '<table class="graph-table pm-table"><thead><tr><th>' + (daily ? '日付' : '月') + '</th>' + items.map(it => '<th style="color:' + ccText(it.color) + '">' + pmEsc(it.label) + '</th>').join('') + '</tr></thead><tbody>';
     rows.slice().reverse().forEach(r => {
       let lead;
       if (daily) {
@@ -12393,11 +12430,11 @@ function kwmmKwVals(rows, ym, latest){
   return { n, cost: T.cost, sales: T.sales, clicks: T.clicks, imp: T.imp, orders: T.orders, roas: T.roas != null ? T.roas * 100 : null, cvr: T.cvr, cpc: T.cpc, ctr: T.ctr, bid };
 }
 const KWMM_KW_ITEMS = [
-  ['広告費', v => v.cost, 'yen', 'cost'], ['広告費/1日', v => kwmmDiv(v.cost, v.n), 'yen', 'cost2', {}],
-  ['売上', v => v.sales, 'yen', 'sales'], ['売上/1日', v => kwmmDiv(v.sales, v.n), 'yen', 'sales', {}],
-  ['ROAS', v => v.roas, 'roas', 'roas', {}], ['CVR', v => v.cvr, 'pct', 'cvr', {}],
-  ['クリック', v => v.clicks, 'num', 'ship'], ['クリック/1日', v => kwmmDiv(v.clicks, v.n), 'num1', 'ship', {}],
-  ['CTR', v => v.ctr, 'pct', 'ctr'], ['CPC', v => v.cpc, 'yen', 'cpc', {}], ['入札額', v => v.bid, 'yen', 'bid']
+  ['広告費', v => v.cost, 'yen', 'cost'], ['広告費/1日', v => kwmmDiv(v.cost, v.n), 'yen', 'cost2', { cc: CC.cost }],
+  ['売上', v => v.sales, 'yen', 'sales'], ['売上/1日', v => kwmmDiv(v.sales, v.n), 'yen', 'sales', { cc: CC.ad }],   // KW の売上＝広告売上
+  ['ROAS', v => v.roas, 'roas', 'roas', { cc: CC.roas }], ['CVR', v => v.cvr, 'pct', 'cvr', { cc: CC.cvr }],
+  ['クリック', v => v.clicks, 'num', 'ship'], ['クリック/1日', v => kwmmDiv(v.clicks, v.n), 'num1', 'ship', { cc: CC.clk }],
+  ['CTR', v => v.ctr, 'pct', 'ctr'], ['CPC', v => v.cpc, 'yen', 'cpc', { cc: CC.cpc }], ['入札額', v => v.bid, 'yen', 'bid']
 ];
 const KWMM_KW_CHARTS = ['広告費/1日', '売上/1日', 'ROAS', 'クリック/1日', 'CPC', 'CVR'];
 // 1ブロック（左の欄＋項目の行＋右のグラフ）
@@ -12408,7 +12445,7 @@ function kwmmBlockHtml(o){
     const [label, , f, cat, ch] = it, col = KWMM_COL[cat];
     h += '<tr' + (i === 0 ? ' class="kwmm-bstart"' : '') + '>';
     if (i === 0) h += '<td class="kwmm-left" rowspan="' + n + '">' + o.left + '</td>';
-    h += '<td class="kwmm-dot">' + (ch && chartSet.has(label) ? '<i style="background:' + col[2] + '"></i>' : '') + '</td>'
+    h += '<td class="kwmm-dot">' + (ch && chartSet.has(label) ? '<i style="background:' + (ch.cc || col[2]) + '"></i>' : '') + '</td>'   // v4.38：グラフと同じ色
       + '<td class="kwmm-item" style="background:' + col[0] + '">' + label + '</td>'
       + o.vals.map(v => '<td class="kwmm-v" style="background:' + col[1] + '">' + (v.none ? '-' : kwmmFmt(f, it[1](v))) + '</td>').join('');
     if (i === 0) {
@@ -12416,7 +12453,7 @@ function kwmmBlockHtml(o){
       o.charts.forEach(lb => {
         if (!lb) { h += '<div class="kwmm-g empty"></div>'; return; }
         const itm = o.items.find(x => x[0] === lb); if (!itm) { h += '<div class="kwmm-g empty"></div>'; return; }
-        const id = 'kwmm-c' + (++kwmmBlockHtml.n), color = KWMM_COL[itm[3]][2];
+        const id = 'kwmm-c' + (++kwmmBlockHtml.n), color = (itm[4] && itm[4].cc) || KWMM_COL[itm[3]][2];   // v4.38：グラフの色は CC
         _kwmmPend[id] = { labels: o.labels, data: o.vals.map(v => v.none ? null : itm[1](v)), color, fmt: itm[2] };
         const pc = itm[4] && itm[4].pct ? o.vals.map(v => { const x = v.none ? null : itm[4].pct(v); return '<span>' + (x == null ? '' : Math.round(x * 100) + '%') + '</span>'; }).join('') : '';
         h += '<div class="kwmm-g"><div class="kwmm-gt">' + lb + '</div><div class="kwmm-gc"><canvas id="' + id + '" width="280" height="128"></canvas></div>'
@@ -12442,12 +12479,12 @@ function kwmmTheadHtml(months, srcs){
 // 項目：[見出し, 値の関数, 書式, 色の種類, グラフ（{ pct: 割合の関数, pc: 割合の色 }）]
 const KWMM_GRP_ITEMS = [
   ['売上', v => v.total, 'yen', 'sales'], ['SEO売上', v => v.seo, 'yen', 'sales'], ['広告売上', v => v.ad, 'yen', 'sales'],
-  ['売上/1日', v => kwmmDiv(v.total, v.n), 'yen', 'sales', {}], ['SEO売上/1日', v => kwmmDiv(v.seo, v.n), 'yen', 'sales', { pct: v => kwmmDiv(v.seo, v.total), pc: '#15803d' }],
-  ['広告売上/1日', v => kwmmDiv(v.ad, v.n), 'yen', 'sales', { pct: v => kwmmDiv(v.ad, v.total), pc: '#15803d' }],
+  ['売上/1日', v => kwmmDiv(v.total, v.n), 'yen', 'sales', { cc: CC.tot }], ['SEO売上/1日', v => kwmmDiv(v.seo, v.n), 'yen', 'sales', { pct: v => kwmmDiv(v.seo, v.total), pc: CC.seo, cc: CC.seo }],
+  ['広告売上/1日', v => kwmmDiv(v.ad, v.n), 'yen', 'sales', { pct: v => kwmmDiv(v.ad, v.total), pc: CC.ad, cc: CC.ad }],
   ['広告費（全キャンペーン）', v => v.cost, 'yen', 'cost'],
-  ['売上ROAS', v => { const x = kwmmDiv(v.total, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', {}],
-  ['ROAS/全体', v => { const x = kwmmDiv(v.ad, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', {}],
-  ['出荷数', v => v.ship, 'num', 'ship'], ['出荷数/1日', v => kwmmDiv(v.ship, v.n), 'num1', 'ship', {}]
+  ['売上ROAS', v => { const x = kwmmDiv(v.total, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', { cc: CC.salesRoas }],
+  ['ROAS/全体', v => { const x = kwmmDiv(v.ad, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', { cc: CC.roas }],
+  ['出荷数', v => v.ship, 'num', 'ship'], ['出荷数/1日', v => kwmmDiv(v.ship, v.n), 'num1', 'ship', { cc: CC.tot }]
 ];
 const KWMM_GRP_CHARTS = ['売上/1日', 'SEO売上/1日', '広告売上/1日', '売上ROAS', 'ROAS/全体', '出荷数/1日'];
 const KWMM_SUBTYPE = { kw: 'KW', shohin: '商品', auto: 'オート', douga: '動画', shokore: '商品コレ' };
@@ -12578,7 +12615,7 @@ function renderKwWTrendView(){
       type: 'line',
       data: { labels: cfg.labels, datasets: [{ data: cfg.data, borderColor: cfg.color, backgroundColor: cfg.color + '22', fill: true, tension: 0.25, pointRadius: 3, pointBackgroundColor: cfg.color, borderWidth: 2, spanGaps: true }] },
       options: { responsive: false, animation: false, plugins: { legend: { display: false }, tooltip: { callbacks: { label: c => ' ' + kwmmFmt(cfg.fmt, c.raw) } } },
-        scales: { x: { grid: { display: false }, ticks: { font: { size: 12 }, color: '#64748b' } }, y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.05)' }, ticks: { font: { size: 11.5 }, color: '#64748b', maxTicksLimit: 4, callback: v => kwmmTick(cfg.fmt, v) } } } }
+        scales: { x: { grid: { display: false }, ticks: { font: { size: 12 }, color: CC.axis } }, y: { beginAtZero: true, grid: { color: CC.grid }, ticks: { font: { size: 11.5 }, color: CC.axis, maxTicksLimit: 4, callback: v => kwmmTick(cfg.fmt, v) } } } }
     }));
   };
   if ('IntersectionObserver' in window) {
@@ -12594,7 +12631,7 @@ window.renderKwWTrendView = renderKwWTrendView;
 //   売上ROAS＝推計総売上÷広告費／ROAS＝広告売上÷広告費／ROAS-SP広告／ROAS-SB広告（①広告データ）
 // ============================================
 let trendMonth = null, _trendChart = null;
-const TREND_COL = { sroas: '#3b82f6', roas: '#10b981', sp: '#f59e0b', sb: '#ef4444' };
+const TREND_COL = { sroas: CC.salesRoas, roas: CC.roas, sp: CC.roasDark, sb: CC.roasLight };   // v4.38：売上ROAS＝シアン、ROAS＝緑、SP／SB＝緑の濃い／薄い
 function trendMonths(){
   return Array.from(new Set(Object.keys(adData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).map(d => d.slice(0, 7)))).sort().reverse();
 }
@@ -12662,8 +12699,8 @@ function renderTrendView(){
   ] }, options: { animation: false, responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
     plugins: { legend: { display: true, position: 'top', labels: { color: '#4b5563', font: { size: 13 }, usePointStyle: true } },
       tooltip: { callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y != null ? c.parsed.y.toFixed(1) + '%' : '—') } } },
-    scales: { x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 12 } } },
-      y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 12 }, callback: v => v + '%' } } } } });
+    scales: { x: { grid: { color: CC.grid }, ticks: { color: CC.axis, font: { size: 12 } } },
+      y: { beginAtZero: true, grid: { color: CC.grid }, ticks: { color: CC.axis, font: { size: 12 }, callback: v => v + '%' } } } } });
   try { requestAnimationFrame(() => requestAnimationFrame(() => { try { if (_trendChart) _trendChart.resize(); } catch (e) {} })); } catch (e) {}
 }
 function trendBind(body){
@@ -15623,7 +15660,7 @@ function graphYearify(labels, dss, soOpt, hiddenOpt){   // v3.66：商品モー�
       parsed.forEach((x, idx) => { if (x.fy === yr) { arr[x.fi] = ds.data[idx]; meta[x.fi] = ds.meta[idx]; } });
       out.push({
         label: multi ? ds.label + ' ' + yrLabel(yr) : yrLabel(yr), seriesLabel: ds.label,
-        color: multi ? ds.color : GRAPH_FY_PALETTE[yi % GRAPH_FY_PALETTE.length],   // 単系列＝年度で色分け／多系列＝系列の色
+        color: multi ? ds.color : ccYear(ds.color, rec),   // v4.38：単系列も項目の色のまま（古い年ほど薄く＋線種）。前は年ごとに別の色だった
         data: arr, meta,
         dash: GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length],   // 古いほど破線
         width: rec === 0 ? 3 : 1.9,                        // 最新を太く
@@ -15680,12 +15717,12 @@ function graphSvg(chart, cat){
   for (let t = 0; t <= nTicks; t++) {
     const v = bot + tickStep * t, y = yOf(v);
     svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="' + (Math.abs(v) < 1e-9 && bot < 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)') + '"/>';
-    svg += '<text x="' + (padL - 10) + '" y="' + (y + 6) + '" text-anchor="end" font-size="17" fill="#888">' + graphFmtAxis(v, cat) + '</text>';
-    if (vis2.length) svg += '<text x="' + (W - padR + 10) + '" y="' + (y + 6) + '" text-anchor="start" font-size="17" fill="#888">' + graphFmtAxis(bot2 + step2 * t, CNT) + '</text>';
+    svg += '<text x="' + (padL - 10) + '" y="' + (y + 6) + '" text-anchor="end" font-size="17" fill="' + CC.axis + '">' + graphFmtAxis(v, cat) + '</text>';
+    if (vis2.length) svg += '<text x="' + (W - padR + 10) + '" y="' + (y + 6) + '" text-anchor="start" font-size="17" fill="' + CC.clk + '">' + graphFmtAxis(bot2 + step2 * t, CNT) + '</text>';   // v4.38：右の目盛り（クリック数）は線と同じ色
   }
   if (vis2.length) {   // 軸の名前（左＝%、右＝回）
-    svg += '<text x="' + (padL - 10) + '" y="' + (padT - 18) + '" text-anchor="end" font-size="15" font-weight="700" fill="#6b7280">' + (cat.axisL || '') + '</text>';
-    svg += '<text x="' + (W - 6) + '" y="' + (padT - 18) + '" text-anchor="end" font-size="15" font-weight="700" fill="#6b7280">' + (cat.axisR || '') + '</text>';
+    svg += '<text x="' + (padL - 10) + '" y="' + (padT - 18) + '" text-anchor="end" font-size="15" font-weight="700" fill="' + CC.axis + '">' + (cat.axisL || '') + '</text>';
+    svg += '<text x="' + (W - 6) + '" y="' + (padT - 18) + '" text-anchor="end" font-size="15" font-weight="700" fill="' + CC.clk + '">' + (cat.axisR || '') + '</text>';
   }
   const maxLab = Math.max(2, Math.floor(plotW / 80));
   const step = Math.max(1, Math.ceil(n / maxLab));
@@ -15845,7 +15882,7 @@ function renderGraphView(){
   graphItemsNow().forEach(it => {
     const off = graphHiddenItems.has(it.key);
     const bg = it.soft ? softColor(it.color) : it.color;
-    h += '<button class="graph-item-btn' + (off ? ' off' : '') + '" data-k="' + it.key + '" style="' + (off ? '' : 'background:' + bg) + '">'
+    h += '<button class="graph-item-btn' + (off ? ' off' : '') + '" data-k="' + it.key + '" style="' + (off ? '' : 'background:' + bg + ';color:' + ccInk(bg)) + '">'   // v4.38：薄い色の上は濃い文字
       + '<span class="dot"></span>' + it.label + '</button>';
   });
   h += '</div>';
@@ -15854,7 +15891,7 @@ function renderGraphView(){
     h += '<div class="graph-years" id="graph-years"><span class="graph-lbl">' + (graphPeriodStart === 'may' ? '年度' : '年') + '</span>';
     chart.years.forEach((yr, yi) => {
       const rec = chart.years.length - 1 - yi;
-      const col = chart.multi ? '#4b5563' : GRAPH_FY_PALETTE[yi % GRAPH_FY_PALETTE.length];
+      const col = chart.multi ? '#4b5563' : ((chart.datasets.find(d => d.year === yr) || {}).color || CC.axis);   // v4.38：線と同じ色
       const dash = GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length];
       h += '<button class="graph-yr-btn' + (graphHiddenFY.has(yr) ? ' off' : '') + '" data-y="' + yr + '">'
         + '<svg width="34" height="10"><line x1="1" y1="5" x2="33" y2="5" stroke="' + col + '" stroke-width="' + (rec === 0 ? 3 : 2) + '"' + (dash.length ? ' stroke-dasharray="' + dash.join(' ') + '"' : '') + '/>' + (cat.barY1 ? '<rect x="12" y="0" width="10" height="10" fill="' + col + '" opacity="' + (rec === 0 ? 0.85 : 0.38) + '"/>' : '') + '</svg>'
@@ -15968,8 +16005,8 @@ function buildGraphTable(model){
   const daily = graphGrain === 'daily';
   const yoy = !daily && graphTableMode === 'yoy';
   const extraCols = (graphCategory === 'adcost') ? [
-    { key: 'adSalesActual', label: '広告売上', color: '#ea580c', fmt: { yen: true } },
-    { key: 'roasActual', label: '広告ROAS(全体)', color: '#dc2626', fmt: { dec: true } }
+    { key: 'adSalesActual', label: '広告売上', color: CC.ad, fmt: { yen: true } },   // v4.38
+    { key: 'roasActual', label: '広告ROAS(全体)', color: CC.roas, fmt: { dec: true } }
   ] : [];
   const sepIdx = extraCols.length - 1;
   const synthBadge = '<span class="gt-badge" title="全体収支が未入力のため、日別データ（出荷×販売価格・広告データ）から集計">日別集計</span>';
@@ -16046,8 +16083,8 @@ function buildGraphTable(model){
   };
   const gtLegend = '<div class="ad-legend" style="margin:0 0 7px;">配色: <span class="lg-hi10">上位10%</span> <span class="lg-hi20">上位20%</span> <span class="lg-mid">中間</span> <span class="lg-lo20">下位20%</span> <span class="lg-lo10">下位10%</span> <span class="lg-mid" style="margin-left:6px;">※広告費は安いほど青</span></div>';
   let h = '<table class="graph-table"><thead><tr><th>' + (daily ? '日付' : '月') + ' <button class="gt-sort" id="gt-sort" title="並び替え（新しい順／古い順）">' + (graphTableSort === 'desc' ? '▼' : '▲') + '</button></th>' + (yoy ? '<th></th>' : '');
-  extraCols.forEach((c, i) => h += '<th style="color:' + c.color + '"' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + c.label + '</th>');
-  items.forEach(it => h += '<th style="color:' + it.color + '">' + it.label + '</th>');   // ヘッダーは系列色（グラフと対応）
+  extraCols.forEach((c, i) => h += '<th style="color:' + ccText(c.color) + '"' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + c.label + '</th>');
+  items.forEach(it => h += '<th style="color:' + ccText(it.color) + '">' + it.label + '</th>');   // ヘッダーは系列色（グラフと対応。v4.38：薄い色は少し濃く）
   h += '</tr></thead><tbody>';
   trs.forEach(t => {
     h += '<tr' + (t.cls ? ' class="' + t.cls.trim() + '"' : '') + '>' + t.lead;
