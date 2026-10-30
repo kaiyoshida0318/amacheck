@@ -1920,6 +1920,19 @@
   .cp-prev-s { margin: 12px auto 0; width: 58px; }
   .cp-prev-l { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
   .cp-form { flex: 1 1 auto; min-width: 0; max-height: 60vh; overflow-y: auto; }
+  .cp-tpl { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 8px 10px; margin-bottom: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; }
+  .cp-tpl-b { display: inline-flex; align-items: center; }
+  .cp-tpl-btn { font-size: 12.5px; font-weight: 700; padding: 5px 10px; border: 1.5px solid #0f766e; background: #f0fdfa; color: #0f766e; border-radius: 7px; cursor: pointer; font-family: inherit; }
+  .cp-tpl-btn:hover { background: #0f766e; color: #fff; }
+  .cp-tpl-b .cp-tpl-btn:not(:last-child) { border-top-right-radius: 0; border-bottom-right-radius: 0; }
+  .cp-tpl-del { font-size: 11px; padding: 5px 6px; border: 1.5px solid #0f766e; border-left: none; background: #fff; color: #dc2626; border-radius: 0 7px 7px 0; cursor: pointer; }
+  .cp-tpl-add { display: inline-flex; align-items: center; gap: 4px; margin-left: auto; }
+  .cp-tpl-add input { width: 110px; font-size: 12.5px; padding: 5px 7px; border: 1px solid var(--border); border-radius: 6px; font-family: inherit; }
+  .cp-bg-row { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; margin-bottom: 8px; }
+  .cp-bg-row .cp-bg { margin-bottom: 0; margin-right: 6px; }
+  .cp-sw-l { font-size: 11.5px; color: var(--text-tertiary); }
+  .cp-sw { width: 24px; height: 24px; border-radius: 6px; border: 2px solid #fff; box-shadow: 0 0 0 1px var(--border); cursor: pointer; padding: 0; }
+  .cp-sw.on { box-shadow: 0 0 0 2px var(--black); }
   .cp-copy { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; padding: 8px 10px; margin-bottom: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; }
   .cp-copy.none { font-size: 12px; color: var(--text-tertiary); display: block; }
   .cp-copy-l { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); }
@@ -2429,7 +2442,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.25</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.27</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -3342,7 +3355,8 @@ const STORAGE_CAT = 'amacheck_categories_v1';
 const STORAGE_CAMPURL = 'amacheck_campurl_v1';   // v3.14：キャンペーン名 → 広告管理画面のURL
 const STORAGE_KWWATCH = 'amacheck_kwwatch_v1';
 const STORAGE_BIDHIST = 'amacheck_bidhist_v1';
-const STORAGE_CAMPPANEL = 'amacheck_camppanel_v1';   // v4.23：全-比較のキャンペーンのパネルの文言・色・位置   // v4.12：③を取り込んだ時点の入札額の記録（入札を変えた日を正しく出すため）   // v3.91：注視しているKW（【入札単価対策】）
+const STORAGE_CAMPPANEL = 'amacheck_camppanel_v1';
+const STORAGE_CAMPTPL = 'amacheck_camptpl_v1';   // v4.26：パネルの文字の配置の型（自分で足した分）   // v4.23：全-比較のキャンペーンのパネルの文言・色・位置   // v4.12：③を取り込んだ時点の入札額の記録（入札を変えた日を正しく出すため）   // v3.91：注視しているKW（【入札単価対策】）
 const STORAGE_CHGLOG = 'amacheck_changelog_v1';   // v3.73：変更記録（ショップ全体。全-月別データの点線枠）
 const STORAGE_PURCH = 'amacheck_purchase_v1';   // v3.41：④／E 購入商品データ（買われた商品別の広告売上）
 const PALETTE = ['#3498db','#27ae60','#e91e63','#f39c12','#7f8c8d','#c0392b','#9b59b6','#16a085','#2980b9','#d35400','#8e44ad','#1abc9c','#e67e22','#34495e'];
@@ -3640,7 +3654,7 @@ const CAMP_URL_OLD = {
 function saveCampUrls(){ return persistKey(STORAGE_CAMPURL, campUrls); }
 function campUrlOf(name){ const u = campUrls && campUrls[String(name || '').trim()]; return (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : ''; }
 
-const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH, STORAGE_CHGLOG, STORAGE_KWWATCH, STORAGE_BIDHIST, STORAGE_CAMPPANEL];
+const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH, STORAGE_CHGLOG, STORAGE_KWWATCH, STORAGE_BIDHIST, STORAGE_CAMPPANEL, STORAGE_CAMPTPL];
 
 // ==== 永続化: IndexedDB（大容量）優先。使えない時は localStorage(圧縮) にフォールバック ====
 function idbOpen(){
@@ -3670,7 +3684,7 @@ function persistKey(key, obj){
   const r = lzSet(key, obj); scheduleSync(); return r;
 }
 function amacheckStateMap(){
-  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData, [STORAGE_CHGLOG]: globalChangeLogs, [STORAGE_KWWATCH]: kwWatch, [STORAGE_BIDHIST]: kwBidHist, [STORAGE_CAMPPANEL]: campPanels };
+  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData, [STORAGE_CHGLOG]: globalChangeLogs, [STORAGE_KWWATCH]: kwWatch, [STORAGE_BIDHIST]: kwBidHist, [STORAGE_CAMPPANEL]: campPanels, [STORAGE_CAMPTPL]: campTpls };
 }
 
 // ================= GitHub クラウド同期 =================
@@ -3794,6 +3808,8 @@ async function bootstrap(){
   kwWatch = await load(STORAGE_KWWATCH, {});   // v3.91
   kwBidHist = await load(STORAGE_BIDHIST, {});   // v4.12
   campPanels = await load(STORAGE_CAMPPANEL, {});   // v4.23
+  campTpls = await load(STORAGE_CAMPTPL, []);   // v4.26
+  if (!Array.isArray(campTpls)) campTpls = [];
   if (!campPanels || typeof campPanels !== 'object' || Array.isArray(campPanels)) campPanels = {};
   if (!kwBidHist || typeof kwBidHist !== 'object' || Array.isArray(kwBidHist)) kwBidHist = {};
   if (!kwWatch || typeof kwWatch !== 'object' || Array.isArray(kwWatch)) kwWatch = {};
@@ -12559,6 +12575,18 @@ function campPanelInner(cfg){
   return (cfg.lines || []).map(l => '<span style="position:absolute;left:calc(50% + ' + (+l.x || 0) + 'px);top:' + (+l.y || 0) + 'px;transform:translateX(-50%);white-space:nowrap;line-height:1.15;font-size:' + (+l.size || 10) + 'px;color:' + escapeHtml(l.color || '#fff') + ';font-weight:' + (l.bold ? 800 : 500) + '">' + escapeHtml(l.t || '') + '</span>').join('');
 }
 function campPanelHtml(name, type){ const cfg = campPanelOf(name, type); return '<div class="yt-camp" style="background:' + escapeHtml(cfg.bg || '#2563eb') + '">' + campPanelInner(cfg) + '</div>'; }
+// v4.26：文字の配置の型（大きさ・太字・位置だけ。色と文言は持たない）。最初からある2つ＋自分で足した分（campTpls）
+let campTpls = [];
+const CAMP_TPL_BASE = [
+  { name: '2行（見出し＋詳細1行）', base: true, lines: [{ size: 13, bold: true, x: 0, y: 14 }, { size: 8.5, bold: false, x: 0, y: 34 }] },
+  { name: '3行（見出し＋詳細2行）', base: true, lines: [{ size: 12, bold: true, x: 0, y: 7 }, { size: 8, bold: false, x: 0, y: 27 }, { size: 8, bold: false, x: 0, y: 39 }] }
+];
+function saveCampTpls(){ return persistKey(STORAGE_CAMPTPL, campTpls); }
+// 型を当てる：行の数・大きさ・太字・位置は型から、文言と色は今の行（1行目は1行目…）から。足りない行は空・白
+function campTplApply(cfg, tpl){
+  const old = cfg.lines || [];
+  cfg.lines = tpl.lines.map((t, i) => ({ t: old[i] ? old[i].t : '', color: old[i] ? (old[i].color || '#ffffff') : '#ffffff', size: t.size, bold: !!t.bold, x: t.x, y: t.y }));
+}
 // 編集の画面
 let _cpWork = null;
 function campPanelOpen(name, type){
@@ -12582,10 +12610,20 @@ function campPanelRender(){
       if (!others.length) return '<div class="cp-copy none">他に設定したパネルが無いので、コピーできるものはまだありません</div>';
       return '<div class="cp-copy"><span class="cp-copy-l">ほかのパネルからコピー</span><select class="graph-select" id="cp-src">' + others.map(k => '<option value="' + escapeHtml(k) + '">' + escapeHtml(k) + '</option>').join('') + '</select>'
         + '<button type="button" class="kwa-bulk" id="cp-copy-all" title="地の色・文言・大きさ・色・位置をそのまま持ってくる">全部コピー</button>'
-        + '<button type="button" class="kwa-bulk gray" id="cp-copy-look" title="地の色・大きさ・色・太字・位置だけ持ってくる（今の文言は残す）">見た目だけコピー</button>'
+        + '<button type="button" class="kwa-bulk gray" id="cp-copy-look" title="地の色・大きさ・色・太字・位置だけ持ってくる（今の文言は残す）">デザインのみコピー（文言はそのまま）</button>'
         + '<div class="cp-copy-pv" id="cp-copy-pv"></div></div>';
     })()
-    + '<label class="cp-bg">地の色 <input type="color" id="cp-bg" value="' + escapeHtml(c.bg) + '"></label>';
+    + (() => {   // v4.26：文字の配置の型
+      const all = CAMP_TPL_BASE.concat(campTpls);
+      return '<div class="cp-tpl"><span class="cp-copy-l">配置の型</span>' + all.map((t, i) => '<span class="cp-tpl-b"><button type="button" class="cp-tpl-btn" data-i="' + i + '" title="文字の大きさ・太字・位置だけをこの型にする（文言と色は今のまま）">' + escapeHtml(t.name) + '</button>'
+        + (t.base ? '' : '<button type="button" class="cp-tpl-del" data-i="' + (i - CAMP_TPL_BASE.length) + '" title="この型を消す">✕</button>') + '</span>').join('')
+        + '<span class="cp-tpl-add"><input type="text" id="cp-tpl-name" placeholder="型の名前"><button type="button" class="kwa-bulk gray" id="cp-tpl-save" title="今の行の数・大きさ・太字・位置を型として残す（色と文言は残さない）">今の配置を型に追加</button></span></div>';
+    })()
+    + (() => {   // v4.26：地の色（使っている色を横に並べて選べる）
+      const used = []; ['#2563eb', '#7e22ce'].concat(Object.keys(campPanels || {}).map(k => campPanels[k] && campPanels[k].bg)).forEach(v => { v = String(v || '').toLowerCase(); if (/^#[0-9a-f]{6}$/.test(v) && used.indexOf(v) < 0) used.push(v); });
+      return '<div class="cp-bg-row"><label class="cp-bg">地の色 <input type="color" id="cp-bg" value="' + escapeHtml(c.bg) + '"></label><span class="cp-sw-l">使っている色</span>'
+        + used.map(v => '<button type="button" class="cp-sw' + (v === String(c.bg).toLowerCase() ? ' on' : '') + '" data-c="' + v + '" style="background:' + v + '" title="' + v + '"></button>').join('') + '</div>';
+    })();
   c.lines.forEach((l, i) => {
     h += '<div class="cp-line" data-i="' + i + '"><div class="cp-r1"><span class="cp-no">' + (i + 1) + '行目</span><input type="text" class="cp-t" value="' + escapeHtml(l.t) + '" placeholder="文言（例：耐火バッグ KW）">'
       + '<button type="button" class="cp-del" title="この行を消す">✕</button></div>'
@@ -12604,7 +12642,17 @@ function campPanelRender(){
     const b2 = document.getElementById('cp-prev-s'); if (b2) b2.innerHTML = '<div class="yt-camp" style="background:' + escapeHtml(c.bg) + '">' + html + '</div>';
   };
   prev();
-  bg.querySelector('#cp-bg').addEventListener('input', e => { c.bg = e.target.value; prev(); });
+  bg.querySelector('#cp-bg').addEventListener('input', e => { c.bg = e.target.value; prev(); bg.querySelectorAll('.cp-sw').forEach(x => x.classList.toggle('on', x.dataset.c === String(c.bg).toLowerCase())); });
+  bg.querySelectorAll('.cp-sw').forEach(b => b.addEventListener('click', () => { c.bg = b.dataset.c; const ip = bg.querySelector('#cp-bg'); if (ip) ip.value = c.bg; prev(); bg.querySelectorAll('.cp-sw').forEach(x => x.classList.toggle('on', x === b)); }));   // v4.26
+  bg.querySelectorAll('.cp-tpl-btn').forEach(b => b.addEventListener('click', () => { const t = CAMP_TPL_BASE.concat(campTpls)[+b.dataset.i]; if (!t) return; campTplApply(c, t); campPanelRender(); }));
+  bg.querySelectorAll('.cp-tpl-del').forEach(b => b.addEventListener('click', () => { const i = +b.dataset.i; const t = campTpls[i]; if (!t) return; campTpls.splice(i, 1); saveCampTpls(); campPanelRender(); toast('型「' + t.name + '」を消しました'); }));
+  { const sv = bg.querySelector('#cp-tpl-save'); if (sv) sv.addEventListener('click', () => {
+      const nm = (bg.querySelector('#cp-tpl-name').value || '').trim(); if (!nm) { toast('型の名前を入れてください'); return; }
+      if (!c.lines.length) { toast('行が1つもありません'); return; }
+      const t = { name: nm, lines: c.lines.map(l => ({ size: +l.size || 10, bold: !!l.bold, x: +l.x || 0, y: +l.y || 0 })) };
+      const j = campTpls.findIndex(x => x.name === nm); if (j > -1) campTpls[j] = t; else campTpls.push(t);
+      saveCampTpls(); campPanelRender(); toast('型「' + nm + '」を' + (j > -1 ? '上書きしました' : '追加しました'));
+    }); }
   { // v4.24：コピー
     const sel = bg.querySelector('#cp-src'), pv = bg.querySelector('#cp-copy-pv');
     const src = () => sel && campPanels[sel.value] ? JSON.parse(JSON.stringify(campPanels[sel.value])) : null;
