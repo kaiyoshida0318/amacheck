@@ -2513,7 +2513,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.55</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.56</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -2772,7 +2772,7 @@
         <button type="button" class="ad-cl-edit" id="ad-cl-edit" title="変更記録（ショップ全体）を追加・編集">📝 変更記録編集</button>
       </span>
       <span class="adg-tip" data-tip="説明を見る">
-        <button type="button" class="help-btn" id="open-ad-guide" title="説明を見るだけ（データは変わりません）">広告の種類と説明<span class="help-q" aria-hidden="true">?</span></button>
+        <button type="button" class="help-btn" id="open-ad-guide">広告の種類と説明<span class="help-q" aria-hidden="true">?</span></button>
       </span>
       <button class="utility" id="open-ad-recon" style="font-size:12px;" title="月ごとに、月末データ（B）と日別の広告データ（①）・KWデータ（③）の広告費を比べます"><svg class="icn"><use href="#i-check"/></svg> 月末データと照合</button>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
@@ -15933,7 +15933,7 @@ function renderGraphView(){
   }
   h += seg('graph-quick', 'sm', [['lastMonth', '先月'], ['thisMonth', '今月'], ['thisYear', '今年'], ['1year', '1年'], ['all', '全期間']], graphQuickActive);
   h += '<span class="adg-tip" data-tip="説明を見る">'
-    + '<button type="button" class="help-btn" id="graph-ad-guide" title="説明を見るだけ（データは変わりません）">広告の種類と説明<span class="help-q" aria-hidden="true">?</span></button></span>';
+    + '<button type="button" class="help-btn" id="graph-ad-guide">広告の種類と説明<span class="help-q" aria-hidden="true">?</span></button></span>';
   h += '</div>';
 
   // 2段目：粒度専用のボタン（月別＝年度重ね／2年、日別＝プリセット）＋セール表示
