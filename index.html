@@ -2020,7 +2020,7 @@
   .pm-card { background: #fff; width: 96vw; max-width: 1400px; max-height: 100%; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); display: flex; flex-direction: column; overflow: hidden; }
   /* v3.96：商品モーダルの「全体情報」と「KW推移」は同じ大きさ・同じ位置（画面いっぱい。タブを切り替えても枠が動かない） */
   .pm-bg { padding: 4vh 12px 0; }
-  .pm-card, .kwm-box.pm-mode { width: calc(100vw - 24px); max-width: none; min-width: 0; height: 92vh; max-height: 92vh; }
+  .pm-card, .kwm-box.pm-mode { width: calc((100vw - 24px) / 2 + min(96vw, 1400px) / 2); max-width: none; min-width: 0; height: 92vh; max-height: 92vh; }   /* v4.39：幅は v3.96 の画面いっぱい（100vw−24px）と、その前（96vw・最大1400px）の中間 */
   .kwm-box.pm-mode { margin-top: 1.5vh; }   /* .kwm-bg の padding-top 2.5vh と合わせて 4vh */
   .pm-tabs { display: flex; align-items: flex-end; gap: 4px; padding: 10px 16px 0 24px; border-bottom: 1px solid var(--border); background: #fff; flex-shrink: 0; }
   .pm-tab { padding: 9px 20px; border: none; background: none; cursor: pointer; font-size: 14.5px; font-weight: 600; color: var(--text-tertiary); border-bottom: 2.5px solid transparent; font-family: inherit; border-radius: 0; }
@@ -2032,6 +2032,20 @@
   .pm-prod-img .ph { border-radius: 7px; border: 1px solid var(--border); }
   .pm-prod-txt { min-width: 0; }
   .pm-prod-name { font-size: 16px; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  /* v4.39：KW推移のとき、商品名の行に KW の見出し・メモ・入札額を並べる（.kwm-head は中身だけを並べる＝display:contents） */
+  .pm-prod.pm-prod-kw { gap: 16px; padding: 8px 20px; }
+  .pm-prod-kw .pm-prod-txt { flex: 0 1 auto; max-width: 26%; }
+  .pm-prod-kw .kwm-head { display: contents; }
+  .pm-prod-kw .kwm-title-wrap { flex: 0 1 auto; min-width: 0; max-width: 34%; padding-left: 16px; border-left: 1px solid var(--border); }
+  .pm-prod-kw .kwm-titlerow { gap: 10px; }
+  .pm-prod-kw .kwm-title { font-size: 18px; }
+  .pm-prod-kw .kwm-sub { font-size: 12.5px; margin-top: 2px; }
+  .pm-prod-kw .kwm-camp-go { height: 28px; padding: 0 10px; }
+  .pm-prod-kw .kwm-memo { order: 1; flex: 1 1 260px; min-width: 220px; padding: 6px 10px; border: 1px solid #fde68a; border-radius: 8px; align-items: center; }
+  .pm-prod-kw .kwm-memo-l { padding-top: 0; }
+  .pm-prod-kw .kwm-memo-st { width: auto; min-width: 0; padding-top: 0; }
+  .pm-prod-kw .kwm-bidnow { order: 2; margin-left: auto; flex-shrink: 0; }
+  .pm-prod-kw .kwm-bidnow b { font-size: 21px; }
   .pm-prod-sub { font-size: 12px; color: var(--text-tertiary); font-family: ui-monospace, Menlo, monospace; margin-top: 2px; }
   .pm-body { flex: 1 1 auto; min-height: 0; overflow-y: auto; padding: 0 24px 24px; }
   .pm-toolbar { position: static; margin: 14px 0 10px; flex-wrap: wrap; }
@@ -2051,8 +2065,17 @@
   .kwm-box.pm-mode .kwm-close, .kwm-box.pm-mode .kwm-nav { display: none; }
   .pm-kwwrap { flex: 1 1 auto; min-height: 0; display: flex; }
   .pm-kwlist { width: 250px; flex-shrink: 0; overflow-y: auto; border-right: 1px solid var(--border); padding: 8px; background: #fafafa; }
-  .pm-kwlist-h { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); padding: 4px 6px 8px; display: flex; justify-content: space-between; }
-  .pm-kwlist-h span { cursor: help; color: var(--text-tertiary); }
+  .pm-kwlist-h { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); padding: 2px 2px 8px 6px; display: flex; justify-content: space-between; align-items: center; gap: 6px; }
+  .pm-kwlist-q { cursor: help; color: var(--text-tertiary); margin-left: 4px; }
+  /* v4.40：たたむ／開く */
+  .pm-kwfold { font-family: inherit; font-size: 12px; font-weight: 700; color: var(--text-secondary); background: #fff; border: 1px solid var(--border-strong); border-radius: 7px; padding: 4px 10px; cursor: pointer; white-space: nowrap; }
+  .pm-kwfold:hover { color: var(--black); border-color: var(--text-secondary); }
+  .pm-kwfold-open { display: none; }
+  .pm-kwlist.fold { width: 38px; padding: 6px 4px; overflow: hidden; }
+  .pm-kwlist.fold > :not(.pm-kwfold-open) { display: none; }
+  .pm-kwlist.fold .pm-kwfold-open { display: flex; flex-direction: column; align-items: center; gap: 8px; width: 100%; padding: 8px 0; font-family: inherit; font-size: 12px; font-weight: 800; color: #6d28d9; background: #fff; border: 1px solid #c4b5fd; border-radius: 7px; cursor: pointer; }
+  .pm-kwlist.fold .pm-kwfold-open span { writing-mode: vertical-rl; letter-spacing: 1px; color: var(--text-secondary); }
+  .pm-kwlist.fold .pm-kwfold-open:hover { background: #f3e8ff; }
   .pm-kwi { display: block; width: 100%; text-align: left; border: 1px solid transparent; background: #fff; border-radius: 7px; padding: 7px 9px; margin-bottom: 4px; cursor: pointer; font-family: inherit; }
   .pm-kwi:hover { border-color: #c4b5fd; background: #fff; }
   .pm-kwi.on { border-color: #7c3aed; background: #f3e8ff; box-shadow: inset 3px 0 0 #7c3aed; }
@@ -2470,7 +2493,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.38</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.40</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -11652,11 +11675,11 @@ function pmTabsHtml(cur, closeId){
   return '<div class="pm-tabs">' + t('info', '全体情報') + t('kw', 'KW推移') + t('edit', '商品を編集')
     + '<button type="button" class="pm-x" id="' + closeId + '" title="閉じる (Esc)">✕</button></div>';
 }
-function pmProdRowHtml(p){
+function pmProdRowHtml(p, extra){   // v4.39：extra＝右の空きに入れる HTML（KW推移のときは KW の見出しとメモ）
   const st = KUBUN_LABELS[productKubun(p)] || '';   // v4.33：区分
-  return '<div class="pm-prod"><div class="pm-prod-img">' + productImageHtml(p, 44) + '</div><div class="pm-prod-txt">'
+  return '<div class="pm-prod' + (extra ? ' pm-prod-kw' : '') + '"><div class="pm-prod-img">' + productImageHtml(p, 44) + '</div><div class="pm-prod-txt">'
     + '<div class="pm-prod-name" title="' + pmEsc(p.name) + '">' + pmEsc(p.name) + '</div>'
-    + '<div class="pm-prod-sub">ASIN ' + pmEsc(p.asin || '-') + '　｜　SKU ' + pmEsc(p.sku || '-') + (st ? '　｜　' + pmEsc(st) : '') + '</div></div></div>';
+    + '<div class="pm-prod-sub">ASIN ' + pmEsc(p.asin || '-') + '　｜　SKU ' + pmEsc(p.sku || '-') + (st ? '　｜　' + pmEsc(st) : '') + '</div></div>' + (extra || '') + '</div>';
 }
 function pmBindTabs(root){
   root.querySelectorAll('[data-pmgo]').forEach(b => b.addEventListener('click', () => pmGo(b.dataset.pmgo)));
@@ -11939,7 +11962,11 @@ function pmKwWrap(h){
   const list = pmKwList(); _pmKwKeys = list.map(a => a.key);
   const yen = v => '¥' + Math.round(v).toLocaleString();
   const roasCol = v => v >= 300 ? '#16a34a' : (v >= 200 ? '#b45309' : (v > 0 ? '#dc2626' : '#9ca3af'));   // KW-日月別データと同じ（300%以上・200〜299%・199%以下）
-  let l = '<div class="pm-kwlist"><div class="pm-kwlist-h">KW（' + list.length + '）<span title="この商品が入っている広告キャンペーンのKW。並び：最近7日に出ている→直近30日の広告費の多い順。数字はキャンペーン単位で、この商品だけの数字ではありません">？</span></div>';
+  // v4.40：KW一覧は「◀ たたむ」で細い帯にできる（このブラウザに覚える）
+  let fold = false; try { fold = localStorage.getItem('amacheck_pm_kwfold') === '1'; } catch (e) {}
+  let l = '<div class="pm-kwlist' + (fold ? ' fold' : '') + '"><button type="button" class="pm-kwfold-open" title="KW一覧を開く">▶<span>KW（' + list.length + '）</span></button>'
+    + '<div class="pm-kwlist-h"><span class="pm-kwlist-t">KW（' + list.length + '）<span class="pm-kwlist-q" title="この商品が入っている広告キャンペーンのKW。並び：最近7日に出ている→直近30日の広告費の多い順。数字はキャンペーン単位で、この商品だけの数字ではありません">？</span></span>'
+    + '<button type="button" class="pm-kwfold" title="KW一覧をたたんで、グラフと表を広くする">◀ たたむ</button></div>';
   list.forEach(a => {
     const name = kwGroup === 'camp' ? a.campaign : a.target;
     const roas = a.cost > 0 ? Math.round(a.sales / a.cost * 100) : 0;
@@ -11950,10 +11977,17 @@ function pmKwWrap(h){
       + (sub ? '<span class="pm-kwi-c">' + pmEsc(sub) + '</span>' : '') + '</button>';
   });
   l += '</div>';
-  return pmTabsHtml('kw', 'pm-x-kw') + pmProdRowHtml(p) + '<div class="pm-kwwrap">' + l + '<div class="pm-kwmain">' + h + '</div></div>';
+  // v4.39：KW の見出し（名前・注視中・ページを開く・入札額）とメモ欄は、商品名の行の右の空きへ（表を広く）
+  const bi = h.indexOf('<div class="kwm-body');
+  const top = bi > 0 ? h.slice(0, bi) : '', rest = bi > 0 ? h.slice(bi) : h;
+  return pmTabsHtml('kw', 'pm-x-kw') + pmProdRowHtml(p, top) + '<div class="pm-kwwrap">' + l + '<div class="pm-kwmain">' + rest + '</div></div>';
 }
 function pmKwBind(box){
   pmBindTabs(box);
+  { const kl = box.querySelector('.pm-kwlist');   // v4.40：KW一覧をたたむ／開く
+    const setFold = f => { if (!kl) return; kl.classList.toggle('fold', f); try { localStorage.setItem('amacheck_pm_kwfold', f ? '1' : '0'); } catch (e) {} };
+    const fb = box.querySelector('.pm-kwfold'); if (fb) fb.addEventListener('click', () => setFold(true));
+    const ob = box.querySelector('.pm-kwfold-open'); if (ob) ob.addEventListener('click', () => setFold(false)); }
   const x = box.querySelector('#pm-x-kw'); if (x) x.addEventListener('click', closeKwModal);
   box.querySelectorAll('.pm-kwi').forEach(b => b.addEventListener('click', () => {
     if (b.dataset.key === kwm.key) return;
