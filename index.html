@@ -47,10 +47,10 @@
   }
   .container { max-width: 1400px; margin: 0 auto; padding: 20px 20px; }
 
-  .logo {
+  .logo {   /* v4.49：ADcheck くらいの高さ（約38px。前は約58px） */
     background: var(--logo-color);
-    border-radius: 10px;
-    padding: 12px 18px;
+    border-radius: 8px;
+    padding: 6px 13px;
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -59,9 +59,9 @@
     user-select: none;
   }
   .logo:hover { opacity: 0.85; }
-  .logo .icn { font-size: 34px; color: #fff; }
-  .logo .divider { width: 2px; height: 30px; background: rgba(255,255,255,0.4); }
-  .logo .name { font-size: 24px; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
+  .logo .icn { font-size: 24px; color: #fff; }
+  .logo .divider { width: 2px; height: 20px; background: rgba(255,255,255,0.4); }
+  .logo .name { font-size: 18px; font-weight: 700; letter-spacing: -0.4px; line-height: 1; }
   .logo .name .ama { color: #fff; }
   .logo .name .check { color: var(--black); }
 
@@ -1466,7 +1466,7 @@
 
   /* タブナビゲーション */
   .tabs {
-    margin-top: 12px;
+    margin-top: 14px;   /* v4.49：12px → 6px／v4.50：上に行き過ぎたので 14px */
     padding: 0 16px;
     display: flex;
     flex-direction: column;
@@ -2354,7 +2354,7 @@
 
   /* ヘッダー行（ロゴ + バージョン + 文字サイズ） */
   .page-header {
-    padding: 16px 24px 0;
+    padding: 8px 24px 0;   /* v4.49：16px → 8px（タブの行と近づける） */
     display: flex;
     align-items: center;
     gap: 16px;
@@ -2506,7 +2506,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.48</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.50</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
