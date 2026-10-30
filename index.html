@@ -1471,7 +1471,7 @@
   }
   .tab-row { display: flex; align-items: center; gap: 2px; flex-wrap: wrap; }
   .tab-group {
-    color: var(--text-tertiary); font-size: 14.7px; font-weight: 700;   /* v3.52：タブと同じ大きさ／v3.67：15.5px の95% */
+    color: var(--text-tertiary); font-size: 15.4px; font-weight: 700;   /* v3.52：タブと同じ大きさ／v3.67：15.5px の95%／v4.36：14.7px の5%増し */
     font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", Meiryo, sans-serif;
     padding: 0 2px; white-space: nowrap; user-select: none;
   }
@@ -1479,11 +1479,11 @@
   .tab-row .tab-break { flex-basis: 100%; height: 0; }
   /* v4.28：【状態】の行（ヘッダーの一番下。ほかのタブより少し小さく・詰めて1行に） */
   .tab-row.tab-row-st { gap: 1px; padding-bottom: 2px; }
-  .tab-group.tg-st { color: #9333ea; font-size: 13px; margin-right: 4px; }
-  .tab-row-st .tab { font-size: 13px; padding: 4px 6px 5px; gap: 0; }
-  .tab-row-st .tab .count { font-size: 10.5px; margin-left: 3px; }
+  .tab-group.tg-st { color: #9333ea; font-size: 14.3px; margin-right: 4px; }
+  .tab-row-st .tab { font-size: 14.3px; padding: 4px 6px 5px; gap: 0; }
+  .tab-row-st .tab .count { font-size: 11.6px; margin-left: 3px; }
   .tab-row-st .tab .count:empty { display: none; }
-  .tab-row-st .st-sep { color: #9333ea; font-weight: 700; font-size: 13px; margin: 0 4px; user-select: none; }
+  .tab-row-st .st-sep { color: #9333ea; font-weight: 700; font-size: 14.3px; margin: 0 4px; user-select: none; }
   /* v4.28：区分のセル（色つきの文字の上に透明の選択肢を重ねる。セルのどこを押しても選択肢が開く） */
   .kb-cell { position: relative; min-height: 30px; display: flex; align-items: center; justify-content: center; }
   .kb-disp { text-align: center; font-size: 12px; line-height: 1.15; font-weight: 700; white-space: nowrap; pointer-events: none; }
@@ -1814,7 +1814,7 @@
     border-bottom: 2px solid transparent;
     color: var(--text-secondary);
     font-family: inherit;
-    font-size: 14.7px;   /* v3.51：14px → 15.5px／v3.67：その95%（14.7px） */
+    font-size: 15.4px;   /* v3.51：14px → 15.5px／v3.67：その95%（14.7px）／v4.36：5%増し（15.4px） */
     font-family: 'Noto Sans JP', -apple-system, BlinkMacSystemFont, "Segoe UI", "Hiragino Sans", Meiryo, sans-serif;   /* v3.67 */
     font-weight: 500;   /* v3.59：600 → 500（【基本】などの見出しは 700 のまま） */
     cursor: pointer;
@@ -2322,7 +2322,7 @@
   .tab .count {
     color: var(--text-tertiary);
     font-weight: 500;
-    font-size: 14px;
+    font-size: 14.7px;   /* v4.36：5%増し */
     margin-left: 2px;
   }
   .tab.active .count { color: var(--black); }
@@ -2470,7 +2470,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.35</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.36</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
