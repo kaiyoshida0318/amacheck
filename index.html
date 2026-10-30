@@ -1891,6 +1891,16 @@
   .cmp-cm-seg { display: inline-flex; border: 1px solid #cbd5e1; border-radius: 6px; overflow: hidden; }
   .cmp-cm-seg button { font-size: 12px; padding: 5px 9px; border: none; background: var(--surface2); color: var(--text3); font-weight: 700; cursor: pointer; border-radius: 0; }
   .cmp-cm-seg button.on { background: #7c3aed; color: #fff; }
+  .cmp-gm-seg button.on { background: #0f766e; }
+  .yt-badge { position: absolute; right: -6px; top: -5px; z-index: 2; font-size: 9px; font-weight: 800; line-height: 14px; padding: 0 4px; border-radius: 4px; white-space: nowrap; box-shadow: 0 1px 2px rgba(0,0,0,.2); }
+  .yt-badge.grp { background: #7c3aed; color: #fff; }
+  .yt-badge.noad { background: #e5e7eb; color: #4b5563; border: 1px solid #cbd5e1; }
+  .cmp-grp-box { width: min(680px, 94vw); }
+  table.cmp-grp-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
+  table.cmp-grp-tbl th { font-size: 12px; color: var(--text-secondary); text-align: left; padding: 6px 8px; border-bottom: 1px solid var(--border); }
+  table.cmp-grp-tbl td { padding: 5px 8px; border-bottom: 1px solid #f1f5f9; }
+  table.cmp-grp-tbl td.num, table.cmp-grp-tbl th:nth-child(n+3) { text-align: right; font-variant-numeric: tabular-nums; }
+  table.cmp-grp-tbl tbody tr { cursor: pointer; } table.cmp-grp-tbl tbody tr:hover td { background: #f5f3ff; }
   .cmp-cm .ps-help-badge { display: inline-flex; }
   /* v3.68：全-推移 */
   .trend-card { background: #fff; border: 1px solid var(--border); border-radius: 12px; padding: 18px 22px; }
@@ -2371,7 +2381,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.16</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.18</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -11292,7 +11302,7 @@ let _graphMetricCache = {};
 //   タブに見えるが、実際は3つのモーダル（#pm-modal／#kwm-modal の商品モード／#edit-modal）。タブを押すと今のを閉じて同じ商品で別のを開く
 // ============================================
 const pm = { fnsku: null, grain: 'daily', month: null, preset: '30', endYm: null, fy: 'jan', view2y: false, cat: 'sales', hidden: null, hiddenFY: new Set(), costMode: null, showSale: true, cache: {} };
-const PM_CAT_ORDER = ['sales', 'salesShare', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'units', 'adBreak', 'shipment', 'avgPrice'];
+const PM_CAT_ORDER = ['sales', 'salesShare', 'adcost', 'adshareSpSb', 'adshareSpKwSh', 'adshareSbDgSk', 'roas', 'units', 'adBreak', 'shipment'];   // v4.18：平均単価はなくした（推計総売上÷出荷数＝登録した売価に戻るだけのため）
 const PM_CATS = {
   sales: { label: '売上・利益', yen: true, items: [
     { key: 'salesActual', label: '推計総売上', color: '#2563eb' },
@@ -11325,9 +11335,6 @@ const PM_CATS = {
     { key: 'totalQty', label: '総出荷数', color: '#2563eb' },
     { key: 'adQty', label: '広告経由の個数', color: '#ea580c' },
     { key: 'seoQty', label: 'SEO出荷数', color: '#9333ea' },
-  ] },
-  avgPrice: { label: '平均単価', yen: true, items: [
-    { key: 'avgPrice', label: '平均単価', color: '#0891b2' },
   ] },
 };
 function pmDefaultHidden(cat){
@@ -11451,11 +11458,12 @@ function pmRowMetrics(r, noPd){
     unAll: nz(r.units), unSp: nz(r.spAllU), unSb: nz(r.sbAllU), unSpKw: nz(r.spKwU), unSpShohin: nz(r.spShU), unSbDouga: nz(r.sbDgU), unSbShokore: nz(r.sbSkU),
     prom: nz(r.prom), halo: nz(r.halo),
     totalQty: r.ship || 0, adQty: nz(r.units), seoQty: noPd ? null : Math.max(0, (r.ship || 0) - (r.units || 0)),
-    avgPrice: r.ship > 0 ? tot / r.ship : null,
+
   };
 }
 // 表示する期間（行）を決める
 function pmPeriodRows(p){
+  if (!PM_CATS[pm.cat]) { pm.cat = 'sales'; pm.hidden = pmDefaultHidden(pm.cat); }   // v4.18：なくした項目（平均単価）を選んでいた時
   const catDef = PM_CATS[pm.cat];
   if (pm.grain === 'daily') {
     const dates = pmDates(p), months = Array.from(new Set(dates.map(d => d.slice(0, 7)))).sort().reverse();
@@ -11509,6 +11517,7 @@ function pmBuildChart(rows){
 
 // ---- 全体情報：画面 ----
 function pmRenderInfo(fresh){
+  if (!PM_CATS[pm.cat]) { pm.cat = 'sales'; pm.hidden = pmDefaultHidden(pm.cat); }   // v4.18：なくした項目（平均単価）を選んでいた時
   const card = document.getElementById('pm-card'); const p = pmProd(); if (!card || !p) return;
   const oldBody = card.querySelector('.pm-body'), keep = (!fresh && oldBody) ? oldBody.scrollTop : 0;
   graphResetCache();
@@ -12444,10 +12453,64 @@ let _cmpCache = {};
 const _SROAS_COLORS = { g:'#1D9E75', y:'#BA7517', o:'#ED7D31', r:'#A32D2D', n:'var(--text3)' };
 function _sroasCat(v){ if (!(v > 0)) return 'n'; if (v >= 800) return 'g'; if (v >= 500) return 'y'; if (v >= 200) return 'o'; return 'r'; }
 function _daysWithData(){ return []; }
-function openRenewalGraph(code){ openProductModal(code, 'info'); }
+function openRenewalGraph(code){ const pc = productCache[code]; if (pc && pc.members) { _cmpGroupOpen(code); return; } openProductModal(code, 'info'); }
+// v4.17：まとめ方。group＝キャンペーンでつながっている商品を1つの親（グループ）に。広告なしの商品は1つずつ／item＝商品ごと（前のまま）
+let _cmpGroupMode = 'group', _cmpCodeOf = {};
+function setCmpGroupMode(m){ _cmpGroupMode = m; _cmpCache = {}; _yoyFocus = null; try { _yoyFocusCode = null; _yoyTopPins = []; } catch (e) {} _cmpBuildProducts(); renderYoy(); }
+// どこかのキャンペーンを一緒にしている商品どうしを1グループに（union-find）。返り値：fnsku → グループの先頭の fnsku
+function _cmpGroups(){
+  const par = {}, find = x => { while (par[x] !== x) { par[x] = par[par[x]]; x = par[x]; } return x; };
+  const inCamp = new Set();
+  products.forEach(p => { if (p && p.fnsku) par[p.fnsku] = p.fnsku; });
+  kwCampProdMap().forEach(ps => {
+    const fs = ps.map(p => p && p.fnsku).filter(f => f && par[f] != null); if (!fs.length) return;
+    fs.forEach(f => inCamp.add(f));
+    for (let i = 1; i < fs.length; i++) { const a = find(fs[0]), b = find(fs[i]); if (a !== b) par[b] = a; }
+  });
+  const root = {}; Object.keys(par).forEach(f => { root[f] = find(f); });
+  return { root, inCamp };
+}
 function _cmpBuildProducts(){
-  productCache = {};
-  products.forEach(p => { if (p && p.fnsku) productCache[p.fnsku] = { name: p.name || p.fnsku, img: p.imageUrl || amazonImageUrl(p.asin) || '', itemNumber: p.asin || '' }; });
+  productCache = {}; _cmpCodeOf = {};
+  const base = {};
+  products.forEach(p => { if (p && p.fnsku) base[p.fnsku] = { name: p.name || p.fnsku, img: p.imageUrl || amazonImageUrl(p.asin) || '', itemNumber: p.asin || '' }; });
+  if (_cmpGroupMode !== 'group') { productCache = base; return; }
+  const { root, inCamp } = _cmpGroups(), mem = {};
+  Object.keys(root).forEach(f => { (mem[root[f]] = mem[root[f]] || []).push(f); });
+  // 名前と画像は、一番売れている商品（データのある最新の月の推計総売上）
+  const yms = _cmpYms(), lastYm = yms.length ? yms[yms.length - 1].slice(0, 4) + '-' + yms[yms.length - 1].slice(4, 6) : '';
+  const sv = _cmpGroupMode; _cmpGroupMode = 'item'; const lm = lastYm ? _cmpMonth(lastYm) : { by: {} }; _cmpGroupMode = sv;
+  const tot = f => (lm.by[f] && lm.by[f].total) || 0;
+  Object.keys(mem).forEach(r => {
+    const fs = mem[r].sort((a, b) => tot(b) - tot(a));
+    if (fs.length === 1) { const f = fs[0]; _cmpCodeOf[f] = f; const r = lm.by[f] || {}, hasAd = inCamp.has(f) || (r.cost || 0) > 0 || (r.ad || 0) > 0;   // キャンペーンが分からなくても、最新の月に広告費・広告売上があれば「広告なし」にしない
+      productCache[f] = Object.assign({}, base[f], hasAd ? {} : { noAd: true }); return; }
+    const code = 'G:' + r, top = base[fs[0]] || {};
+    const cats = Array.from(new Set(fs.map(f => (categories && categories[f] || '').trim()).filter(Boolean)));
+    const nm = cats.length === 1 ? cats[0] : (top.name || fs[0]) + ' ほか' + (fs.length - 1) + '商品';
+    productCache[code] = { name: nm, img: top.img || '', itemNumber: '', members: fs, group: true };
+    fs.forEach(f => { _cmpCodeOf[f] = code; });
+  });
+}
+// グループの中の商品（ダブルクリック）
+function _cmpGroupOpen(code){
+  const pc = productCache[code]; if (!pc || !pc.members) return;
+  const yms = _cmpYms(), ym = yms.length ? yms[yms.length - 1].slice(0, 4) + '-' + yms[yms.length - 1].slice(4, 6) : '';
+  const sv = _cmpGroupMode; _cmpGroupMode = 'item'; const M = ym ? _cmpMonth(ym) : { by: {} }; _cmpGroupMode = sv;
+  const yen = v => v == null ? '—' : '¥' + Math.round(v).toLocaleString();
+  let bg = document.getElementById('cmp-grp-modal');
+  if (!bg) { bg = document.createElement('div'); bg.id = 'cmp-grp-modal'; bg.className = 'kww-mm-bg'; document.body.appendChild(bg); bg.addEventListener('mousedown', e => { if (e.target === bg) bg.hidden = true; }); document.addEventListener('keydown', e => { if (e.key === 'Escape' && !bg.hidden) bg.hidden = true; }); }
+  let h = '<div class="kww-mm-box cmp-grp-box"><div class="kww-mm-h"><b>' + escapeHtml(pc.name) + '</b><span class="kww-mm-kw">' + pc.members.length + '商品（キャンペーンでつながっている商品）' + (ym ? '・' + ym.replace('-', '/') + 'の数字' : '') + '</span></div>'
+    + '<table class="cmp-grp-tbl"><thead><tr><th></th><th>商品</th><th>売上（推計総売上）</th><th>広告費</th><th>売上ROAS</th></tr></thead><tbody>';
+  pc.members.forEach(f => {
+    const p = products.find(x => x.fnsku === f) || {}, r = M.by[f] || {};
+    const sr = r.cost > 0 ? Math.round((r.total || 0) / r.cost * 100) + '%' : '—';
+    h += '<tr data-f="' + escapeHtml(f) + '"><td>' + productImageHtml(p, 32) + '</td><td class="nm">' + escapeHtml(p.name || f) + '</td><td class="num">' + yen(r.total) + '</td><td class="num">' + yen(r.cost) + '</td><td class="num">' + sr + '</td></tr>';
+  });
+  h += '</tbody></table><div class="kww-mm-ft"><span style="margin-right:auto;font-size:12px;color:var(--text-tertiary);">行を押すと商品の画面</span><button type="button" class="utility" id="cmp-grp-close">閉じる</button></div></div>';
+  bg.innerHTML = h; bg.hidden = false;
+  bg.querySelector('#cmp-grp-close').addEventListener('click', () => { bg.hidden = true; });
+  bg.querySelectorAll('tr[data-f]').forEach(tr => tr.addEventListener('click', () => { bg.hidden = true; openProductModal(tr.dataset.f, 'info'); }));
 }
 // 月の一覧（'YYYYMM'）：出荷数か購入商品データ（④/E）のある月
 function _cmpYms(){
@@ -12459,13 +12522,22 @@ function _cmpYms(){
 }
 // 1か月（'YYYY-MM'）の商品別：商品-売上データと同じ計算
 function _cmpMonth(ym){
-  const ck = _cmpCostMode + '|' + ym; if (_cmpCache[ck]) return _cmpCache[ck];
+  const ck = _cmpCostMode + '|' + _cmpGroupMode + '|' + ym; if (_cmpCache[ck]) return _cmpCache[ck];
   const sv = [psMonth, psDay, psCostMode]; let out = { src: 'none', nDays: 0, by: {} };
   try {
     psMonth = ym; psDay = ''; psCostMode = _cmpCostMode;
     const c = psCompute();
     out = { src: c.pr.src, nDays: c.pr.nDays, by: {} };
     c.rows.forEach(r => { if (r.p && r.p.fnsku) out.by[r.p.fnsku] = r; });
+    // v4.17：グループでまとめる（数字は足す。広告売上が無い月は null のまま）
+    if (_cmpGroupMode === 'group' && Object.keys(_cmpCodeOf).length) {
+      const g = {}, F = ['total', 'ad', 'seo', 'cost', 'spAllS', 'spAllC', 'sbAllS', 'sbAllC', 'units', 'spAllU', 'ship'];
+      Object.keys(out.by).forEach(f => {
+        const code = _cmpCodeOf[f] || f, r = out.by[f], o = g[code] || (g[code] = { p: r.p, group: code !== f });
+        F.forEach(k => { const v = r[k]; if (v == null) { if (o[k] === undefined) o[k] = null; return; } o[k] = (o[k] || 0) + v; });
+      });
+      out.by = g;
+    }
   } catch (e) { console.error(e); }
   finally { psMonth = sv[0]; psDay = sv[1]; psCostMode = sv[2]; }
   _cmpCache[ck] = out;
@@ -12504,7 +12576,9 @@ function setCmpCostMode(m){ _cmpCostMode = m; _cmpCache = {}; renderYoy(); }
 function _renderCmpCostUI(){
   const w = document.getElementById('cmpCostWrap'); if (!w) return;
   const b = (v, l) => '<button type="button" onclick="setCmpCostMode(\'' + v + '\')" class="' + (_cmpCostMode === v ? 'on' : '') + '">' + l + '</button>';
-  w.innerHTML = '<span class="cmp-cm-l">広告費</span><span class="cmp-cm-seg">' + b('direct', '宣伝商品に全額') + b('alloc', '売上比で分ける') + '</span>'
+  const g = (v, l, t) => '<button type="button" onclick="setCmpGroupMode(\'' + v + '\')" class="' + (_cmpGroupMode === v ? 'on' : '') + '" title="' + t + '">' + l + '</button>';
+  w.innerHTML = '<span class="cmp-cm-l">まとめ方</span><span class="cmp-cm-seg cmp-gm-seg">' + g('group', 'グループ', 'キャンペーンでつながっている商品を1つにまとめる（広告なしの商品は1つずつ）') + g('item', '商品ごと', '1商品ずつ（前のまま）') + '</span>'   // v4.17
+    + '<span class="cmp-cm-l" style="margin-left:8px;">広告費</span><span class="cmp-cm-seg">' + b('direct', '宣伝商品に全額') + b('alloc', '売上比で分ける') + '</span>'
     + '<button type="button" class="ps-help-badge" onclick="document.getElementById(\'ps-cost-help-modal\').hidden=false" title="「宣伝商品に全額」と「売上比で分ける」の説明を見る">！</button>';
 }
 // v3.85：全-比較のタイル・絞込ボタンの説明を、乗せたらすぐ出す（title だとブラウザの待ち時間がある）
@@ -12916,6 +12990,7 @@ function renderYoyTop(){
     return '<div class="yt-tile" data-code="'+esc(x.code)+'" data-ytip="'+esc(name)+'" onclick="_yoyTopPin(\''+esc(x.code)+'\')" ondblclick="openRenewalGraph(\''+esc(x.code)+'\')" onmouseenter="_yoyTopHi(\''+esc(x.code)+'\',true)" onmouseleave="_yoyTopHi(\''+esc(x.code)+'\',false)" style="cursor:pointer;flex:0 0 74px;width:74px;box-sizing:border-box;text-align:center;position:relative;padding:6px 1px 4px;border-radius:8px">'
       // ★v1.1423★ 横幅を詰める（108→74px）。順位は画像の左上、絞込ボタンは画像の右下に重ねる
       + '<div style="position:relative;width:58px;height:58px;margin:0 auto">' + imgEl
+      +   (pc.members ? '<div class="yt-badge grp">' + pc.members.length + '商品</div>' : (pc.noAd ? '<div class="yt-badge noad">広告なし</div>' : ''))   // v4.17
       +   '<div style="position:absolute;top:-5px;left:-7px;min-width:18px;height:18px;padding:0 3px;box-sizing:border-box;border-radius:9px;background:'+(i<3?mt.col:'#94a3b8')+';color:#fff;font-size:10px;font-weight:800;display:flex;align-items:center;justify-content:center;z-index:1;box-shadow:0 0 0 2px var(--surface)">'+(i+1)+'</div>'
       +   '<button onclick="event.stopPropagation();setYoyTopFocus(\''+esc(x.code)+'\')" ondblclick="event.stopPropagation()" onmouseenter="this.style.background=\'#0f766e\';this.style.color=\'#fff\'" onmouseleave="this.style.background=\''+(_yoyFocusCode===x.code?'#0f766e':'#ecfdf5')+'\';this.style.color=\''+(_yoyFocusCode===x.code?'#fff':'#0f766e')+'\'" data-ytip="'+(_yoyFocusCode===x.code?'絞り込みを解除':'この商品だけを表示')+'" style="position:absolute;left:-6px;bottom:0;z-index:2;height:16px;padding:0 5px;font-size:9px;line-height:13px;font-weight:800;border-radius:5px;cursor:pointer;box-shadow:0 1px 3px rgba(15,118,110,.35);border:1.5px solid #0f766e;background:'+(_yoyFocusCode===x.code?'#0f766e':'#ecfdf5')+';color:'+(_yoyFocusCode===x.code?'#fff':'#0f766e')+'">'+(_yoyFocusCode===x.code?'解除':'絞込')+'</button>'
       + '</div>'
