@@ -2470,7 +2470,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.34</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.35</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -2567,7 +2567,6 @@
     <button class="tab" data-tab="stmid2">中立-広告無し<span class="count" id="cnt-stmid2"></span></button>
     <span class="st-sep">|</span>
     <button class="tab" data-tab="stwarn">撤退予定▲<span class="count" id="cnt-stwarn"></span></button>
-    <button class="tab" data-tab="stout">撤退済み■<span class="count" id="cnt-stout"></span></button>
     <span class="st-sep">|</span>
     <button class="tab" data-tab="stunset">選択前■<span class="count" id="cnt-stunset"></span></button>
   </div>
@@ -8874,7 +8873,7 @@ function productStatus(p){ return p.status || 'active'; }
 const KUBUN_LABELS = { unset: '選択前■', g1: '健常◎', g2: '健常-要注意◯', g3: '健常-広告無し', new: '新商品', mid: '中立□', mid2: '中立-広告無し', warn: '撤退予定▲', out: '撤退済み■' };
 const KUBUN_COLORS = { g1: '#1565C0', g2: '#0288D1', g3: '#4FC3F7', new: '#2E7D32', mid: '#F9A825', mid2: '#E65100', warn: '#C62828', out: '#6D1111' };
 const KUBUN_ORDER = ['unset', 'g1', 'g2', 'g3', 'new', 'mid', 'mid2', 'warn', 'out'];   // 選択肢の並び・区分で並べ替えるときの順
-const KUBUN_VIEW = { stall: 'all', stnew: 'new', stg1: 'g1', stg2: 'g2', stg3: 'g3', stmid: 'mid', stmid2: 'mid2', stwarn: 'warn', stout: 'out', stunset: 'unset' };   // 【状態】のタブ → 区分
+const KUBUN_VIEW = { stall: 'all', stnew: 'new', stg1: 'g1', stg2: 'g2', stg3: 'g3', stmid: 'mid', stmid2: 'mid2', stwarn: 'warn', stunset: 'unset' };   // v4.35：撤退済み■のタブはなくした（撤退済み■の商品は撤退済み商品のタブだけ）   // 【状態】のタブ → 区分
 function productKubun(p){ const k = p && p.kubun; return (k && KUBUN_LABELS[k]) ? k : 'unset'; }
 function kubunColor(k){ return KUBUN_COLORS[k] || 'var(--text-tertiary)'; }
 // v4.33：区分が元。商品マスタのステータス（p.status。商品マスタに出すか・出荷数データの表など）は区分から決める：
@@ -8921,6 +8920,7 @@ function onKubunChange(sel){
   if (disp) { disp.innerHTML = kubunDispHtml(k); disp.style.color = kubunColor(k); }
   sel.title = '区分：' + KUBUN_LABELS[k] + '（押して変える）';
   kubunUpdateCounts();
+  if (k === 'out') { renderPsalesTable(); toast('「' + (p.name || p.fnsku) + '」を撤退済み■にしました（撤退済み商品へ移しました）'); return; }   // v4.35：その場で表から消す
   toast('区分を「' + KUBUN_LABELS[k] + '」にしました');
 }
 // 【状態】の対象の商品：商品-売上データの行と同じ（ASIN あり・同じ ASIN は最初の1つ・自動登録を除く）から、商品マスタで撤退済みの商品を除く
@@ -8959,14 +8959,19 @@ function statusCellHtml(p){
 function onStatusChange(sel){
   const p = products.find(x => x.fnsku === sel.dataset.fnsku);
   if (!p) return;
+  const wasOut = productKubun(p) === 'out';
   setProductKubun(p, sel.value);
   saveProducts();
-  // セルだけ再描画（行はページ移動・更新まで残す）
-  const cell = sel.closest('td');
-  if (cell) cell.innerHTML = statusCellHtml(p);
   updateTabCounts();
   updateWithdrawnButton();
-  toast('区分を「' + KUBUN_LABELS[productKubun(p)] + '」にしました' + (productKubun(p) === 'out' ? '（撤退済み商品へ移ります）' : ''));
+  if (wasOut !== (productKubun(p) === 'out')) {   // v4.35：撤退済み■にした／やめた時は、その場で表を描き直して移す
+    if (!document.getElementById('master-view').hidden) renderMasterList();
+    if (!document.getElementById('withdrawn-view').hidden) renderWithdrawnList();
+  } else {
+    const cell = sel.closest('td');   // それ以外はセルだけ描き直す
+    if (cell) cell.innerHTML = statusCellHtml(p);
+  }
+  toast('区分を「' + KUBUN_LABELS[productKubun(p)] + '」にしました' + (productKubun(p) === 'out' ? '（撤退済み商品へ移しました）' : (wasOut ? '（商品マスタに戻しました）' : '')));
 }
 function onWithdrawDateChange(input){
   const p = products.find(x => x.fnsku === input.dataset.fnsku);
@@ -10269,7 +10274,8 @@ function psRowsShown(cmp){
   let rows = cmp.rows.slice();
   rows = rows.filter(r => psMatch(r, psSearch));
   // v4.28：【状態】のタブ＝その区分の商品だけ（商品マスタで撤退済みの商品は出さない）
-  if (psKubun) rows = rows.filter(r => r.p && !r.p.autoFromPurchase && (psKubun === 'all' ? productKubun(r.p) !== 'out' : productKubun(r.p) === psKubun));   // v4.33：全体＝撤退済み■を除く
+  rows = rows.filter(r => !(r.p && productKubun(r.p) === 'out'));   // v4.35：撤退済み■の商品は出さない（撤退済み商品のタブだけ）。計算（psCompute）はそのままなので全-比較などの合計は変わらない
+  if (psKubun) rows = rows.filter(r => r.p && !r.p.autoFromPurchase && (psKubun === 'all' || productKubun(r.p) === psKubun));
   if (psDay) rows = rows.filter(r => r.has);
   if (psFilter) rows = rows.filter(r => psSroasCat(r.sroas) === psFilter);
   if (psSortKey) {
@@ -10287,7 +10293,7 @@ function psRowsShown(cmp){
 let _psLast = null;
 function renderPsalesTable(){
   const body = document.getElementById('psales-body'); if (!body) return;
-  const cmp = psCompute(psKubun === 'out' ? { keepWithdrawn: true } : undefined); _psLast = cmp;   // v4.33：【状態】撤退済み■は、撤退した後の月も全部出す
+  const cmp = psCompute(); _psLast = cmp;
   const rows = psRowsShown(cmp);
   const cols = psVisibleCols().filter(c => !psGrpHidden.has(c.g));
   // 並び：全体→SP→SB。隠したグループは細い帯（ps-gcol）1列にする
