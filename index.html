@@ -2470,7 +2470,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.33</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.34</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -8900,7 +8900,9 @@ function kubunMigrate(){
   if (ch) persistKey(STORAGE_PRODUCTS, products);
 }
 // 2行表示（ADcheck の _statusDispHtml と同じ：「-」で改行）
-function kubunDispHtml(k){ return (KUBUN_LABELS[k] || '').split(/[-－‐−]/).map(escapeHtml).join('<br>'); }
+// v4.34：区分列の改行の位置は表で決める（「-」は消して改行。撤退予定▲・撤退済み■は「撤退」の後で改行）
+const KUBUN_DISP = { g2: ['健常', '要注意◯'], g3: ['健常', '広告無し'], mid2: ['中立', '広告無し'], warn: ['撤退', '予定▲'], out: ['撤退', '済み■'] };
+function kubunDispHtml(k){ return (KUBUN_DISP[k] || (KUBUN_LABELS[k] || '').split(/[-－‐−]/)).map(escapeHtml).join('<br>'); }
 function kubunOptionsHtml(cur){ return KUBUN_ORDER.map(k => '<option value="' + k + '"' + (k === cur ? ' selected' : '') + ' style="color:' + (KUBUN_COLORS[k] || '#6b7280') + ';font-weight:600">' + KUBUN_LABELS[k] + '</option>').join(''); }
 function kubunCellHtml(p){
   if (!p) return '';
