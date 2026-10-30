@@ -47,10 +47,10 @@
   }
   .container { max-width: 1400px; margin: 0 auto; padding: 20px 20px; }
 
-  .logo {   /* v4.49：ADcheck くらいの高さ（約38px。前は約58px） */
+  .logo {   /* v4.49：小さく／v4.51：小さすぎたので中間（高さ約50px。v4.48 まで約58px、v4.49 は36px） */
     background: var(--logo-color);
-    border-radius: 8px;
-    padding: 6px 13px;
+    border-radius: 9px;
+    padding: 9px 17px;
     display: inline-flex;
     align-items: center;
     gap: 10px;
@@ -59,9 +59,9 @@
     user-select: none;
   }
   .logo:hover { opacity: 0.85; }
-  .logo .icn { font-size: 24px; color: #fff; }
-  .logo .divider { width: 2px; height: 20px; background: rgba(255,255,255,0.4); }
-  .logo .name { font-size: 18px; font-weight: 700; letter-spacing: -0.4px; line-height: 1; }
+  .logo .icn { font-size: 31px; color: #fff; }
+  .logo .divider { width: 2px; height: 26px; background: rgba(255,255,255,0.4); }
+  .logo .name { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; line-height: 1; }
   .logo .name .ama { color: #fff; }
   .logo .name .check { color: var(--black); }
 
@@ -1466,7 +1466,7 @@
 
   /* タブナビゲーション */
   .tabs {
-    margin-top: 14px;   /* v4.49：12px → 6px／v4.50：上に行き過ぎたので 14px */
+    margin-top: 8px;   /* v4.49：12px → 6px／v4.50：14px／v4.51：ヘッダーの下に線を引いたので 8px */
     padding: 0 16px;
     display: flex;
     flex-direction: column;
@@ -2354,7 +2354,8 @@
 
   /* ヘッダー行（ロゴ + バージョン + 文字サイズ） */
   .page-header {
-    padding: 8px 24px 0;   /* v4.49：16px → 8px（タブの行と近づける） */
+    padding: 8px 24px 8px;   /* v4.49：16px → 8px（タブの行と近づける）／v4.51：下に細い線（Ycheck と同じ） */
+    border-bottom: 1px solid var(--border);
     display: flex;
     align-items: center;
     gap: 16px;
@@ -2506,7 +2507,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.50</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.51</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
