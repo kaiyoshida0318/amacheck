@@ -2468,6 +2468,10 @@
     text-align: center;
     font-variant-numeric: tabular-nums;
   }
+  /* v4.58：表の見出しは中央にそろえる（商品-売上データの商品名・画像、商品マスタ、KW、全体収支、返品率 など。中身の数字・文字の揃えはそのまま）。
+     全-比較（左の見出し・グループの内訳の表）は意図のある配置なので外す */
+  table:not(.cmp-grp-tbl) thead th { text-align: center !important; }
+  #compare-view table thead th { text-align: revert-layer; }
 </style>
 </head>
 <body>
@@ -2514,7 +2518,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.57</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.58</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
