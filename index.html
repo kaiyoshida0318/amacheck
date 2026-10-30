@@ -1937,7 +1937,7 @@
   .cp-prev-in .yt-camp { transform: scale(3); transform-origin: top left; margin: 0; }
   .cp-prev-s { margin: 12px auto 0; width: 58px; }
   .cp-prev-l { font-size: 11px; color: var(--text-tertiary); margin-top: 4px; }
-  .cp-form { flex: 1 1 auto; min-width: 0; max-height: 60vh; overflow-y: auto; }
+  .cp-form { flex: 1 1 auto; min-width: 0; max-height: calc(100vh - 150px); overflow-y: auto; }   /* v4.32：60vh → 画面の高さいっぱい（3行目まで縦スクロールなしで見える） */
   .cp-tpl { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; padding: 8px 10px; margin-bottom: 10px; background: #f8fafc; border: 1px solid var(--border); border-radius: 8px; }
   .cp-tpl-b { display: inline-flex; align-items: center; }
   .cp-tpl-btn { font-size: 12.5px; font-weight: 700; padding: 5px 10px; border: 1.5px solid #0f766e; background: #f0fdfa; color: #0f766e; border-radius: 7px; cursor: pointer; font-family: inherit; }
@@ -2470,7 +2470,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.30</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.32</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -12759,7 +12759,6 @@ function campPanelRender(){
       if (!others.length) return '<div class="cp-copy none">他に設定したパネルが無いので、コピーできるものはまだありません</div>';
       return '<div class="cp-copy"><span class="cp-copy-l">ほかのパネルからコピー</span><select class="graph-select" id="cp-src">' + others.map(k => '<option value="' + escapeHtml(k) + '">' + escapeHtml(k) + '</option>').join('') + '</select>'
         + '<button type="button" class="kwa-bulk" id="cp-copy-all" title="地の色・文言・大きさ・色・位置をそのまま持ってくる">全部コピー</button>'
-        + '<button type="button" class="kwa-bulk gray" id="cp-copy-look" title="地の色・大きさ・色・太字・位置だけ持ってくる（今の文言は残す）">デザインのみコピー（文言はそのまま）</button>'
         + '<div class="cp-copy-pv" id="cp-copy-pv"></div></div>';
     })()
     + (() => {   // v4.26：文字の配置の型
@@ -12815,11 +12814,6 @@ function campPanelRender(){
     const showPv = () => { const x = src(); if (pv) pv.innerHTML = x ? '<div class="yt-camp" style="background:' + escapeHtml(x.bg) + '">' + campPanelInner(x) + '</div>' : ''; };
     if (sel) { sel.addEventListener('change', showPv); showPv(); }
     const ba = bg.querySelector('#cp-copy-all'); if (ba) ba.addEventListener('click', () => { const x = src(); if (!x) return; _cpWork.cfg = x; campPanelRender(); toast('「' + sel.value + '」の設定をコピーしました（保存はまだ）'); });
-    const bl = bg.querySelector('#cp-copy-look'); if (bl) bl.addEventListener('click', () => {
-      const x = src(); if (!x) return; const texts = c.lines.map(l => l.t);
-      x.lines.forEach((l, i) => { l.t = i < texts.length ? texts[i] : ''; });
-      _cpWork.cfg = x; campPanelRender(); toast('見た目をコピーしました（文言は今のまま。保存はまだ）');
-    });
   }
   bg.querySelectorAll('.cp-line').forEach(row => {
     const l = c.lines[+row.dataset.i];
