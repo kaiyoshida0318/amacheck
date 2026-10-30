@@ -2371,7 +2371,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.15</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.16</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -7675,7 +7675,18 @@ function kwFitTable(){
 // ============================================
 const kwm = { prod: null, ext: null, key: null, period: 'daily', fy: 1, view2y: false, preset: '30', month: null, metric: 'all', hideChart: false, hiddenSeries: new Set(), hiddenYears: new Set(), tblYoy: false };
 let _kwmChart = null;
-const KWM_METRICS = [['all', '広告売上・広告費＆ROAS'], ['sales', '広告売上'], ['cost', '広告費'], ['roas', 'ROAS'], ['cvr', 'CVR'], ['ctr', 'CTR'], ['cpc', 'CPC'], ['clicks', 'クリック'], ['imp', '表示（インプレッション）'], ['orders', '注文'], ['bid', '入札額'], ['share', '検索結果上部のインプレッションシェア']];
+// v4.16：指標は「棒＋折れ線」の組み合わせ5つ＋1つだけ（月別で前年と重ねられる）5つ
+const KWM_COMBOS = {
+  all:     { label: '広告売上・広告費＆ROAS', bars: ['sales', 'cost'], lines: ['roas'], bid: 'y2' },   // 入札額は自分の目盛り（右端・紫）
+  c_click: { label: 'クリック＆CPC・入札額', bars: ['clicks'], lines: ['cpc'], bid: 'y1' },           // 入札額は CPC と同じ円の目盛り
+  c_ctr:   { label: '表示＆CTR', bars: ['imp'], lines: ['ctr'] },
+  c_cvr:   { label: '注文＆CVR', bars: ['orders'], lines: ['cvr'] },
+  c_share: { label: '表示＆上部シェア', bars: ['imp'], lines: ['share'] }
+};
+const KWM_SINGLES = [['roas', 'ROAS'], ['cpc', 'CPC'], ['cvr', 'CVR'], ['ctr', 'CTR'], ['bid', '入札額']];
+const KWM_METRICS = Object.keys(KWM_COMBOS).map(k => [k, KWM_COMBOS[k].label]).concat(KWM_SINGLES);
+// 前の版で選んでいた指標（広告売上だけ など）は、それを含む組み合わせへ
+function kwmNormMetric(m){ if (KWM_COMBOS[m] || KWM_SINGLES.some(x => x[0] === m)) return m; return ({ sales: 'all', cost: 'all', clicks: 'c_click', imp: 'c_ctr', orders: 'c_cvr', share: 'c_share' })[m] || 'all'; }
 const KWM_LINE = new Set(['roas', 'cvr', 'ctr', 'cpc', 'bid', 'share']);   // 折れ線（月別は年ごとに重ねる）
 const KWM_COLOR = { sales: '#2563eb', cost: '#dc2626', roas: '#1D9E75', cvr: '#7c3aed', ctr: '#0891b2', cpc: '#ea580c', clicks: '#0ea5e9', imp: '#64748b', orders: '#16a34a', bid: '#9333ea', share: '#d97706' };
 const KWM_LABEL = { sales: '広告売上', cost: '広告費', roas: 'ROAS', cvr: 'CVR', ctr: 'CTR', cpc: 'CPC', clicks: 'クリック', imp: '表示', orders: '注文', bid: '入札額', share: '上部シェア' };
@@ -7768,6 +7779,7 @@ function renderKwModal(){
   const rows = kwmRows();
   const _grp = kwmGrp();   // v3.91
   const bidOk = _grp === 'kwmatch';   // 入札額はキーワード×マッチ単位のときだけ意味がある
+  kwm.metric = kwmNormMetric(kwm.metric);   // v4.16
   if (!bidOk && kwm.metric === 'bid') kwm.metric = 'all';
   const first = rows[0] || {};
   const allDs = Array.from(new Set(rows.map(r => r.ds))).sort();
@@ -7851,16 +7863,19 @@ function renderKwModal(){
   } else {
     h += seg('kwm-fy', [['1', '1月始まり'], ['5', '5月始まり'], ['2y', '2年横並び']], kwm.view2y ? '2y' : String(kwm.fy));
   }
-  h += '<select class="kwm-select" id="kwm-metric">' + KWM_METRICS.filter(([k]) => bidOk || k !== 'bid').map(([k, l]) => '<option value="' + k + '"' + (k === kwm.metric ? ' selected' : '') + '>' + l + '</option>').join('') + '</select>';
+  { const opt = ([k, l]) => '<option value="' + k + '"' + (k === kwm.metric ? ' selected' : '') + '>' + l + '</option>';   // v4.16：組み合わせ／1つだけ を区切って
+    h += '<select class="kwm-select" id="kwm-metric"><optgroup label="組み合わせ（棒＋折れ線）">' + Object.keys(KWM_COMBOS).map(k => opt([k, KWM_COMBOS[k].label])).join('') + '</optgroup>'
+      + '<optgroup label="1つだけ（月別は前年と重ねられる）">' + KWM_SINGLES.filter(([k]) => bidOk || k !== 'bid').map(opt).join('') + '</optgroup></select>'; }
   h += '</div>';
-  const bidLineOn = kwm.metric === 'all' && bidOk && !kwm.hiddenSeries.has('bid');
-  h += '<div class="kwm-note">※ ' + (bidLineOn ? '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の階段の線</span>＝入札額（右端の紫の目盛り）。札は変えた' + (isDaily ? '日' : '月') + (changes.some(c => c.approx) ? '（<span style="color:#6b7280;font-weight:700;">灰色の札</span>＝目安：③の入札額は取得した時点の値のため、変えた日は正確でない）' : '') : '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の縦線</span>＝入札額を変えた' + (isDaily ? '日' : '月')) + (isDaily ? '／<span style="color:#c2185b;font-weight:700;">ピンクの帯</span>＝セール期間' : '') + '　ROAS の色：<span class="kw-r-hi">300%以上</span>・<span class="kw-r-mid">200〜299%</span>・<span class="kw-r-lo">199%以下</span>' + (!isDaily && labels.length && labels[labels.length - 1] === (lastDs || '').slice(0, 7) && lastDs.slice(8, 10) !== String(daysInMonth(lastDs.slice(0, 7))).padStart(2, '0') ? '　／　' + lastDs.slice(0, 7).replace('-', '/') + ' は途中の月（' + (+lastDs.slice(8, 10)) + '日まで）' : '') + '</div>';
+  const _cmb = KWM_COMBOS[kwm.metric] || null, _bidAx = (_cmb && _cmb.bid) || null;   // v4.16
+  const bidLineOn = !!_bidAx && bidOk && !kwm.hiddenSeries.has('bid');
+  h += '<div class="kwm-note">※ ' + (bidLineOn ? '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の階段の線</span>＝入札額（' + (_bidAx === 'y1' ? 'CPC と同じ右の目盛り' : '右端の紫の目盛り') + '）。札は変えた' + (isDaily ? '日' : '月') + (changes.some(c => c.approx) ? '（<span style="color:#6b7280;font-weight:700;">灰色の札</span>＝目安：③の入札額は取得した時点の値のため、変えた日は正確でない）' : '') : '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の縦線</span>＝入札額を変えた' + (isDaily ? '日' : '月')) + (isDaily ? '／<span style="color:#c2185b;font-weight:700;">ピンクの帯</span>＝セール期間' : '') + '　ROAS の色：<span class="kw-r-hi">300%以上</span>・<span class="kw-r-mid">200〜299%</span>・<span class="kw-r-lo">199%以下</span>' + (!isDaily && labels.length && labels[labels.length - 1] === (lastDs || '').slice(0, 7) && lastDs.slice(8, 10) !== String(daysInMonth(lastDs.slice(0, 7))).padStart(2, '0') ? '　／　' + lastDs.slice(0, 7).replace('-', '/') + ' は途中の月（' + (+lastDs.slice(8, 10)) + '日まで）' : '') + '</div>';
 
   // ---- 系列 ----
   let datasets = [], years = null, xLabels = dispLabels;
   const M = kwm.metric;
-  if (M === 'all') {
-    const defs = [['sales', 'bar', 'y'], ['cost', 'bar', 'y'], ['roas', 'line', 'y1']].concat(bidOk ? [['bid', 'line', 'y2']] : []);   // v3.17：入札額は自分の目盛り（右端・紫）で階段の線
+  if (_cmb) {
+    const defs = _cmb.bars.map(k => [k, 'bar', 'y']).concat(_cmb.lines.map(k => [k, 'line', 'y1'])).concat(bidOk && _bidAx ? [['bid', 'line', _bidAx]] : []);   // v4.16：組み合わせ（入札額は階段の線）
     datasets = defs.map(([k, type, ax]) => ({ key: k, type, label: KWM_LABEL[k], yAxisID: ax, data: labels.map(l => kwmVal(aggMap[l], k)),
       backgroundColor: KWM_COLOR[k] + (type === 'bar' ? 'cc' : '22'), borderColor: KWM_COLOR[k], borderWidth: type === 'line' ? (k === 'bid' ? 2.4 : 2.6) : 0, tension: k === 'bid' ? 0 : 0.3,
       stepped: k === 'bid' ? 'before' : false, borderDash: k === 'bid' ? [] : undefined, pointRadius: k === 'bid' ? 0 : 3, pointHoverRadius: k === 'bid' ? 4 : 6, spanGaps: true, order: type === 'line' ? 0 : 1, hidden: kwm.hiddenSeries.has(k) }));
@@ -7882,7 +7897,7 @@ function renderKwModal(){
 
   // ---- グラフ領域 ----
   if (!kwm.hideChart) {
-    if (M === 'all') h += '<div class="kwm-toggles">' + datasets.map(d => '<button type="button" class="kwm-tg' + (d.hidden ? ' off' : '') + '" data-s="' + d.key + '" style="--c:' + KWM_COLOR[d.key] + '"><span class="dot"></span>' + d.label + '</button>').join('') + '</div>';
+    if (_cmb) h += '<div class="kwm-toggles">' + datasets.map(d => '<button type="button" class="kwm-tg' + (d.hidden ? ' off' : '') + '" data-s="' + d.key + '" style="--c:' + KWM_COLOR[d.key] + '"><span class="dot"></span>' + d.label + '</button>').join('') + '</div>';
     if (years) h += '<div class="kwm-years">' + years.slice().reverse().map(yr => { const rec = years.length - 1 - years.indexOf(yr); const dash = GRAPH_FY_DASH[rec % GRAPH_FY_DASH.length];
       return '<button type="button" class="kwm-yr' + (kwm.hiddenYears.has(yr) ? ' off' : '') + '" data-y="' + yr + '"><svg width="30" height="8"><line x1="1" y1="4" x2="29" y2="4" stroke="' + KWM_COLOR[M] + '" stroke-width="' + (rec === 0 ? 3 : 2) + '"' + (dash.length ? ' stroke-dasharray="' + dash.join(' ') + '"' : '') + '/></svg>' + (kwm.fy === 1 ? yr + '年' : yr + '年度') + '</button>'; }).join('') + '</div>';
     h += '<div class="kwm-chart">' + (typeof Chart === 'undefined' ? '<div class="kwm-nochart">グラフの部品（Chart.js）を読み込めませんでした。ネット接続を確認して再読み込みしてください。下の表は使えます。</div>' : '<canvas id="kwm-canvas"></canvas>') + '</div>';
@@ -7890,7 +7905,7 @@ function renderKwModal(){
 
   // ---- データ表 ----
   const COLS = [['bid', '入札額'], ['imp', '表示'], ['clicks', 'クリック'], ['ctr', 'CTR'], ['cpc', 'CPC'], ['cost', '広告費'], ['orders', '注文'], ['sales', '売上'], ['cvr', 'CVR'], ['roas', 'ROAS'], ['share', '上部シェア']].filter(([k]) => bidOk || k !== 'bid');
-  const hot = new Set(M === 'all' ? ['sales', 'cost', 'roas'] : [M]);
+  const hot = new Set(_cmb ? _cmb.bars.concat(_cmb.lines) : [M]);
   const cell = (a, k) => { const v = kwmVal(a, k); const cls = (hot.has(k) ? ' hot' : '') + (k === 'roas' && v != null ? ' ' + kwCls(kwJudgeOf(v / 100)) : ''); return '<td class="num' + cls + '">' + (a ? kwmFmt(k, v) : '—') + '</td>'; };
   h += '<div class="kwm-tblhead">📋 ' + (isDaily ? '日別' : '月別') + 'データ' + (!isDaily ? '<div class="kwm-seg sm" id="kwm-yoy"><button type="button" data-v="0" class="' + (!kwm.tblYoy ? 'on blue' : '') + '">通常</button><button type="button" data-v="1" class="' + (kwm.tblYoy ? 'on blue' : '') + '">前年同月比</button></div>' : '')
     + '</div>';   // v3.22：「グラフを隠す」は廃止（下へスクロールすると、この見出しと表の列名が上で止まる）
@@ -7985,12 +8000,12 @@ function renderKwModal(){
   const tickCb = (k) => (v) => kwmUnit(k) === 'yen' ? '¥' + Math.round(v).toLocaleString() : (kwmUnit(k) === 'pct' ? (Math.abs(v) < 10 && v % 1 ? v.toFixed(1) : Math.round(v)) + '%' : (v % 1 ? '' : Math.round(v).toLocaleString()));
   const scales = {
     x: { grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 13 }, autoSkip: true, maxRotation: 0 } },
-    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 13 }, callback: tickCb(M === 'all' ? 'sales' : M) } }
+    y: { beginAtZero: true, grid: { color: 'rgba(0,0,0,0.06)' }, ticks: { color: '#718096', font: { size: 13 }, callback: tickCb(_cmb ? _cmb.bars[0] : M) } }
   };
   if (M === 'roas') scales.y.suggestedMax = 300;   // ROAS は 0〜300% を最低限の目盛りに（3色の境目が見える）
-  if (M === 'all') scales.y1 = { beginAtZero: true, suggestedMax: 300, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: KWM_COLOR.roas, font: { size: 13 }, callback: tickCb('roas') } };
-  const bidLine = M === 'all' && bidOk && !kwm.hiddenSeries.has('bid');
-  if (M === 'all' && bidOk) {   // v3.17：入札額の目盛り。売上（数万円）と同じ目盛りだと一番下を這うので、入札額の幅に合わせる（変化が見える）
+  if (_cmb) { const lk = _cmb.lines[0]; scales.y1 = { beginAtZero: true, position: 'right', grid: { drawOnChartArea: false }, ticks: { color: KWM_COLOR[lk], font: { size: 13 }, callback: tickCb(lk) } }; if (lk === 'roas') scales.y1.suggestedMax = 300; }
+  const bidLine = !!_bidAx && bidOk && !kwm.hiddenSeries.has('bid');
+  if (_bidAx === 'y2' && bidOk) {   // v3.17：入札額の目盛り。売上（数万円）と同じ目盛りだと一番下を這うので、入札額の幅に合わせる（変化が見える）
     const bv = datasets.find(d => d.key === 'bid').data.filter(v => v != null);
     const lo = bv.length ? Math.min.apply(null, bv) : 0, hi = bv.length ? Math.max.apply(null, bv) : 100, pad = Math.max(10, (hi - lo) * 0.25);
     scales.y2 = { display: bidLine, position: 'right', min: Math.max(0, Math.floor((lo - pad * 2) / 10) * 10), max: Math.ceil((hi + pad) / 10) * 10, grid: { drawOnChartArea: false },
@@ -8046,8 +8061,8 @@ function renderKwModal(){
       afterDatasetsDraw(chart){    // 入札額の変更：縦線＋バッジ（上下2段で交互）
         if (overlay || !changes.length) return;
         const { ctx, chartArea: ca, scales: { x } } = chart;
-        if (bidLine && chart.scales.y2) {   // v3.17：入札額の線を出している時は、縦線はやめて、変えた所に小さな札だけ
-          const y2 = chart.scales.y2; ctx.save(); ctx.font = 'bold 12px sans-serif'; ctx.textBaseline = 'middle';
+        if (bidLine && chart.scales[_bidAx]) {   // v3.17：入札額の線を出している時は、縦線はやめて、変えた所に小さな札だけ
+          const y2 = chart.scales[_bidAx]; ctx.save(); ctx.font = 'bold 12px sans-serif'; ctx.textBaseline = 'middle';
           changes.forEach(c => {
             const px = x.getPixelForValue(c.i), py = y2.getPixelForValue(c.to), col = c.approx ? '#9ca3af' : KWM_BID_COLOR;
             ctx.fillStyle = col; ctx.beginPath(); ctx.arc(px, py, 4, 0, Math.PI * 2); ctx.fill();
