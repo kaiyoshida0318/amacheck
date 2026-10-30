@@ -776,7 +776,7 @@
   .gt-sort:hover { background: var(--bg-secondary); border-color: var(--blue); color: var(--blue); }
   .graph-table th:first-child, .graph-table td:first-child { text-align: left; }
   .graph-table .yr-sub { text-align: left; color: var(--text-tertiary); font-weight: 600; }
-  .graph-table thead th { background: var(--bg-secondary); font-weight: 700; position: sticky; top: 0; z-index: 2; font-size: 15px; }
+  .graph-table thead th { background: var(--bg-secondary); font-weight: 700; position: sticky; top: calc(var(--chrome-h, 0px) / var(--pz, 1)); z-index: 2; font-size: 15px; }   /* v4.53：画面の上に残るヘッダー・タブのすぐ下で止まる */
   .graph-table tbody tr:nth-child(even) { background: rgba(37,99,235,0.03); }
   .graph-table tbody tr.grp-recent { background: rgba(37,99,235,0.08); }
   .graph-table tbody tr.grp-recent-end td { border-bottom: 2px solid var(--blue); }
@@ -2301,7 +2301,9 @@
   .kwh-chip.unk { border-color: #f59e0b; }
   .kwh-src { font-size: 12px; color: var(--text-tertiary); }
   .kwh-src a { color: var(--purple); }
-  .adkw-hide-btns { position: absolute; right: 16px; z-index: 40; display: flex; flex-direction: column; align-items: stretch; gap: 3px; }
+  /* v4.53：ヘッダーとタブは画面の上に残す。高さは --chrome-h（JS で測る） */
+  #top-chrome { position: sticky; top: 0; z-index: 60; background: var(--bg); }
+  .adkw-hide-btns { position: fixed; right: 16px; z-index: 70; display: flex; flex-direction: column; align-items: stretch; gap: 3px; }
   .adkw-hide-btns[hidden] { display: none; }
   .adkw-hide-btns button { justify-content: center; white-space: nowrap; padding: 2px 8px !important; line-height: 1.25; font-size: 11px !important; border-radius: 5px; }   /* v3.60：できるだけ小さく */
   .adkw-hide-btns button[hidden] { display: none; }
@@ -2499,6 +2501,8 @@
     <symbol id="i-copy" viewBox="0 0 24 24"><path d="M8 8m0 2a2 2 0 0 1 2 -2h8a2 2 0 0 1 2 2v8a2 2 0 0 1 -2 2h-8a2 2 0 0 1 -2 -2z"/><path d="M16 8v-2a2 2 0 0 0 -2 -2h-8a2 2 0 0 0 -2 2v8a2 2 0 0 0 2 2h2"/></symbol>
   </defs>
 </svg>
+<!-- v4.53：ヘッダーとタブ（【状態】の行まで）は、ページをスクロールしても画面の上に残す（#top-chrome） -->
+<div id="top-chrome">
 <!-- ヘッダー行（ロゴ + バージョン + 文字サイズ） -->
 <header class="page-header">
   <div class="logo" id="logo-home" title="クリック：全-月別データへ ／ Ctrl(⌘)+クリック：新しいタブで開く">
@@ -2507,7 +2511,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.52</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.53</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -2618,6 +2622,7 @@
     <button class="tab" data-tab="stunset">選択前■<span class="count" id="cnt-stunset"></span></button>
   </div>
 </nav>
+</div><!-- /#top-chrome -->
 <!-- v3.71：全ページ共通の「ヘッダーを隠す」（KW-日月別データでは「ヘッダー2まで隠す」も）。位置は kwPlaceHideBtns -->
 <div class="adkw-hide-btns" id="adkw-hide-btns" hidden>
   <button type="button" class="utility toggle-header-btn" id="toggle-header-adkw" title="ヘッダーとタブを非表示にして表を広く" style="font-size:12px;">ヘッダーを隠す</button>
@@ -4365,6 +4370,9 @@ function init(){
   switchView((_hv || 'ad'), true);
 }
 
+// v4.53：画面の上に残すヘッダー＋タブの高さを --chrome-h に（ページのスクロールで上に貼り付く表の見出しは、この下に貼り付く）
+function chromeHeightSync(){ const c = document.getElementById('top-chrome'); if (!c) return; const h = document.body.classList.contains('header-hidden') ? 0 : Math.round(c.getBoundingClientRect().height); document.documentElement.style.setProperty('--chrome-h', h + 'px'); }
+try { const _c = document.getElementById('top-chrome'); if (_c && 'ResizeObserver' in window) new ResizeObserver(() => { chromeHeightSync(); try { kwPlaceHideBtns(); } catch (e) {} }).observe(_c); } catch (e) {}
 function switchView(name, fromPop){
   try { setTimeout(updateImportBadges, 0); } catch (e) {}
   // home はマスタにリダイレクト
@@ -7880,8 +7888,8 @@ function kwPlaceHideBtns(){
   const row = document.querySelector('.tabs .tab-row');
   let top = 8;
   const t1 = row && row.querySelector('.tab');   // v3.79：タブの行が2行になったので、1行目の高さの真ん中に合わせる
-  if (t1) { const r = t1.getBoundingClientRect(); top = r.top + window.scrollY + (r.height - box.offsetHeight) / 2; }
-  else if (row) { const r = row.getBoundingClientRect(); top = r.top + window.scrollY + (r.height - box.offsetHeight) / 2; }
+  if (t1) { const r = t1.getBoundingClientRect(); top = r.top + (r.height - box.offsetHeight) / 2; }   // v4.53：タブは画面の上に残るので、画面の座標（fixed）で置く
+  else if (row) { const r = row.getBoundingClientRect(); top = r.top + (r.height - box.offsetHeight) / 2; }
   box.style.top = Math.round(top) + 'px';
 }
 // 隠しているときは、表の下端を画面の下まで伸ばす（ページの表示倍率 zoom を考慮）
