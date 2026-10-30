@@ -1591,6 +1591,15 @@
   table.ps-table th.ps-gcol .ps-gbtn { padding: 2px 0; width: 28px; font-size: 10.5px; border-radius: 6px; margin: 0 auto 8px; display: block; }
   table.ps-table .ps-gvt { writing-mode: vertical-rl; font-size: 12.5px; margin: 0 auto; letter-spacing: 2px; }
   table.ps-table td.ps-gcol-td { padding: 0; }
+  /* v4.59：全-月別／全-日別データの「隠す」（商品-売上データと同じ見た目） */
+  table.ad-table th.ps-ghead { position: sticky; }
+  table.ad-table th.ps-ghead .ps-gbtn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
+  table.ad-table .ps-gbtn { font-family: inherit; font-size: 11px; font-weight: 700; padding: 2px 9px; border-radius: 999px; border: 1px solid rgba(255,255,255,.8); background: rgba(255,255,255,.18); color: #fff; cursor: pointer; line-height: 1.4; }
+  table.ad-table .ps-gbtn:hover { background: #fff; color: #0f172a; }
+  table.ad-table th.ps-gcol { padding: 6px 0; vertical-align: top; text-align: center !important; }
+  table.ad-table th.ps-gcol .ps-gbtn { padding: 2px 0; width: 28px; font-size: 10.5px; border-radius: 6px; margin: 0 auto 8px; display: block; }
+  table.ad-table .ps-gvt { writing-mode: vertical-rl; font-size: 12.5px; margin: 0 auto; letter-spacing: 2px; }
+  table.ad-table td.ps-gcol-td { padding: 0; }
   table.ps-table .ps-na { color: #c0c4cc; }
   table.ps-table td.ps-tight .ps-v { font-size: 0.86em; letter-spacing: -0.07em; }   /* v3.63：列からはみ出すセルだけ（v3.64 でフォントは元に戻したが、これは残す） */
   /* v3.62：配賦で全商品同じ ROAS の列（見出しに1つ、行は「共通」） */
@@ -2518,7 +2527,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.58</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.59</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -9791,6 +9800,44 @@ function saveGlobalChangeLog(){
 }
 
 // v3.71：全-月別データは年・キャンペーンを選ばない（全部の月・全キャンペーン）。日別のキャンペーンの選択はそのまま残す
+// v4.59：全-月別／全-日別データの 全体・SP・SB を「隠す」（商品-売上データと同じ。隠したグループは細い縦の帯になり、残りの列が広く・文字が少し大きくなる）
+let adGrpHidden = (() => { try { return new Set(JSON.parse(localStorage.getItem('amacheck_ad_grp') || '[]')); } catch (e) { return new Set(); } })();
+function adToggleGroup(g){ if (adGrpHidden.has(g)) adGrpHidden.delete(g); else adGrpHidden.add(g); try { localStorage.setItem('amacheck_ad_grp', JSON.stringify(Array.from(adGrpHidden))); } catch (e) {} renderAdTable(); }
+const AD_GRP = { sales: { re: /\badc-sales\b/, hdr: 'adg-sales', label: '全体', vt: '全体', tint: 'adc-sales', cols: [1, 7] },
+                 sp: { re: /\badc-sp\b/, hdr: 'adg-sp', label: 'スポンサープロダクト広告', vt: 'SP', tint: 'adc-sp', cols: [7, 16] },
+                 sb: { re: /\badc-sb\b/, hdr: 'adg-sb', label: 'スポンサーブランド広告', vt: 'SB', tint: 'adc-sb', cols: [16, 25] } };
+function adApplyGroupHide(body){
+  const tbl = body.querySelector('table.ad-table'); if (!tbl) return;
+  const bind = () => tbl.querySelectorAll('.ps-gbtn[data-adg]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); adToggleGroup(b.dataset.adg); }));
+  const hid = Object.keys(AD_GRP).filter(g => adGrpHidden.has(g));
+  if (!hid.length) { bind(); return; }
+  // 列の幅（colgroup）：隠したグループは 34px の1列、残りは％を広げて表の幅いっぱいに
+  const cols = Array.from(tbl.querySelectorAll('colgroup col'));
+  const BASE = { 'col-yen-lg': 4.75, 'col-yen': 4.5, 'col-roas': 3.0 };
+  let visSum = 0; cols.forEach((c, i) => { const g = Object.keys(AD_GRP).find(k => i >= AD_GRP[k].cols[0] && i < AD_GRP[k].cols[1]); if (g && !adGrpHidden.has(g)) visSum += BASE[c.className] || 0; });
+  const scale = visSum > 0 ? (97 - 1.9 * hid.length) / visSum : 1;
+  cols.forEach((c, i) => {
+    const g = Object.keys(AD_GRP).find(k => i >= AD_GRP[k].cols[0] && i < AD_GRP[k].cols[1]); if (!g) return;
+    if (adGrpHidden.has(g)) { if (i === AD_GRP[g].cols[0]) { c.className = 'col-gstrip'; c.style.width = '34px'; } else c.remove(); }
+    else c.style.width = ((BASE[c.className] || 0) * scale).toFixed(3) + '%';
+  });
+  // 行：見出しの1段目は帯の th（rowspan 3）、2・3段目はそのグループの th を消す。中身の行は最初のセルを空の帯にして、残りを消す
+  const head = tbl.tHead ? Array.from(tbl.tHead.rows) : [];
+  hid.forEach(g => {
+    const G = AD_GRP[g];
+    head.forEach((tr, ri) => {
+      if (ri === 0) { const th = tr.querySelector('th.' + G.hdr); if (th) { th.outerHTML = '<th rowspan="3" class="adg ' + G.hdr + ' ps-gcol" title="' + G.label + '（隠しています）"><button type="button" class="ps-gbtn" data-adg="' + g + '" title="' + G.label + 'を表示">表示</button><div class="ps-gvt">' + G.vt + '</div></th>'; } return; }
+      Array.from(tr.cells).forEach(c => { if (G.re.test(c.className)) c.remove(); });
+    });
+    Array.from(tbl.tBodies).forEach(tb => Array.from(tb.rows).forEach(tr => {
+      const cs = Array.from(tr.cells).filter(c => G.re.test(c.className));
+      if (!cs.length) { const one = tr.cells.length === 1 ? tr.cells[0] : null; if (one && one.colSpan > 1) one.colSpan = Math.max(1, one.colSpan - (G.cols[1] - G.cols[0] - 1)); return; }
+      cs.forEach((c, k) => { if (k === 0) { c.className = 'ps-gcol-td ' + G.tint + ' adc-gstart'; c.innerHTML = ''; c.removeAttribute('style'); } else c.remove(); });
+    }));
+  });
+  if (scale > 1) tbl.style.fontSize = Math.min(17, Math.round(14 * Math.min(scale, 1.25) * 2) / 2) + 'px';
+  bind();
+}
 function renderAdTable(){
   const sv = adProduct;
   if (adPeriod === 'monthly') adProduct = 'all';
@@ -9886,9 +9933,9 @@ function renderAdTableCore(){
     + '<thead>'
     + '<tr>'
     + '<th rowspan="3" class="ad-daycol">' + (adPeriod === 'monthly' ? ('月' + (dayCut ? '<br><span class="ad-daycut-lbl">1〜' + dayCut + '日</span>' : '')) : (adPeriod === 'last2m' ? '日付' : '日')) + '</th>'
-    + '<th colspan="6" class="adg adg-sales">全体</th>'
-    + '<th colspan="9" class="adg adg-sp"><span class="ps-gtag sp">SP</span>スポンサープロダクト広告</th>'   // v4.11：商品-売上データと同じ札
-    + '<th colspan="9" class="adg adg-sb"><span class="ps-gtag sb">SB</span>スポンサーブランド広告</th>'
+    + '<th colspan="6" class="adg adg-sales ps-ghead">全体<button type="button" class="ps-gbtn" data-adg="sales" title="全体を隠す（その分、残りの列が広くなります）">隠す</button></th>'   // v4.59：商品-売上データと同じ「隠す」
+    + '<th colspan="9" class="adg adg-sp ps-ghead"><span class="ps-gtag sp">SP</span>スポンサープロダクト広告<button type="button" class="ps-gbtn" data-adg="sp" title="スポンサープロダクト広告を隠す（その分、残りの列が広くなります）">隠す</button></th>'   // v4.11：商品-売上データと同じ札
+    + '<th colspan="9" class="adg adg-sb ps-ghead"><span class="ps-gtag sb">SB</span>スポンサーブランド広告<button type="button" class="ps-gbtn" data-adg="sb" title="スポンサーブランド広告を隠す（その分、残りの列が広くなります）">隠す</button></th>'
     + '</tr>'
     + '<tr>'
     + '<th rowspan="2" class="adh adc-sales adc-gstart">推計総売上</th>'
@@ -10043,6 +10090,7 @@ function renderAdTableCore(){
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
+  adApplyGroupHide(body);   // v4.59
   body.querySelectorAll('.ad-seo-it').forEach(el => el.addEventListener('click', () => openProductModal(el.dataset.fnsku, 'info')));   // v3.73
   if (document.body.classList.contains('header-hidden')) adjustHiddenTableHeight();
 }
