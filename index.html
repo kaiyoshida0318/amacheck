@@ -86,7 +86,9 @@
   button.utility:hover { background: var(--teal-hover); color: #fff; border-color: var(--teal-hover); }
   /* v4.47：説明を開くだけのボタン（操作ボタンと見分ける）：地なし・点線の枠・灰色の文字・丸い形 */
   button.help-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px dashed #b8c0cc; color: #64748b; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; white-space: nowrap; }
-  button.help-btn .icn { color: #2563eb; font-size: 14px; }
+  /* v4.55：先頭の ⓘ をやめ、末尾に表の見出しと同じ黄色い丸の「?」（.kw-help.kw-qs と同じ見た目） */
+  button.help-btn .help-q { display: inline-flex; align-items: center; justify-content: center; width: 17px; height: 17px; min-width: 17px; margin-left: 2px; border-radius: 50%; border: 1.5px solid #eab308; background: #facc15; color: #422006; font-size: 11px; font-weight: 900; line-height: 1; box-sizing: border-box; }
+  button.help-btn:hover .help-q { background: #eab308; border-color: #ca8a04; }
   button.help-btn:hover { background: #eff6ff; border-color: #93c5fd; color: #1e40af; }
   /* 「この月を確定」は未確定時グレー（確定済み時はアンバーのまま） */
   #ad-close-toggle:not(.is-closed) { background: #6b7280; color: #fff; border-color: #6b7280; }
@@ -2511,7 +2513,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.53</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.55</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -2770,7 +2772,7 @@
         <button type="button" class="ad-cl-edit" id="ad-cl-edit" title="変更記録（ショップ全体）を追加・編集">📝 変更記録編集</button>
       </span>
       <span class="adg-tip" data-tip="説明を見る">
-        <button type="button" class="help-btn" id="open-ad-guide" title="説明を見るだけ（データは変わりません）"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button>
+        <button type="button" class="help-btn" id="open-ad-guide" title="説明を見るだけ（データは変わりません）">広告の種類と説明<span class="help-q" aria-hidden="true">?</span></button>
       </span>
       <button class="utility" id="open-ad-recon" style="font-size:12px;" title="月ごとに、月末データ（B）と日別の広告データ（①）・KWデータ（③）の広告費を比べます"><svg class="icn"><use href="#i-check"/></svg> 月末データと照合</button>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
@@ -3394,7 +3396,7 @@
               <li><span class="psh-sb">SB</span> 複数の商品をまとめて宣伝するので、宣伝商品が1つに決まりません → <b>どの商品の行にも入れません</b>（商品群の共通費）。</li>
             </ul>
             <div class="psh-good">◎ 向いていること：実際にどの商品へ広告のお金をかけているか、をそのまま見る</div>
-            <div class="psh-warn">⚠️ SMLセットの広告から<b>他の商品が売れた分（Halo）</b>は、他の商品の行に入ります。なので SMLセットの ROAS は低めに見え、他の商品は広告費が0（売上ROAS・ROAS が「—」）になります。</div>
+            <div class="psh-warn">⚠️ SMLセットの広告から<b>他の商品が売れた分（Halo）</b>は、他の商品の行に入ります。なので SMLセットの ROAS は低めに見え、他の商品は広告費が0（売上ROAS★・ROAS が「—」）になります。</div>
           </div>
           <div class="psh-card psh-alloc">
             <div class="psh-ct"><span class="psh-tag" style="background:#0f766e;">売上比で分ける</span>売れた割合で割り振る（最初の表示）</div>
@@ -3404,7 +3406,7 @@
               <div class="psh-bar"><span style="width:75%;background:#7c3aed;">SMLセット 売上 ¥300,000（75%）</span><span style="width:25%;background:#a78bfa;">S単品 25%</span></div>
               <div class="psh-ex-r">S単品の売上は ¥100,000 → SMLセットに <b>¥75,000</b>、S単品に <b>¥25,000</b> を割り当て</div>
             </div>
-            <div class="psh-good">◎ 向いていること：商品ごとの<b>だいたいの</b>広告費・売上ROAS・利益を見る</div>
+            <div class="psh-good">◎ 向いていること：商品ごとの<b>だいたいの</b>広告費・売上ROAS★・利益を見る</div>
             <div class="psh-warn">⚠️ 売上の比率で割るので、<b>同じキャンペーンの中ではどの商品も ROAS が同じ</b>になります（例では2つとも 400%）。SP・SB の各ブロック（KW・商品・動画・商品コレ）の ROAS は商品どうしの比較には使えません。あくまで<b>参考</b>の数字です。</div>
           </div>
         </div>
@@ -3414,7 +3416,7 @@
           <tr><td><b>SP の広告費</b></td><td>全額 SMLセット</td><td>SP 経由で売れた商品に、売上の比率で</td></tr>
           <tr><td><b>SB の広告費</b></td><td>商品には入れない（共通費）</td><td>SB 経由で売れた商品に、売上の比率で</td></tr>
           <tr><td><b>SMLセットの ROAS</b></td><td>低めに出る（Halo の売上が他の行へ）</td><td>キャンペーン全体の ROAS に近くなる</td></tr>
-          <tr><td><b>他の商品の売上ROAS</b></td><td>「—」（広告費が0のため）</td><td>出る（参考）</td></tr>
+          <tr><td><b>他の商品の売上ROAS★</b></td><td>「—」（広告費が0のため）</td><td>出る（参考）</td></tr>
           <tr><td><b>広告売上・推計総売上・SEO売上</b></td><td colspan="2" style="text-align:center;">どちらも同じ（変わるのは広告費と ROAS だけ）</td></tr>
         </tbody></table>
         <p class="adg-p" style="margin-top:8px;">広告費の元は ① 広告データ（キャンペーン別・日別）です。キャンペーン別の数字が保存されていない日は、① の種類別（KW・商品・オート・動画・商品コレ）の合計で割り当てます。</p>
@@ -9885,7 +9887,7 @@ function renderAdTableCore(){
     + '</tr>'
     + '<tr>'
     + '<th rowspan="2" class="adh adc-sales adc-gstart">推計総売上</th>'
-    + '<th rowspan="2" class="adh adc-sales ad-roas" title="推計総売上 ÷ 広告費">売上<br>ROAS</th>'   // v4.43
+    + '<th rowspan="2" class="adh adc-sales ad-roas" title="売上ROAS★＝推計総売上 ÷ 広告費" style="line-height:1.2">売上<br>ROAS<br>★</th>'   // v4.43
     + '<th rowspan="2" class="adh adc-sales-l1">SEO売上</th>'
     + '<th rowspan="2" class="adh adc-sales-l2">広告売上</th>'
     + '<th rowspan="2" class="adh adc-sales-l3">広告費</th>'
@@ -10142,7 +10144,7 @@ const PS_BLOCKS = [
   { g: 'all', label: '全体', cls: 'adg-sales', cols: [
     // v4.28：出荷数の列はなくした（r.ship は全-比較などで使うので計算は残す）
     { k: 'total', label: '推計\n総売上', w: 86, cls: 'adc-sales', t: 'yen', tip: '出荷数 × 販売価格（セール中はセール価格）' },
-    { k: 'sroas', label: '売上\nROAS', w: 62, cls: 'adc-sales-l1', t: 'sroas', tip: '推計総売上 ÷ 広告費' },
+    { k: 'sroas', label: '売上\nROAS\n★', w: 62, cls: 'adc-sales-l1', t: 'sroas', tip: '推計総売上 ÷ 広告費' },
     { k: 'seo', label: 'SEO売上', w: 86, cls: 'adc-sales-l1', t: 'yen', pct: 'seoP', tip: '推計総売上 − 広告売上（推計。0未満は0）。下の％は SEO売上と広告売上の割合' },
     { k: 'ad', label: '広告売上', w: 86, cls: 'adc-sales-l2', t: 'yen', pct: 'adP', tip: 'この商品が買われた広告売上（SP・SB の合計。宣伝商品＋Halo）' },
     { k: 'cost', label: '広告費', w: 78, cls: 'adc-sales-l3', t: 'cost', tip: '広告費（宣伝商品に全額／売上比で分けるの切り替えで変わる）' },
@@ -10360,9 +10362,9 @@ function renderPsalesView(){
   document.querySelectorAll('#ps-costmode button').forEach(b => b.classList.toggle('on', b.dataset.v === psCostMode));
   // 売上ROASの絞り込みボタン
   const fb = document.getElementById('ps-filter');
-  if (fb) fb.innerHTML = '<span class="ps-flbl">売上ROAS</span>' + PS_SROAS_CATS.map(c => { const on = psFilter === c[0];
-      return '<button type="button" data-cat="' + c[0] + '" title="売上ROAS ' + c[1] + ' の商品だけ" style="border-color:' + c[2] + ';background:' + (on ? c[2] : 'transparent') + ';color:' + (on ? '#fff' : c[2]) + '">' + c[1] + '</button>'; }).join('')
-    + (psFilter ? '<button type="button" class="ps-clear on" data-cat="x" title="売上ROASの絞り込みを解除">✕ 解除</button>' : '<button type="button" class="ps-clear" disabled title="絞り込みしていません">✕ 解除</button>');
+  if (fb) fb.innerHTML = '<span class="ps-flbl">売上ROAS★</span>' + PS_SROAS_CATS.map(c => { const on = psFilter === c[0];
+      return '<button type="button" data-cat="' + c[0] + '" title="売上ROAS★ ' + c[1] + ' の商品だけ" style="border-color:' + c[2] + ';background:' + (on ? c[2] : 'transparent') + ';color:' + (on ? '#fff' : c[2]) + '">' + c[1] + '</button>'; }).join('')
+    + (psFilter ? '<button type="button" class="ps-clear on" data-cat="x" title="売上ROAS★の絞り込みを解除">✕ 解除</button>' : '<button type="button" class="ps-clear" disabled title="絞り込みしていません">✕ 解除</button>');
   // v4.28：【状態】のタブで開いているときは、左端に区分の札
   const stt = document.getElementById('ps-sttag');
   if (stt) { stt.hidden = !psKubun; if (psKubun) { const k = psKubun; stt.textContent = '【状態】' + (k === 'all' ? '全体' : KUBUN_LABELS[k]); stt.style.background = k === 'all' || k === 'unset' ? '#9333ea' : KUBUN_COLORS[k]; } }
@@ -10427,7 +10429,7 @@ function renderPsalesTable(){
   cols.forEach(c => { let G = groups[groups.length - 1]; if (!G || G.g !== c.g) { G = { g: c.g, cls: c.gcls, n: 0, label: PS_BLOCKS[c.gi].label, blocks: [] }; groups.push(G); } G.n++; if (c.b) { let B = G.blocks[G.blocks.length - 1]; if (!B || B.b !== c.b) { B = { b: c.b, label: c.blabel, cls: c.cls, n: 0 }; G.blocks.push(B); } B.n++; } });
   const sortCls = k => psSortKey === k ? (psSortDir === 'desc' ? ' ps-sort-desc' : ' ps-sort-asc') : '';
   const imgW = psW('img', 40), nameW = psW('name', 170), nameA = psA('name', 'left'), nameL = psColw.l_name || '商品名';
-  const kbW = psW('kubun', 76), kbA = psA('kubun', 'center'), kbL = psColw.l_kubun || '区分';   // v4.28：区分の列（商品名の右・横にスクロールしても残る）
+  const kbW = psW('kubun', 54), kbA = psA('kubun', 'center'), kbL = psColw.l_kubun || '区分';   // v4.28：区分の列（商品名の右・横にスクロールしても残る）
   const stick2 = 'left:' + (imgW + nameW) + 'px;';
   let cg = '<colgroup><col style="width:' + imgW + 'px"><col style="width:' + nameW + 'px"><col style="width:' + kbW + 'px">' + segs.map(sg => sg.col ? '<col style="width:' + GCOL_W + 'px">' : sg.cols.map(c => '<col style="width:' + c.w + 'px">').join('')).join('') + '</colgroup>';
   const stick1 = 'left:' + imgW + 'px;';
@@ -10530,7 +10532,7 @@ function psRenderColPanel(){
   let h = '<div class="ps-cp-head"><b>項目調整</b><span class="ps-cp-note">幅（px）・揃え・見出し名を変えられます。すぐ表に反映し、このブラウザに保存します</span>'
     + '<button type="button" class="ghost" id="ps-cp-reset" title="幅・揃え・見出し名・表示をすべて最初の状態に戻す">初期値に戻す</button><button type="button" class="ghost" id="ps-cp-close">閉じる</button></div>'
     + '<div class="ps-cp-scroll"><table class="ps-cp-table"><thead><tr><th>表示</th><th>グループ</th><th>見出し名</th><th>幅（px）</th><th>揃え</th></tr></thead><tbody>';
-  h += row('img', '商品', '画像', 40, 'center', false) + row('name', '商品', '商品名', 170, 'left', false) + row('kubun', '商品', '区分', 76, 'center', false);
+  h += row('img', '商品', '画像', 40, 'center', false) + row('name', '商品', '商品名', 170, 'left', false) + row('kubun', '商品', '区分', 54, 'center', false);
   PS_BLOCKS.forEach(G => cols.filter(c => c.g === G.g).forEach(c => { h += row(c.k, (G.g === 'all' ? '全体' : (G.g === 'sp' ? 'SP' : 'SB') + '・' + c.blabel), c.label, c.w, 'right', true); }));
   box.innerHTML = h + '</tbody></table></div>';
   const redraw = () => { psSaveColw(); renderPsalesTable(); };
@@ -11651,7 +11653,7 @@ const PM_CATS = {
     { key: 'roasSpShohin', label: 'SP-商品', color: CCF.roas.spSh },
     { key: 'roasSbDouga', label: 'SB-動画', color: CCF.roas.sbDg },
     { key: 'roasSbShokore', label: 'SB-商品コレ', color: CCF.roas.sbSk },
-    { key: 'sroas', label: '売上ROAS', color: CC.salesRoas },
+    { key: 'sroas', label: '売上ROAS★', color: CC.salesRoas },
   ] },
   units: { label: '広告-個数', yen: false, bar: true, items: GRAPH_CATEGORIES.units.items },
   adBreak: { label: '広告売上の内訳(宣伝商品/Halo)', yen: true, bar: true, items: [
@@ -12554,11 +12556,11 @@ const KWMM_GRP_ITEMS = [
   ['売上/1日', v => kwmmDiv(v.total, v.n), 'yen', 'sales', { cc: CC.tot }], ['SEO売上/1日', v => kwmmDiv(v.seo, v.n), 'yen', 'sales', { pct: v => kwmmDiv(v.seo, v.total), pc: CC.seo, cc: CC.seo }],
   ['広告売上/1日', v => kwmmDiv(v.ad, v.n), 'yen', 'sales', { pct: v => kwmmDiv(v.ad, v.total), pc: CC.ad, cc: CC.ad }],
   ['広告費（全キャンペーン）', v => v.cost, 'yen', 'cost'],
-  ['売上ROAS', v => { const x = kwmmDiv(v.total, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', { cc: CC.salesRoas }],
+  ['売上ROAS★', v => { const x = kwmmDiv(v.total, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', { cc: CC.salesRoas }],
   ['ROAS/全体', v => { const x = kwmmDiv(v.ad, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', { cc: CC.roas }],
   ['出荷数', v => v.ship, 'num', 'ship'], ['出荷数/1日', v => kwmmDiv(v.ship, v.n), 'num1', 'ship', { cc: CC.orders }]
 ];
-const KWMM_GRP_CHARTS = ['売上/1日', 'SEO売上/1日', '広告売上/1日', '売上ROAS', 'ROAS/全体', '出荷数/1日'];
+const KWMM_GRP_CHARTS = ['売上/1日', 'SEO売上/1日', '広告売上/1日', '売上ROAS★', 'ROAS/全体', '出荷数/1日'];
 const KWMM_SUBTYPE = { kw: 'KW', shohin: '商品', auto: 'オート', douga: '動画', shokore: '商品コレ' };
 let kwmmCamp = '__ALL__', kwmmOpenProd = {};
 // 宣伝している商品の合計（商品-売上データと同じ計算を足す）
@@ -12654,7 +12656,7 @@ function renderKwWTrendView(){
         pr.forEach(x => { x.t = x.vs.reduce((s, v) => s + (v.none ? 0 : (v.total || 0)), 0); });
         pr.sort((a, b) => b.t - a.t);
         pr.forEach((x, i) => {
-          tb += '<tr' + (i === 0 ? ' class="kwmm-bstart"' : '') + '>' + (i === 0 ? '<td class="kwmm-left" rowspan="' + pr.length + '"><div class="kwmm-ln">商品ごと</div><div class="kwmm-ls">売上（推計総売上）／売上ROAS</div></td>' : '')
+          tb += '<tr' + (i === 0 ? ' class="kwmm-bstart"' : '') + '>' + (i === 0 ? '<td class="kwmm-left" rowspan="' + pr.length + '"><div class="kwmm-ln">商品ごと</div><div class="kwmm-ls">売上（推計総売上）／売上ROAS★</div></td>' : '')
             + '<td class="kwmm-dot"></td><td class="kwmm-item kwmm-pname" style="background:' + KWMM_COL.sales2[0] + '" title="' + escapeHtml(x.p.name || '') + '">' + escapeHtml(x.p.name || x.p.asin) + '</td>'
             + x.vs.map(v => { const sr = v.none ? null : kwmmDiv(v.total, v.cost); return '<td class="kwmm-v" style="background:' + KWMM_COL.sales2[1] + '">' + (v.none ? '-' : kwmmFmt('yen', v.total) + '<div class="kwmm-v2 ' + kwCls(kwJudgeOf(sr)) + '">' + (sr == null ? '-' : Math.round(sr * 100) + '%') + '</div>') + '</td>'; }).join('')
             + (i === 0 ? '<td class="kwmm-graphs" rowspan="' + pr.length + '"></td>' : '') + '</tr>';
@@ -12746,7 +12748,7 @@ function renderTrendView(){
   const grp = (c, l, n) => '<th colspan="' + n + '" class="tr-g" style="color:' + c + '">' + l + '</th>';
   const sub = '<th class="tr-s tr-gs">累積</th><th class="tr-s">日別</th>', subA = '<th class="tr-s">広告費</th><th class="tr-s">月内%</th>';
   h += '<div class="trend-tblwrap"><table class="trend-tbl"><thead><tr><th rowspan="2" class="tr-day">日</th>'
-    + grp(TREND_COL.sroas, '売上ROAS', 2) + grp(TREND_COL.roas, 'ROAS', 4) + grp(TREND_COL.sp, 'ROAS-SP広告', 4) + grp(TREND_COL.sb, 'ROAS-SB広告', 4) + '</tr>'
+    + grp(TREND_COL.sroas, '売上ROAS★', 2) + grp(TREND_COL.roas, 'ROAS', 4) + grp(TREND_COL.sp, 'ROAS-SP広告', 4) + grp(TREND_COL.sb, 'ROAS-SB広告', 4) + '</tr>'
     + '<tr>' + sub + sub + subA + sub + subA + sub + subA + '</tr></thead><tbody>';
   rows.slice().reverse().forEach((r, i) => {
     const dw = new Date(r.ds + 'T00:00:00').getDay(), sn = saleNamesForDate(r.ds);
@@ -12756,7 +12758,7 @@ function renderTrendView(){
       + '<td class="tr-gs">' + pct(r.sp) + '</td><td class="tr-d">' + pct(r.dSp) + '</td><td>' + yen(r.costSp) + '</td><td class="tr-p">' + shr(r.costSp, tSp) + '</td>'
       + '<td class="tr-gs">' + pct(r.sb) + '</td><td class="tr-d">' + pct(r.dSb) + '</td><td>' + yen(r.costSb) + '</td><td class="tr-p">' + shr(r.costSb, tSb) + '</td></tr>';
   });
-  h += '</tbody></table></div><div class="trend-note">※ 累積（月初〜その日）と日別（その日だけ）を並べています。最上段＝その月の確定見込み（累積）。売上ROAS の分子は推計総売上（出荷数×販売価格）。直近の日は広告売上が後から増えるので、ROAS は低めに出ます。</div></div>';
+  h += '</tbody></table></div><div class="trend-note">※ 累積（月初〜その日）と日別（その日だけ）を並べています。最上段＝その月の確定見込み（累積）。売上ROAS★ の分子は推計総売上（出荷数×販売価格）。直近の日は広告売上が後から増えるので、ROAS は低めに出ます。</div></div>';
   body.innerHTML = h;
   trendBind(body);
   // グラフ（線＝累積、棒＝日別の ROAS-SB・ROAS-SP。棒は線の後ろ）
@@ -12767,7 +12769,7 @@ function renderTrendView(){
   const bar = (k, c, l) => ({ type: 'bar', label: l, data: rows.map(r => r1(r[k])), backgroundColor: c, borderWidth: 0, order: 10, categoryPercentage: 0.8, barPercentage: 0.95 });
   _trendChart = new Chart(cv, { type: 'line', data: { labels: rows.map(r => r.ds.slice(5, 7) + '/' + r.ds.slice(8, 10)), datasets: [
     bar('dSb', 'rgba(239,68,68,0.32)', 'ROAS-SB広告(日別)'), bar('dSp', 'rgba(245,158,11,0.34)', 'ROAS-SP広告(日別)'),
-    line('sroas', TREND_COL.sroas, '売上ROAS'), line('roas', TREND_COL.roas, 'ROAS'), line('sp', TREND_COL.sp, 'ROAS-SP広告'), line('sb', TREND_COL.sb, 'ROAS-SB広告'),
+    line('sroas', TREND_COL.sroas, '売上ROAS★'), line('roas', TREND_COL.roas, 'ROAS'), line('sp', TREND_COL.sp, 'ROAS-SP広告'), line('sb', TREND_COL.sb, 'ROAS-SB広告'),
   ] }, options: { animation: false, responsive: true, maintainAspectRatio: false, interaction: { mode: 'index', intersect: false },
     plugins: { legend: { display: true, position: 'top', labels: { color: '#4b5563', font: { size: 13 }, usePointStyle: true } },
       tooltip: { callbacks: { label: c => c.dataset.label + ': ' + (c.parsed.y != null ? c.parsed.y.toFixed(1) + '%' : '—') } } },
@@ -13043,7 +13045,7 @@ var _ANALYZE_DEFAULT=[
  {place:'全-月別データ',place2:'月末データと照合',item:'前月の月末データ（A〜D）を入れたあと、①の広告費が月末 B と合っているか。合わない月は公式の日別キャンペーンレポートで入れ直す'},
  {place:'全-月別データ',place2:'月全体 / 月途中',item:'売上・広告費・ROAS・CVR で明確な悪化がないかのチェック'},
  {place:'全-比較',place2:'前年同月比',item:'大きく減っているグループ・キャンペーンの確認・対処すべきかを検討'},
- {place:'【状態】全体',place2:'各区分',item:'区分ごとに売上ROAS・推計総売上で並べて、区分を移すかの確認'},
+ {place:'【状態】全体',place2:'各区分',item:'区分ごとに売上ROAS★・推計総売上で並べて、区分を移すかの確認'},
  {place:'商品-売上データ',place2:'日を選ぶ',item:'全体で広告が悪かった日に、商品ごとにどうだったかの確認'},
  {place:'注視分-KW一覧',place2:'',item:'入札を変えたKWの、その後の広告費・ROAS の確認'}
 ];
@@ -13230,7 +13232,7 @@ function _cmpGroupOpen(code){
     + '<div class="cmp-grp-sum"><div class="cmp-grp-st">グループ全体（' + pc.members.length + '商品）の売上</div>'   // v4.21：複数行に
     + '<div class="cmp-grp-sg"><span>' + lb(ymB) + '</span><b>' + yen(sb) + '</b><span>' + lb(ym) + '</span><b>' + yen(sa) + '</b><span>増減</span><b>' + diff(sa, sb) + '</b></div>'
     + ([ym, ymB].filter(v => v && _cmpIsPartial(v)).map(v => '<div class="cmp-grp-warn">※ ' + lb(v) + ' は<b>月の途中</b>の数字です（④購入商品データを取り込んだ日の分だけで、月の残りの日はまだ入っていません）。まるまる1か月の月と比べると少なく見えるので、増減は目安として見てください。</div>').join('')) + '</div>'
-    + '<table class="cmp-grp-tbl"><thead><tr><th></th><th>商品</th><th>' + lb(ymB) + '</th><th>' + lb(ym) + '</th><th>増減</th><th>売上ROAS（' + lb(ym) + '）</th></tr></thead><tbody>';
+    + '<table class="cmp-grp-tbl"><thead><tr><th></th><th>商品</th><th>' + lb(ymB) + '</th><th>' + lb(ym) + '</th><th>増減</th><th>売上ROAS★（' + lb(ym) + '）</th></tr></thead><tbody>';
   pc.members.slice().sort((a, b) => Math.abs(((M.by[b] || {}).total || 0) - ((MB.by[b] || {}).total || 0)) - Math.abs(((M.by[a] || {}).total || 0) - ((MB.by[a] || {}).total || 0))).forEach(f => {
     const p = products.find(x => x.fnsku === f) || {}, r = M.by[f] || {}, rb = MB.by[f] || {};
     const sr = r.cost > 0 ? Math.round((r.total || 0) / r.cost * 100) + '%' : '—';
@@ -13455,7 +13457,7 @@ function _yoyGroupStarts(list){ const st = new Set(); list.forEach((mt, i) => { 
 function _yoyShownMetrics(focus){ return _yoyMetricsFor(focus).filter(mt => focus || _yoyImpMode === 'all' || mt.type === 'roas'); }
 // ★v1.1427★ 色は商品-売上データの列の色にそろえた（総売上・売上ROAS＝青、売上＝緑、実績額＝黄、獲得単価＝紫、CVR＝オレンジ、ROAS＝ピンク）
 const _YOYTOP_METRICS = [   // Amacheck：KW→SP広告、20円→SB広告、実績額→広告費、獲得単価＝広告費÷広告経由の個数（④/E の注文点数）
-  { k:'sroas', g:'sroas', label:'売上ROAS', col:'#1d4ed8', bg:'#bfdbfe', type:'roas', num:'tot', den:'sp' },
+  { k:'sroas', g:'sroas', label:'売上ROAS★', col:'#1d4ed8', bg:'#bfdbfe', type:'roas', num:'tot', den:'sp' },
   { k:'roas', g:'roas', label:'ROAS',      col:'#be123c', bg:'#fecdd3', type:'roas', num:'ad', den:'sp' },
   { k:'roasKw', g:'roas', label:'ROAS-SP', col:'#e11d48', bg:'#ffe4e8', type:'roas', num:'kw', den:'spKw' },
   { k:'roas20', g:'roas', label:'ROAS-SB', col:'#f43f5e', bg:'#fff1f2', type:'roas', num:'ad20', den:'sp20' },
@@ -13974,7 +13976,7 @@ function renderYoy(){
     +'<div style="width:80px;text-align:right;padding-right:8px">推計総売上</div>'
     +'<div style="width:70px;text-align:right;padding-right:8px">広告費</div>'
     +'<div style="width:80px;text-align:right;padding-right:8px">SEO売上</div>'
-    +'<div style="width:64px;text-align:right;padding-right:10px">売上ROAS</div></div>';
+    +'<div style="width:72px;text-align:right;padding-right:10px">売上ROAS★</div></div>';   // v4.54：★の分だけ幅 64→72px
   // \u9752\u30fb\u7dd1\u30fb\u9ec4\u30fb\u8d64\u3044\u305a\u308c\u3082\u3001\u91d1\u984d\u306e\u300c\u771f\u4e0b\u30fb\u4e2d\u592e\u63c3\u3048\u300d\u3067\u524d\u5e74\u6bd4\uff05\uff08120\uff05=2\u5272\u5897 / 80\uff05=2\u5272\u6e1b\uff09\u3092\u5c0f\u3055\u304f\u8868\u793a
   const _cellUp=(numHtml,cat,cur,prev)=> (cat&&prev>0)
     ? '<div style="display:inline-block;text-align:center">'+numHtml+'<div style="font-size:9px;line-height:1.05;margin-top:1px;color:'+_YOYCOL[cat]+';font-weight:700">'+Math.round(cur/prev*100)+'\uff05</div></div>'
@@ -15931,7 +15933,7 @@ function renderGraphView(){
   }
   h += seg('graph-quick', 'sm', [['lastMonth', '先月'], ['thisMonth', '今月'], ['thisYear', '今年'], ['1year', '1年'], ['all', '全期間']], graphQuickActive);
   h += '<span class="adg-tip" data-tip="説明を見る">'
-    + '<button type="button" class="help-btn" id="graph-ad-guide" title="説明を見るだけ（データは変わりません）"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button></span>';
+    + '<button type="button" class="help-btn" id="graph-ad-guide" title="説明を見るだけ（データは変わりません）">広告の種類と説明<span class="help-q" aria-hidden="true">?</span></button></span>';
   h += '</div>';
 
   // 2段目：粒度専用のボタン（月別＝年度重ね／2年、日別＝プリセット）＋セール表示
