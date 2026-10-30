@@ -1477,6 +1477,24 @@
   }
   .tab-group-gap { margin-left: 12px; }
   .tab-row .tab-break { flex-basis: 100%; height: 0; }
+  /* v4.28：【状態】の行（ヘッダーの一番下。ほかのタブより少し小さく・詰めて1行に） */
+  .tab-row.tab-row-st { gap: 1px; padding-bottom: 2px; }
+  .tab-group.tg-st { color: #9333ea; font-size: 13px; margin-right: 4px; }
+  .tab-row-st .tab { font-size: 13px; padding: 4px 6px 5px; gap: 0; }
+  .tab-row-st .tab .count { font-size: 10.5px; margin-left: 3px; }
+  .tab-row-st .tab .count:empty { display: none; }
+  .tab-row-st .st-sep { color: #9333ea; font-weight: 700; font-size: 13px; margin: 0 4px; user-select: none; }
+  /* v4.28：区分のセル（色つきの文字の上に透明の選択肢を重ねる。セルのどこを押しても選択肢が開く） */
+  .kb-cell { position: relative; min-height: 30px; display: flex; align-items: center; justify-content: center; }
+  .kb-disp { text-align: center; font-size: 12px; line-height: 1.15; font-weight: 700; white-space: nowrap; pointer-events: none; }
+  .kb-sel { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; cursor: pointer; font-size: 13px; }
+  .kb-cell:hover { background: rgba(147,51,234,.07); border-radius: 4px; }
+  table.ps-table td.ps-kb { padding: 2px 3px; background: #fff; }
+  table.ps-table thead th.ps-kb { background: var(--bg-secondary); vertical-align: middle; text-align: center; }
+  table.ps-table .ps-stick2 { position: sticky; z-index: 3; box-shadow: inset -2px 0 0 rgba(0,0,0,0.25); }
+  table.ps-table thead th.ps-stick2 { z-index: 7; }
+  .ps-sttag { display: inline-flex; align-items: center; font-size: 13px; font-weight: 700; color: #fff; background: #9333ea; border-radius: 6px; padding: 5px 10px; white-space: nowrap; }
+  .ps-sttag[hidden] { display: none; }
   /* ===== v3.41：商品-売上データ ===== */
   #psales-view .toolbar, #psales-view .ps-summary, #psales-view .table-wrap {
     width: calc((100vw - 24px) / var(--pz, 1));
@@ -1577,7 +1595,7 @@
   table.ps-table td.ps-img { padding: 3px 4px; text-align: center; }
   table.ps-table td.ps-img .ph { border-radius: 6px; }
   table.ps-table .ps-stick0 { position: sticky; left: 0; z-index: 3; }
-  table.ps-table .ps-stick1 { position: sticky; left: 40px; z-index: 3; box-shadow: inset -2px 0 0 rgba(0,0,0,0.25); }
+  table.ps-table .ps-stick1 { position: sticky; left: 40px; z-index: 3; }   /* v4.28：右の影は区分の列（ps-stick2）へ */
   table.ps-table thead th.ps-stick0, table.ps-table thead th.ps-stick1 { z-index: 7; }
   table.ps-table td.ps-name { padding: 4px 8px; }
   table.ps-table .ps-nm { font-size: var(--ps-fs, 13px); font-weight: 600; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
@@ -2442,7 +2460,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.27</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.28</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -2524,6 +2542,24 @@
     <button class="tab" data-tab="kwwtrend">
       注視分-月別推移
     </button>
+  </div>
+  <!-- v4.28：【状態】＝区分ごとの商品-売上データ（ADcheck の【状態】ブロックを Amazon 向けに）。ヘッダーの一番下・少し小さいボタン -->
+  <div class="tab-row tab-row-st">
+    <span class="tab-group tg-st" title="商品に付けた「区分」ごとに、商品-売上データを絞り込んで見る（区分は商品-売上データの区分列か、商品を編集で変える）">【状態】</span>
+    <button class="tab" data-tab="stall">全体<span class="count" id="cnt-stall"></span></button>
+    <button class="tab" data-tab="stnew">新商品<span class="count" id="cnt-stnew"></span></button>
+    <span class="st-sep">|</span>
+    <button class="tab" data-tab="stg1">健常◎<span class="count" id="cnt-stg1"></span></button>
+    <button class="tab" data-tab="stg2">健常-要注意◯<span class="count" id="cnt-stg2"></span></button>
+    <button class="tab" data-tab="stg3">健常-広告無し<span class="count" id="cnt-stg3"></span></button>
+    <span class="st-sep">|</span>
+    <button class="tab" data-tab="stmid">中立□<span class="count" id="cnt-stmid"></span></button>
+    <button class="tab" data-tab="stmid2">中立-広告無し<span class="count" id="cnt-stmid2"></span></button>
+    <span class="st-sep">|</span>
+    <button class="tab" data-tab="stwarn">撤退予定▲<span class="count" id="cnt-stwarn"></span></button>
+    <button class="tab" data-tab="stout">撤退済み■<span class="count" id="cnt-stout"></span></button>
+    <span class="st-sep">|</span>
+    <button class="tab" data-tab="stunset">選択前■<span class="count" id="cnt-stunset"></span></button>
   </div>
 </nav>
 <!-- v3.71：全ページ共通の「ヘッダーを隠す」（KW-日月別データでは「ヘッダー2まで隠す」も）。位置は kwPlaceHideBtns -->
@@ -2615,6 +2651,7 @@
   <!-- v3.41：商品-売上データ（④／E 購入商品データ × ②出荷数 × ①広告費） -->
   <div id="psales-view" hidden>
     <div class="toolbar ps-toolbar">
+      <span class="ps-sttag" id="ps-sttag" hidden title="【状態】のタブ：この区分の商品だけを出しています"></span><!-- v4.28 -->
       <select id="ps-month" title="月を選ぶ（確定＝E 月別あり／速報＝④日別の合計）"></select>
       <select id="ps-day"></select>
       <!-- v4.06：広告費の切り替えと！は日選択の右 -->
@@ -3043,6 +3080,12 @@
       <input type="text" id="edit-name" style="width:100%;font-size:14px;padding:8px 10px;">
       <div style="font-size:11px;color:var(--text-tertiary);margin-top:4px;" id="edit-name-orig"></div>
     </div>
+    <!-- v4.28：区分（【状態】のタブ・商品-売上データの区分列と同じもの） -->
+    <div style="margin-bottom:14px;display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
+      <label for="edit-kubun" style="font-weight:600;font-size:13px;">区分</label>
+      <select id="edit-kubun" style="font-size:14px;padding:6px 10px;min-width:190px;font-weight:700;"></select>
+      <span style="font-size:11px;color:var(--text-tertiary);">【状態】のタブで、区分ごとに商品-売上データを見られます</span>
+    </div>
     <div style="margin-bottom:14px;">
       <label style="display:block;margin-bottom:8px;font-weight:600;font-size:13px;">商品画像</label>
       <div style="display:flex;gap:16px;align-items:flex-start;background:var(--bg-secondary);padding:14px;border-radius:8px;">
@@ -3387,7 +3430,9 @@ function loadProducts(){
   return lzGet(STORAGE_PRODUCTS, []);
 }
 function saveProducts(){
-  return persistKey(STORAGE_PRODUCTS, products);
+  const ok = persistKey(STORAGE_PRODUCTS, products);
+  try { kubunUpdateCounts(); } catch (e) {}   // v4.28：【状態】の件数
+  return ok;
 }
 function loadShipments(){
   return lzGet(STORAGE_SHIPMENTS, {});
@@ -4186,6 +4231,7 @@ function init(){
     else if (e.key === 'Escape') { closeEditModal(); }
   });
   document.getElementById('edit-name').addEventListener('input', () => { updateEditPreview(); markDirty(); });
+  document.getElementById('edit-kubun').addEventListener('change', e => { e.target.style.color = kubunColor(e.target.value); markDirty(); });   // v4.28
   document.getElementById('edit-image-file').addEventListener('change', async (e) => {
     const file = e.target.files[0];
     if (!file) return;
@@ -4211,7 +4257,7 @@ function init(){
   });
 
   // 初期表示：全-月別データ（v3.65。新しいタブ用に #view=xxx 指定があればそれを優先）
-  const _hv = (location.hash.match(/view=([a-z]+)/i) || [])[1];
+  const _hv = (location.hash.match(/view=([a-z0-9]+)/i) || [])[1];   // v4.28：stg1 など数字入りのタブも
   { const hc = (location.hash.match(/camp=([^&]+)/) || [])[1]; if (hc) { try { kwCamp = decodeURIComponent(hc); } catch (e) {} } }   // v4.21：#view=adkw&camp=… で開いたら、そのキャンペーンを選んだ状態
   switchView((_hv || 'ad'), true);
 }
@@ -4220,10 +4266,11 @@ function switchView(name, fromPop){
   try { setTimeout(updateImportBadges, 0); } catch (e) {}
   // home はマスタにリダイレクト
   if (name === 'home') name = 'master';
+  const stKubun = KUBUN_VIEW[name] || null;   // v4.28：【状態】のタブ＝区分で絞った商品-売上データ
   document.getElementById('add-view').hidden = (name !== 'add');
   document.getElementById('master-view').hidden = (name !== 'master');
   document.getElementById('shipment-view').hidden = (name !== 'shipment');
-  document.getElementById('psales-view').hidden = (name !== 'psales');
+  document.getElementById('psales-view').hidden = (name !== 'psales' && !stKubun);
   document.getElementById('withdrawn-view').hidden = (name !== 'withdrawn');
   document.getElementById('ad-view').hidden = (name !== 'ad' && name !== 'addaily');
   document.getElementById('adkw-view').hidden = (name !== 'adkw');
@@ -4244,7 +4291,7 @@ function switchView(name, fromPop){
   if (name === 'pl') renderPlView();
   if (name === 'returns') renderReturnsView();
   if (name === 'shipment') renderShipmentTable();
-  if (name === 'psales') renderPsalesView();
+  if (name === 'psales' || stKubun) { psKubun = stKubun; renderPsalesView(); }
   if (name === 'master') renderMasterList();
   if (name === 'withdrawn') renderWithdrawnList();
   if (name === 'ad' || name === 'addaily') {   // v3.33：月別タブ＝monthly、日別タブ＝daily／last2m
@@ -4268,7 +4315,7 @@ function switchView(name, fromPop){
 
 function updateActiveTab(view){
   document.querySelectorAll('.tab').forEach(t => {
-    t.classList.toggle('active', t.dataset.tab === view);
+    t.classList.toggle('active', t.dataset.tab === view || (t.dataset.tab === 'psales' && !!KUBUN_VIEW[view]));   // v4.28：【状態】のときは商品-売上データも光らせる
   });
   updateTabCounts();
 }
@@ -4279,6 +4326,7 @@ function updateTabCounts(){
   if (el) el.textContent = n ? '(' + n + ')' : '';
   try { updateWithdrawnButton(); } catch (e) {}   // v3.35：撤退済み商品タブの件数
   try { kwWatchSync(); } catch (e) {}   // v3.91：注視分-KW一覧の件数
+  try { kubunUpdateCounts(); } catch (e) {}   // v4.28：【状態】の件数
 }
 
 function updateHomeStatus(){
@@ -8806,6 +8854,60 @@ function saleDaysForMonth(ym, days){
 // ============================================
 const STATUS_LABELS = { active: '現役商品', planned: '撤退予定', withdrawn: '撤退済み' };
 function productStatus(p){ return p.status || 'active'; }
+
+// ============================================
+// v4.28：区分（ADcheck v1.1506 の「区分」と同じキー・ラベル・色。商品に1つ＝p.kubun。無い＝unset 選択前■）
+//   上のステータス（現役／撤退予定／撤退済み＝商品マスタに出すか）とは別のもの。
+//   【状態】のタブ＝区分で商品-売上データを絞り込む。商品マスタで「撤退済み」の商品は【状態】に出さない（ADcheck の引退と同じ）。
+// ============================================
+const KUBUN_LABELS = { unset: '選択前■', g1: '健常◎', g2: '健常-要注意◯', g3: '健常-広告無し', new: '新商品', mid: '中立□', mid2: '中立-広告無し', warn: '撤退予定▲', out: '撤退済み■' };
+const KUBUN_COLORS = { g1: '#1565C0', g2: '#0288D1', g3: '#4FC3F7', new: '#2E7D32', mid: '#F9A825', mid2: '#E65100', warn: '#C62828', out: '#6D1111' };
+const KUBUN_ORDER = ['unset', 'g1', 'g2', 'g3', 'new', 'mid', 'mid2', 'warn', 'out'];   // 選択肢の並び・区分で並べ替えるときの順
+const KUBUN_VIEW = { stall: 'all', stnew: 'new', stg1: 'g1', stg2: 'g2', stg3: 'g3', stmid: 'mid', stmid2: 'mid2', stwarn: 'warn', stout: 'out', stunset: 'unset' };   // 【状態】のタブ → 区分
+function productKubun(p){ const k = p && p.kubun; return (k && KUBUN_LABELS[k]) ? k : 'unset'; }
+function kubunColor(k){ return KUBUN_COLORS[k] || 'var(--text-tertiary)'; }
+// 2行表示（ADcheck の _statusDispHtml と同じ：「-」で改行）
+function kubunDispHtml(k){ return (KUBUN_LABELS[k] || '').split(/[-－‐−]/).map(escapeHtml).join('<br>'); }
+function kubunOptionsHtml(cur){ return KUBUN_ORDER.map(k => '<option value="' + k + '"' + (k === cur ? ' selected' : '') + ' style="color:' + (KUBUN_COLORS[k] || '#6b7280') + ';font-weight:600">' + KUBUN_LABELS[k] + '</option>').join(''); }
+function kubunCellHtml(p){
+  if (!p) return '';
+  const k = productKubun(p);
+  return '<div class="kb-cell"><div class="kb-disp" style="color:' + kubunColor(k) + '">' + kubunDispHtml(k) + '</div>'
+    + '<select class="kb-sel" data-fnsku="' + escapeHtml(p.fnsku) + '" title="区分：' + KUBUN_LABELS[k] + '（押して変える）">' + kubunOptionsHtml(k) + '</select></div>';
+}
+// 区分を変えた（表のセル）：すぐ保存。今の一覧からは消さない（タブを切り替えたら移る。ADcheck と同じ）。件数はすぐ変わる
+function onKubunChange(sel){
+  const p = products.find(x => x.fnsku === sel.dataset.fnsku); if (!p) return;
+  const k = KUBUN_LABELS[sel.value] ? sel.value : 'unset';
+  if (k === 'unset') delete p.kubun; else p.kubun = k;
+  saveProducts();
+  const cell = sel.closest('.kb-cell'), disp = cell && cell.querySelector('.kb-disp');
+  if (disp) { disp.innerHTML = kubunDispHtml(k); disp.style.color = kubunColor(k); }
+  sel.title = '区分：' + KUBUN_LABELS[k] + '（押して変える）';
+  kubunUpdateCounts();
+  toast('区分を「' + KUBUN_LABELS[k] + '」にしました');
+}
+// 【状態】の対象の商品：商品-売上データの行と同じ（ASIN あり・同じ ASIN は最初の1つ・自動登録を除く）から、商品マスタで撤退済みの商品を除く
+function kubunProducts(){
+  const used = new Set(), out = [];
+  products.forEach(p => {
+    const a = String(p.asin || '').toUpperCase(); if (!a || used.has(a)) return; used.add(a);
+    if (p.autoFromPurchase || productStatus(p) === 'withdrawn') return;
+    out.push(p);
+  });
+  return out;
+}
+function kubunUpdateCounts(){
+  if (!document.getElementById('cnt-stall')) return;
+  const list = kubunProducts(), n = {};
+  list.forEach(p => { const k = productKubun(p); n[k] = (n[k] || 0) + 1; });
+  Object.keys(KUBUN_VIEW).forEach(v => {
+    const el = document.getElementById('cnt-' + v); if (!el) return;
+    const c = v === 'stall' ? list.length : (n[KUBUN_VIEW[v]] || 0);
+    el.textContent = c ? '(' + c + ')' : '';
+  });
+}
+window.onKubunChange = onKubunChange;
 function visibleMasterProducts(){ return products.filter(p => productStatus(p) !== 'withdrawn'); }
 function withdrawnProducts(){ return products.filter(p => productStatus(p) === 'withdrawn'); }
 
@@ -9885,6 +9987,7 @@ function purchLatestYm(){
 }
 
 // ---------- 状態 ----------
+let psKubun = null;   // v4.28：【状態】のタブで開いたときの区分（'all'／'g1'…）。商品-売上データのタブなら null
 let psMonth = null, psDay = '', psSearch = '', psFilter = null, psSortKey = null, psSortDir = 'desc', psCostMode = 'alloc', psColPanel = false;
 let psHidden = (() => { try { return new Set(JSON.parse(localStorage.getItem('amacheck_ps_hidden') || '[]')); } catch (e) { return new Set(); } })();
 // v3.53：グループ（全体／SP／SB）ごとの隠す・表示。隠したグループは細い縦の帯になり、残りの列の文字が大きくなる
@@ -9900,7 +10003,7 @@ function psA(k, def){ const v = psColw['a_' + k]; return (v === 'left' || v === 
 // 列の定義（全-月別データと同じ並び：全体／SP（広告全体・KW・商品）／SB（広告全体・KW-動画・KW-商品コレ））
 const PS_BLOCKS = [
   { g: 'all', label: '全体', cls: 'adg-sales', cols: [
-    { k: 'ship', label: '出荷数', w: 52, cls: 'adc-sales', t: 'int', tip: '②出荷数データの合計（個）' },
+    // v4.28：出荷数の列はなくした（r.ship は全-比較などで使うので計算は残す）
     { k: 'total', label: '推計\n総売上', w: 86, cls: 'adc-sales', t: 'yen', tip: '出荷数 × 販売価格（セール中はセール価格）' },
     { k: 'sroas', label: '売上\nROAS', w: 62, cls: 'adc-sales-l1', t: 'sroas', tip: '推計総売上 ÷ 広告費' },
     { k: 'seo', label: 'SEO売上', w: 86, cls: 'adc-sales-l1', t: 'yen', pct: 'seoP', tip: '推計総売上 − 広告売上（推計。0未満は0）。下の％は SEO売上と広告売上の割合' },
@@ -10123,15 +10226,21 @@ function renderPsalesView(){
   if (fb) fb.innerHTML = '<span class="ps-flbl">売上ROAS</span>' + PS_SROAS_CATS.map(c => { const on = psFilter === c[0];
       return '<button type="button" data-cat="' + c[0] + '" title="売上ROAS ' + c[1] + ' の商品だけ" style="border-color:' + c[2] + ';background:' + (on ? c[2] : 'transparent') + ';color:' + (on ? '#fff' : c[2]) + '">' + c[1] + '</button>'; }).join('')
     + (psFilter ? '<button type="button" class="ps-clear on" data-cat="x" title="売上ROASの絞り込みを解除">✕ 解除</button>' : '<button type="button" class="ps-clear" disabled title="絞り込みしていません">✕ 解除</button>');
+  // v4.28：【状態】のタブで開いているときは、左端に区分の札
+  const stt = document.getElementById('ps-sttag');
+  if (stt) { stt.hidden = !psKubun; if (psKubun) { const k = psKubun; stt.textContent = '【状態】' + (k === 'all' ? '全体' : KUBUN_LABELS[k]); stt.style.background = k === 'all' || k === 'unset' ? '#9333ea' : KUBUN_COLORS[k]; } }
   renderPsalesTable();
 }
 function psSortValue(r, k){
   if (k === 'name') return r.name; if (k === 'sku') return r.sku;
+  if (k === 'kubun') return r.p ? KUBUN_ORDER.indexOf(productKubun(r.p)) : -1;   // v4.28
   const v = r[k]; return v == null ? -Infinity : v;
 }
 function psRowsShown(cmp){
   let rows = cmp.rows.slice();
   rows = rows.filter(r => psMatch(r, psSearch));
+  // v4.28：【状態】のタブ＝その区分の商品だけ（商品マスタで撤退済みの商品は出さない）
+  if (psKubun) rows = rows.filter(r => r.p && productStatus(r.p) !== 'withdrawn' && (psKubun === 'all' || productKubun(r.p) === psKubun));
   if (psDay) rows = rows.filter(r => r.has);
   if (psFilter) rows = rows.filter(r => psSroasCat(r.sroas) === psFilter);
   if (psSortKey) {
@@ -10141,6 +10250,8 @@ function psRowsShown(cmp){
       if (typeof x === 'string' || typeof y === 'string') return String(x).localeCompare(String(y), 'ja') * dir;
       return (x - y) * dir;
     });
+  } else if (psKubun === 'g3' || psKubun === 'mid2') {
+    rows.sort((a, b) => (b.total || 0) - (a.total || 0));   // v4.28：広告無しの区分は、並べ替えを選んでいなければ推計総売上の多い順（ADcheck と同じ）
   }
   return rows;
 }
@@ -10178,11 +10289,14 @@ function renderPsalesTable(){
   cols.forEach(c => { let G = groups[groups.length - 1]; if (!G || G.g !== c.g) { G = { g: c.g, cls: c.gcls, n: 0, label: PS_BLOCKS[c.gi].label, blocks: [] }; groups.push(G); } G.n++; if (c.b) { let B = G.blocks[G.blocks.length - 1]; if (!B || B.b !== c.b) { B = { b: c.b, label: c.blabel, cls: c.cls, n: 0 }; G.blocks.push(B); } B.n++; } });
   const sortCls = k => psSortKey === k ? (psSortDir === 'desc' ? ' ps-sort-desc' : ' ps-sort-asc') : '';
   const imgW = psW('img', 40), nameW = psW('name', 170), nameA = psA('name', 'left'), nameL = psColw.l_name || '商品名';
-  let cg = '<colgroup><col style="width:' + imgW + 'px"><col style="width:' + nameW + 'px">' + segs.map(sg => sg.col ? '<col style="width:' + GCOL_W + 'px">' : sg.cols.map(c => '<col style="width:' + c.w + 'px">').join('')).join('') + '</colgroup>';
+  const kbW = psW('kubun', 76), kbA = psA('kubun', 'center'), kbL = psColw.l_kubun || '区分';   // v4.28：区分の列（商品名の右・横にスクロールしても残る）
+  const stick2 = 'left:' + (imgW + nameW) + 'px;';
+  let cg = '<colgroup><col style="width:' + imgW + 'px"><col style="width:' + nameW + 'px"><col style="width:' + kbW + 'px">' + segs.map(sg => sg.col ? '<col style="width:' + GCOL_W + 'px">' : sg.cols.map(c => '<col style="width:' + c.w + 'px">').join('')).join('') + '</colgroup>';
   const stick1 = 'left:' + imgW + 'px;';
-  let h1 = '<tr><th rowspan="3" class="ps-img ps-stick0">' + escapeHtml(psColw.l_img || '画像') + '</th><th rowspan="3" class="ps-name ps-stick1 ps-sortable' + sortCls('name') + '" data-k="name" style="' + stick1 + 'text-align:' + nameA + '" title="クリックで並べ替え（降順→昇順→商品マスタの並び）">' + escapeHtml(nameL) + '<br><span class="ps-sub">ASIN</span></th>';
+  let h1 = '<tr><th rowspan="3" class="ps-img ps-stick0">' + escapeHtml(psColw.l_img || '画像') + '</th><th rowspan="3" class="ps-name ps-stick1 ps-sortable' + sortCls('name') + '" data-k="name" style="' + stick1 + 'text-align:' + nameA + '" title="クリックで並べ替え（降順→昇順→商品マスタの並び）">' + escapeHtml(nameL) + '<br><span class="ps-sub">ASIN</span></th>'
+    + '<th rowspan="3" class="ps-kb ps-stick2 ps-sortable' + sortCls('kubun') + '" data-k="kubun" style="' + stick2 + 'text-align:' + kbA + '" title="区分（押して変える。【状態】のタブで区分ごとに見られます）｜クリックで並べ替え">' + escapeHtml(kbL) + '</th>';
   let h2 = '<tr>', h3 = '<tr>';
-  const tw = imgW + nameW + cols.reduce((s, c) => s + c.w, 0) + segs.filter(x => x.col).length * GCOL_W;
+  const tw = imgW + nameW + kbW + cols.reduce((s, c) => s + c.w, 0) + segs.filter(x => x.col).length * GCOL_W;
   const gIdx = {}; groups.forEach(G => { gIdx[G.g] = G; });
   segs.forEach(sg => {
     if (sg.col) { h1 += '<th rowspan="3" class="adg ' + sg.G.cls + ' ps-gcol" title="' + escapeHtml(sg.G.label) + '（隠しています）"><button type="button" class="ps-gbtn" data-g="' + sg.G.g + '" title="' + escapeHtml(sg.G.label) + 'を表示">表示</button><div class="ps-gvt">' + ({ all: '全体', sp: 'SP', sb: 'SB' }[sg.G.g] || '') + '</div></th>'; return; }
@@ -10234,7 +10348,8 @@ function renderPsalesTable(){
     const p = r.p;
     tb += '<tr' + (p ? ' data-fnsku="' + escapeHtml(p.fnsku) + '"' : '') + (p && productStatus(p) === 'withdrawn' ? ' class="ps-withdrawn"' : '') + '>'
       + '<td class="ps-img ps-stick0" style="text-align:' + psA('img', 'center') + '">' + (p ? productImageHtml(p, 30) : '') + '</td>'
-      + '<td class="ps-name ps-stick1" style="' + stick1 + 'text-align:' + nameA + '" data-ytip="' + escapeHtml(r.name) + '"><div class="ps-nm">' + escapeHtml(r.name) + '</div><div class="ps-sub">' + escapeHtml(r.asin) + '</div></td>';
+      + '<td class="ps-name ps-stick1" style="' + stick1 + 'text-align:' + nameA + '" data-ytip="' + escapeHtml(r.name) + '"><div class="ps-nm">' + escapeHtml(r.name) + '</div><div class="ps-sub">' + escapeHtml(r.asin) + '</div></td>'
+      + '<td class="ps-kb ps-stick2" style="' + stick2 + '">' + kubunCellHtml(p) + '</td>';
     segs.forEach(sg => {
       if (sg.col) { tb += '<td class="ps-gcol-td ' + gTint[sg.G.g] + ' adc-gstart"></td>'; return; }
       let lastB = null;
@@ -10242,10 +10357,11 @@ function renderPsalesTable(){
     });
     tb += '</tr>';
   });
-  if (!rows.length) tb = '<tr><td colspan="' + (cols.length + 2 + segs.filter(x => x.col).length) + '" style="text-align:center;color:var(--text-tertiary);padding:28px;">' + (psFilter || psSearch ? '条件に合う商品がありません' : '表示する商品がありません') + '</td></tr>';
+  if (!rows.length) tb = '<tr><td colspan="' + (cols.length + 3 + segs.filter(x => x.col).length) + '" style="text-align:center;color:var(--text-tertiary);padding:28px;">' + (psFilter || psSearch ? '条件に合う商品がありません' : (psKubun && psKubun !== 'all' ? '該当する商品がありません（' + KUBUN_LABELS[psKubun] + '）' : '表示する商品がありません')) + '</td></tr>';
   body.innerHTML = '<div class="table-wrap ps-wrap"><table class="ad-table ps-table" style="width:100%;min-width:' + tw + 'px">' + cg + '<thead>' + h1 + h2 + h3 + '</thead><tbody>' + tb + '</tbody></table></div>';
   body.querySelectorAll('.ps-sortable').forEach(th => th.addEventListener('click', () => psSortBy(th.dataset.k)));
   body.querySelectorAll('.ps-gbtn').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); psToggleGroup(b.dataset.g); }));
+  body.querySelectorAll('.kb-sel').forEach(sel => { sel.addEventListener('change', () => onKubunChange(sel)); sel.addEventListener('click', e => e.stopPropagation()); });   // v4.28
   // 空いた幅に合わせて文字を大きく（13px〜17px）
   { const wrap = body.querySelector('.ps-wrap'), tbl = body.querySelector('table.ps-table');
     if (wrap && tbl) { const sc = wrap.clientWidth / tw; const fs = Math.max(13, Math.min(17, Math.round(13 * sc * 2) / 2)); tbl.style.setProperty('--ps-fs', fs + 'px');
@@ -10276,7 +10392,7 @@ function psRenderColPanel(){
   let h = '<div class="ps-cp-head"><b>項目調整</b><span class="ps-cp-note">幅（px）・揃え・見出し名を変えられます。すぐ表に反映し、このブラウザに保存します</span>'
     + '<button type="button" class="ghost" id="ps-cp-reset" title="幅・揃え・見出し名・表示をすべて最初の状態に戻す">初期値に戻す</button><button type="button" class="ghost" id="ps-cp-close">閉じる</button></div>'
     + '<div class="ps-cp-scroll"><table class="ps-cp-table"><thead><tr><th>表示</th><th>グループ</th><th>見出し名</th><th>幅（px）</th><th>揃え</th></tr></thead><tbody>';
-  h += row('img', '商品', '画像', 40, 'center', false) + row('name', '商品', '商品名', 170, 'left', false);
+  h += row('img', '商品', '画像', 40, 'center', false) + row('name', '商品', '商品名', 170, 'left', false) + row('kubun', '商品', '区分', 76, 'center', false);
   PS_BLOCKS.forEach(G => cols.filter(c => c.g === G.g).forEach(c => { h += row(c.k, (G.g === 'all' ? '全体' : (G.g === 'sp' ? 'SP' : 'SB') + '・' + c.blabel), c.label, c.w, 'right', true); }));
   box.innerHTML = h + '</tbody></table></div>';
   const redraw = () => { psSaveColw(); renderPsalesTable(); };
@@ -10291,16 +10407,16 @@ function psRenderColPanel(){
 // CSV出力（今の期間・検索・絞り込み・並びのまま。数字は数字で）
 function psExportCsv(){
   const cmp = _psLast || psCompute(); const rows = psRowsShown(cmp); const cols = psVisibleCols();
-  const head = ['商品名', 'SKU', 'ASIN'].concat(cols.map(c => (c.blabel ? (c.g === 'sp' ? 'SP-' : 'SB-') + c.blabel + '-' : '') + c.label.replace(/\n/g, '') + (c.t === 'roas' || c.t === 'sroas' ? '（%）' : (c.t === 'int' ? '（個）' : '（円）'))));
+  const head = ['商品名', 'SKU', 'ASIN', '区分'].concat(cols.map(c => (c.blabel ? (c.g === 'sp' ? 'SP-' : 'SB-') + c.blabel + '-' : '') + c.label.replace(/\n/g, '') + (c.t === 'roas' || c.t === 'sroas' ? '（%）' : (c.t === 'int' ? '（個）' : '（円）'))));
   if (cols.some(c => c.k === 'ad')) head.push('広告売上_宣伝商品（円）', '広告売上_Halo（円）');
   const q = v => { const s = String(v == null ? '' : v); return /[",\n]/.test(s) ? '"' + s.replace(/"/g, '""') + '"' : s; };
   const lines = [head.map(q).join(',')];
   rows.forEach(r => {
-    const vals = [r.name, r.sku, r.asin].concat(cols.map(c => { const v = r[c.k]; if (v == null || (c.t === 'sroas' && !(v > 0))) return ''; return (c.t === 'roas') ? Math.round(v) : Math.round(v); }));
+    const vals = [r.name, r.sku, r.asin, r.p ? KUBUN_LABELS[productKubun(r.p)] : ''].concat(cols.map(c => { const v = r[c.k]; if (v == null || (c.t === 'sroas' && !(v > 0))) return ''; return (c.t === 'roas') ? Math.round(v) : Math.round(v); }));
     if (cols.some(c => c.k === 'ad')) vals.push(Math.round(r.prom), Math.round(r.halo));
     lines.push(vals.map(q).join(','));
   });
-  const name = psDay ? 'Amacheck_商品-売上データ_' + psDay + '.csv' : 'Amacheck_商品-売上データ_' + psMonth + '.csv';
+  const name = 'Amacheck_商品-売上データ_' + (psKubun ? '状態-' + (psKubun === 'all' ? '全体' : KUBUN_LABELS[psKubun]).replace(/[\\/:*?"<>|]/g, '') + '_' : '') + (psDay || psMonth) + '.csv';
   const blob = new Blob(['﻿' + lines.join('\r\n')], { type: 'text/csv;charset=utf-8' });
   const a = document.createElement('a'); a.href = URL.createObjectURL(blob); a.download = name; document.body.appendChild(a); a.click(); a.remove();
   setTimeout(() => URL.revokeObjectURL(a.href), 4000);
@@ -10943,6 +11059,7 @@ function loadProductIntoEditModal(fnsku){
   document.getElementById('edit-fba-fee').value = (p.fbaFee != null) ? p.fbaFee : '';
   // 元商品名（編集前のオリジナル）を保持していれば表示
   document.getElementById('edit-name-orig').textContent = p.nameOrig ? '元の商品名: ' + p.nameOrig : '';
+  { const ks = document.getElementById('edit-kubun'); if (ks) { const k = productKubun(p); ks.innerHTML = kubunOptionsHtml(k); ks.value = k; ks.style.color = kubunColor(k); } }   // v4.28
   updateEditPreview();
   updateImageActions();
   updateProfitDisplay();
@@ -11033,6 +11150,7 @@ function saveAndNavigate(dir){
   applyEditData();
   saveProducts();
   renderMasterList();
+  try { if (!document.getElementById('psales-view').hidden) renderPsalesTable(); } catch (e) {}   // v4.28
   resetDirty();
   const navList = visibleMasterProducts();
   const idx = navList.findIndex(x => x.fnsku === editingFnsku);
@@ -11067,6 +11185,7 @@ function applyEditData(){
   readPrice('edit-cost', 'cost');
   readPrice('edit-selling-fee', 'sellingFee');
   readPrice('edit-fba-fee', 'fbaFee');
+  { const ks = document.getElementById('edit-kubun'); if (ks) { const k = KUBUN_LABELS[ks.value] ? ks.value : 'unset'; if (k === 'unset') delete p.kubun; else p.kubun = k; } }   // v4.28：区分
 }
 
 function closeEditModal(){
@@ -11093,6 +11212,7 @@ function saveEdit(){
   applyEditData();
   saveProducts();
   renderMasterList();
+  try { if (!document.getElementById('psales-view').hidden) renderPsalesTable(); } catch (e) {}   // v4.28：区分を変えたら商品-売上データ（【状態】）にも
   resetDirty();
   // モーダルは閉じない。保存後の値を再ロードして表示を同期
   if (editingFnsku) loadProductIntoEditModal(editingFnsku);
