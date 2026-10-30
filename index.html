@@ -84,6 +84,10 @@
   button.confirm:hover { background: var(--blue-hover); color: #fff; border-color: var(--blue-hover); }
   button.utility { background: var(--teal); color: #fff; border-color: var(--teal); }
   button.utility:hover { background: var(--teal-hover); color: #fff; border-color: var(--teal-hover); }
+  /* v4.47：説明を開くだけのボタン（操作ボタンと見分ける）：地なし・点線の枠・灰色の文字・丸い形 */
+  button.help-btn { display: inline-flex; align-items: center; gap: 5px; background: transparent; border: 1px dashed #b8c0cc; color: #64748b; font-size: 12px; font-weight: 600; padding: 5px 12px; border-radius: 999px; white-space: nowrap; }
+  button.help-btn .icn { color: #2563eb; font-size: 14px; }
+  button.help-btn:hover { background: #eff6ff; border-color: #93c5fd; color: #1e40af; }
   /* 「この月を確定」は未確定時グレー（確定済み時はアンバーのまま） */
   #ad-close-toggle:not(.is-closed) { background: #6b7280; color: #fff; border-color: #6b7280; }
   #ad-close-toggle:not(.is-closed):hover { background: #4b5563; color: #fff; border-color: #4b5563; }
@@ -1841,10 +1845,9 @@
   .tab[data-tab="adkw"] svg { color: var(--purple); }
   /* ===== KW-日月別データ（KW） ===== */
   /* v3.27：日別データ欠けの通知（ADcheck v1.1438 と同じ光り方）と「不足日を確認」 */
-  #daily-gap-btn { margin-left: 12px; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 6px; border: 1px solid #b71c1c; background: #b71c1c; color: #fff; cursor: pointer; white-space: nowrap; font-family: inherit; animation: dailyGapAlarm 1.3s ease-in-out infinite; }
-  #daily-gap-btn:hover { background: #8e1515; border-color: #8e1515; color: #fff; }
+  /* v4.47：#daily-gap-btn の見た目はヘッダーの .hbtn-alert へ */
   @keyframes dailyGapAlarm { 0%,100% { box-shadow: 0 0 0 0 rgba(183,28,28,.55); } 50% { box-shadow: 0 0 0 6px rgba(183,28,28,0); } }
-  @media (prefers-reduced-motion: reduce) { #daily-gap-btn { animation: none; } }
+  @media (prefers-reduced-motion: reduce) { #daily-gap-btn, .hbtn-alert { animation: none; } }
   .miss-box { border: 1px solid var(--border); border-radius: 8px; margin-bottom: 12px; overflow: hidden; }
   .miss-head { display: flex; align-items: center; justify-content: space-between; padding: 10px 14px; cursor: pointer; background: var(--bg-secondary); font-size: 13.5px; font-weight: 700; color: var(--text-secondary); user-select: none; }
   .miss-head:hover { background: #eef2f6; }
@@ -2357,12 +2360,23 @@
     gap: 16px;
     flex-wrap: wrap;
   }
-  .header-tools {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-left: auto;
-  }
+  /* v4.47：ヘッダーの右（ADcheck v1.1514 のヘッダー仕様）。左＝いま何を見ているか（ロゴ・新しいタブ・バージョン）、右＝何をするか */
+  .header-right { display: flex; align-items: center; gap: 8px; row-gap: 6px; flex-wrap: wrap; margin-left: auto; }
+  .header-right .hg { display: flex; align-items: center; gap: 8px; }   /* まとまりの中は折り返さない */
+  .header-right .hsep { width: 1px; height: 22px; background: rgba(0,0,0,0.14); margin: 0 6px; }   /* まとまりの間（29px）＞ まとまりの中（8px） */
+  .hbtn-o, .hbtn-ic, .hbtn-main, .hbtn-alert { font-family: inherit; font-size: 13px; line-height: 1.2; padding: 7px 12px; border-radius: 7px; white-space: nowrap; cursor: pointer; transition: background .15s, border-color .15s, color .15s; }
+  .hbtn-o { background: #fff; border: 1px solid rgba(0,0,0,0.16); color: #4b5563; font-weight: 600; }   /* ときどき使う */
+  .hbtn-o:hover { background: #f3f2ef; color: #1f2937; border-color: rgba(0,0,0,0.26); }
+  .hbtn-ic { background: #fff; border: 1px solid rgba(0,0,0,0.09); color: #8a8f98; font-weight: 500; }   /* 表示・データ（いちばん控えめ） */
+  .hbtn-ic:hover { background: #f3f2ef; color: #4b5563; }
+  .hbtn-main { background: var(--logo-color); border: 1px solid var(--logo-color); color: #fff; font-weight: 700; }   /* 主役：1つだけ。ロゴと同じ橙（警告の赤と色で見分けられる） */
+  .hbtn-main:hover { background: #b4440b; border-color: #b4440b; }
+  .hbtn-alert { background: #b71c1c; border: 1px solid #b71c1c; color: #fff; font-weight: 700; animation: dailyGapAlarm 1.3s ease-in-out infinite; }   /* 警告：対応が必要なときだけ。光る */
+  .hbtn-alert:hover { background: #8e1515; border-color: #8e1515; }
+  .hbtn-alert[hidden] { display: none; }
+  .header-right .hzoom { opacity: .85; transform: none; padding: 1px; background: #f3f2ef; border-color: rgba(0,0,0,0.09); }
+  .header-right .hzoom .zoom-btn { font-size: 14px; padding: 3px 10px; color: #4b5563; }
+  .header-right .hzoom .zoom-level { font-size: 12px; color: #8a8f98; cursor: pointer; }
   .newtab-btn {
     display: inline-flex; align-items: center; gap: 5px;
     padding: 7px 13px; border: 1px solid var(--border); border-radius: 9px;
@@ -2492,23 +2506,32 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.46</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
-  <button type="button" id="daily-gap-btn" hidden></button>
-  <div class="header-tools">
-    <div class="zoom-controls">
-      <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
-      <span class="zoom-level" id="zoom-level">100%</span>
-      <button class="zoom-btn" id="zoom-in" title="文字を大きく（1クリック1%、押し続けると連続）">A+</button>
+  <span class="version">v4.47</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
+  <div class="header-right">
+    <div class="hg">
+      <button type="button" class="hbtn-o" id="open-analyze" title="確認メモ（分析するときに、どの画面で何を見るかの手順書）を別のウィンドウで開く">📝 確認メモ</button>
+      <button type="button" class="hbtn-o" id="open-export" title="出荷数・広告・全体収支を、ChatGPT などで分析するための Excel ファイルで書き出す">📦 分析用データ</button>
+      <button type="button" class="hbtn-o" id="open-sale" title="セール期間・対象商品を設定">🏷 セール設定</button>
+      <button type="button" class="hbtn-o" id="open-add" title="商品情報（商品マスタ）を追加">＋ 商品情報追加</button>
     </div>
-    <button class="utility" id="open-analyze" title="確認メモ（分析するときに、どの画面で何を見るかの手順書）を別のウィンドウで開く" style="font-size:13px;background:#5C6BC0;border:1px solid #5C6BC0;color:#fff;font-weight:700;">分析</button><!-- v4.37 -->
-    <button class="primary" id="open-add" title="商品情報（商品マスタ）を追加" style="font-size:13px;"><svg class="icn"><use href="#i-plus"/></svg> 商品情報追加</button>
-    <button class="utility report-add-btn" id="open-report" title="出荷数・広告・月末データのCSV/ZIPをまとめて取り込む" style="font-size:13px;background:#dc2626;border:1px solid #dc2626;color:#fff;font-weight:700;"><svg class="icn"><use href="#i-plus"/></svg> レポート追加</button>
-    <button class="utility" id="open-sale" title="セール期間・対象商品を設定" style="font-size:13px;"><svg class="icn"><use href="#i-tag"/></svg> セール設定</button>
-    <button class="utility" id="open-export" title="出荷数・広告・全体収支を、ChatGPT などで分析するための Excel ファイルで書き出す" style="font-size:13px;"><svg class="icn"><use href="#i-download"/></svg> 分析用データ</button>
-    <button class="utility" id="open-sync" title="GitHubにデータを同期（別PCと共有）" style="font-size:13px;"><svg class="icn"><use href="#i-upload"/></svg> 同期</button>
-    <button class="utility" id="data-export" title="全データをファイルに書き出してバックアップ" style="font-size:13px;"><svg class="icn"><use href="#i-file-spreadsheet"/></svg> バックアップ</button>
-    <button class="utility" id="data-import" title="バックアップファイルから復元" style="font-size:13px;"><svg class="icn"><use href="#i-plus"/></svg> 復元</button>
-    <input type="file" id="data-import-input" accept="application/json,.json" hidden>
+    <div class="hsep"></div>
+    <div class="hg">
+      <button type="button" id="daily-gap-btn" class="hbtn-alert" hidden></button>
+      <button type="button" class="hbtn-main" id="open-report" title="出荷数・広告・月末データのCSV/ZIPをまとめて取り込む">＋ レポート追加</button>
+    </div>
+    <div class="hsep"></div>
+    <div class="hg">
+      <div class="zoom-controls hzoom">
+        <button class="zoom-btn" id="zoom-out" title="文字を小さく（1クリック1%、押し続けると連続）">A−</button>
+        <span class="zoom-level" id="zoom-level" title="押すと100%に戻す">100%</span>
+        <button class="zoom-btn" id="zoom-in" title="文字を大きく（1クリック1%、押し続けると連続）">A+</button>
+      </div>
+      <button type="button" class="hbtn-ic" id="open-sync" title="GitHub にデータを同期（別のPCと共有）">☁ 同期</button>
+      <button type="button" class="hbtn-ic" id="data-export" title="全データをファイルに書き出してバックアップ">💾 バックアップ</button>
+      <button type="button" class="hbtn-ic" id="data-import" title="バックアップファイルから復元">↩ 復元</button>
+      <input type="file" id="data-import-input" accept="application/json,.json" hidden>
+    </div>
   </div>
 </header>
 
@@ -2741,7 +2764,7 @@
         <button type="button" class="ad-cl-edit" id="ad-cl-edit" title="変更記録（ショップ全体）を追加・編集">📝 変更記録編集</button>
       </span>
       <span class="adg-tip" data-tip="説明を見る">
-        <button class="utility" id="open-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button>
+        <button type="button" class="help-btn" id="open-ad-guide" title="説明を見るだけ（データは変わりません）"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button>
       </span>
       <button class="utility" id="open-ad-recon" style="font-size:12px;" title="月ごとに、月末データ（B）と日別の広告データ（①）・KWデータ（③）の広告費を比べます"><svg class="icn"><use href="#i-check"/></svg> 月末データと照合</button>
       <button class="utility" id="ad-close-toggle" style="font-size:12px;"><svg class="icn"><use href="#i-lock"/></svg> この月を確定</button>
@@ -15899,7 +15922,7 @@ function renderGraphView(){
   }
   h += seg('graph-quick', 'sm', [['lastMonth', '先月'], ['thisMonth', '今月'], ['thisYear', '今年'], ['1year', '1年'], ['all', '全期間']], graphQuickActive);
   h += '<span class="adg-tip" data-tip="説明を見る">'
-    + '<button class="utility" id="graph-ad-guide" style="font-size:12px;"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button></span>';
+    + '<button type="button" class="help-btn" id="graph-ad-guide" title="説明を見るだけ（データは変わりません）"><svg class="icn"><use href="#i-info"/></svg> 広告の種類と説明</button></span>';
   h += '</div>';
 
   // 2段目：粒度専用のボタン（月別＝年度重ね／2年、日別＝プリセット）＋セール表示
