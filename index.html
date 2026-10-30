@@ -1898,8 +1898,12 @@
   .yt-camp { width: 58px; height: 58px; box-sizing: border-box; margin: 0 auto; border-radius: 8px; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 1px; color: #fff; }
   .yt-camp.sp { background: #2563eb; } .yt-camp.sb { background: #7e22ce; }
   .yt-camp b { font-size: 17px; line-height: 1; } .yt-camp span { font-size: 8.5px; opacity: .9; }
-  .cmp-grp-sum { font-size: 13.5px; font-weight: 700; margin: 0 0 8px; }
-  .cmp-grp-warn { display: block; font-size: 11.5px; font-weight: 500; color: #92400e; margin-top: 2px; }
+  .cmp-grp-sum { margin: 0 0 10px; padding: 8px 12px; background: #faf5ff; border: 1px solid #e9d5ff; border-radius: 8px; }
+  .cmp-grp-st { font-size: 12px; font-weight: 800; color: #6b21a8; margin-bottom: 4px; }
+  .cmp-grp-sg { display: grid; grid-template-columns: auto 1fr; gap: 2px 14px; font-size: 14px; align-items: baseline; }
+  .cmp-grp-sg span { color: var(--text-secondary); font-size: 12.5px; }
+  .cmp-grp-sg b { font-variant-numeric: tabular-nums; }
+  .cmp-grp-warn { font-size: 12px; font-weight: 500; color: #92400e; margin-top: 6px; line-height: 1.6; background: #fffbeb; border-radius: 6px; padding: 4px 8px; }
   .yt-badge.noad { background: #e5e7eb; color: #4b5563; border: 1px solid #cbd5e1; }
   .cmp-grp-box { width: min(680px, 94vw); }
   table.cmp-grp-tbl { width: 100%; border-collapse: collapse; font-size: 13.5px; }
@@ -2387,7 +2391,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.20</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.22</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -4150,6 +4154,7 @@ function init(){
 
   // 初期表示：全-月別データ（v3.65。新しいタブ用に #view=xxx 指定があればそれを優先）
   const _hv = (location.hash.match(/view=([a-z]+)/i) || [])[1];
+  { const hc = (location.hash.match(/camp=([^&]+)/) || [])[1]; if (hc) { try { kwCamp = decodeURIComponent(hc); } catch (e) {} } }   // v4.21：#view=adkw&camp=… で開いたら、そのキャンペーンを選んだ状態
   switchView((_hv || 'ad'), true);
 }
 
@@ -12459,9 +12464,11 @@ let _cmpCache = {};
 const _SROAS_COLORS = { g:'#1D9E75', y:'#BA7517', o:'#ED7D31', r:'#A32D2D', n:'var(--text3)' };
 function _sroasCat(v){ if (!(v > 0)) return 'n'; if (v >= 800) return 'g'; if (v >= 500) return 'y'; if (v >= 200) return 'o'; return 'r'; }
 function _daysWithData(){ return []; }
-function openRenewalGraph(code){ const pc = productCache[code];
+function openRenewalGraph(code, ev){ const pc = productCache[code];
   if (pc && pc.members) { _cmpGroupOpen(code); return; }
-  if (pc && pc.camp) { kwCamp = pc.name; kwCampUrlEdit = false; switchView('adkw'); return; }   // v4.19：キャンペーンのタイル→そのキャンペーンの KW-日月別データ
+  if (pc && pc.camp) {   // v4.21：Ctrl（Mac は ⌘）＋ダブルクリック＝新しいタブで開く
+    if (ev && (ev.ctrlKey || ev.metaKey)) { window.open(location.href.split('#')[0] + '#view=adkw&camp=' + encodeURIComponent(pc.name), '_blank'); return; }
+    kwCamp = pc.name; kwCampUrlEdit = false; switchView('adkw'); return; }   // v4.19：キャンペーンのタイル→そのキャンペーンの KW-日月別データ
   openProductModal(code, 'info'); }
 // v4.17：まとめ方。group＝キャンペーンでつながっている商品を1つの親（グループ）に。広告なしの商品は1つずつ／item＝商品ごと（前のまま）
 let _cmpGroupMode = 'group', _cmpCodeOf = {};
@@ -12541,7 +12548,9 @@ function _cmpGroupOpen(code){
   if (!bg) { bg = document.createElement('div'); bg.id = 'cmp-grp-modal'; bg.className = 'kww-mm-bg'; document.body.appendChild(bg); bg.addEventListener('mousedown', e => { if (e.target === bg) bg.hidden = true; }); document.addEventListener('keydown', e => { if (e.key === 'Escape' && !bg.hidden) bg.hidden = true; }); }
   const lb = v => v ? v.replace('-', '/') : '';
   let h = '<div class="kww-mm-box cmp-grp-box"><div class="kww-mm-h"><b>' + escapeHtml(pc.name) + '</b><span class="kww-mm-kw">' + pc.members.length + '商品（キャンペーンでつながっている商品）の売上（推計総売上）</span></div>'
-    + '<div class="cmp-grp-sum">グループ全体：' + lb(ymB) + ' ' + yen(sb) + ' → ' + lb(ym) + ' ' + yen(sa) + '　' + diff(sa, sb) + (_cmpIsPartial(ym) || _cmpIsPartial(ymB) ? '<span class="cmp-grp-warn">速報の月は④のある日だけの数字なので、まるまる1か月の月とは比べにくい</span>' : '') + '</div>'
+    + '<div class="cmp-grp-sum"><div class="cmp-grp-st">グループ全体（' + pc.members.length + '商品）の売上</div>'   // v4.21：複数行に
+    + '<div class="cmp-grp-sg"><span>' + lb(ymB) + '</span><b>' + yen(sb) + '</b><span>' + lb(ym) + '</span><b>' + yen(sa) + '</b><span>増減</span><b>' + diff(sa, sb) + '</b></div>'
+    + ([ym, ymB].filter(v => v && _cmpIsPartial(v)).map(v => '<div class="cmp-grp-warn">※ ' + lb(v) + ' は<b>月の途中</b>の数字です（④購入商品データを取り込んだ日の分だけで、月の残りの日はまだ入っていません）。まるまる1か月の月と比べると少なく見えるので、増減は目安として見てください。</div>').join('')) + '</div>'
     + '<table class="cmp-grp-tbl"><thead><tr><th></th><th>商品</th><th>' + lb(ymB) + '</th><th>' + lb(ym) + '</th><th>増減</th><th>売上ROAS（' + lb(ym) + '）</th></tr></thead><tbody>';
   pc.members.slice().sort((a, b) => Math.abs(((M.by[b] || {}).total || 0) - ((MB.by[b] || {}).total || 0)) - Math.abs(((M.by[a] || {}).total || 0) - ((MB.by[a] || {}).total || 0))).forEach(f => {
     const p = products.find(x => x.fnsku === f) || {}, r = M.by[f] || {}, rb = MB.by[f] || {};
@@ -13033,7 +13042,7 @@ function renderYoyTop(){
     // もう片方の月での順位（上段なら比較月での順位、下段なら今月での順位）
     const oi = otherRes ? otherRes.list.findIndex(y => y.code === x.code) : -1;
     const rankTag = '<div style="font-size:10px;color:var(--text3);line-height:13px;height:13px">' + (oi >= 0 ? (oi+1)+'位' : '圏外') + '</div>';
-    return '<div class="yt-tile" data-code="'+esc(x.code)+'" data-ytip="'+esc(name)+'" onclick="_yoyTopPin(\''+esc(x.code)+'\')" ondblclick="openRenewalGraph(\''+esc(x.code)+'\')" onmouseenter="_yoyTopHi(\''+esc(x.code)+'\',true)" onmouseleave="_yoyTopHi(\''+esc(x.code)+'\',false)" style="cursor:pointer;flex:0 0 74px;width:74px;box-sizing:border-box;text-align:center;position:relative;padding:6px 1px 4px;border-radius:8px">'
+    return '<div class="yt-tile" data-code="'+esc(x.code)+'" data-ytip="'+esc(name)+'" onclick="_yoyTopPin(\''+esc(x.code)+'\')" ondblclick="openRenewalGraph(\''+esc(x.code)+'\',event)" onmouseenter="_yoyTopHi(\''+esc(x.code)+'\',true)" onmouseleave="_yoyTopHi(\''+esc(x.code)+'\',false)" style="cursor:pointer;flex:0 0 74px;width:74px;box-sizing:border-box;text-align:center;position:relative;padding:6px 1px 4px;border-radius:8px">'
       // ★v1.1423★ 横幅を詰める（108→74px）。順位は画像の左上、絞込ボタンは画像の右下に重ねる
       + '<div style="position:relative;width:58px;height:58px;margin:0 auto">' + imgEl
       +   (pc.members ? '<div class="yt-badge grp" onclick="event.stopPropagation();_cmpGroupOpen(\''+esc(x.code)+'\')" ondblclick="event.stopPropagation()" title="押すと中の商品ごとの増減">' + pc.members.length + '商品 ▾</div>' : (pc.noAd ? '<div class="yt-badge noad">広告なし</div>' : ''))   // v4.17／v4.19：札を押すと内訳
@@ -13053,8 +13062,9 @@ function renderYoyTop(){
     const n1 = mt.type === 'amt' ? mt.label : (mt.type === 'roas' ? mt.label : '獲得単価');
     const n2 = mt.type === 'amt' ? '構成比' : '全体への影響';
     const ln = (t, h, extra) => '<div style="font-size:9px;font-weight:700;color:var(--text3);line-height:'+h+'px;height:'+h+'px;white-space:nowrap;'+(extra||'')+'">'+t+'</div>';
-    return '<div class="yt-lab" style="flex:0 0 66px;width:66px;box-sizing:border-box;text-align:center;padding:6px 2px 4px 0;border-right:1px dashed var(--border2);margin-right:2px;position:sticky;left:218px;z-index:3;background:var(--surface);align-self:stretch;box-shadow:5px 0 6px -5px rgba(0,0,0,.18);display:flex;flex-direction:column;justify-content:center;align-items:center">'   // v4.20：見出しは枠の上下の真ん中に
-      + ln((!_yoyFocusCode && _CMP_AD_KEYS.indexOf(mt.k) > -1) ? 'キャンペーン名' : (_cmpGroupMode === 'group' && !_yoyFocusCode ? 'グループ／商品' : '商品名'), 14)   // v4.20
+    return '<div class="yt-lab" style="flex:0 0 66px;width:66px;box-sizing:border-box;text-align:center;padding:6px 2px 4px 0;border-right:1px dashed var(--border2);margin-right:2px;position:sticky;left:218px;z-index:3;background:var(--surface);align-self:stretch;box-shadow:5px 0 6px -5px rgba(0,0,0,.18)">'   // v4.22：中央寄せ（v4.20）はやめて、タイルの各行と同じ高さにそろえる元の形に戻した
+      + '<div style="height:58px"></div>'
+      + ln((!_yoyFocusCode && _CMP_AD_KEYS.indexOf(mt.k) > -1) ? 'キャンペーン名' : (_cmpGroupMode === 'group' && !_yoyFocusCode ? 'グループ／商品' : '商品名'), 14, 'margin-top:3px')   // v4.20：見出しの言葉
       + ln(n1, 15) + ln(n2, 15, 'color:'+mt.col)
       + (mt.type === 'roas' ? ln(_YOY_SP_LABEL[mt.den] || '広告費', 14) : '')   // ★v1.1426★
       + ((mt.type === 'amt' && hasBelow) ? '<div title="下の月を100%としたときの、この月の金額" style="font-size:9px;font-weight:700;color:var(--text3);line-height:15px;height:15px;white-space:nowrap">伸び率</div>' : '')   // ★v1.1459★
