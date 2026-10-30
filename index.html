@@ -415,9 +415,9 @@
   table.ad-table thead tr:nth-child(3) th { top: 66px; font-size: 13px; }
   table.ad-table .ad-daycol { text-align: center; background: var(--bg-secondary); font-weight: 700; width: 34px; }
   table.ad-table col.col-day { width: 34px; }
-  table.ad-table col.col-yen-lg { width: 4.9%; }
-  table.ad-table col.col-yen { width: 4.35%; }
-  table.ad-table col.col-roas { width: 3.6%; }
+  table.ad-table col.col-yen-lg { width: 4.75%; }   /* v4.43：売上ROAS の列を足したので配分し直し（4×4.75＋12×4.5＋8×3.0＝97%。前は 4×4.9＋12×4.35＋7×3.6） */
+  table.ad-table col.col-yen { width: 4.5%; }
+  table.ad-table col.col-roas { width: 3.0%; }
   table.ad-table .ad-daycol.ad-sale { background: rgba(194,24,91,0.12); box-shadow: inset 3px 0 0 var(--sale); color: var(--sale); }
   .ad-saletip-pop { position: fixed; z-index: 9999; background: #1f2937; color: #fff; font-size: 12px; font-weight: 600; padding: 6px 9px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.3); pointer-events: none; white-space: nowrap; opacity: 0; }
   .ad-saletip-pop.show { opacity: 1; }
@@ -2492,7 +2492,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.42</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.44</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -9599,7 +9599,7 @@ function adDiffRowHtml(A, B, warnCut){
   const trip = (cls, sep, kS, kC) => cell(cls + (sep === 'g' ? ' adc-gstart' : ' adc-bstart'), a[kS], b[kS], aOk, false) + cell(cls, a[kC], b[kC], aOk, true) + '<td class="' + cls + '"></td>';
   return '<tr class="ad-diff"><td class="ad-daycol ad-diff-lbl"><div class="ad-diff-t">差異</div><div class="ad-diff-yr">' + A.ym.slice(0, 4) + '−' + B.ym.slice(0, 4) + '</div>'
     + (warnCut ? '<div class="ad-diff-warn" title="今月は1〜' + warnCut + '日、前年は1か月分の比較です。「月途中」にすると同じ日数で比べられます">⚠ 今月は1〜' + warnCut + '日</div>' : '') + '</td>'
-    + cell('adc-sales adc-gstart', a.total, b.total, tOk, false) + cell('adc-sales-l1', a.seo, b.seo, tOk, false)
+    + cell('adc-sales adc-gstart', a.total, b.total, tOk, false) + '<td class="adc-sales"></td>' + cell('adc-sales-l1', a.seo, b.seo, tOk, false)
     + cell('adc-sales-l2', a.adS, b.adS, aOk, false) + cell('adc-sales-l3', a.adC, b.adC, aOk, true) + '<td class="adc-sales-l4"></td>'
     + trip('adc-sp', 'g', 'spS', 'spC') + trip('adc-sp-b1', 'b', 'kwS', 'kwC') + trip('adc-sp-b2', 'b', 'shS', 'shC')
     + trip('adc-sb', 'g', 'sbS', 'sbC') + trip('adc-sb-b1', 'b', 'dgS', 'dgC') + trip('adc-sb-b2', 'b', 'skS', 'skC') + '</tr>';
@@ -9704,7 +9704,7 @@ function adPctColor(v){ return v < 30 ? '#1d4ed8' : v < 40 ? '#3b82f6' : v < 50 
 function adPctRowHtml(total, seo, adS, has, extraCls){
   const pc = v => '<span style="color:' + adPctColor(v) + '">' + (Math.round(v * 10) / 10).toFixed(1) + '%</span>';
   const ok = total > 0 && has;
-  let h = '<tr class="ad-pct-row' + (extraCls || '') + '"><td class="adc-sales adc-gstart"></td>'
+  let h = '<tr class="ad-pct-row' + (extraCls || '') + '"><td class="adc-sales adc-gstart"></td><td class="adc-sales"></td>'
     + '<td class="adc-sales-l1">' + (ok ? pc(Math.max(0, seo) / total * 100) : '') + '</td>'
     + '<td class="adc-sales-l2">' + (ok ? pc(adS / total * 100) : '') + '</td><td class="adc-sales-l3"></td><td class="adc-sales-l4"></td>';
   [['adc-sp', 'g'], ['adc-sp-b1', 'b'], ['adc-sp-b2', 'b'], ['adc-sb', 'g'], ['adc-sb-b1', 'b'], ['adc-sb-b2', 'b']].forEach(([c, s]) => { h += '<td class="' + c + (s === 'g' ? ' adc-gstart' : ' adc-bstart') + '"></td><td class="' + c + '"></td><td class="' + c + '"></td>'; });
@@ -9847,12 +9847,13 @@ function renderAdTableCore(){
     + '<thead>'
     + '<tr>'
     + '<th rowspan="3" class="ad-daycol">' + (adPeriod === 'monthly' ? ('月' + (dayCut ? '<br><span class="ad-daycut-lbl">1〜' + dayCut + '日</span>' : '')) : (adPeriod === 'last2m' ? '日付' : '日')) + '</th>'
-    + '<th colspan="5" class="adg adg-sales">全体</th>'
+    + '<th colspan="6" class="adg adg-sales">全体</th>'
     + '<th colspan="9" class="adg adg-sp"><span class="ps-gtag sp">SP</span>スポンサープロダクト広告</th>'   // v4.11：商品-売上データと同じ札
     + '<th colspan="9" class="adg adg-sb"><span class="ps-gtag sb">SB</span>スポンサーブランド広告</th>'
     + '</tr>'
     + '<tr>'
     + '<th rowspan="2" class="adh adc-sales adc-gstart">推計総売上</th>'
+    + '<th rowspan="2" class="adh adc-sales ad-roas" title="推計総売上 ÷ 広告費">売上<br>ROAS</th>'   // v4.43
     + '<th rowspan="2" class="adh adc-sales-l1">SEO売上</th>'
     + '<th rowspan="2" class="adh adc-sales-l2">広告売上</th>'
     + '<th rowspan="2" class="adh adc-sales-l3">広告費</th>'
@@ -9877,7 +9878,7 @@ function renderAdTableCore(){
   }
   function adColgroup(){
     let cg = '<colgroup><col class="col-day">';
-    cg += '<col class="col-yen-lg"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-roas">'; // 全体
+    cg += '<col class="col-yen-lg"><col class="col-roas"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-roas">'; // 全体（v4.43：推計総売上の右に売上ROAS）
     for (let i = 0; i < 3; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SP 3ブロック（広告全体・KW・商品）
     for (let i = 0; i < 3; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SB 3ブロック
     return cg + '</colgroup>';
@@ -9983,6 +9984,11 @@ function renderAdTableCore(){
       + '<td class="' + dayCls + '"' + (pctOn ? ' rowspan="2"' : '') + dayAttr + dayTitle + dayClick + '>' + r.label + clBadges + '</td>'
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
       + tcell(total, 'adc-sales adc-gstart', 'total')
+      + (() => {   // v4.43：売上ROAS＝推計総売上÷広告費。v4.44：色は商品-売上データの売上ROAS と同じ（800%以上 緑・500〜800% 茶・200〜500% 橙・200%未満 赤。太字）
+        if (!(total > 0 && has && adCost > 0)) return '<td class="adc-sales ad-roas"></td>';
+        const v = Math.round(total / adCost * 100), col = (PS_SROAS_CATS.find(x => x[0] === psSroasCat(v)) || [])[2];
+        return '<td class="adc-sales ad-roas" style="color:' + col + ';font-weight:700">' + v.toLocaleString() + '%</td>';
+      })()
       + tcell(seo, 'adc-sales-l1', 'seo')
       + dcell(adSales, 'adc-sales-l2', 'adS')
       + dcell(adCost, 'adc-sales-l3', 'adC')
@@ -9998,7 +10004,7 @@ function renderAdTableCore(){
       + '</tr>';
     if (pctOn) html += adPctRowHtml(total, seo, adSales, has, cls ? ' ad-cl-bot" style="--clc:' + clCol : '');
     if (diffAfter[ri]) html += diffAfter[ri];
-    if (isM && adSeoShow) html += adSeoRowHtml(r.ym, 24);
+    if (isM && adSeoShow) html += adSeoRowHtml(r.ym, 25);
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
