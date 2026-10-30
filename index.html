@@ -2470,7 +2470,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.32</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.33</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -2786,7 +2786,7 @@
       <h2 style="font-size:16px;margin:0;"><svg class="icn" style="color:var(--text-secondary);vertical-align:-3px;"><use href="#i-database-off"/></svg> 撤退済み商品</h2>
       <div class="spacer"></div>
     </div>
-    <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;">撤退済みにした商品の一覧です。商品マスタからは非表示になり、設定した撤退日の翌月から出荷数データの表にも表示されなくなります。ステータスを「現役商品」に戻すと復帰します。</p>
+    <p style="font-size:13px;color:var(--text-secondary);margin:0 0 12px;">撤退済みにした商品の一覧です。商品マスタからは非表示になり、設定した撤退日の翌月から出荷数データの表にも表示されなくなります。区分を「撤退済み■」以外にすると商品マスタに戻ります。</p>
     <div class="master-card">
       <div id="withdrawn-list"></div>
     </div>
@@ -2836,7 +2836,7 @@
     <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:12px;">
       <div>
         <h3><svg class="icn" style="color:var(--purple);vertical-align:-3px;"><use href="#i-tag"/></svg> 商品カテゴリ設定</h3>
-        <div class="sub" style="margin-bottom:0;">各商品（FNSKU）にカテゴリ名を入力してグループ化します。<strong>同じ名前にすると同じカテゴリ</strong>にまとまります。空欄は「未分類」。マスタ未登録の不要な商品は<svg class="icn" style="vertical-align:-2px;"><use href="#i-trash"/></svg>で削除できます。<strong>撤退の設定は商品マスタのステータス列</strong>（撤退済み＋撤退日）で行い、撤退日の翌月以降は返品率表からも商品・カテゴリが除外されます。</div>
+        <div class="sub" style="margin-bottom:0;">各商品（FNSKU）にカテゴリ名を入力してグループ化します。<strong>同じ名前にすると同じカテゴリ</strong>にまとまります。空欄は「未分類」。マスタ未登録の不要な商品は<svg class="icn" style="vertical-align:-2px;"><use href="#i-trash"/></svg>で削除できます。<strong>撤退の設定は商品マスタの区分列</strong>（撤退済み■＋撤退日）で行い、撤退日の翌月以降は返品率表からも商品・カテゴリが除外されます。</div>
       </div>
       <button id="cat-close" class="ghost" title="閉じる (Esc)" style="padding:6px 8px;flex-shrink:0;"><svg class="icn"><use href="#i-x"/></svg></button>
     </div>
@@ -3843,6 +3843,7 @@ async function bootstrap(){
     return lzGet(k, fb);
   };
   products = await load(STORAGE_PRODUCTS, []);
+  try { kubunMigrate(); } catch (e) {}   // v4.33：ステータス → 区分（商品マスタのステータス列を区分に差し替え）
   shipments = await load(STORAGE_SHIPMENTS, {});
   saleRanges = await load(STORAGE_SALES, []);
   if (!Array.isArray(saleRanges)) saleRanges = [];
@@ -4697,7 +4698,7 @@ function renderMasterList(){
     + '<th class="price">想定利益</th>'
     + '<th class="price">想定利益率</th>'
     + '<th class="edit-cell">編集</th>'
-    + '<th class="status-cell">ステータス</th>'
+    + '<th class="status-cell">区分</th>'
     + '</tr></thead><tbody>';
   const visible = visibleMasterProducts();
   visible.forEach((p, idx) => {
@@ -8284,7 +8285,7 @@ function buildAnalysisSheets(fromYm, toYm, want){
 
   // ① 出荷数（日×商品）
   if (want.ship) {
-    const rows = [['日付', '年月', '曜日', 'FNSKU', 'SKU', 'ASIN', '商品名', 'カテゴリ', 'ステータス', '出荷数', '通常価格', '適用価格', 'セール価格適用', '推計売上', '原価単価', '推計原価', 'セール期間中', 'セール名']];
+    const rows = [['日付', '年月', '曜日', 'FNSKU', 'SKU', 'ASIN', '商品名', 'カテゴリ', '区分', '出荷数', '通常価格', '適用価格', 'セール価格適用', '推計売上', '原価単価', '推計原価', 'セール期間中', 'セール名']];
     Object.keys(shipments).filter(ym => /^\d{4}-\d{2}$/.test(ym) && inYm(ym)).sort().forEach(ym => {
       const sh = shipments[ym];
       const recs = [];
@@ -8299,7 +8300,7 @@ function buildAnalysisSheets(fromYm, toYm, want){
         const cost = num(p.cost);
         const sn = saleNamesForDate(ds);
         dateList.add(ds);
-        rows.push([ds, ym, EXP_DOW[new Date(ds + 'T00:00:00').getDay()], fn, p.sku || '', p.asin || '', p.name || '', catOf(fn), STATUS_LABELS[productStatus(p)] || '', q,
+        rows.push([ds, ym, EXP_DOW[new Date(ds + 'T00:00:00').getDay()], fn, p.sku || '', p.asin || '', p.name || '', catOf(fn), KUBUN_LABELS[productKubun(p)] || '', q,
           normal, price, sp != null ? 1 : 0, expR(q * price), cost, cost != null ? expR(q * cost) : null, sn.length ? 1 : 0, sn.join(' / ')]);
       });
     });
@@ -8414,10 +8415,10 @@ function buildAnalysisSheets(fromYm, toYm, want){
   // v3.55：⑪ 購入商品（④日別・E月別：買われた商品別の広告売上）と ⑫ 商品別×月（商品-売上データと同じ計算）
   if (want.pd) {
     const aMap = {}; products.forEach(p => { if (p.asin) aMap[String(p.asin).toUpperCase()] = p; });
-    const pinfo = a => { const p = aMap[String(a || '').toUpperCase()]; return p ? [p.sku || '', p.autoFromPurchase ? '' : (p.name || ''), catOf(p.fnsku), p.autoFromPurchase ? '商品マスタに無い' : (STATUS_LABELS[productStatus(p)] || '')] : ['', '', '', '商品マスタに無い']; };
+    const pinfo = a => { const p = aMap[String(a || '').toUpperCase()]; return p ? [p.sku || '', p.autoFromPurchase ? '' : (p.name || ''), catOf(p.fnsku), p.autoFromPurchase ? '商品マスタに無い' : (KUBUN_LABELS[productKubun(p)] || '')] : ['', '', '', '商品マスタに無い']; };
     const kindOf = r => { const b = psBlockOf(r.t, r.c); return { spKw: 'KW', spSh: '商品', spAu: 'オート', sbDg: '動画', sbSk: '商品コレ' }[b] || ''; };
     const advName = a => { const p = aMap[String(a || '').toUpperCase()]; return p && !p.autoFromPurchase ? (p.name || '') : ''; };
-    const dRows = [['日付', '年月', '曜日', '広告タイプ', '広告種類', 'キャンペーン名', 'キャンペーンID', '広告対象ASIN', '広告対象商品名', '購入ASIN', '購入SKU', '購入商品名', 'カテゴリ', 'ステータス', '関連性', '商品購入数', '注文点数', '売上', '宣伝商品と同じ', 'セール期間中', 'セール名']];
+    const dRows = [['日付', '年月', '曜日', '広告タイプ', '広告種類', 'キャンペーン名', 'キャンペーンID', '広告対象ASIN', '広告対象商品名', '購入ASIN', '購入SKU', '購入商品名', 'カテゴリ', '区分', '関連性', '商品購入数', '注文点数', '売上', '宣伝商品と同じ', 'セール期間中', 'セール名']];
     Object.keys(purchData.day || {}).filter(ds => /^\d{4}-\d{2}-\d{2}$/.test(ds) && inYm(ds.slice(0, 7))).sort().forEach(ds => {
       const sn = saleNamesForDate(ds);
       (purchData.day[ds] || []).forEach(r => {
@@ -8426,7 +8427,7 @@ function buildAnalysisSheets(fromYm, toYm, want){
       });
     });
     sheets.push({ name: '購入商品_日別', rows: dRows, widths: [11, 8, 5, 6, 8, 30, 17, 12, 24, 12, 16, 30, 12, 10, 8, 8, 8, 10, 8, 8, 18] });
-    const mRows = [['年月', '広告タイプ', '広告種類', 'キャンペーン名', 'キャンペーンID', '広告対象ASIN', '広告対象商品名', '購入ASIN', '購入SKU', '購入商品名', 'カテゴリ', 'ステータス', '関連性', '商品購入数', '注文点数', '売上', '宣伝商品と同じ']];
+    const mRows = [['年月', '広告タイプ', '広告種類', 'キャンペーン名', 'キャンペーンID', '広告対象ASIN', '広告対象商品名', '購入ASIN', '購入SKU', '購入商品名', 'カテゴリ', '区分', '関連性', '商品購入数', '注文点数', '売上', '宣伝商品と同じ']];
     Object.keys(purchData.month || {}).filter(ym => /^\d{4}-\d{2}$/.test(ym) && inYm(ym)).sort().forEach(ym => {
       (purchData.month[ym] || []).forEach(r => {
         const pi = pinfo(r.a);
@@ -8436,7 +8437,7 @@ function buildAnalysisSheets(fromYm, toYm, want){
     sheets.push({ name: '購入商品_月別', rows: mRows, widths: [8, 6, 8, 30, 17, 12, 24, 12, 16, 30, 12, 10, 8, 8, 8, 10, 8] });
     // 商品別×月：商品-売上データの計算（psCompute）を月ごとに「宣伝商品に全額」「配賦」の両方で回す
     const keep = { m: psMonth, d: psDay, c: psCostMode };
-    const pRows = [['年月', '購入商品データ', '集計した日数', 'ASIN', 'SKU', '商品名', 'カテゴリ', 'ステータス', '出荷数', '推計総売上', '広告売上', '広告売上_宣伝商品', '広告売上_Halo', '広告経由の点数', '推計SEO売上', '広告売上比率（%）',
+    const pRows = [['年月', '購入商品データ', '集計した日数', 'ASIN', 'SKU', '商品名', 'カテゴリ', '区分', '出荷数', '推計総売上', '広告売上', '広告売上_宣伝商品', '広告売上_Halo', '広告経由の点数', '推計SEO売上', '広告売上比率（%）',
       'SP広告売上', 'SP-KW売上', 'SP-商品売上', 'SP-オート売上', 'SB広告売上', 'SB-動画売上', 'SB-商品コレ売上',
       '広告費_全額', 'SP広告費_全額', 'SB広告費_全額', 'ROAS_全額（倍）', '売上ROAS_全額（倍）',
       '広告費_売上比', 'SP広告費_売上比', 'SB広告費_売上比', 'ROAS_売上比（倍）', '売上ROAS_売上比（倍）', 'SP-ROAS_売上比（倍）', 'SB-ROAS_売上比（倍）']];
@@ -8457,7 +8458,7 @@ function buildAnalysisSheets(fromYm, toYm, want){
           if (!r.has && !(a.cost > 0)) return;
           const p = r.p || {};
           const rt = (x, y) => (y > 0 && x != null) ? expR(x / y, 4) : null;
-          pRows.push([ym, src, ndays, r.asin, r.sku, r.name, p.fnsku ? catOf(p.fnsku) : '', p.fnsku ? (STATUS_LABELS[productStatus(p)] || '') : '', r.ship, expR(r.total), expR(r.ad), expR(r.prom), expR(r.halo), r.units, expR(r.seo), (r.total > 0 && r.ad != null) ? expR(r.ad / r.total * 100, 2) : null,
+          pRows.push([ym, src, ndays, r.asin, r.sku, r.name, p.fnsku ? catOf(p.fnsku) : '', p.fnsku ? (KUBUN_LABELS[productKubun(p)] || '') : '', r.ship, expR(r.total), expR(r.ad), expR(r.prom), expR(r.halo), r.units, expR(r.seo), (r.total > 0 && r.ad != null) ? expR(r.ad / r.total * 100, 2) : null,
             expR(r.spAllS), expR(r.spKwS), expR(r.spShS), expR(r.spAuS), expR(r.sbAllS), expR(r.sbDgS), expR(r.sbSkS),
             expR(r.cost), expR(r.spAllC), expR(r.sbAllC), rt(r.ad, r.cost), rt(r.total, r.cost),
             expR(a.cost), expR(a.spAllC), expR(a.sbAllC), rt(a.ad, a.cost), rt(a.total, a.cost), rt(a.spAllS, a.spAllC), rt(a.sbAllS, a.sbAllC)]);
@@ -8468,8 +8469,8 @@ function buildAnalysisSheets(fromYm, toYm, want){
   }
 
   // ⑦ 商品マスタ ⑧ 広告商品の対応表 ⑨ セール期間 ⑩ セール価格（常に付ける：シート同士をつなぐための表）
-  sheets.push({ name: '商品マスタ', rows: [['FNSKU', 'SKU', 'ASIN', '商品名', 'カテゴリ', 'ステータス', '撤退日', '販売価格', '原価単価', '販売手数料（1個あたり）', 'FBA手数料（1個あたり）']]
-    .concat(products.map(p => [p.fnsku || '', p.sku || '', p.asin || '', p.name || '', catOf(p.fnsku), STATUS_LABELS[productStatus(p)] || '', p.withdrawnDate || '', num(p.sellingPrice), num(p.cost), num(p.sellingFee), num(p.fbaFee)])),
+  sheets.push({ name: '商品マスタ', rows: [['FNSKU', 'SKU', 'ASIN', '商品名', 'カテゴリ', '区分', '撤退日', '販売価格', '原価単価', '販売手数料（1個あたり）', 'FBA手数料（1個あたり）']]
+    .concat(products.map(p => [p.fnsku || '', p.sku || '', p.asin || '', p.name || '', catOf(p.fnsku), KUBUN_LABELS[productKubun(p)] || '', p.withdrawnDate || '', num(p.sellingPrice), num(p.cost), num(p.sellingFee), num(p.fbaFee)])),
     widths: [14, 16, 12, 40, 12, 9, 11, 9, 9, 12, 12] });
   sheets.push({ name: '広告商品_対応表', rows: [['広告商品', 'キャンペーン名', '広告タイプ', '実施中', '対象ASIN']]
     .concat(adCampaigns.map(c => [campProduct(c), c.name || '', String(c.type || '').toUpperCase(), c.active ? 1 : 0, (typeof asinTokens === 'function' ? asinTokens(c.asin).join(' ') : (c.asin || ''))])),
@@ -8867,7 +8868,7 @@ function productStatus(p){ return p.status || 'active'; }
 
 // ============================================
 // v4.28：区分（ADcheck v1.1506 の「区分」と同じキー・ラベル・色。商品に1つ＝p.kubun。無い＝unset 選択前■）
-//   上のステータス（現役／撤退予定／撤退済み＝商品マスタに出すか）とは別のもの。
+//   v4.33 から商品マスタのステータスは区分から決める（setProductKubun）。撤退済み■＝撤退済み（商品マスタから外れる）。
 //   【状態】のタブ＝区分で商品-売上データを絞り込む。商品マスタで「撤退済み」の商品は【状態】に出さない（ADcheck の引退と同じ）。
 // ============================================
 const KUBUN_LABELS = { unset: '選択前■', g1: '健常◎', g2: '健常-要注意◯', g3: '健常-広告無し', new: '新商品', mid: '中立□', mid2: '中立-広告無し', warn: '撤退予定▲', out: '撤退済み■' };
@@ -8876,6 +8877,28 @@ const KUBUN_ORDER = ['unset', 'g1', 'g2', 'g3', 'new', 'mid', 'mid2', 'warn', 'o
 const KUBUN_VIEW = { stall: 'all', stnew: 'new', stg1: 'g1', stg2: 'g2', stg3: 'g3', stmid: 'mid', stmid2: 'mid2', stwarn: 'warn', stout: 'out', stunset: 'unset' };   // 【状態】のタブ → 区分
 function productKubun(p){ const k = p && p.kubun; return (k && KUBUN_LABELS[k]) ? k : 'unset'; }
 function kubunColor(k){ return KUBUN_COLORS[k] || 'var(--text-tertiary)'; }
+// v4.33：区分が元。商品マスタのステータス（p.status。商品マスタに出すか・出荷数データの表など）は区分から決める：
+//   撤退済み■ → 撤退済み（撤退日が無ければ今日）／撤退予定▲ → 撤退予定／ほか → 現役（撤退日は消す）
+function setProductKubun(p, k){
+  k = KUBUN_LABELS[k] ? k : 'unset';
+  if (k === 'unset') delete p.kubun; else p.kubun = k;
+  if (k === 'out') { p.status = 'withdrawn'; if (!p.withdrawnDate) p.withdrawnDate = todayStr(); }
+  else { p.status = (k === 'warn') ? 'planned' : 'active'; delete p.withdrawnDate; }
+}
+// 起動時に1回：前のステータスを区分へ（撤退済み → 撤退済み■、撤退予定で区分が無い → 撤退予定▲）。そのあと区分からステータスをそろえる
+function kubunMigrate(){
+  let ch = false;
+  (products || []).forEach(p => {
+    const before = JSON.stringify([p.kubun, p.status, p.withdrawnDate]);
+    if (p.status === 'withdrawn' && p.kubun !== 'out') p.kubun = 'out';
+    else if (p.status === 'planned' && !p.kubun) p.kubun = 'warn';
+    const k = productKubun(p);
+    if (k === 'out') { p.status = 'withdrawn'; if (!p.withdrawnDate) p.withdrawnDate = todayStr(); }
+    else { const st = (k === 'warn') ? 'planned' : 'active'; if ((p.status || 'active') !== st) p.status = st; if (p.withdrawnDate) delete p.withdrawnDate; }
+    if (JSON.stringify([p.kubun, p.status, p.withdrawnDate]) !== before) ch = true;
+  });
+  if (ch) persistKey(STORAGE_PRODUCTS, products);
+}
 // 2行表示（ADcheck の _statusDispHtml と同じ：「-」で改行）
 function kubunDispHtml(k){ return (KUBUN_LABELS[k] || '').split(/[-－‐−]/).map(escapeHtml).join('<br>'); }
 function kubunOptionsHtml(cur){ return KUBUN_ORDER.map(k => '<option value="' + k + '"' + (k === cur ? ' selected' : '') + ' style="color:' + (KUBUN_COLORS[k] || '#6b7280') + ';font-weight:600">' + KUBUN_LABELS[k] + '</option>').join(''); }
@@ -8889,8 +8912,9 @@ function kubunCellHtml(p){
 function onKubunChange(sel){
   const p = products.find(x => x.fnsku === sel.dataset.fnsku); if (!p) return;
   const k = KUBUN_LABELS[sel.value] ? sel.value : 'unset';
-  if (k === 'unset') delete p.kubun; else p.kubun = k;
+  setProductKubun(p, k);   // v4.33：ステータスも区分に合わせる
   saveProducts();
+  try { updateWithdrawnButton(); } catch (e) {}
   const cell = sel.closest('.kb-cell'), disp = cell && cell.querySelector('.kb-disp');
   if (disp) { disp.innerHTML = kubunDispHtml(k); disp.style.color = kubunColor(k); }
   sel.title = '区分：' + KUBUN_LABELS[k] + '（押して変える）';
@@ -8902,7 +8926,7 @@ function kubunProducts(){
   const used = new Set(), out = [];
   products.forEach(p => {
     const a = String(p.asin || '').toUpperCase(); if (!a || used.has(a)) return; used.add(a);
-    if (p.autoFromPurchase || productStatus(p) === 'withdrawn') return;
+    if (p.autoFromPurchase) return;   // v4.33：撤退済み■（＝商品マスタの撤退済み）も【状態】の撤退済み■に出す
     out.push(p);
   });
   return out;
@@ -8913,7 +8937,7 @@ function kubunUpdateCounts(){
   list.forEach(p => { const k = productKubun(p); n[k] = (n[k] || 0) + 1; });
   Object.keys(KUBUN_VIEW).forEach(v => {
     const el = document.getElementById('cnt-' + v); if (!el) return;
-    const c = v === 'stall' ? list.length : (n[KUBUN_VIEW[v]] || 0);
+    const c = v === 'stall' ? list.length - (n.out || 0) : (n[KUBUN_VIEW[v]] || 0);   // 全体＝撤退済み■を除く（商品マスタと同じ）
     el.textContent = c ? '(' + c + ')' : '';
   });
 }
@@ -8921,15 +8945,11 @@ window.onKubunChange = onKubunChange;
 function visibleMasterProducts(){ return products.filter(p => productStatus(p) !== 'withdrawn'); }
 function withdrawnProducts(){ return products.filter(p => productStatus(p) === 'withdrawn'); }
 
+// v4.33：商品マスタ・撤退済み商品の「ステータス」列は「区分」に差し替え（中身は区分のドロップダウン。撤退済み■のときは撤退日も）
 function statusCellHtml(p){
-  const st = productStatus(p);
-  const cls = st === 'withdrawn' ? ' st-withdrawn' : (st === 'planned' ? ' st-planned' : ' st-active');
-  let h = '<select class="status-select' + cls + '" data-fnsku="' + escapeHtml(p.fnsku) + '" onchange="onStatusChange(this)">';
-  ['active', 'planned', 'withdrawn'].forEach(v => {
-    h += '<option value="' + v + '"' + (st === v ? ' selected' : '') + '>' + STATUS_LABELS[v] + '</option>';
-  });
-  h += '</select>';
-  if (st === 'withdrawn') {
+  const k = productKubun(p);
+  let h = '<select class="status-select kb-msel" data-fnsku="' + escapeHtml(p.fnsku) + '" onchange="onStatusChange(this)" style="color:' + kubunColor(k) + ';font-weight:700" title="区分（撤退済み■にすると商品マスタから外れ、撤退済み商品へ）">' + kubunOptionsHtml(k) + '</select>';
+  if (k === 'out') {
     h += '<input type="date" class="withdraw-date" data-fnsku="' + escapeHtml(p.fnsku) + '" value="' + (p.withdrawnDate || '') + '" onchange="onWithdrawDateChange(this)" title="撤退日">';
   }
   return h;
@@ -8937,16 +8957,14 @@ function statusCellHtml(p){
 function onStatusChange(sel){
   const p = products.find(x => x.fnsku === sel.dataset.fnsku);
   if (!p) return;
-  p.status = sel.value;
-  if (sel.value === 'withdrawn') {
-    if (!p.withdrawnDate) p.withdrawnDate = todayStr();
-  }
+  setProductKubun(p, sel.value);
   saveProducts();
   // セルだけ再描画（行はページ移動・更新まで残す）
   const cell = sel.closest('td');
   if (cell) cell.innerHTML = statusCellHtml(p);
   updateTabCounts();
   updateWithdrawnButton();
+  toast('区分を「' + KUBUN_LABELS[productKubun(p)] + '」にしました' + (productKubun(p) === 'out' ? '（撤退済み商品へ移ります）' : ''));
 }
 function onWithdrawDateChange(input){
   const p = products.find(x => x.fnsku === input.dataset.fnsku);
@@ -8998,7 +9016,7 @@ function renderWithdrawnList(){
     + '<th class="price">想定利益</th>'
     + '<th class="price">想定利益率</th>'
     + '<th class="edit-cell">編集</th>'
-    + '<th class="status-cell">ステータス</th>'
+    + '<th class="status-cell">区分</th>'
     + '</tr></thead><tbody>';
   list.forEach(p => {
     html += '<tr data-fnsku="' + escapeHtml(p.fnsku) + '">'
@@ -9023,15 +9041,14 @@ function renderWithdrawnList(){
 function restoreProduct(fnsku){
   const p = products.find(x => x.fnsku === fnsku);
   if (!p) return;
-  p.status = 'active';
-  delete p.withdrawnDate;
+  setProductKubun(p, 'unset');   // v4.33：区分を選択前■に（＝現役）
   saveProducts();
   renderWithdrawnList();
   updateTabCounts();
   updateWithdrawnButton();
   renderMasterList();
   if (!document.getElementById('shipment-view').hidden) renderShipmentTable();
-  toast('「' + (p.name || p.fnsku) + '」を現役商品に戻しました');
+  toast('「' + (p.name || p.fnsku) + '」を区分「選択前■」で商品マスタに戻しました');
 }
 window.restoreProduct = restoreProduct;
 
@@ -10179,7 +10196,7 @@ function psCompute(opt){   // v3.66：opt.asin を渡すと、その商品の行
     const r = mk(p, a);
     // v3.54：自動登録（商品マスタに無かった商品）は表に出さない。撤退済みは撤退した月まで（データがある時だけ）
     if (p.autoFromPurchase) return;
-    if (productStatus(p) === 'withdrawn' && (!r.has || (p.withdrawnDate && psMonth > String(p.withdrawnDate).slice(0, 7)))) return;
+    if (productStatus(p) === 'withdrawn' && !(opt && opt.keepWithdrawn) && (!r.has || (p.withdrawnDate && psMonth > String(p.withdrawnDate).slice(0, 7)))) return;
     rows.push(r);
   });
   // v3.54：商品マスタに無い ASIN の行は出さない（撤退済み商品へ自動登録される）
@@ -10250,7 +10267,7 @@ function psRowsShown(cmp){
   let rows = cmp.rows.slice();
   rows = rows.filter(r => psMatch(r, psSearch));
   // v4.28：【状態】のタブ＝その区分の商品だけ（商品マスタで撤退済みの商品は出さない）
-  if (psKubun) rows = rows.filter(r => r.p && productStatus(r.p) !== 'withdrawn' && (psKubun === 'all' || productKubun(r.p) === psKubun));
+  if (psKubun) rows = rows.filter(r => r.p && !r.p.autoFromPurchase && (psKubun === 'all' ? productKubun(r.p) !== 'out' : productKubun(r.p) === psKubun));   // v4.33：全体＝撤退済み■を除く
   if (psDay) rows = rows.filter(r => r.has);
   if (psFilter) rows = rows.filter(r => psSroasCat(r.sroas) === psFilter);
   if (psSortKey) {
@@ -10268,7 +10285,7 @@ function psRowsShown(cmp){
 let _psLast = null;
 function renderPsalesTable(){
   const body = document.getElementById('psales-body'); if (!body) return;
-  const cmp = psCompute(); _psLast = cmp;
+  const cmp = psCompute(psKubun === 'out' ? { keepWithdrawn: true } : undefined); _psLast = cmp;   // v4.33：【状態】撤退済み■は、撤退した後の月も全部出す
   const rows = psRowsShown(cmp);
   const cols = psVisibleCols().filter(c => !psGrpHidden.has(c.g));
   // 並び：全体→SP→SB。隠したグループは細い帯（ps-gcol）1列にする
@@ -11157,15 +11174,16 @@ function navigateEdit(dir){
 // 保存して移動：「保存して次へ／前へ」用
 function saveAndNavigate(dir){
   if (!editingFnsku) return;
+  const navBefore = visibleMasterProducts(), idxBefore = navBefore.findIndex(x => x.fnsku === editingFnsku);   // v4.33：撤退済み■にして商品マスタから外れても、元の位置から次／前へ
   applyEditData();
   saveProducts();
   renderMasterList();
   try { if (!document.getElementById('psales-view').hidden) renderPsalesTable(); } catch (e) {}   // v4.28
   resetDirty();
-  const navList = visibleMasterProducts();
-  const idx = navList.findIndex(x => x.fnsku === editingFnsku);
+  const navList = navBefore;
+  const idx = idxBefore;
   const newIdx = idx + dir;
-  if (newIdx < 0 || newIdx >= navList.length) {
+  if (idx < 0 || newIdx < 0 || newIdx >= navList.length) {
     loadProductIntoEditModal(editingFnsku);
     toast('保存しました（最' + (dir > 0 ? '後' : '初') + 'の商品です）');
     return;
@@ -11195,7 +11213,7 @@ function applyEditData(){
   readPrice('edit-cost', 'cost');
   readPrice('edit-selling-fee', 'sellingFee');
   readPrice('edit-fba-fee', 'fbaFee');
-  { const ks = document.getElementById('edit-kubun'); if (ks) { const k = KUBUN_LABELS[ks.value] ? ks.value : 'unset'; if (k === 'unset') delete p.kubun; else p.kubun = k; } }   // v4.28：区分
+  { const ks = document.getElementById('edit-kubun'); if (ks) { setProductKubun(p, ks.value); } }   // v4.28：区分（v4.33：ステータスも合わせる）
 }
 
 function closeEditModal(){
@@ -11585,7 +11603,7 @@ function pmTabsHtml(cur, closeId){
     + '<button type="button" class="pm-x" id="' + closeId + '" title="閉じる (Esc)">✕</button></div>';
 }
 function pmProdRowHtml(p){
-  const st = STATUS_LABELS[productStatus(p)] || '';
+  const st = KUBUN_LABELS[productKubun(p)] || '';   // v4.33：区分
   return '<div class="pm-prod"><div class="pm-prod-img">' + productImageHtml(p, 44) + '</div><div class="pm-prod-txt">'
     + '<div class="pm-prod-name" title="' + pmEsc(p.name) + '">' + pmEsc(p.name) + '</div>'
     + '<div class="pm-prod-sub">ASIN ' + pmEsc(p.asin || '-') + '　｜　SKU ' + pmEsc(p.sku || '-') + (st ? '　｜　' + pmEsc(st) : '') + '</div></div></div>';
