@@ -2492,7 +2492,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.41</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.42</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <button type="button" id="daily-gap-btn" hidden></button>
   <div class="header-tools">
     <div class="zoom-controls">
@@ -3432,42 +3432,47 @@ const STORAGE_KWWATCH = 'amacheck_kwwatch_v1';
 const STORAGE_BIDHIST = 'amacheck_bidhist_v1';
 const STORAGE_CAMPPANEL = 'amacheck_camppanel_v1';
 // ============================================
-// v4.38：グラフ配色（共通）＝ Ycheck v1.1006 の共通仕様書（spec_chart_colors.md／chart_colors.js）と同じ値。
-//   決まり：同じ項目はどのグラフでも同じ色／売上＝寒色・費用＝くすんだ暖色・合計＝濃いグレー／内訳は同じ色の濃い・薄い／色の定義はここだけ。
-//   値は必ず 6桁の #rrggbb（塗りで color + '22' のように透明度を足すため）。
+// v4.42：グラフ配色（共通）v2 ＝ ADcheck v1.1512 の「グラフ配色 共通仕様書 v2」（chart_colors.js）と同じ値（v4.38 の v1 を置き換え）
+//   決まり：同じ項目はどのグラフでも同じ色／基本の項目ははっきりした明るい色／内訳は どの項目でも 主＝琥珀（sub1）・従＝水色（sub2）
+//   （Amazon：SP＝主、SB＝従。SP-KW・SP-商品＝琥珀の濃い2段、SB-動画・SB-商品コレ＝水色の濃い2段、どれも点線）
+//   1本だけの小さいグラフは、内訳でもその項目の色。色の定義はここだけ。値は必ず 6桁の #rrggbb（grid だけ例外）。
 // ============================================
 const CC = {
-  // ---- 売上（寒色） ----
-  tot: '#334155', seo: '#7c3aed', seoDark: '#6d28d9', seoLight: '#c4b5fd', ad: '#3b82f6', adDark: '#1d4ed8', adLight: '#93c5fd', soikomi: '#0d9488',
-  // ---- 費用（暖色を少しくすませる） ----
-  cost: '#b91c1c', costDark: '#7f1d1d', costLight: '#fca5a5', pr: '#ca8a04', cpa: '#ea580c', cpaDark: '#9a3412', cpaLight: '#fdba74',
-  // ---- 比率・単価の線 ----
-  roas: '#10b981', roasDark: '#047857', roasLight: '#6ee7b7', salesRoas: '#0891b2', cvr: '#4f46e5', cvrDark: '#3730a3', cvrLight: '#a5b4fc', prRate: '#be185d', bid: '#7c2d12',
+  // ---- 売上 ----
+  tot: '#2563eb', seo: '#a855f7', ad: '#f97316', soikomi: '#65a30d',
+  // ---- 費用 ----
+  cost: '#dc2626', pr: '#a16207', cpa: '#7f1d1d',
+  // ---- 比率・単価 ----
+  roas: '#10b981', salesRoas: '#0891b2', prRoas: '#a16207', cvr: '#6366f1', ctr: '#ec4899', prRate: '#9f1239',
+  clicks: '#0ea5e9', orders: '#475569', aov: '#c026d3', bid: '#00897b', guide: '#7c3aed',
+  // ---- 内訳（どの項目でも共通） ----
+  sub1: '#f59e0b', sub2: '#38bdf8', sub1Deep: '#d97706', sub1Deeper: '#92400e', sub1Soft: '#fcd34d', sub2Soft: '#7dd3fc',
+  // ---- 濃淡（積み上げで内訳を琥珀・水色にするとぶつかるときだけ） ----
+  seoDark: '#7e22ce', seoLight: '#d8b4fe', adDark: '#c2410c', adLight: '#fdba74',
   // ---- 目盛り・文字 ----
   axis: '#64748b', grid: 'rgba(0,0,0,0.06)',
-  // ---- Amacheck で足したもの（同じ決まりで。共通仕様書には無い項目） ----
-  gross: '#0d9488', profit: '#115e59',       // 粗利益＝ティール（Amazon に送り込み売上は無いので、その色を利益に）、実質利益＝その濃いほう
-  prDark: '#854d0e',                          // 諸費用：保管費＝pr（黄土＝2つ目の費用）、FBA手数料＝その濃いほう
-  ctr: '#be185d', ctrDark: '#831843', ctrLight: '#f9a8d4',   // CTR＝濃いピンク（料率の色。Amazon に料率は無い）
-  clk: '#475569', clkDark: '#1e293b', clkLight: '#8896ab',   // クリック数＝スレート（量。総売上の濃いグレーと同じ系統だが、同じグラフには出ない）
-  imp: '#94a3b8',                             // 表示回数＝薄いスレート
-  cpc: '#b7795a',                             // CPC＝入札額（こげ茶）の薄いほう（クリック＆CPC・入札額 で一緒に出るため）
-  share: '#65a30d'                            // 上部シェア＝黄緑
+  // ---- ★Amacheck で足したもの（共通仕様 v2 に無い項目。同じ決まりで選んだ） ----
+  sub2Deep: '#0369a1', sub2Deeper: '#0c4a6e',   // 従（SB）のさらに内訳：水色の濃い2段（SB-動画／SB-商品コレ。主の sub1Deep／sub1Deeper と同じ考え方）
+  gross: '#6b7280', profit: '#111827',          // 粗利益＝グレー、実質利益＝ほぼ黒（v2 で総売上が青になり、グレー系が空いたので利益に）
+  prDark: '#713f12',                            // 諸費用：保管費＝pr（からし色＝2つ目の費用）、FBA手数料＝その濃いほう
+  imp: '#94a3b8',                               // 表示回数：薄いスレート（個数のスレートの薄いほう。量の項目）
+  cpc: '#4db6ac',                               // CPC：入札額（ティール）の薄いほう（クリック＆CPC・入札額で一緒に出るため）
+  share: '#65a30d'                              // 上部シェア：黄緑（Amazon に送り込み売上は無いので、その色）
 };
-// 2段の内訳（Amazon は SP／SB の下に SP-KW・SP-商品／SB-動画・SB-商品コレ がある）も同じ色の濃淡で：
-//   濃い順 SP-KW → SP → SP-商品 → 合計 → SB-動画 → SB → SB-商品コレ（SP＝濃いほう、SB＝薄いほう）
+const CC_DASH = { d1: [6, 3], d2: [2, 3], cost: [5, 3] };   // 内訳のさらに内訳の点線（1段目・2段目）、売上のグラフの広告費の点線
+// 内訳の組：全体＝その項目の色、SP＝琥珀、SB＝水色、SP-KW／SP-商品＝琥珀の濃い2段、SB-動画／SB-商品コレ＝水色の濃い2段
+function ccTri(c){ return { all: c, sp: CC.sub1, sb: CC.sub2, spKw: CC.sub1Deep, spSh: CC.sub1Deeper, sbDg: CC.sub2Deep, sbSk: CC.sub2Deeper }; }
 function ccMix(a, b, t){ const p = h => [1, 3, 5].map(i => parseInt(h.slice(i, i + 2), 16)); const x = p(a), y = p(b); return '#' + x.map((v, i) => Math.round(v + (y[i] - v) * t).toString(16).padStart(2, '0')).join(''); }
-function ccFam(k){
-  const B = CC[k], D = CC[k + 'Dark'] || ccMix(B, '#000000', 0.3), L = CC[k + 'Light'] || ccMix(B, '#ffffff', 0.5);
-  return { all: B, sp: D, sb: L, spKw: ccMix(D, '#000000', 0.35), spSh: ccMix(D, B, 0.5), sbDg: ccMix(L, B, 0.5), sbSk: ccMix(L, '#ffffff', 0.35) };
-}
+function ccA(hex, a){ const n = parseInt(String(hex).slice(1), 16); return 'rgba(' + ((n >> 16) & 255) + ',' + ((n >> 8) & 255) + ',' + (n & 255) + ',' + a + ')'; }
 // 文字の読みやすさ：薄い色の上は濃い文字（ccInk）、白地に薄い色の文字は少し濃くする（ccText）
 function ccLum(c){ if (!/^#[0-9a-f]{6}$/i.test(c || '')) return 0; const v = [1, 3, 5].map(i => parseInt(c.slice(i, i + 2), 16) / 255); return 0.2126 * v[0] + 0.7152 * v[1] + 0.0722 * v[2]; }
 function ccInk(bg){ return ccLum(bg) > 0.6 ? '#1f2937' : '#fff'; }
 function ccText(c){ return ccLum(c) > 0.55 ? ccMix(c, '#000000', 0.4) : c; }
 // 年を重ねるグラフ：同じ項目の色のまま、古い年ほど薄く（rec＝何年前か）
 function ccYear(c, rec){ return (rec > 0 && /^#[0-9a-f]{6}$/i.test(c)) ? ccMix(c, '#ffffff', Math.min(0.55, 0.22 * rec)) : c; }
-const CCF = { ad: ccFam('ad'), cost: ccFam('cost'), roas: ccFam('roas'), cvr: ccFam('cvr'), ctr: ccFam('ctr'), clk: ccFam('clk') };
+const CCF = { cost: ccTri(CC.cost), roas: ccTri(CC.roas), cvr: ccTri(CC.cvr), ctr: ccTri(CC.ctr), clk: ccTri(CC.clicks), orders: ccTri(CC.orders) };
+// 系列に点線を付ける（内訳のさらに内訳・売上のグラフの広告費）。年を重ねる表示では点線は年の区別に使うので、色で見分ける
+function ccItemDash(it){ const k = it.key || ''; if (k === 'adCostActual') return CC_DASH.cost; if (/SpKw|SbDouga/.test(k)) return CC_DASH.d1; if (/SpShohin|SbShokore/.test(k)) return CC_DASH.d2; return null; }
 const STORAGE_ANALYZE = 'amacheck_analyze_v1';   // v4.37：確認メモ（分析ボタン。ADcheck v1.1510 の確認メモを移植）
 const STORAGE_CAMPTPL = 'amacheck_camptpl_v1';   // v4.26：パネルの文字の配置の型（自分で足した分）   // v4.23：全-比較のキャンペーンのパネルの文言・色・位置   // v4.12：③を取り込んだ時点の入札額の記録（入札を変えた日を正しく出すため）   // v3.91：注視しているKW（【入札単価対策】）
 const STORAGE_CHGLOG = 'amacheck_changelog_v1';   // v3.73：変更記録（ショップ全体。全-月別データの点線枠）
@@ -7889,7 +7894,7 @@ const KWM_METRICS = Object.keys(KWM_COMBOS).map(k => [k, KWM_COMBOS[k].label]).c
 // 前の版で選んでいた指標（広告売上だけ など）は、それを含む組み合わせへ
 function kwmNormMetric(m){ if (KWM_COMBOS[m] || KWM_SINGLES.some(x => x[0] === m)) return m; return ({ sales: 'all', cost: 'all', clicks: 'c_click', imp: 'c_ctr', orders: 'c_cvr', share: 'c_share' })[m] || 'all'; }
 const KWM_LINE = new Set(['roas', 'cvr', 'ctr', 'cpc', 'bid', 'share']);   // 折れ線（月別は年ごとに重ねる）
-const KWM_COLOR = { sales: CC.ad, cost: CC.cost, roas: CC.roas, cvr: CC.cvr, ctr: CC.ctr, cpc: CC.cpc, clicks: CC.clk, imp: CC.imp, orders: CC.ad, bid: CC.bid, share: CC.share };   // v4.38：グラフ配色（CC）
+const KWM_COLOR = { sales: CC.ad, cost: CC.cost, roas: CC.roas, cvr: CC.cvr, ctr: CC.ctr, cpc: CC.cpc, clicks: CC.clicks, imp: CC.imp, orders: CC.orders, bid: CC.bid, share: CC.share };   // v4.42：グラフ配色 v2（CC）
 const KWM_LABEL = { sales: '広告売上', cost: '広告費', roas: 'ROAS', cvr: 'CVR', ctr: 'CTR', cpc: 'CPC', clicks: 'クリック', imp: '表示', orders: '注文', bid: '入札額', share: '上部シェア' };
 const KWM_BID_COLOR = CC.bid;   // v4.38
 const kwmUnit = k => (k === 'sales' || k === 'cost' || k === 'cpc' || k === 'bid') ? 'yen' : ((k === 'roas' || k === 'cvr' || k === 'ctr' || k === 'share') ? 'pct' : 'num');
@@ -11516,7 +11521,7 @@ const GRAPH_CATEGORIES = {
     { key: 'ctrSpShohin',  label: 'CTR SP-商品',   color: CCF.ctr.spSh },
     { key: 'ctrSbDouga',   label: 'CTR SB-動画',   color: CCF.ctr.sbDg },
     { key: 'ctrSbShokore', label: 'CTR SB-商品コレ', color: CCF.ctr.sbSk },
-    { key: 'clk',          label: 'クリック数(全体)',    color: CCF.clk.all, y2: true, soft: true },   // v4.38：クリック数＝スレート（CC.clk）
+    { key: 'clk',          label: 'クリック数(全体)',    color: CCF.clk.all, y2: true, soft: true },   // v4.42：クリック数＝空色（CC.clicks）
     { key: 'clkSpKw',      label: 'クリック数 SP-KW',    color: CCF.clk.spKw, y2: true, soft: true },
     { key: 'clkSpShohin',  label: 'クリック数 SP-商品',   color: CCF.clk.spSh, y2: true, soft: true },
     { key: 'clkSbDouga',   label: 'クリック数 SB-動画',   color: CCF.clk.sbDg, y2: true, soft: true },
@@ -11524,20 +11529,20 @@ const GRAPH_CATEGORIES = {
   ] },
   // v3.56：広告経由で売れた個数（④購入商品データの注文点数。月別は E を優先、④が無い日は ① の注文数で代用）
   units: { label: '広告-個数', yen: false, items: [
-    { key: 'unAll',       label: '合計',          color: CCF.ad.all },
-    { key: 'unSp',        label: 'SP広告',        color: CCF.ad.sp },
-    { key: 'unSb',        label: 'SB広告',        color: CCF.ad.sb },
-    { key: 'unSpKw',      label: 'SP広告-KW',     color: CCF.ad.spKw },
-    { key: 'unSpShohin',  label: 'SP広告-商品',    color: CCF.ad.spSh },
-    { key: 'unSbDouga',   label: 'SB広告-KW-動画',  color: CCF.ad.sbDg },
-    { key: 'unSbShokore', label: 'SB広告-KW-商品コレ', color: CCF.ad.sbSk },
+    { key: 'unAll',       label: '合計',          color: CCF.orders.all },
+    { key: 'unSp',        label: 'SP広告',        color: CCF.orders.sp },
+    { key: 'unSb',        label: 'SB広告',        color: CCF.orders.sb },
+    { key: 'unSpKw',      label: 'SP広告-KW',     color: CCF.orders.spKw },
+    { key: 'unSpShohin',  label: 'SP広告-商品',    color: CCF.orders.spSh },
+    { key: 'unSbDouga',   label: 'SB広告-KW-動画',  color: CCF.orders.sbDg },
+    { key: 'unSbShokore', label: 'SB広告-KW-商品コレ', color: CCF.orders.sbSk },
   ] },
   fees: { label: '諸費用', yen: true, items: [
     { key: 'storage', label: '保管費', color: CC.pr },
     { key: 'fbaFee', label: 'FBA手数料(送料)', color: CC.prDark },
   ] },
   shipment: { label: '出荷数', yen: false, items: [
-    { key: 'totalQty', label: '総出荷数', color: CC.tot },
+    { key: 'totalQty', label: '総出荷数', color: CC.orders },
     { key: 'seoQty', label: 'SEO出荷数', color: CC.seo },
     { key: 'adQty', label: '広告出荷数', color: CC.ad },
   ] },
@@ -11621,7 +11626,7 @@ const PM_CATS = {
     { key: 'adSalesActual', label: '広告売上(合計)', color: CC.ad },
   ] },
   shipment: { label: '出荷数', yen: false, bar: true, items: [
-    { key: 'totalQty', label: '総出荷数', color: CC.tot },
+    { key: 'totalQty', label: '総出荷数', color: CC.orders },
     { key: 'adQty', label: '広告経由の個数', color: CC.ad },
     { key: 'seoQty', label: 'SEO出荷数', color: CC.seo },
   ] },
@@ -11790,7 +11795,7 @@ function pmBuildChart(rows){
   // 推計総売上は線でも出す（④が無い日は広告売上・SEO売上の内訳が無く、棒が出ないため）
   const lineItems = barMode ? vis.filter(it => it.key !== 'seoActual' && it.key !== 'adSalesActual') : vis;
   let chart = { labels, keys: rows.map(r => r.key), years: null,
-    datasets: lineItems.map(it => ({ label: it.label, seriesLabel: it.label, color: it.color, data: rows.map(r => val(r, it.key)), meta, dash: [], width: 3, rec: 0, y2: !!it.y2 })) };
+    datasets: lineItems.map(it => ({ label: it.label, seriesLabel: it.label, color: it.color, data: rows.map(r => val(r, it.key)), meta, dash: (ccItemDash(it) || []).slice(), width: 3, rec: 0, y2: !!it.y2 })) };
   if (barMode && (showSeo || showAd)) {
     const col = k => (cat.items.find(i => i.key === k) || {}).color;
     chart.bar = { showSeo, showAd, seoColor: col('seoActual'), adColor: col('adSalesActual'), meta,
@@ -12466,7 +12471,7 @@ const KWMM_KW_ITEMS = [
   ['広告費', v => v.cost, 'yen', 'cost'], ['広告費/1日', v => kwmmDiv(v.cost, v.n), 'yen', 'cost2', { cc: CC.cost }],
   ['売上', v => v.sales, 'yen', 'sales'], ['売上/1日', v => kwmmDiv(v.sales, v.n), 'yen', 'sales', { cc: CC.ad }],   // KW の売上＝広告売上
   ['ROAS', v => v.roas, 'roas', 'roas', { cc: CC.roas }], ['CVR', v => v.cvr, 'pct', 'cvr', { cc: CC.cvr }],
-  ['クリック', v => v.clicks, 'num', 'ship'], ['クリック/1日', v => kwmmDiv(v.clicks, v.n), 'num1', 'ship', { cc: CC.clk }],
+  ['クリック', v => v.clicks, 'num', 'ship'], ['クリック/1日', v => kwmmDiv(v.clicks, v.n), 'num1', 'ship', { cc: CC.clicks }],
   ['CTR', v => v.ctr, 'pct', 'ctr'], ['CPC', v => v.cpc, 'yen', 'cpc', { cc: CC.cpc }], ['入札額', v => v.bid, 'yen', 'bid']
 ];
 const KWMM_KW_CHARTS = ['広告費/1日', '売上/1日', 'ROAS', 'クリック/1日', 'CPC', 'CVR'];
@@ -12517,7 +12522,7 @@ const KWMM_GRP_ITEMS = [
   ['広告費（全キャンペーン）', v => v.cost, 'yen', 'cost'],
   ['売上ROAS', v => { const x = kwmmDiv(v.total, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', { cc: CC.salesRoas }],
   ['ROAS/全体', v => { const x = kwmmDiv(v.ad, v.cost); return x == null ? null : x * 100; }, 'roas', 'roas', { cc: CC.roas }],
-  ['出荷数', v => v.ship, 'num', 'ship'], ['出荷数/1日', v => kwmmDiv(v.ship, v.n), 'num1', 'ship', { cc: CC.tot }]
+  ['出荷数', v => v.ship, 'num', 'ship'], ['出荷数/1日', v => kwmmDiv(v.ship, v.n), 'num1', 'ship', { cc: CC.orders }]
 ];
 const KWMM_GRP_CHARTS = ['売上/1日', 'SEO売上/1日', '広告売上/1日', '売上ROAS', 'ROAS/全体', '出荷数/1日'];
 const KWMM_SUBTYPE = { kw: 'KW', shohin: '商品', auto: 'オート', douga: '動画', shokore: '商品コレ' };
@@ -12664,7 +12669,7 @@ window.renderKwWTrendView = renderKwWTrendView;
 //   売上ROAS＝推計総売上÷広告費／ROAS＝広告売上÷広告費／ROAS-SP広告／ROAS-SB広告（①広告データ）
 // ============================================
 let trendMonth = null, _trendChart = null;
-const TREND_COL = { sroas: CC.salesRoas, roas: CC.roas, sp: CC.roasDark, sb: CC.roasLight };   // v4.38：売上ROAS＝シアン、ROAS＝緑、SP／SB＝緑の濃い／薄い
+const TREND_COL = { sroas: CC.salesRoas, roas: CC.roas, sp: CC.sub1, sb: CC.sub2 };   // v4.42：売上ROAS＝シアン、ROAS＝緑、SP＝琥珀・SB＝水色（内訳の色）
 function trendMonths(){
   return Array.from(new Set(Object.keys(adData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).map(d => d.slice(0, 7)))).sort().reverse();
 }
@@ -15648,7 +15653,7 @@ function graphBuildModel(){
   const lineItems = barMode ? visItems.filter(it => it.key !== 'seoActual' && it.key !== 'adSalesActual' && !(it.key === 'salesActual' && showSeo && showAd)) : visItems;
   let chart = {
     labels, keys: rows.map(r => r.key), years: null,
-    datasets: lineItems.map(it => ({ label: it.label, seriesLabel: it.label, color: it.color, data: rows.map(r => val(r, it.key)), meta, dash: [], width: 3, rec: 0, y2: !!it.y2 })),
+    datasets: lineItems.map(it => ({ label: it.label, seriesLabel: it.label, color: it.color, data: rows.map(r => val(r, it.key)), meta, dash: (ccItemDash(it) || []).slice(), width: 3, rec: 0, y2: !!it.y2 })),
   };
   if (barMode && (showSeo || showAd)) {
     const col = k => (GRAPH_CATEGORIES.sales.items.find(i => i.key === k) || {}).color;
@@ -15751,11 +15756,11 @@ function graphSvg(chart, cat){
     const v = bot + tickStep * t, y = yOf(v);
     svg += '<line x1="' + padL + '" y1="' + y + '" x2="' + (W - padR) + '" y2="' + y + '" stroke="' + (Math.abs(v) < 1e-9 && bot < 0 ? 'rgba(0,0,0,0.3)' : 'rgba(0,0,0,0.08)') + '"/>';
     svg += '<text x="' + (padL - 10) + '" y="' + (y + 6) + '" text-anchor="end" font-size="17" fill="' + CC.axis + '">' + graphFmtAxis(v, cat) + '</text>';
-    if (vis2.length) svg += '<text x="' + (W - padR + 10) + '" y="' + (y + 6) + '" text-anchor="start" font-size="17" fill="' + CC.clk + '">' + graphFmtAxis(bot2 + step2 * t, CNT) + '</text>';   // v4.38：右の目盛り（クリック数）は線と同じ色
+    if (vis2.length) svg += '<text x="' + (W - padR + 10) + '" y="' + (y + 6) + '" text-anchor="start" font-size="17" fill="' + (vis2.length === 1 ? vis2[0].color : CC.axis) + '">' + graphFmtAxis(bot2 + step2 * t, CNT) + '</text>';   // v4.38：右の目盛り（クリック数）は線と同じ色
   }
   if (vis2.length) {   // 軸の名前（左＝%、右＝回）
     svg += '<text x="' + (padL - 10) + '" y="' + (padT - 18) + '" text-anchor="end" font-size="15" font-weight="700" fill="' + CC.axis + '">' + (cat.axisL || '') + '</text>';
-    svg += '<text x="' + (W - 6) + '" y="' + (padT - 18) + '" text-anchor="end" font-size="15" font-weight="700" fill="' + CC.clk + '">' + (cat.axisR || '') + '</text>';
+    svg += '<text x="' + (W - 6) + '" y="' + (padT - 18) + '" text-anchor="end" font-size="15" font-weight="700" fill="' + (vis2.length === 1 ? vis2[0].color : CC.axis) + '">' + (cat.axisR || '') + '</text>';   // v4.42：右の目盛りは線が1本ならその色、何本もあれば普通の色
   }
   const maxLab = Math.max(2, Math.floor(plotW / 80));
   const step = Math.max(1, Math.ceil(n / maxLab));
