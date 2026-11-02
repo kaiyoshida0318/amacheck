@@ -2568,7 +2568,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.67</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.68</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -2819,6 +2819,13 @@
         <select id="ad-product-select" style="font-size:13px;padding:6px 8px;"></select>
       </label>
       <span class="tb-sep"></span>
+      <span class="ad-switches" id="ad-switches" hidden><!-- v3.73／v4.68：スイッチは左（期間・キャンペーンの右）、配色は右（広告の種類の左） -->
+        <button type="button" class="ad-tg" id="ad-sw-seo" data-sw="seo"></button>
+        <button type="button" class="ad-tg" id="ad-sw-pct" data-sw="pct"></button>
+        <button type="button" class="ad-tg" id="ad-sw-cl" data-sw="cl"></button>
+        <button type="button" class="ad-cl-edit" id="ad-cl-edit" title="変更記録（ショップ全体）を追加・編集">📝 変更記録編集</button>
+      </span>
+      <div class="spacer"></div>
       <span class="ad-legend" title="列ごとに、表に出ている行の中での順位で色を付けています。広告費の列は安いほど青（上位）">配色:
         <span class="lg-hi10">上位10%</span>
         <span class="lg-hi20">上位20%</span>
@@ -2826,14 +2833,7 @@
         <span class="lg-lo20">下位20%</span>
         <span class="lg-lo10">下位10%</span>
       </span>
-      <div class="spacer"></div>
-      <span class="ad-switches" id="ad-switches" hidden><!-- v3.73：月別のときだけ -->
-        <button type="button" class="ad-tg" id="ad-sw-seo" data-sw="seo"></button>
-        <button type="button" class="ad-tg" id="ad-sw-pct" data-sw="pct"></button>
-        <button type="button" class="ad-tg" id="ad-sw-cl" data-sw="cl"></button>
-        <button type="button" class="ad-cl-edit" id="ad-cl-edit" title="変更記録（ショップ全体）を追加・編集">📝 変更記録編集</button>
-        <span class="tb-sep"></span>
-      </span>
+      <span class="tb-sep"></span>
       <span class="adg-tip" data-tip="説明を見る">
         <button type="button" class="help-btn" id="open-ad-guide">広告の種類<span class="help-q" aria-hidden="true">?</span></button>
       </span>
