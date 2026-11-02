@@ -2522,6 +2522,7 @@
      全-比較（左の見出し・グループの内訳の表）は意図のある配置なので外す */
   table:not(.cmp-grp-tbl) thead th { text-align: center !important; }
   #compare-view table thead th { text-align: revert-layer; }
+  #open-export .hb-dl { width: 15px; height: 15px; stroke-width: 2.4; color: #0f766e; vertical-align: -3px; margin-right: 0; }   /* v4.70 */
 </style>
 </head>
 <body>
@@ -2568,12 +2569,12 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.69</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.70</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
       <button type="button" class="hbtn-o" id="open-analyze" title="運用チェック（月初にやること・手続きの手順・商品の流れの説明。終わったものはチェック）を別のウィンドウで開く">📝 運用チェック</button><!-- v4.69：確認メモ→運用チェック -->
-      <button type="button" class="hbtn-o" id="open-export" title="出荷数・広告・全体収支を、ChatGPT などで分析するための Excel ファイルで書き出す">📦 分析用データ</button>
+      <button type="button" class="hbtn-o" id="open-export" title="分析用データをダウンロード（出荷数・広告・全体収支を、ChatGPT などで分析するための Excel ファイル）"><svg class="icn hb-dl"><use href="#i-download"/></svg>分析用データ</button><!-- v4.70：ダウンロードとわかるアイコン -->
       <button type="button" class="hbtn-o" id="open-sale" title="セール期間・対象商品を設定">🏷 セール設定</button>
       <button type="button" class="hbtn-o" id="open-add" title="商品情報（商品マスタ）を追加">＋ 商品情報追加</button>
     </div>
