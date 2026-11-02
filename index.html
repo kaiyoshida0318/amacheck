@@ -421,9 +421,9 @@
   table.ad-table thead tr:nth-child(3) th { top: 66px; font-size: 13px; }
   table.ad-table .ad-daycol { text-align: center; background: var(--bg-secondary); font-weight: 700; width: 34px; }
   table.ad-table col.col-day { width: 34px; }
-  table.ad-table col.col-yen-lg { width: 4.75%; }   /* v4.43：売上ROAS の列を足したので配分し直し（4×4.75＋12×4.5＋8×3.0＝97%。前は 4×4.9＋12×4.35＋7×3.6） */
-  table.ad-table col.col-yen { width: 4.5%; }
-  table.ad-table col.col-roas { width: 3.0%; }
+  table.ad-table col.col-yen-lg { width: 5.05%; }   /* v4.75：広告別の列の配分を数字のけた数に合わせて直した（8けたが入る 全体の推計総売上・SEO売上・広告売上＝5.05%、7けたの金額＝4.6%、ROAS（4けた＋%）＝2.7%。3×5.05＋13×4.6＋8×2.7＝96.55%） */   /* v4.43：売上ROAS の列を足したので配分し直し（4×4.75＋12×4.5＋8×3.0＝97%。前は 4×4.9＋12×4.35＋7×3.6） */
+  table.ad-table col.col-yen { width: 4.6%; }
+  table.ad-table col.col-roas { width: 2.7%; }
   table.ad-table .ad-daycol.ad-sale { background: rgba(194,24,91,0.12); box-shadow: inset 3px 0 0 var(--sale); color: var(--sale); }
   .ad-saletip-pop { position: fixed; z-index: 9999; background: #1f2937; color: #fff; font-size: 12px; font-weight: 600; padding: 6px 9px; border-radius: 6px; box-shadow: 0 4px 12px rgba(0,0,0,.3); pointer-events: none; white-space: nowrap; opacity: 0; }
   .ad-saletip-pop.show { opacity: 1; }
@@ -497,6 +497,14 @@
   #ad-switches .ad-tg[hidden], #ad-switches .ad-cl-edit[hidden], #ad-switches .ad-cl-grp[hidden] { display: none; }   /* v4.64 */
   /* v4.74：変更記録のスイッチの右にペン（編集）をくっつけて1つのボタンに見せる */
   .ad-cl-grp { display: inline-flex; align-items: stretch; }
+  /* v4.75：数字の大きさ（広告別の全-月別データだけ） */
+  .ad-fsz { display: inline-flex; align-items: center; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; overflow: hidden; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .ad-fsz[hidden] { display: none; }
+  .ad-fsz-l { padding: 0 6px 0 8px; color: #64748b; }
+  .ad-fsz button { font-family: inherit; font-size: 12px; font-weight: 700; border: none; border-left: 1px solid #e5e7eb; background: #fff; color: #334155; padding: 4px 7px; cursor: pointer; line-height: 1.3; }
+  .ad-fsz button:hover { background: #f1f5f9; }
+  .ad-fsz .ad-fsz-v { min-width: 44px; color: #0f766e; }
+  .ad-fsz.man .ad-fsz-v { background: #0f766e; color: #fff; }
   #ad-view .toolbar .ad-cl-grp .ad-tg { border-top-right-radius: 0; border-bottom-right-radius: 0; padding-right: 8px; }
   .ad-cl-pen { display: inline-flex; align-items: center; justify-content: center; padding: 0 9px 0 7px; border: 1px solid #d1d5db; border-left: none; border-radius: 0 999px 999px 0; background: #fff; color: #6b7280; cursor: pointer; font-family: inherit; }
   .ad-cl-pen .icn { width: 14px; height: 14px; stroke-width: 2.3; }
@@ -2584,7 +2592,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.74</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.75</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -2840,6 +2848,7 @@
         <button type="button" class="ad-tg" id="ad-sw-pct" data-sw="pct"></button>
         <span class="ad-cl-grp" id="ad-cl-grp"><button type="button" class="ad-tg" id="ad-sw-cl" data-sw="cl"></button><button type="button" class="ad-cl-pen" id="ad-cl-edit" title="変更記録（ショップ全体）を追加・編集"><svg class="icn"><use href="#i-pencil"/></svg></button></span><!-- v4.74：変更記録編集は 変更記録 の右のペンに統合 -->
       </span>
+      <span class="ad-fsz" id="ad-fsz" hidden title="表の数字の大きさ（全-月別データの広告別で表示だけ。自動＝いちばん窮屈なセルにちょうど入る大きさ）"><span class="ad-fsz-l">数字</span><button type="button" data-fsz="-1" title="数字を小さく">A−</button><button type="button" class="ad-fsz-v" id="ad-fsz-v" data-fsz="0" title="押すと自動に戻す">自動</button><button type="button" data-fsz="1" title="数字を大きく（入りきらない数字だけは自動で小さくなります）">A＋</button></span><!-- v4.75 -->
       <div class="spacer"></div>
       <span class="ad-legend" title="列ごとに、表に出ている行の中での順位で色を付けています。広告費の列は安いほど青（上位）">配色:
         <span class="lg-hi10">上位10%</span>
@@ -9953,7 +9962,7 @@ function adApplyGroupHide(body){
   if (!hid.length) { bind(); return; }
   // 列の幅（colgroup）：隠したグループは 34px の1列、残りは％を広げて表の幅いっぱいに
   const cols = Array.from(tbl.querySelectorAll('colgroup col'));
-  const BASE = { 'col-yen-lg': 4.75, 'col-yen': 4.5, 'col-roas': 3.0, 'col-m-lg': 7.0, 'col-m-r': 4.5, 'col-m-y': 6.4, 'col-m-yr': 3.6 };   // v4.65：指標別の幅
+  const BASE = { 'col-yen-lg': 5.05, 'col-yen': 4.6, 'col-roas': 2.7, 'col-m-lg': 7.0, 'col-m-r': 4.5, 'col-m-y': 6.4, 'col-m-yr': 3.6 };   // v4.65：指標別の幅
   let visSum = 0; cols.forEach((c, i) => { const g = Object.keys(D).find(k => i >= D[k].cols[0] && i < D[k].cols[1]); if (g && !adGrpHidden.has(g)) visSum += BASE[c.className] || 0; });
   const scale = visSum > 0 ? (97 - 1.9 * hid.length) / visSum : 1;
   cols.forEach((c, i) => {
@@ -9979,23 +9988,45 @@ function adApplyGroupHide(body){
   bind();
 }
 // v4.71：DM Mono（等幅）にしたので、列からはみ出す数字のセルだけ字を小さく。字の読み込みが終わってからもう一度測る
+let adNumFs = (() => { try { const v = parseFloat(localStorage.getItem('amacheck_ad_numfs')); return v >= 8 && v <= 20 ? v : null; } catch (e) { return null; } })();   // v4.75：null＝自動
+let _adAutoFs = 14;
+function adFszPaint(){
+  const box = document.getElementById('ad-fsz'); if (!box) return;
+  box.hidden = !(adPeriod === 'monthly' && tblLayout === 'type');
+  box.classList.toggle('man', adNumFs != null);
+  const v = document.getElementById('ad-fsz-v'); if (v) v.textContent = adNumFs != null ? (adNumFs.toFixed(1) + 'px') : '自動';
+}
+function adSetNumFs(d){
+  if (d === 0) adNumFs = null;
+  else adNumFs = Math.max(9, Math.min(20, (adNumFs != null ? adNumFs : Math.round(_adAutoFs * 2) / 2) + d * 0.5));
+  try { if (adNumFs == null) localStorage.removeItem('amacheck_ad_numfs'); else localStorage.setItem('amacheck_ad_numfs', String(adNumFs)); } catch (e) {}
+  adFitCells();
+}
+document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('#ad-fsz button[data-fsz]'); if (b) adSetNumFs(+b.dataset.fsz); });
 function adFitCells(){
   const tbl = document.querySelector('#ad-view table.ad-table'); if (!tbl) return;
   tbl.querySelectorAll('tbody td.ad-tight, tbody td.ad-tight2').forEach(td => td.classList.remove('ad-tight', 'ad-tight2'));
   tbl.classList.remove('ad-fsv'); tbl.style.removeProperty('--ad-fs');
+  tbl.querySelectorAll('tbody td.ad-fsx').forEach(td => { td.classList.remove('ad-fsx'); td.style.removeProperty('font-size'); });
+  try { adFszPaint(); } catch (e) {}
   // v4.73：全-月別データの広告別で表示は、数字を一律の大きさに。いちばん窮屈なセルがちょうど入る大きさ（セルいっぱい）にする
   if (adPeriod === 'monthly' && tblLayout === 'type') {
     const BASE = 14; tbl.style.setProperty('--ad-fs', BASE + 'px'); tbl.classList.add('ad-fsv');
-    let k = Infinity;
+    let k = Infinity; const R = [];
     tbl.querySelectorAll('tbody tr:not(.ad-seo-row) td:not(.ad-daycol)').forEach(td => {
       if (td.colSpan > 1 || td.offsetParent === null) return;
       let w = 0;
       Array.from(td.childNodes).forEach(n => { if (n.nodeType === 3 ? !n.textContent.trim() : n.nodeName !== 'SPAN') return; const r = document.createRange(); r.selectNodeContents(n); Array.from(r.getClientRects()).forEach(x => { w = Math.max(w, x.width); }); });
       if (!(w > 0)) return;
       const cs = getComputedStyle(td), avail = td.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth) - 2;
-      k = Math.min(k, avail / w);
+      k = Math.min(k, avail / w); R.push([td, avail / w]);
     });
-    if (isFinite(k) && k > 0) tbl.style.setProperty('--ad-fs', Math.max(9, Math.min(20, Math.floor(BASE * k * 4) / 4)) + 'px');
+    _adAutoFs = (isFinite(k) && k > 0) ? Math.max(9, Math.min(20, Math.floor(BASE * k * 4) / 4)) : BASE;
+    const fs = adNumFs != null ? adNumFs : _adAutoFs;
+    tbl.style.setProperty('--ad-fs', fs + 'px');
+    // 手で大きくしたとき：入りきらない数字のセルだけ、ちょうど入る大きさに
+    if (adNumFs != null) R.forEach(([td, r]) => { const f = Math.floor(BASE * r * 4) / 4; if (f < fs) { td.classList.add('ad-fsx'); td.style.fontSize = Math.max(8, f) + 'px'; } });
+    try { adFszPaint(); } catch (e) {}
     return;
   }
   const over = td => td.scrollWidth > td.clientWidth + 1;
@@ -10141,7 +10172,7 @@ function renderAdTableCore(){
   function adColgroup(){
     let cg = '<colgroup><col class="col-day">';
     if (tblLayout === 'metric') { cg += '<col class="col-m-lg"><col class="col-m-r"><col class="col-m-lg"><col class="col-m-lg"><col class="col-m-lg"><col class="col-m-r">'; for (let i = 0; i < 6; i++) cg += '<col class="col-m-y"><col class="col-m-yr">'; return cg + '</colgroup>'; }   // v4.65：売上4・広告全体2・組6×2（4×7＋2×4.5＋6×6.4＋6×3.6＝97%）
-    cg += '<col class="col-yen-lg"><col class="col-roas"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-roas">'; // 全体（v4.43：推計総売上の右に売上ROAS）
+    cg += '<col class="col-yen-lg"><col class="col-roas"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-yen"><col class="col-roas">'; // 全体（v4.43：推計総売上の右に売上ROAS。v4.75：広告費は7けたなので col-yen）
     for (let i = 0; i < 3; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SP 3ブロック（広告全体・KW・商品）
     for (let i = 0; i < 3; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SB 3ブロック
     return cg + '</colgroup>';
