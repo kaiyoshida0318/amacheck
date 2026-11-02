@@ -496,6 +496,17 @@
   .pct-pill.sb { border-color: #d8b4fe; background: #faf5ff; }
   #ad-switches .ad-tg[hidden], #ad-switches .ad-cl-edit[hidden] { display: none; }   /* v4.64 */
   .adg-ms { background: #ea580c; } .adg-mc { background: #b91c1c; } .adg-mr { background: #0f766e; }
+  /* v4.65：指標別＝売上｜広告全体｜広告費とROASの組（SP 3組・SB 2組）。広告全体は橙（グラフの「広告」の色） */
+  .adg-ma { background: #ea580c; }
+  /* v4.66：SP全体／SB全体の割合の2色の帯 */
+  .spsb-bar { display: flex; height: 5px; border-radius: 3px; overflow: hidden; margin: 2px 0 1px auto; width: 100%; max-width: 96px; }
+  .spsb-bar i { display: block; height: 100%; }
+  table.ad-table td.mg-sp .mg-pct, table.ad-table td.mg-sb .mg-pct { text-align: right; }   /* v4.65：組の広告費の％は金額の下に右寄せ */
+  .adc-sales-l3.mg-a, .adc-sales-l4.mg-a { --hue: 234,88,12; }
+  .adc-sales-l3.mg-a { background-image: linear-gradient(rgba(var(--hue),0.15), rgba(var(--hue),0.15)); }
+  .adc-sales-l4.mg-a { background-image: linear-gradient(rgba(var(--hue),0.10), rgba(var(--hue),0.10)); }
+  table.ad-table col.col-m-lg { width: 7%; } table.ad-table col.col-m-r { width: 4.5%; }
+  table.ad-table col.col-m-y { width: 6.4%; } table.ad-table col.col-m-yr { width: 3.6%; }
   table.ad-table td.mg-strip, table.ps-table td.mg-strip { background: #f1f5f9; }
   .adh { font-size: 12px; }
   /* サブ見出し（全体＝濃い／広告売上＝中／内訳＝親色を段階的に薄くしたグラデーション）。
@@ -1610,6 +1621,8 @@
   table.ps-table { table-layout: fixed; }
   table.ps-table td { font-size: var(--ps-fs, 13px); padding: 5px 4px 13px; position: relative; vertical-align: middle; font-variant-numeric: tabular-nums; }
   table.ps-table .ps-v { line-height: 1.2; }
+  table.ps-table .ps-spsb { display: flex; align-items: center; justify-content: center; gap: 4px; }   /* v4.66：SP全体／SB全体の割合（帯＋％） */
+  .spsb-bar.spsb-inl { display: inline-flex; width: 42px; margin: 0; flex-shrink: 0; }
   table.ps-table .ps-pct { position: absolute; left: 0; right: 0; bottom: 2px; text-align: center; font-size: calc(var(--ps-fs, 13px) * 0.73); font-weight: 700; }
   table.ps-table th.ps-ghead { position: sticky; }
   table.ps-table th.ps-ghead .ps-gbtn { position: absolute; right: 8px; top: 50%; transform: translateY(-50%); }
@@ -2555,7 +2568,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.64</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.66</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -9681,6 +9694,7 @@ function adDiffRowHtml(A, B, warnCut){
   const v = r => { const s = r.m.sales, c = r.m.cost, spS = s.sp.kw + s.sp.shohin + s.sp.auto, sbS = s.sb.douga + s.sb.shokore, spC = c.sp.kw + c.sp.shohin + c.sp.auto, sbC = c.sb.douga + c.sb.shokore;
     return { has: adRowHasData(r.m), total: r.total || 0, seo: (r.total || 0) - (spS + sbS), adS: spS + sbS, adC: spC + sbC, spS, spC, kwS: s.sp.kw, kwC: c.sp.kw, shS: s.sp.shohin, shC: c.sp.shohin, sbS, sbC, dgS: s.sb.douga, dgC: c.sb.douga, skS: s.sb.shokore, skC: c.sb.shokore }; };
   const a = v(A), b = v(B);
+  const MA = tblLayout === 'metric' ? [' mg-a adc-gstart', ' mg-a'] : ['', ''];
   const cell = (cls, av, bv, ok, cost) => {
     if (!ok) return '<td class="' + cls + '"><span class="ad-diff-na">—</span></td>';
     const d = av - bv, col = cost ? '#334155' : (d > 0 ? '#1565C0' : (d < 0 ? '#A32D2D' : '#1a1a1a'));
@@ -9694,12 +9708,8 @@ function adDiffRowHtml(A, B, warnCut){
   return '<tr class="ad-diff"><td class="ad-daycol ad-diff-lbl"><div class="ad-diff-t">差異</div><div class="ad-diff-yr">' + A.ym.slice(0, 4) + '−' + B.ym.slice(0, 4) + '</div>'
     + (warnCut ? '<div class="ad-diff-warn" title="今月は1〜' + warnCut + '日、前年は1か月分の比較です。「月途中」にすると同じ日数で比べられます">⚠ 今月は1〜' + warnCut + '日</div>' : '') + '</td>'
     + cell('adc-sales adc-gstart', a.total, b.total, tOk, false) + '<td class="adc-sales"></td>' + cell('adc-sales-l1', a.seo, b.seo, tOk, false)
-    + cell('adc-sales-l2', a.adS, b.adS, aOk, false) + cell('adc-sales-l3', a.adC, b.adC, aOk, true) + '<td class="adc-sales-l4"></td>'
-    + (tblLayout === 'metric' ? (() => {   // v4.60：数字の種類ごと
-        const BL = [['adc-sp', 'sp'], ['adc-sp-b1', 'kw'], ['adc-sp-b2', 'sh'], ['adc-sb', 'sb'], ['adc-sb-b1', 'dg'], ['adc-sb-b2', 'sk']];
-        let h = ''; ['s', 'c', 'r'].forEach(m => BL.forEach((x, i) => { const cls = x[0] + ' mg-' + m + (i === 0 ? ' adc-gstart' : (i === 3 ? ' adc-bstart' : ''));
-          h += m === 's' ? cell(cls, a[x[1] + 'S'], b[x[1] + 'S'], aOk, false) : (m === 'c' ? cell(cls, a[x[1] + 'C'], b[x[1] + 'C'], aOk, true) : '<td class="' + cls + '"></td>'); }));
-        return h; })()
+    + cell('adc-sales-l2', a.adS, b.adS, aOk, false) + cell('adc-sales-l3' + MA[0], a.adC, b.adC, aOk, true) + '<td class="adc-sales-l4' + MA[1] + '"></td>'
+    + (tblLayout === 'metric' ? MG_PAIRS.map((P, i) => cell(mgPairCls(i) + mgPairSep(i), a[P.k + 'C'], b[P.k + 'C'], aOk, true) + '<td class="' + mgPairCls(i) + '"></td>').join('')   // v4.65
       : trip('adc-sp', 'g', 'spS', 'spC') + trip('adc-sp-b1', 'b', 'kwS', 'kwC') + trip('adc-sp-b2', 'b', 'shS', 'shC')
       + trip('adc-sb', 'g', 'sbS', 'sbC') + trip('adc-sb-b1', 'b', 'dgS', 'dgC') + trip('adc-sb-b2', 'b', 'skS', 'skC')) + '</tr>';
 }
@@ -9808,8 +9818,8 @@ function adPctRowHtml(total, seo, adS, has, extraCls){
   const ok = total > 0 && has;
   let h = '<tr class="ad-pct-row' + (extraCls || '') + '"><td class="adc-sales adc-gstart"></td><td class="adc-sales"></td>'
     + '<td class="adc-sales-l1">' + (ok ? pc(Math.max(0, seo) / total * 100) : '') + '</td>'
-    + '<td class="adc-sales-l2">' + (ok ? pc(adS / total * 100) : '') + '</td><td class="adc-sales-l3"></td><td class="adc-sales-l4"></td>';
-  if (tblLayout === 'metric') { const BL = ['adc-sp', 'adc-sp-b1', 'adc-sp-b2', 'adc-sb', 'adc-sb-b1', 'adc-sb-b2']; ['s', 'c', 'r'].forEach(m => BL.forEach((c, i) => { h += '<td class="' + c + ' mg-' + m + (i === 0 ? ' adc-gstart' : (i === 3 ? ' adc-bstart' : '')) + '"></td>'; })); return h + '</tr>'; }   // v4.60
+    + '<td class="adc-sales-l2">' + (ok ? pc(adS / total * 100) : '') + '</td>' + (tblLayout === 'metric' ? '<td class="adc-sales-l3 mg-a adc-gstart"></td><td class="adc-sales-l4 mg-a"></td>' : '<td class="adc-sales-l3"></td><td class="adc-sales-l4"></td>');
+  if (tblLayout === 'metric') { MG_PAIRS.forEach((P, i) => { h += '<td class="' + mgPairCls(i) + mgPairSep(i) + '"></td><td class="' + mgPairCls(i) + '"></td>'; }); return h + '</tr>'; }   // v4.65
   [['adc-sp', 'g'], ['adc-sp-b1', 'b'], ['adc-sp-b2', 'b'], ['adc-sb', 'g'], ['adc-sb-b1', 'b'], ['adc-sb-b2', 'b']].forEach(([c, s]) => { h += '<td class="' + c + (s === 'g' ? ' adc-gstart' : ' adc-bstart') + '"></td><td class="' + c + '"></td><td class="' + c + '"></td>'; });
   return h + '</tr>';
 }
@@ -9874,28 +9884,47 @@ const AD_GRP = { sales: { re: /\badc-sales\b/, hdr: 'adg-sales', label: '全体'
                  sp: { re: /\badc-sp\b/, hdr: 'adg-sp', label: 'スポンサープロダクト広告', vt: 'SP', tint: 'adc-sp', cols: [7, 16] },
                  sb: { re: /\badc-sb\b/, hdr: 'adg-sb', label: 'スポンサーブランド広告', vt: 'SB', tint: 'adc-sb', cols: [16, 25] } };
 // v4.60：数字の種類ごとの並びのときのグループ（全体は同じ）
-const AD_GRP_M = { sales: AD_GRP.sales,
-                   ms: { re: /\bmg-s\b/, hdr: 'adg-ms', label: '広告売上', vt: '広告売上', tint: 'mg-strip', cols: [7, 13] },
-                   mc: { re: /\bmg-c\b/, hdr: 'adg-mc', label: '広告費', vt: '広告費', tint: 'mg-strip', cols: [13, 19] },
-                   mr: { re: /\bmg-r\b/, hdr: 'adg-mr', label: 'ROAS', vt: 'ROAS', tint: 'mg-strip', cols: [19, 25] } };
+// v4.65：指標別＝売上（推計総売上・売上ROAS★・SEO売上・広告売上）｜広告全体（広告費・ROAS）｜広告費とROASの組×6（SP：広告全体・KW・商品／SB：広告全体・KW-動画・KW-商品コレ）
+const MG_PAIRS = [
+  { k: 'sp', side: 'sp', cls: 'adc-sp', lab: '広告全体', get: m => m.sp.kw + m.sp.shohin + m.sp.auto },
+  { k: 'kw', side: 'sp', cls: 'adc-sp-b1', lab: 'KW', get: m => m.sp.kw },
+  { k: 'sh', side: 'sp', cls: 'adc-sp-b2', lab: '商品', get: m => m.sp.shohin },
+  { k: 'sb', side: 'sb', cls: 'adc-sb', lab: '広告全体', get: m => m.sb.douga + m.sb.shokore },
+  { k: 'dg', side: 'sb', cls: 'adc-sb-b1', lab: 'KW-動画', get: m => m.sb.douga },
+  { k: 'sk', side: 'sb', cls: 'adc-sb-b2', lab: 'KW-商品コレ', get: m => m.sb.shokore }];
+// v4.66：SP全体／SB全体の広告費の割合（指標別）＝％の下に青・紫の2色の帯（自分の側を濃く）。左右の2セルで同じ帯が並び、ペアだとわかる
+function mgSpSbHtml(side, p, inl){   // inl：商品-売上データ用（帯と％を1行に）
+  const sp = side === 'sp' ? p : 100 - p, col = side === 'sp' ? '#2563eb' : '#7e22ce';
+  const bar = '<i style="width:' + sp + '%;background:#2563eb;opacity:' + (side === 'sb' ? .25 : 1) + '"></i><i style="width:' + (100 - sp) + '%;background:#7e22ce;opacity:' + (side === 'sp' ? .25 : 1) + '"></i>';
+  if (inl) return '<span class="spsb-bar spsb-inl">' + bar + '</span><span style="color:' + col + '">' + p + '%</span>';
+  return '<div class="mg-pct" style="text-align:right;color:' + col + '">' + p + '%</div>'
+    + '<div class="spsb-bar"><i style="width:' + sp + '%;background:#2563eb;opacity:' + (side === 'sb' ? .25 : 1) + '"></i><i style="width:' + (100 - sp) + '%;background:#7e22ce;opacity:' + (side === 'sp' ? .25 : 1) + '"></i></div>';
+}
+function mgPairCls(i){ return MG_PAIRS[i].cls + ' mg-' + MG_PAIRS[i].side; }
+function mgPairSep(i){ return (i === 0 || i === 3) ? ' adc-gstart' : ' adc-bstart'; }
+const AD_GRP_M = { mu: { re: /\badc-sales(?:-l[12])?(?![-\w])/, hdr: 'adg-sales', label: '売上', vt: '売上', tint: 'adc-sales', cols: [1, 5] },
+                   ma: { re: /\bmg-a\b/, hdr: 'adg-ma', label: '広告全体', vt: '広告', tint: 'adc-sales-l3 mg-a', cols: [5, 7] },
+                   msp: { re: /\bmg-sp\b/, hdr: 'adg-sp', label: 'スポンサープロダクト広告', vt: 'SP', tint: 'adc-sp', cols: [7, 13] },
+                   msb: { re: /\bmg-sb\b/, hdr: 'adg-sb', label: 'スポンサーブランド広告', vt: 'SB', tint: 'adc-sb', cols: [13, 19] } };
 function adGrpDefs(){ return tblLayout === 'metric' ? AD_GRP_M : AD_GRP; }
 // v4.63：指標別の表の比率（SP全体／SB全体はそのまま、SP・SB の中の組（KW／商品、動画／商品コレ）は楕円で囲んで組だとわかるように）
 function mgPctHtml(p, pill){ const col = psPctColor(p); return '<div class="mg-pct">' + (pill ? '<span class="pct-pill ' + pill + '" style="color:' + col + '">' + p + '%</span>' : '<span style="color:' + col + '">' + p + '%</span>') + '</div>'; }
 // v4.60：数字の種類ごとの見出し（3段）：全体｜広告売上｜広告費｜ROAS → SP／SB → 広告全体・KW・商品／広告全体・KW-動画・KW-商品コレ
-function adHeadMetric(period, dayCut){
+function adHeadMetric(period, dayCut){   // v4.65：売上｜広告全体｜SP（広告全体・KW・商品）｜SB（広告全体・KW-動画・KW-商品コレ）。組は 広告費・ROAS
   const hb = (g, l) => '<button type="button" class="ps-gbtn" data-adg="' + g + '" title="' + l + 'を隠す（その分、残りの列が広くなります）">隠す</button>';
   let h1 = '<tr><th rowspan="3" class="ad-daycol">' + (period === 'monthly' ? ('月' + (dayCut ? '<br><span class="ad-daycut-lbl">1〜' + dayCut + '日</span>' : '')) : (period === 'last2m' ? '日付' : '日')) + '</th>'
-    + '<th colspan="6" class="adg adg-sales ps-ghead">全体' + hb('sales', '全体') + '</th>';
+    + '<th colspan="4" class="adg adg-sales ps-ghead">売上' + hb('mu', '売上') + '</th>'
+    + '<th colspan="2" class="adg adg-ma ps-ghead">広告全体' + hb('ma', '広告全体') + '</th>'
+    + '<th colspan="6" class="adg adg-sp ps-ghead"><span class="ps-gtag sp">SP</span>スポンサープロダクト広告' + hb('msp', 'スポンサープロダクト広告') + '</th>'
+    + '<th colspan="6" class="adg adg-sb ps-ghead"><span class="ps-gtag sb">SB</span>スポンサーブランド広告' + hb('msb', 'スポンサーブランド広告') + '</th>';
   let h2 = '<tr>' + '<th rowspan="2" class="adh adc-sales adc-gstart">推計総売上</th>'
     + '<th rowspan="2" class="adh adc-sales ad-roas" title="売上ROAS★＝推計総売上 ÷ 広告費" style="line-height:1.2">売上<br>ROAS<br>★</th>'
-    + '<th rowspan="2" class="adh adc-sales-l1">SEO売上</th><th rowspan="2" class="adh adc-sales-l2">広告売上</th><th rowspan="2" class="adh adc-sales-l3">広告費</th><th rowspan="2" class="adh adc-sales-l4 ad-roas">ROAS</th>';
+    + '<th rowspan="2" class="adh adc-sales-l1">SEO売上</th><th rowspan="2" class="adh adc-sales-l2" title="広告売上（SP・SB の合計）">広告売上</th>'
+    + '<th rowspan="2" class="adh adc-sales-l3 mg-a adc-gstart" title="広告費（SP・SB の合計）">広告費</th><th rowspan="2" class="adh adc-sales-l4 mg-a ad-roas" title="広告売上 ÷ 広告費（SP・SB の合計）">ROAS</th>';
   let h3 = '<tr>';
-  [['s', 'ms', '広告売上'], ['c', 'mc', '広告費'], ['r', 'mr', 'ROAS']].forEach(([m, g, l]) => {
-    h1 += '<th colspan="6" class="adg adg-' + g + ' ps-ghead">' + l + hb(g, l) + '</th>';
-    h2 += '<th colspan="3" class="adh adc-sp mg-' + m + ' adc-gstart"><span class="ps-gtag sp">SP</span>' + (m === 'r' ? '' : 'スポンサープロダクト') + '</th>'
-      + '<th colspan="3" class="adh adc-sb mg-' + m + ' adc-bstart"><span class="ps-gtag sb">SB</span>' + (m === 'r' ? '' : 'スポンサーブランド') + '</th>';
-    const L = m === 'r' ? ['全体', 'KW', '商品', '全体', '動画', '商品<br>コレ'] : ['広告全体', 'KW', '商品', '広告全体', 'KW-動画', 'KW-<br>商品コレ'];
-    ['adc-sp', 'adc-sp-b1', 'adc-sp-b2', 'adc-sb', 'adc-sb-b1', 'adc-sb-b2'].forEach((c, i) => { h3 += '<th class="adh ' + c + ' mg-' + m + (i === 0 ? ' adc-gstart' : (i === 3 ? ' adc-bstart' : '')) + (m === 'r' ? ' ad-roas' : '') + '" style="line-height:1.2">' + L[i] + '</th>'; });
+  MG_PAIRS.forEach((P, i) => {
+    h2 += '<th colspan="2" class="adh ' + mgPairCls(i) + mgPairSep(i) + '">' + P.lab + '</th>';
+    h3 += '<th class="adh ' + mgPairCls(i) + mgPairSep(i) + '" title="広告費（' + P.side.toUpperCase() + '・' + P.lab + '）。下の％は' + (i % 3 === 0 ? 'SP と SB の割合' : (P.side === 'sp' ? 'KW と商品の割合' : '動画と商品コレの割合')) + '">広告費</th><th class="adh ' + mgPairCls(i) + ' ad-roas" title="広告売上 ÷ 広告費（' + P.side.toUpperCase() + '・' + P.lab + '）">ROAS</th>';
   });
   return h1 + '</tr>' + h2 + '</tr>' + h3 + '</tr>';
 }
@@ -9907,7 +9936,7 @@ function adApplyGroupHide(body){
   if (!hid.length) { bind(); return; }
   // 列の幅（colgroup）：隠したグループは 34px の1列、残りは％を広げて表の幅いっぱいに
   const cols = Array.from(tbl.querySelectorAll('colgroup col'));
-  const BASE = { 'col-yen-lg': 4.75, 'col-yen': 4.5, 'col-roas': 3.0 };
+  const BASE = { 'col-yen-lg': 4.75, 'col-yen': 4.5, 'col-roas': 3.0, 'col-m-lg': 7.0, 'col-m-r': 4.5, 'col-m-y': 6.4, 'col-m-yr': 3.6 };   // v4.65：指標別の幅
   let visSum = 0; cols.forEach((c, i) => { const g = Object.keys(D).find(k => i >= D[k].cols[0] && i < D[k].cols[1]); if (g && !adGrpHidden.has(g)) visSum += BASE[c.className] || 0; });
   const scale = visSum > 0 ? (97 - 1.9 * hid.length) / visSum : 1;
   cols.forEach((c, i) => {
@@ -10059,8 +10088,8 @@ function renderAdTableCore(){
   }
   function adColgroup(){
     let cg = '<colgroup><col class="col-day">';
+    if (tblLayout === 'metric') { cg += '<col class="col-m-lg"><col class="col-m-r"><col class="col-m-lg"><col class="col-m-lg"><col class="col-m-lg"><col class="col-m-r">'; for (let i = 0; i < 6; i++) cg += '<col class="col-m-y"><col class="col-m-yr">'; return cg + '</colgroup>'; }   // v4.65：売上4・広告全体2・組6×2（4×7＋2×4.5＋6×6.4＋6×3.6＝97%）
     cg += '<col class="col-yen-lg"><col class="col-roas"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-yen-lg"><col class="col-roas">'; // 全体（v4.43：推計総売上の右に売上ROAS）
-    if (tblLayout === 'metric') { for (let i = 0; i < 12; i++) cg += '<col class="col-yen">'; for (let i = 0; i < 6; i++) cg += '<col class="col-roas">'; return cg + '</colgroup>'; }   // v4.60：広告売上6・広告費6・ROAS6
     for (let i = 0; i < 3; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SP 3ブロック（広告全体・KW・商品）
     for (let i = 0; i < 3; i++) cg += '<col class="col-yen"><col class="col-yen"><col class="col-roas">'; // SB 3ブロック
     return cg + '</colgroup>';
@@ -10177,19 +10206,12 @@ function renderAdTableCore(){
       + '<td class="adc-sales ad-roas' + ((total > 0 && has && adCost > 0) ? tierClass('sR', total / adCost) : '') + '">' + ((total > 0 && has && adCost > 0) ? fmtRoas(total / adCost) : '') + '</td>'   // v4.43：売上ROAS＝推計総売上÷広告費。色はほかの列と同じ上位・下位の配色（v4.45：v4.44 の商品-売上データの色は取り消し）
       + tcell(seo, 'adc-sales-l1', 'seo')
       + dcell(adSales, 'adc-sales-l2', 'adS')
-      + dcell(adCost, 'adc-sales-l3', 'adC')
-      + rcell(adSales, adCost, 'adc-sales-l4', 'adR')
-      + (tblLayout === 'metric' ? (() => {   // v4.60：数字の種類ごと（広告売上6｜広告費6｜ROAS6。それぞれ SP 広告全体・KW・商品／SB 広告全体・KW-動画・KW-商品コレ）
-        const BL = [[spSales, spCost, 'adc-sp', 'sp'], [s.sp.kw, c.sp.kw, 'adc-sp-b1', 'kw'], [s.sp.shohin, c.sp.shohin, 'adc-sp-b2', 'sh'], [sbSales, sbCost, 'adc-sb', 'sb'], [s.sb.douga, c.sb.douga, 'adc-sb-b1', 'dg'], [s.sb.shokore, c.sb.shokore, 'adc-sb-b2', 'sk']];
-        let h = '';
-        ['s', 'c', 'r'].forEach(m => BL.forEach((x, i) => {
-          const cls = x[2] + ' mg-' + m + (i === 0 ? ' adc-gstart' : (i === 3 ? ' adc-bstart' : ''));
-          if (m === 'r') { h += rcell(x[0], x[1], cls, x[3] + 'R'); return; }
-          const k = m === 's' ? 0 : 1, v = x[k], id = x[3] + (m === 's' ? 'S' : 'C');
-          h += '<td class="' + cls + (has ? tierClass(id, v) : '') + '">' + (has ? yen0(v) : '') + shHtml(m === 's' ? 'S' : 'C', x[3], v) + '</td>';   // v4.64：比率は比率表記がオンのとき
-        }));
-        return h;
-      })() : (
+      + dcell(adCost, 'adc-sales-l3' + (tblLayout === 'metric' ? ' mg-a adc-gstart' : ''), 'adC')
+      + rcell(adSales, adCost, 'adc-sales-l4' + (tblLayout === 'metric' ? ' mg-a' : ''), 'adR')
+      + (tblLayout === 'metric' ? MG_PAIRS.map((P, i) => {   // v4.65：広告費とROASの組。広告費の下の％（比率表記がオンのとき）＝SP全体↔SB全体、KW↔商品・動画↔商品コレは楕円
+        const sv = P.get(s), cv = P.get(c), base = mgPairCls(i);
+        return '<td class="' + base + mgPairSep(i) + (has ? tierClass(P.k + 'C', cv) : '') + '">' + (has ? yen0(cv) : '') + (i % 3 === 0 ? ((SH && cv > 0 && SH.C[P.k] != null) ? mgSpSbHtml(P.side, SH.C[P.k]) : '') : shHtml('C', P.k, cv)) + '</td>' + rcell(sv, cv, base, P.k + 'R');
+      }).join('') : (
       // スポンサープロダクト広告：全体・KW・商品・オート
       trip(spSales, spCost, 'adc-sp', 'g', 'spS', 'spC', 'spR')
       + trip(s.sp.kw, c.sp.kw, 'adc-sp-b1', 'b', 'kwS', 'kwC', 'kwR')
@@ -10201,7 +10223,7 @@ function renderAdTableCore(){
       + '</tr>';
     if (pctOn) html += adPctRowHtml(total, seo, adSales, has, cls ? ' ad-cl-bot" style="--clc:' + clCol : '');
     if (diffAfter[ri]) html += diffAfter[ri];
-    if (isM && adSeoShow) html += adSeoRowHtml(r.ym, 25);
+    if (isM && adSeoShow) html += adSeoRowHtml(r.ym, tblLayout === 'metric' ? 19 : 25);
   });
   html += '</tbody></table></div>';
   body.innerHTML = html;
@@ -10330,21 +10352,21 @@ const PS_BLOCKS = [
   ] }
 ];
 // v4.60：数字の種類ごとの並び（全体｜広告売上｜広告費｜ROAS。それぞれ SP／SB の 広告全体・KW・商品／広告全体・KW-動画・KW-商品コレ）
-const PS_BLOCKS_M = [PS_BLOCKS[0],
-  { g: 'mS', label: '広告売上', cls: 'adg-ms', m: 'S' }, { g: 'mC', label: '広告費', cls: 'adg-mc', m: 'C' }, { g: 'mR', label: 'ROAS', cls: 'adg-mr', m: 'R' }];
+// v4.65：指標別＝売上｜広告全体｜SP（広告全体・KW・商品）｜SB（広告全体・KW-動画・KW-商品コレ）。組は 広告費・ROAS（全-月別／全-日別データと同じ）
+const PS_BLOCKS_M = [
+  { g: 'mU', label: '売上', cls: 'adg-sales', keys: ['total', 'sroas', 'seo', 'ad'] },
+  { g: 'mA', label: '広告全体', cls: 'adg-ma', keys: ['cost', 'roas'] },
+  { g: 'mSP', label: 'スポンサープロダクト広告', cls: 'adg-sp', side: 'sp', sub: [['spAll', '広告全体', 'adc-sp', 'spPc'], ['spKw', 'KW', 'adc-sp-b1', 'kwPc'], ['spSh', '商品', 'adc-sp-b2', 'shPc']] },
+  { g: 'mSB', label: 'スポンサーブランド広告', cls: 'adg-sb', side: 'sb', sub: [['sbAll', '広告全体', 'adc-sb', 'sbPc'], ['sbDg', 'KW-動画', 'adc-sb-b1', 'dgPc'], ['sbSk', 'KW-商品コレ', 'adc-sb-b2', 'skPc']] }];
 function psBlocksNow(){ return tblLayout === 'metric' ? PS_BLOCKS_M : PS_BLOCKS; }
 function psLeafColsMetric(){
-  const out = [], all = PS_BLOCKS[0];
-  all.cols.forEach((c, ci) => out.push(Object.assign({ g: 'all', gi: 0, bi: 0, first: ci === 0, gcls: all.cls }, c)));
-  const T = { S: ['yen', 76, '広告売上'], C: ['cost', 68, '広告費'], R: ['roas', 52, 'ROAS'] };
-  PS_BLOCKS_M.slice(1).forEach((G, gi0) => {
-    const gi = gi0 + 1, m = G.m;
-    [['sp', PS_BLOCKS[1]], ['sb', PS_BLOCKS[2]]].forEach(([side, SB], si) => {
-      const lab = m === 'R' ? (side === 'sp' ? ['全体', 'KW', '商品'] : ['全体', '動画', '商品\nコレ']) : (side === 'sp' ? ['広告全体', 'KW', '商品'] : ['広告全体', 'KW-動画', 'KW-\n商品コレ']);
-      SB.sub.forEach((B, bi) => out.push({ k: B.b + m, label: lab[bi], t: T[m][0], w: T[m][1], pct: m === 'S' ? B.pct : (m === 'C' ? B.pct + 'c' : null), pill: (m !== 'R' && bi > 0) ? side : '',   // v4.63：広告費にも比率、組（KW／商品・動画／商品コレ）は楕円
-        tip: T[m][2] + '（' + side.toUpperCase() + '・' + B.label + '）', cls: B.cls, g: G.g, gi, bi: si,
-        blabel: '<span class="ps-gtag ' + side + '">' + side.toUpperCase() + '</span>' + (m === 'R' ? '' : (side === 'sp' ? 'スポンサープロダクト' : 'スポンサーブランド')),
-        b: G.g + '-' + side, first: si === 0 && bi === 0, bfirst: bi === 0, gcls: G.cls }));
+  const out = [], all = PS_BLOCKS[0].cols;
+  PS_BLOCKS_M.forEach((G, gi) => {
+    if (G.keys) { G.keys.forEach((k, ci) => { const c = all.find(x => x.k === k); out.push(Object.assign({}, c, { g: G.g, gi, bi: 0, first: ci === 0, gcls: G.cls, cls: G.g === 'mA' ? c.cls + ' mg-a' : c.cls },
+      G.g === 'mA' && k === 'cost' ? { tip: '広告費（SP・SB の合計）' } : {})); }); return; }
+    G.sub.forEach(([b, lab, cls, pa], bi) => {   // v4.66：spsb＝SP全体／SB全体の広告費の割合は2色の帯
+      out.push({ k: b + 'C', label: '広告費', t: 'cost', w: 72, pct: pa, pill: bi > 0 ? G.side : '', spsb: bi === 0 ? G.side : '', tip: '広告費（' + G.side.toUpperCase() + '・' + lab + '）。下の％は' + (bi === 0 ? 'SP と SB の割合' : (G.side === 'sp' ? 'KW と商品の割合' : '動画と商品コレの割合')), cls, g: G.g, gi, bi, blabel: lab, b, first: bi === 0, bfirst: true, gcls: G.cls });
+      out.push({ k: b + 'R', label: 'ROAS', t: 'roas', w: 54, pct: null, pill: '', tip: '広告売上 ÷ 広告費（' + G.side.toUpperCase() + '・' + lab + '）', cls, g: G.g, gi, bi, blabel: lab, b, first: false, bfirst: false, gcls: G.cls });
     });
   });
   return out;
@@ -10490,6 +10512,7 @@ function psCompute(opt){   // v3.66：opt.asin を渡すと、その商品の行
     ['spAll', 'spKw', 'spSh', 'sbAll', 'sbDg', 'sbSk'].forEach(b => { r[b + 'S'] = o.S[b]; r[b + 'C'] = o.C[b]; r[b + 'R'] = (o.C[b] > 0 && !noPd) ? o.S[b] / o.C[b] * 100 : null; });
     if (noPd) { r.seo = null; r.seoP = r.adP = null; r.ad = null; }
     r.spAuS = o.S.spAu; r.spAuC = o.C.spAu;   // v3.55：分析用データ用（オート）
+
     ['spAll', 'spKw', 'spSh', 'spAu', 'sbAll', 'sbDg', 'sbSk'].forEach(b => { r[b + 'U'] = o.U[b]; });   // v3.66：区分ごとの個数（商品モーダル）
     r.has = !!(o.ship || o.total || ad || cost);
     return r;
@@ -10601,7 +10624,7 @@ function renderPsalesTable(){
   // 並び：全体→SP→SB。隠したグループは細い帯（ps-gcol）1列にする
   const GCOL_W = 34;
   const segs = psBlocksNow().map(G => psGrpHidden.has(G.g) ? { col: true, G } : { G, cols: cols.filter(c => c.g === G.g) }).filter(x => x.col || x.cols.length);   // v4.60：並びで全体｜SP｜SB／全体｜広告売上｜広告費｜ROAS
-  const gTint = { all: 'adc-sales', sp: 'adc-sp', sb: 'adc-sb', mS: 'mg-strip', mC: 'mg-strip', mR: 'mg-strip' };
+  const gTint = { all: 'adc-sales', sp: 'adc-sp', sb: 'adc-sb', mU: 'adc-sales', mA: 'adc-sales-l3 mg-a', mSP: 'adc-sp', mSB: 'adc-sb' };   // v4.65
   const yen = v => '¥' + Math.round(v).toLocaleString();
   // 上の要約
   const pr = cmp.pr;
@@ -10636,11 +10659,11 @@ function renderPsalesTable(){
   const tw = imgW + nameW + kbW + cols.reduce((s, c) => s + c.w, 0) + segs.filter(x => x.col).length * GCOL_W;
   const gIdx = {}; groups.forEach(G => { gIdx[G.g] = G; });
   segs.forEach(sg => {
-    if (sg.col) { h1 += '<th rowspan="3" class="adg ' + sg.G.cls + ' ps-gcol" title="' + escapeHtml(sg.G.label) + '（隠しています）"><button type="button" class="ps-gbtn" data-g="' + sg.G.g + '" title="' + escapeHtml(sg.G.label) + 'を表示">表示</button><div class="ps-gvt">' + ({ all: '全体', sp: 'SP', sb: 'SB', mS: '広告売上', mC: '広告費', mR: 'ROAS' }[sg.G.g] || '') + '</div></th>'; return; }
+    if (sg.col) { h1 += '<th rowspan="3" class="adg ' + sg.G.cls + ' ps-gcol" title="' + escapeHtml(sg.G.label) + '（隠しています）"><button type="button" class="ps-gbtn" data-g="' + sg.G.g + '" title="' + escapeHtml(sg.G.label) + 'を表示">表示</button><div class="ps-gvt">' + ({ all: '全体', sp: 'SP', sb: 'SB', mU: '売上', mA: '広告', mSP: 'SP', mSB: 'SB' }[sg.G.g] || '') + '</div></th>'; return; }
     const G = gIdx[sg.G.g]; if (!G) return;
-    h1 += '<th colspan="' + G.n + '" class="adg ' + G.cls + ' ps-ghead"><span>' + (G.g === 'sp' || G.g === 'sb' ? '<span class="ps-gtag ' + G.g + '">' + G.g.toUpperCase() + '</span>' : '') + G.label + '</span><button type="button" class="ps-gbtn" data-g="' + G.g + '" title="' + escapeHtml(G.label) + 'を隠す（その分、残りの文字が大きくなります）">隠す</button></th>';
-    if (G.g === 'all') {
-      cols.filter(c => c.g === 'all').forEach((c, ci) => { h2 += '<th rowspan="2" class="adh ' + c.cls + (ci === 0 ? ' adc-gstart' : '') + ' ps-sortable' + sortCls(c.k) + '" data-k="' + c.k + '" title="' + escapeHtml(c.tip || '') + '｜クリックで並べ替え">' + escapeHtml(c.label).replace(/\n/g, '<br>') + '</th>'; });
+    h1 += '<th colspan="' + G.n + '" class="adg ' + G.cls + ' ps-ghead"><span>' + (G.g === 'sp' || G.g === 'sb' || G.g === 'mSP' || G.g === 'mSB' ? '<span class="ps-gtag ' + (G.g === 'sp' || G.g === 'mSP' ? 'sp' : 'sb') + '">' + (G.g === 'sp' || G.g === 'mSP' ? 'SP' : 'SB') + '</span>' : '') + G.label + '</span><button type="button" class="ps-gbtn" data-g="' + G.g + '" title="' + escapeHtml(G.label) + 'を隠す（その分、残りの文字が大きくなります）">隠す</button></th>';
+    if (!G.blocks.length) {   // v4.65：内訳のないグループ（全体／売上／広告全体）は見出し2段ぶち抜き
+      cols.filter(c => c.g === G.g).forEach((c, ci) => { h2 += '<th rowspan="2" class="adh ' + c.cls + (ci === 0 ? ' adc-gstart' : '') + ' ps-sortable' + sortCls(c.k) + '" data-k="' + c.k + '" title="' + escapeHtml(c.tip || '') + '｜クリックで並べ替え">' + escapeHtml(c.label).replace(/\n/g, '<br>') + '</th>'; });
     } else {
       G.blocks.forEach((B, bi) => { h2 += '<th colspan="' + B.n + '" class="adh ' + B.cls + (bi === 0 ? ' adc-gstart' : ' adc-bstart') + '">' + B.label + '</th>'; });
       let lb = null;
@@ -10673,7 +10696,7 @@ function renderPsalesTable(){
     else if (c.t === 'roas') { inner = v == null ? NA : (Math.round(v).toLocaleString() + '%'); if (v != null) style = 'color:' + psRoasColor(v) + ';font-weight:700;'; }
     else if (c.t === 'sroas') { const cat = psSroasCat(v); const col = (PS_SROAS_CATS.find(x => x[0] === cat) || [])[2]; inner = v > 0 ? v.toLocaleString() + '%' : NA; if (v > 0) style = 'color:' + col + ';font-weight:700;'; }
     let pct = '';
-    if (adPctMode && c.pct && r[c.pct] != null && (v || 0) > 0) pct = c.pill ? '<span class="ps-pct"><span class="pct-pill ' + c.pill + '" style="color:' + psPctColor(r[c.pct]) + '">' + r[c.pct] + '%</span></span>'   // v4.63
+    if (adPctMode && c.pct && r[c.pct] != null && (v || 0) > 0) pct = c.spsb ? '<span class="ps-pct ps-spsb">' + mgSpSbHtml(c.spsb, r[c.pct], true) + '</span>' : c.pill ? '<span class="ps-pct"><span class="pct-pill ' + c.pill + '" style="color:' + psPctColor(r[c.pct]) + '">' + r[c.pct] + '%</span></span>'   // v4.63
       : '<span class="ps-pct" style="color:' + psPctColor(r[c.pct]) + '">' + r[c.pct] + '%</span>';
     let tip = '';
     if (c.k === 'ad' && r.ad > 0) tip = ' title="宣伝商品として買われた分 ' + yen(r.prom) + '／Halo（別の商品の広告経由）' + yen(r.halo) + '／広告経由の点数 ' + Math.round(r.units) + '個"';
