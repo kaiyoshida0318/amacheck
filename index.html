@@ -494,7 +494,14 @@
   .pct-pill { display: inline-block; padding: 0 6px; border-radius: 999px; border: 1.5px solid; line-height: 1.3; background: #fff; }
   .pct-pill.sp { border-color: #93c5fd; background: #eff6ff; }
   .pct-pill.sb { border-color: #d8b4fe; background: #faf5ff; }
-  #ad-switches .ad-tg[hidden], #ad-switches .ad-cl-edit[hidden] { display: none; }   /* v4.64 */
+  #ad-switches .ad-tg[hidden], #ad-switches .ad-cl-edit[hidden], #ad-switches .ad-cl-grp[hidden] { display: none; }   /* v4.64 */
+  /* v4.74：変更記録のスイッチの右にペン（編集）をくっつけて1つのボタンに見せる */
+  .ad-cl-grp { display: inline-flex; align-items: stretch; }
+  #ad-view .toolbar .ad-cl-grp .ad-tg { border-top-right-radius: 0; border-bottom-right-radius: 0; padding-right: 8px; }
+  .ad-cl-pen { display: inline-flex; align-items: center; justify-content: center; padding: 0 9px 0 7px; border: 1px solid #d1d5db; border-left: none; border-radius: 0 999px 999px 0; background: #fff; color: #6b7280; cursor: pointer; font-family: inherit; }
+  .ad-cl-pen .icn { width: 14px; height: 14px; stroke-width: 2.3; }
+  .ad-cl-pen:hover { background: #fff7ed; color: #ea580c; }
+  .ad-cl-grp.on .ad-cl-pen { border-color: #f97316; color: #ea580c; }
   .adg-ms { background: #ea580c; } .adg-mc { background: #b91c1c; } .adg-mr { background: #0f766e; }
   /* v4.65：指標別＝売上｜広告全体｜広告費とROASの組（SP 3組・SB 2組）。広告全体は橙（グラフの「広告」の色） */
   .adg-ma { background: #ea580c; }
@@ -2577,7 +2584,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.73</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.74</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -2831,8 +2838,7 @@
       <span class="ad-switches" id="ad-switches" hidden><!-- v3.73／v4.68：スイッチは左（期間・キャンペーンの右）、配色は右（広告の種類の左） -->
         <button type="button" class="ad-tg" id="ad-sw-seo" data-sw="seo"></button>
         <button type="button" class="ad-tg" id="ad-sw-pct" data-sw="pct"></button>
-        <button type="button" class="ad-tg" id="ad-sw-cl" data-sw="cl"></button>
-        <button type="button" class="ad-cl-edit" id="ad-cl-edit" title="変更記録（ショップ全体）を追加・編集">📝 変更記録編集</button>
+        <span class="ad-cl-grp" id="ad-cl-grp"><button type="button" class="ad-tg" id="ad-sw-cl" data-sw="cl"></button><button type="button" class="ad-cl-pen" id="ad-cl-edit" title="変更記録（ショップ全体）を追加・編集"><svg class="icn"><use href="#i-pencil"/></svg></button></span><!-- v4.74：変更記録編集は 変更記録 の右のペンに統合 -->
       </span>
       <div class="spacer"></div>
       <span class="ad-legend" title="列ごとに、表に出ている行の中での順位で色を付けています。広告費の列は安いほど青（上位）">配色:
@@ -9765,7 +9771,8 @@ function adTgHtml(on, color, label){
 function adPaintSwitches(){
   const box = document.getElementById('ad-switches'); if (!box) return;
   box.hidden = false;   // v4.64：比率表記は日別でも出す（SEO売上トップ15・変更記録は月別だけ）
-  ['ad-sw-seo', 'ad-sw-cl', 'ad-cl-edit'].forEach(id => { const b = document.getElementById(id); if (b) b.hidden = adPeriod !== 'monthly'; });
+  ['ad-sw-seo', 'ad-cl-grp'].forEach(id => { const b = document.getElementById(id); if (b) b.hidden = adPeriod !== 'monthly'; });
+  { const g = document.getElementById('ad-cl-grp'); if (g) g.classList.toggle('on', !!adClShow); }   // v4.74
   [['ad-sw-seo', adSeoShow, '#1565C0', 'SEO売上トップ15'], ['ad-sw-pct', adPctMode, '#16a34a', '比率表記'], ['ad-sw-cl', adClShow, '#f97316', '変更記録']].forEach(([id, on, col, lb]) => {
     const b = document.getElementById(id); if (!b) return;
     b.classList.toggle('on', on); b.style.background = on ? col : ''; b.style.borderColor = on ? col : '';
