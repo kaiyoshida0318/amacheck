@@ -2596,7 +2596,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.82</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.83</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -2802,13 +2802,13 @@
       <select id="ps-month" title="月を選ぶ（確定＝E 月別あり／速報＝④日別の合計）"></select>
       <select id="ps-day"></select>
       <span class="tb-sep"></span>
-      <button type="button" class="ad-tg" id="ps-sw-pct" data-sw="pct"></button><!-- v4.64：比率表記（全-月別・全-日別データと共通） -->
-      <span class="tb-sep"></span>
-      <!-- v4.06：広告費の切り替えと！は日選択の右 -->
+      <!-- v4.06：広告費の切り替えと！は日選択の右（v4.83：比率表記と入れ替え） -->
       <span class="ps-cm-wrap" title="広告費を商品にどう割り当てるか&#10;宣伝商品に全額：キャンペーンの費用を、宣伝した商品に全額（SB は宣伝商品が1つに決まらないので割り当てない）&#10;売上比で分ける：キャンペーンの費用を、そのキャンペーン経由で買われた商品の売上の比率で割り振る">広告費
         <span class="ps-cm" id="ps-costmode"><button type="button" data-v="direct">宣伝商品に全額</button><button type="button" data-v="alloc">売上比で分ける</button></span>
         <button type="button" class="ps-help-badge" id="ps-cost-help" title="「宣伝商品に全額」と「売上比で分ける」の説明を見る">！</button>
       </span>
+      <span class="tb-sep"></span>
+      <button type="button" class="ad-tg" id="ps-sw-pct" data-sw="pct"></button><!-- v4.64：比率表記（全-月別・全-日別データと共通） -->
       <div class="spacer"></div><!-- v4.08：検索欄から右は右寄せ（項目調整のすぐ左） -->
       <input type="search" id="ps-search" class="ps-search" placeholder="商品名・SKU・ASIN で検索">
       <span class="ps-filter" id="ps-filter"></span>
