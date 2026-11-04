@@ -840,6 +840,9 @@
   .graph-legend .ln.dash { border-top-style: dashed; }
   .graph-table { width: 100%; border-collapse: collapse; font-size: 15px; margin-top: 4px; }
   .graph-table th, .graph-table td { padding: 12px 18px; text-align: right; border-bottom: 1px solid var(--border); white-space: nowrap; }
+  table.graph-table.gt-center tbody td { text-align: center; }   /* v4.97 */
+  table.graph-table.gt-center tbody td.grp-label, table.graph-table.gt-center tbody td.yr-sub { text-align: left; }
+  table.graph-table.gt-center .gtv { display: inline-block; text-align: right; }
   .gt-sort { border: 1px solid var(--border-strong); background: #fff; border-radius: 6px; font-size: 11px; line-height: 1; padding: 3px 6px; margin-left: 4px; cursor: pointer; color: var(--text-secondary); font-family: inherit; vertical-align: middle; }
   .gt-sort:hover { background: var(--bg-secondary); border-color: var(--blue); color: var(--blue); }
   .graph-table th:first-child, .graph-table td:first-child { text-align: left; }
@@ -963,6 +966,8 @@
   .ad-cl-badges em { font-style: normal; font-size: 9px; font-weight: 700; color: var(--text-tertiary); white-space: nowrap; flex-shrink: 0; }
   table.ad-table tr.ad-cl-top td.ad-daycol { padding-top: 3px; padding-bottom: 3px; }
   table.ad-table td.ad-daycol .ad-cl-badges { justify-content: center; }
+  table.ad-table.ad-cl-daily col.col-day { width: 66px; }   /* v4.96 */
+  table.ad-table.ad-cl-daily td.ad-daycol { padding-left: 4px; padding-right: 4px; }
   /* v4.86：全-月日別グラフの表：変更記録の行を点線で囲む */
   table.graph-table tr.gt-cl td { border-top: 2px dashed var(--clc) !important; border-bottom: 2px dashed var(--clc) !important; }
   table.graph-table tr.gt-cl td:first-child { border-left: 2px dashed var(--clc) !important; }
@@ -2641,7 +2646,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.95</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.97</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -10433,7 +10438,7 @@ function renderAdTableCore(){
   html += '<div class="table-wrap">'
     + (dayCut ? ('<div class="ad-day-banner"><span class="adb-tag">月途中</span>各月 1〜' + dayCut + '日 だけの合計です（月全体の数字ではありません）'
       + '<button type="button" onclick="setAdDayMode(\'full\')">月全体に戻す</button></div>') : '')
-    + '<table class="ad-table' + (adPeriod === 'monthly' ? ' ad-yoy' : '') + '">'
+    + '<table class="ad-table' + (adPeriod === 'monthly' ? ' ad-yoy' : '') + ((adPeriod !== 'monthly' && adClShow && (() => { const cm = adClByMonth(); return rows.some(r => r.ds && (cm[r.ds.slice(0, 7)] || []).some(l => l && l.date === r.ds)); })()) ? ' ad-cl-daily' : '') + '">'   // v4.96：日別で変更記録があるときは日の列を月別と同じ幅（メモの札を月別と同じに出す）
     + adColgroup()
     + '<thead>'
     + (tblLayout === 'metric' ? adHeadMetric(adPeriod, dayCut) : '<tr>'
@@ -10582,7 +10587,7 @@ function renderAdTableCore(){
     // v3.76：記録ごとに1つずつ。1件目は文字入りのバッジ、2件目からは色の小さな四角。乗せると、その記録（その日の分）だけを出す
     const clAll = cls ? cls.filter(l => l && l.date) : [];
     const lockHtml = (isM && isAdMonthClosed(r.ym)) ? '<span class="ad-lock" title="確定済み：この月の数字は確定したときのまま固定しています（出荷数・価格・広告データを直しても変わりません。全-日別データで解除できます）">🔒</span>' : '';   // v4.94：🔒は2行目（変更記録の札の左）
-    const clBadges = (clAll.length || lockHtml) ? '<div class="ad-cl-badges">' + lockHtml + clAll.map((l, k) => '<span class="' + ((k || !isM) ? 'ad-cl-chip' : 'ad-cl-b1') + '" data-clym="' + clYm + '" data-cli="' + clMonAll.indexOf(l) + '" style="background:' + (l.color || CL_COLORS[0]) + '">' + ((k || !isM) ? '' : escapeHtml(String(l.note || '').trim() || String(l.date).slice(5).replace('-', '/'))) + '</span>').join('') + '</div>' : '';
+    const clBadges = (clAll.length || lockHtml) ? '<div class="ad-cl-badges">' + lockHtml + clAll.map((l, k) => '<span class="' + (k ? 'ad-cl-chip' : 'ad-cl-b1') + '" data-clym="' + clYm + '" data-cli="' + clMonAll.indexOf(l) + '" style="background:' + (l.color || CL_COLORS[0]) + '">' + (k ? '' : escapeHtml(String(l.note || '').trim() || String(l.date).slice(5).replace('-', '/'))) + '</span>').join('') + '</div>' : '';
     const dayTitle = '';   // v3.75：変更記録はバッジに乗せたときの専用の表示（title は使わない＝セール名と取り合わない）
     // v4.76：SEO売上／広告売上の割合は、別の行ではなくセルの中（値の下。ほかの比率と同じ高さ）に出す＝行が低くなる
     const pctIn = (v) => (pctOn && total > 0 && has) ? '<div class="mg-pct" style="text-align:right;color:' + adPctColor(v) + '">' + (Math.round(v * 10) / 10).toFixed(1) + '%</div>' : '';
@@ -16725,6 +16730,7 @@ function renderGraphView(){
   h += '<div class="graph-tblwrap">' + buildGraphTable(model) + '</div>';   // v3.26：表の中でスクロールせず、ページごとスクロール
 
   body.innerHTML = h;
+  try { gtCenterCols(body.querySelector('table.gt-center')); } catch (e) {}   // v4.97
 
   // イベント
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
@@ -16802,6 +16808,14 @@ function fmtGraphVal(v, cat){
 }
 
 // 連動テーブル：グラフと同じ rows・表示中の系列から作る
+// v4.97：全-月日別グラフの表：列ごとに、いちばん長い数字の幅で右をそろえたまとまりを、見出しの真下（真ん中）に置く
+function gtCenterCols(tbl){
+  if (!tbl) return;
+  const z = parseFloat((document.querySelector('.container') || {}).style ? document.querySelector('.container').style.zoom : 1) || 1;
+  const W = {};
+  tbl.querySelectorAll('tbody tr').forEach(tr => Array.from(tr.cells).forEach((td, i) => { const v = td.querySelector('.gtv'); if (!v) return; const w = v.getBoundingClientRect().width; if (w > (W[i] || 0)) W[i] = w; }));
+  tbl.querySelectorAll('tbody tr').forEach(tr => Array.from(tr.cells).forEach((td, i) => { const v = td.querySelector('.gtv'); if (v && W[i]) v.style.minWidth = Math.ceil(W[i] / z) + 'px'; }));
+}
 function buildGraphTable(model){
   const cat = GRAPH_CATEGORIES[graphCategory];
   const items = model.visItems;
@@ -16885,10 +16899,10 @@ function buildGraphTable(model){
   const gcell = (k, m, fmtCat, extraCls) => {
     const v = m ? m[k] : null;
     const txt = (v == null || isNaN(v)) ? '<span class="gt-dash">—</span>' : fmtGraphVal(v, fmtCat);
-    return '<td class="' + ((extraCls || '') + tcls(k, v)).trim() + '">' + txt + '</td>';
+    return '<td class="' + ((extraCls || '') + tcls(k, v)).trim() + '"><span class="gtv">' + txt + '</span></td>';   // v4.97：数字は見出しの真下（列の中で右をそろえたまま、まとまりを真ん中に）
   };
   const gtLegend = '<div class="ad-legend" style="margin:0 0 7px;">配色: <span class="lg-hi10">上位10%</span> <span class="lg-hi20">上位20%</span> <span class="lg-mid">中間</span> <span class="lg-lo20">下位20%</span> <span class="lg-lo10">下位10%</span> <span class="lg-mid" style="margin-left:6px;">※広告費は安いほど青</span></div>';
-  let h = '<table class="graph-table"><thead><tr><th>' + (daily ? '日付' : '月') + ' <button class="gt-sort" id="gt-sort" title="並び替え（新しい順／古い順）">' + (graphTableSort === 'desc' ? '▼' : '▲') + '</button></th>' + (yoy ? '<th></th>' : '');
+  let h = '<table class="graph-table gt-center"><thead><tr><th>' + (daily ? '日付' : '月') + ' <button class="gt-sort" id="gt-sort" title="並び替え（新しい順／古い順）">' + (graphTableSort === 'desc' ? '▼' : '▲') + '</button></th>' + (yoy ? '<th></th>' : '');
   extraCols.forEach((c, i) => h += '<th style="color:' + ccText(c.color) + '"' + (i === sepIdx ? ' class="gt-adsep"' : '') + '>' + c.label + '</th>');
   items.forEach(it => h += '<th style="color:' + ccText(it.color) + '">' + it.label + '</th>');   // ヘッダーは系列色（グラフと対応。v4.38：薄い色は少し濃く）
   h += '</tr></thead><tbody>';
