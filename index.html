@@ -2596,7 +2596,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.84</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.85</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -12988,7 +12988,7 @@ function renderKwWTrendView(){
     h += '<table class="kwmm-tbl">' + kwmmTheadHtml(months, gv.map(v => v.src)) + '<tbody>' + tb + '</tbody></table></div>';
   });
   if (!shown.length) h += '<div class="pm-empty">注視KWのキャンペーンがありません</div>';
-  h += '</div><div class="kwmm-foot">※ 直近4か月。キャンペーン全体・KWの内訳＝③KWデータ（内訳を全部足すとキャンペーン全体）、宣伝している商品＝商品-売上データの計算。/1日＝÷③のある日数（商品は 過去の月：暦日、最新日の月：経過日、速報の月：④のある日数）。KW名を押すと、そのKWの日別の推移が開きます。</div>';
+  h += '</div>';   // v4.85：下の注記（※ 直近4か月。…）はなくした（表を下端まで）
   body.innerHTML = h;
   const sc = document.getElementById('kwmm-scroll'); if (sc && keepTop) sc.scrollTop = keepTop;
 
