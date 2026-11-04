@@ -2596,7 +2596,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.80</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.81</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -7452,33 +7452,26 @@ function toggleHeader(){
 }
 
 // ヘッダー非表示時、表の下端を画面いっぱいまで伸ばす
+// v4.81：表のスクロール枠を、画面の下端までちょうどに（ヘッダーを隠したときも出しているときも。枠の下にある注記などの分は残す）
+const FIT_SCROLLS = ['#shipment-view .table-wrap', '#ad-view .table-wrap', '#psales-view .table-wrap', '#master-view .master-scroll', '#withdrawn-view .master-scroll',
+  '#kwall-view .kw-wrap', '#kwwatch-view .kw-wrap', '#kwwtrend-view .kwmm-scroll', '#pl-view .pl-scroll', '#returns-view .ret-scroll', '#returns-view .ret-grouped-wrap'];
+function fitScrollToBottom(el){
+  const c = document.querySelector('.container') || document.body;
+  const z = parseFloat(c.style.zoom) || 1;
+  const r = el.getBoundingClientRect();
+  const below = Math.max(0, c.getBoundingClientRect().bottom - r.bottom) + (parseFloat(getComputedStyle(c).marginBottom) || 0);   // 枠の下にあるもの（注記・枠の余白・ページの下の余白）
+  const top = r.top + window.scrollY;   // ページの上端からの位置（ページが少しスクロールしていても同じ高さに）
+  el.style.maxHeight = Math.max(200, (window.innerHeight - top - below - 4) / z) + 'px';
+}
 function adjustHiddenTableHeight(){
   kwFitTable();   // KW-日月別データの表
-  // 対象：現在表示中の表のスクロール領域
-  const scrollEl = document.querySelector('#shipment-view:not([hidden]) .table-wrap')
-                 || document.querySelector('#ad-view:not([hidden]) .table-wrap')
-                 || document.querySelector('#psales-view:not([hidden]) .table-wrap')
-                 || document.querySelector('#master-view:not([hidden]) .master-scroll');
-  if (!scrollEl) return;
-  if (!document.body.classList.contains('header-hidden')) {
-    // v4.61：全-月別／全-日別データ・商品-売上データは、表の枠の上端を実測して画面の下端まで（ページ自体がスクロールしない＝ツールバー・見出しが隠れない）。文字の大きさ（zoom）で割り戻す
-    if (scrollEl.matches('#ad-view .table-wrap, #psales-view .table-wrap')) {
-      const z = parseFloat(document.querySelector('.container').style.zoom) || 1;
-      const top = scrollEl.getBoundingClientRect().top + window.scrollY;
-      scrollEl.style.maxHeight = Math.max(160, (window.innerHeight - top) / z - 24) + 'px';   // 24＝.container の下の余白（20px）＋少し
-      return;
-    }
-    // 通常時はインラインスタイルを外してCSSに戻す
-    scrollEl.style.maxHeight = '';
-    return;
-  }
-  // 画面上端から表のスクロール領域の上端までの距離を実測し、
-  // 残り全部（下に少しだけ余白）を高さにする
-  const top = scrollEl.getBoundingClientRect().top;
-  const bottomGap = 8;
-  const h = Math.max(160, window.innerHeight - top - bottomGap);
-  scrollEl.style.maxHeight = h + 'px';
+  FIT_SCROLLS.forEach(sel => { const k = sel.indexOf(' '); const el = document.querySelector(sel.slice(0, k) + ':not([hidden])' + sel.slice(k)); if (el && el.offsetParent !== null) fitScrollToBottom(el); });
 }
+// 画面の中身が描き直されたら測り直す（タブの切り替え・表の描き直しのたびに。1フレームに1回。測っている間の変化は見ない＝繰り返さない）
+{ let _fitRaf = 0, _fitBox = null; const OPT = { childList: true, subtree: true, attributes: true, attributeFilter: ['hidden'] };
+  const _fitObs = new MutationObserver(() => { if (_fitRaf) return; _fitRaf = requestAnimationFrame(() => { _fitRaf = 0; _fitObs.disconnect(); try { adjustHiddenTableHeight(); } catch (e) {} if (_fitBox) _fitObs.observe(_fitBox, OPT); }); });
+  const start = () => { _fitBox = document.querySelector('.container'); if (_fitBox) _fitObs.observe(_fitBox, OPT); };
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start(); }
 
 // ============================================
 // セール日設定
@@ -15264,7 +15257,7 @@ function renderPlView(){
   const thSfee = '<th class="pl-c-warm">販売手数料</th>';
   const thProfit = '<th class="pl-c-profit">実質利益 <span class="pl-badge" data-tip="実質利益＝粗利益－広告費－保管費－FBA手数料(送料)－販売手数料">?</span></th>';
   const cols = '<th>期間</th>' + thSales + thSeo + '<th class="pl-c-sales">広告売上</th>' + thGross + '<th class="pl-c-warm">広告費</th>' + thStore + thFba + thSfee + thProfit + '<th class="pl-c-roas">ROAS</th>';
-  h += '<div style="overflow-y:auto;overflow-x:hidden;max-height:560px;"><table class="pl-table"><thead><tr>' + cols + '</tr></thead><tbody>';
+  h += '<div class="pl-scroll" style="overflow-y:auto;overflow-x:hidden;max-height:560px;"><table class="pl-table"><thead><tr>' + cols + '</tr></thead><tbody>';
 
   let sT = 0, sTany = false, sG = 0, sGany = false, sA = 0, sAS = 0, sS = 0, sF = 0, sSF = 0, sP = 0, sPany = false;
   if (!data.length) {
@@ -15564,7 +15557,7 @@ function retLayoutPivot(units, months, periodLabel){
 }
 // 案B：カテゴリでまとめ、その中に月3行
 function retLayoutGroup(units, months){
-  let h = '<div style="overflow:auto;max-height:600px;"><table class="ret-table"><thead><tr>'
+  let h = '<div class="ret-scroll" style="overflow:auto;max-height:600px;"><table class="ret-table"><thead><tr>'
     + '<th>' + (retView === 'category' ? 'カテゴリ' : 'カテゴリ / 商品') + '</th><th>月</th><th>出荷点数</th><th>返品点数</th><th>返品率</th><th>3ヶ月移動平均</th>'
     + '</tr></thead><tbody>';
   units.forEach(u => {
