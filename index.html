@@ -2596,7 +2596,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.81</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.82</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -4062,6 +4062,8 @@ async function bootstrap(){
   if (!purchData || typeof purchData !== 'object' || Array.isArray(purchData)) purchData = { day: {}, month: {} };
   if (!purchData.day || typeof purchData.day !== 'object') purchData.day = {};
   if (!purchData.month || typeof purchData.month !== 'object') purchData.month = {};
+  if (!purchData.monthMeta || typeof purchData.monthMeta !== 'object') purchData.monthMeta = {};   // v4.82：{ 'YYYY-MM': { prov:true, fetched:'YYYY-MM-DD' } }＝暫定の E
+  setTimeout(() => { try { const st = purchProvStale(); if (st.length) toast('E（購入商品データ）が暫定のままの月があります：' + st.map(m => m.replace('-', '/')).join('・') + '。16日を過ぎたので、確定の E を取り直してください'); } catch (e) {} }, 2500);
   setTimeout(() => { try { const a = purchAutoRegister(); if (a.length) toast('購入商品データにある商品マスタに無い商品 ' + a.length + '件を、撤退済み商品に登録しました'); } catch (e) {} }, 0);
   campUrls = await load(STORAGE_CAMPURL, null);
   if (!campUrls || typeof campUrls !== 'object' || Array.isArray(campUrls)) { campUrls = Object.assign({}, CAMP_URL_DEFAULTS); saveCampUrls(); }
@@ -6775,9 +6777,16 @@ async function rptStage(files){
       if (!pk) { _rpt.errors.push(fname + '：ファイル名から日付を読み取れません（例：購入商品データ-2026-1025.csv／E-購入商品データ-2026-09.csv）'); return; }
       const pr = parsePurchCsv(text);
       if (!pr.ok) { _rpt.errors.push(fname + '：' + pr.msg); return; }
+      const provAt = pk.kind === 'month' ? purchProvFromName(fname, pk.key) : null;   // v4.82
+      if (pk.kind === 'month') {
+        const st = _rpt.pd.find(x => x.kind === 'month' && x.key === pk.key), ymL = pk.key.replace('-', '/');
+        if (provAt && st && (!st.provAt || st.provAt >= provAt)) { _rpt.notes.push('🛒 ' + escapeHtml(fname) + '：' + ymL + ' は' + (st.provAt ? 'もっと新しい暫定' : '確定') + 'の E も入れたので、こちらは使いません'); return; }
+        if (provAt && purchData.month[pk.key] && purchHasRows(purchData.month[pk.key]) && !purchProv(pk.key)) { _rpt.notes.push('🛒 ' + escapeHtml(fname) + '：' + ymL + ' は確定の E が入っているので、暫定は入れません'); return; }
+      }
+      { const old = _rpt.pd.find(x => x.kind === pk.kind && x.key === pk.key && x.name !== fname); if (old && pk.kind === 'month') { const on = escapeHtml(old.name); _rpt.notes = _rpt.notes.filter(n => n.indexOf(on) < 0); _rpt.notes.push('🛒 ' + on + '：' + pk.key.replace('-', '/') + ' は ' + escapeHtml(fname) + ' のほうを使います'); } }   // v4.82
       _rpt.pd = _rpt.pd.filter(x => !(x.kind === pk.kind && x.key === pk.key));
-      _rpt.pd.push({ name: fname, kind: pk.kind, key: pk.key, rows: pr.rows, sum: pr.sum });
-      const lbl = pk.kind === 'day' ? ('④購入商品データ・' + (+pk.key.slice(5, 7)) + '/' + (+pk.key.slice(8, 10)) + '・速報') : ('E 購入商品データ・' + pk.key.replace('-', '/') + '・確定');
+      _rpt.pd.push({ name: fname, kind: pk.kind, key: pk.key, rows: pr.rows, sum: pr.sum, provAt });
+      const lbl = pk.kind === 'day' ? ('④購入商品データ・' + (+pk.key.slice(5, 7)) + '/' + (+pk.key.slice(8, 10)) + '・速報') : ('E 購入商品データ・' + pk.key.replace('-', '/') + (provAt ? '・暫定（' + (+provAt.slice(5, 7)) + '/' + (+provAt.slice(8, 10)) + ' 取得。' + (+ymAddMonths(pk.key, 1).slice(5, 7)) + '/16 以降に取り直し）' : '・確定'));
       const had = pk.kind === 'day' ? purchData.day[pk.key] : purchData.month[pk.key];
       if (pk.kind === 'month') _rpt.notes.push('🛒 ' + escapeHtml(fname) + '（' + lbl + '）：' + (pr.count ? pr.count + '行・広告売上 ¥' + Math.round(pr.sum).toLocaleString() : '<b style="color:#b45309;">0行</b>（この月は Amazon に購入商品のデータがありません）') + (had ? '（取込済みを上書き）' : ''));
       return;
@@ -7153,7 +7162,9 @@ function applyReportAll(){
       });
       // v3.41：④／E 購入商品データ（日／月ごとに上書き）
       const pdD = _rpt.pd.filter(x => x.kind === 'day'), pdM = _rpt.pd.filter(x => x.kind === 'month');
-      _rpt.pd.forEach(x => { if (x.kind === 'day') purchData.day[x.key] = x.rows; else purchData.month[x.key] = x.rows; });
+      _rpt.pd.forEach(x => { if (x.kind === 'day') purchData.day[x.key] = x.rows; else { purchData.month[x.key] = x.rows;
+        if (!purchData.monthMeta || typeof purchData.monthMeta !== 'object') purchData.monthMeta = {};
+        if (x.provAt) purchData.monthMeta[x.key] = { prov: true, fetched: x.provAt }; else delete purchData.monthMeta[x.key]; } });   // v4.82：暫定の E の印
       if (_rpt.pd.length) savePurchData();
       const pdAuto = _rpt.pd.length ? purchAutoRegister() : [];
       // 返品データ（月単位で上書き）
@@ -8646,7 +8657,7 @@ function buildAnalysisSheets(fromYm, toYm, want){
         psCostMode = 'direct'; const cd = psCompute();
         psCostMode = 'alloc'; const ca = psCompute();
         if (cd.pr.src === 'none') return;   // 行が無い（Amazon にデータが無い）月は出さない
-        const src = cd.pr.src === 'E' ? '確定（E 月別）' : '速報（④ 日別の合計）';
+        const src = cd.pr.src === 'E' ? (purchProv(ym) ? '暫定（E 月別・' + purchProvMd(ym) + ' 取得）' : '確定（E 月別）') : '速報（④ 日別の合計）';
         const ndays = cd.pr.src === 'E' ? daysInMonth(ym) : cd.pr.nDays;
         const aMapA = {}; ca.rows.forEach(r => { aMapA[r.asin] = r; });
         cd.rows.forEach(r => {
@@ -9819,6 +9830,7 @@ function adSeoChg(cur, prev){
 function adSeoRowHtml(ym, ncol){
   const cur = adSeoByMonth(ym), prev = adSeoByMonth(gYmAdd(ym, -1));
   let h = '<tr class="ad-seo-row"><td colspan="' + ncol + '"><div class="ad-seo-box"><div class="ad-seo-h">◎ ' + ym.replace('-', '/') + ' SEO売上トップ15商品'
+    + (cur && cur.src === 'E' && purchProv(ym) ? PROV_BADGE(ym, 'margin-left:6px;') : '')
     + (cur && cur.src === 'daily' ? '<span class="pm-src pm-src-d" style="margin-left:6px;" title="E（月別の確定）がまだ無いので、④購入商品データ ' + cur.nDays + '日分（④のある日だけ）で計算">速報</span>' : '')
     + '<span class="ad-seo-lg">（数字の色＝前月比：<b style="color:#1565C0">+20%↑</b> <b style="color:#2E7D32">+10%↑</b> <b>中間</b> <b style="color:#BA7517">-10%↓</b> <b style="color:#A32D2D">-20%↓</b>）</span></div>';
   if (!cur) return h + '<div class="ad-seo-none">この月は購入商品データ（④／E）が無いため、商品ごとの広告売上・SEO売上が分かりません</div></div></td></tr>';
@@ -10354,6 +10366,14 @@ function parsePurchCsv(text){
   });
   return { ok: true, rows: out, sum, count: out.length };
 }
+// v4.82：暫定の E（拡張ツール 2.11.0〜。翌月15日までに取ったもの。ファイル名 E-購入商品データ-YYYY-MM-暫定-MMDD.csv）。取得日 'YYYY-MM-DD' を返す（暫定でなければ null）
+function purchProvFromName(name, ym){ const m = String(name).match(/暫定-(\d{2})(\d{2})(?!\d)/); if (!m) return null; const nx = ymAddMonths(ym, 1); return nx.slice(0, 4) + '-' + m[1] + '-' + m[2]; }
+// その月の E が暫定なら { prov:true, fetched:'YYYY-MM-DD' }（確定・E 無しは null）
+function purchProv(ym){ const m = purchData && purchData.monthMeta && purchData.monthMeta[ym]; return (m && m.prov && purchData.month && purchHasRows(purchData.month[ym])) ? m : null; }
+function purchProvMd(ym){ const m = purchProv(ym); return m && m.fetched ? (+m.fetched.slice(5, 7)) + '/' + (+m.fetched.slice(8, 10)) : ''; }
+// 暫定のまま取り直しの時期（翌月16日）を過ぎた月
+function purchProvStale(){ const t = todayStr(); return Object.keys((purchData && purchData.monthMeta) || {}).filter(ym => purchProv(ym) && t >= ymAddMonths(ym, 1) + '-16').sort(); }
+const PROV_BADGE = (ym, extra) => '<span class="pm-src pm-src-d pd-prov" style="' + (extra || '') + '" title="E（購入商品データ・月別）は ' + purchProvMd(ym) + ' に取った暫定です。広告売上は後から増えるので、' + (+ymAddMonths(ym, 1).slice(5, 7)) + '/16 以降に取り直すと確定になります">暫定</span>';
 // ファイル名から日別（YYYY-MMDD）／月別（YYYY-MM）を読む
 function purchKeyFromName(name){
   let m = String(name).match(/(20\d{2})-(\d{2})(\d{2})(?!\d)/);
@@ -10648,7 +10668,7 @@ function renderPsalesView(){
   // 月・日の選択肢
   const msel = document.getElementById('ps-month');
   if (msel) msel.innerHTML = (months.length ? months : [psMonth]).map(m => {
-    const tag = (purchData.month && purchHasRows(purchData.month[m])) ? '（確定）' : (Object.keys(purchData.day || {}).some(d => d.slice(0, 7) === m && purchHasRows(purchData.day[d])) ? '（速報）' : '');
+    const tag = (purchData.month && purchHasRows(purchData.month[m])) ? (purchProv(m) ? '（暫定 ' + purchProvMd(m) + (purchProvStale().includes(m) ? '・要取り直し' : '') + '）' : '（確定）') : (Object.keys(purchData.day || {}).some(d => d.slice(0, 7) === m && purchHasRows(purchData.day[d])) ? '（速報）' : '');
     return '<option value="' + m + '"' + (m === psMonth ? ' selected' : '') + '>' + (+m.slice(0, 4)) + '年' + (+m.slice(5, 7)) + '月' + tag + '</option>';
   }).join('');
   const dsel = document.getElementById('ps-day');
@@ -10711,7 +10731,7 @@ function renderPsalesTable(){
   const pr = cmp.pr;
   const per = psDay ? ((+psDay.slice(5, 7)) + '/' + (+psDay.slice(8, 10)) + '（1日）') : ((+psMonth.slice(0, 4)) + '年' + (+psMonth.slice(5, 7)) + '月');
   let srcTag;
-  if (pr.src === 'E') srcTag = '<span class="ps-src ps-src-e" title="E 購入商品データ（月別）の数字です">確定</span>';
+  if (pr.src === 'E') srcTag = purchProv(psMonth) ? '<span class="ps-src ps-src-d" title="E 購入商品データ（月別）の暫定（' + purchProvMd(psMonth) + ' 取得）です">暫定（' + purchProvMd(psMonth) + '）</span>' : '<span class="ps-src ps-src-e" title="E 購入商品データ（月別）の数字です">確定</span>';
   else if (pr.src === 'daily') srcTag = '<span class="ps-src ps-src-d" title="④購入商品データ（日別）の合計です。広告売上は後から増えるので、月別（E）を入れると確定の数字に入れ替わります">速報（④ ' + pr.nDays + '日分：' + (pr.firstDay === pr.lastDay ? (+pr.firstDay.slice(8, 10)) : (+pr.firstDay.slice(8, 10)) + '〜' + (+pr.lastDay.slice(8, 10))) + '日。④のある日だけで集計）</span>';
   else if (pr.src === 'day') srcTag = '<span class="ps-src ps-src-d">速報（④）</span>';
   else srcTag = '<span class="ps-src ps-src-n" title="この期間の④／E 購入商品データがありません。広告売上は出ません">購入商品データなし</span>';
@@ -12206,7 +12226,7 @@ function pmRenderInfo(fresh){
         lead = '<td class="grp-label' + (dw === 0 ? ' gt-sun' : (dw === 6 ? ' gt-sat' : '')) + '">' + graphPeriodText(r.key) + (sn.length ? '<span class="gt-sale" title="' + pmEsc(sn.join(' / ')) + '">SALE</span>' : '') + '</td>';
       } else {   // v3.70：「広告データ」列は廃止。E がまだ無い月（④の合計＝速報）だけ、月の横に小さく「速報」
         const c = r.c || {};
-        lead = '<td class="grp-label">' + r.key.replace('-', '/') + (c.src === 'daily' ? '<span class="pm-src pm-src-d" style="margin-left:8px;" title="E（月別の確定）がまだ無いので、④購入商品データ（日別）' + c.nDays + '日分の合計です。広告売上は後から増えます">速報</span>' : '') + '</td>';
+        lead = '<td class="grp-label">' + r.key.replace('-', '/') + (c.src === 'E' && purchProv(r.key) ? PROV_BADGE(r.key, 'margin-left:8px;') : '') + (c.src === 'daily' ? '<span class="pm-src pm-src-d" style="margin-left:8px;" title="E（月別の確定）がまだ無いので、④購入商品データ（日別）' + c.nDays + '日分の合計です。広告売上は後から増えます">速報</span>' : '') + '</td>';
       }
       h += '<tr>' + lead + items.map(it => { const v = r.m ? r.m[it.key] : null; return '<td>' + ((v == null || isNaN(v)) ? '<span class="gt-dash">—</span>' : fmtGraphVal(v, fmtOf(it))) + '</td>'; }).join('') + '</tr>';
     });
@@ -12847,7 +12867,7 @@ function kwmmRatioBoxes(title, pairs, color, bg){
 }
 function kwmmTheadHtml(months, srcs){
   return '<thead><tr><th class="kwmm-left">KW名</th><th class="kwmm-dot">◯</th><th class="kwmm-item">項目</th>'
-    + months.map((m, i) => '<th class="kwmm-v">' + (+m.slice(5, 7)) + '月' + (srcs && srcs[i] === 'daily' ? '<span class="kwmm-sok" title="E（月別の確定）がまだ無いので、④購入商品データのある日だけで計算">速報</span>' : '') + '</th>').join('')
+    + months.map((m, i) => '<th class="kwmm-v">' + (+m.slice(5, 7)) + '月' + (srcs && srcs[i] === 'E' && purchProv(m) ? '<span class="kwmm-sok" title="E（月別）は ' + purchProvMd(m) + ' に取った暫定です">暫定</span>' : '') + (srcs && srcs[i] === 'daily' ? '<span class="kwmm-sok" title="E（月別の確定）がまだ無いので、④購入商品データのある日だけで計算">速報</span>' : '') + '</th>').join('')
     + '<th class="kwmm-graphs">推移グラフ</th></tr></thead>';
 }
 // v4.06：キャンペーン単位に作り変え（Amazon は1つのKWが、キャンペーンの複数の商品にまたがって効くため）
@@ -13579,6 +13599,7 @@ function _cmpMonth(ym){
 function _cmpIsPartial(ymc){ const m = _cmpMonth(ymc.length === 6 ? ymc.slice(0, 4) + '-' + ymc.slice(4, 6) : ymc); return m.src === 'daily'; }
 function _cmpSrcTag(ymc){
   const m = _cmpMonth(ymc.slice(0, 4) + '-' + ymc.slice(4, 6));
+  if (m.src === 'E' && purchProv(ymc.slice(0, 4) + '-' + ymc.slice(4, 6))) { const y2 = ymc.slice(0, 4) + '-' + ymc.slice(4, 6); return '<div style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:4px;padding:0 5px;margin-top:2px;white-space:nowrap" title="E（月別）は ' + purchProvMd(y2) + ' に取った暫定です。広告売上は後から増えます">暫定 E ' + purchProvMd(y2) + '</div>'; }   // v4.82
   if (m.src === 'daily') return '<div style="font-size:10px;font-weight:700;color:#92400e;background:#fef3c7;border-radius:4px;padding:0 5px;margin-top:2px;white-space:nowrap" title="E（月別の確定）がまだ無いので、④購入商品データ（日別）' + m.nDays + '日分だけで集計">速報 ④' + m.nDays + '日</div>';
   if (m.src === 'none') return '<div style="font-size:10px;color:var(--text3);margin-top:2px;white-space:nowrap" title="④/E が無いので、広告の数字はありません">広告データなし</div>';
   return '';
