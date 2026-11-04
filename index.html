@@ -497,6 +497,7 @@
   #ad-switches .ad-tg[hidden], #ad-switches .ad-cl-edit[hidden], #ad-switches .ad-cl-grp[hidden] { display: none; }   /* v4.64 */
   /* v4.74：変更記録のスイッチの右にペン（編集）をくっつけて1つのボタンに見せる */
   .ad-cl-grp { display: inline-flex; align-items: stretch; }
+  #report-closed .rpt-notice { display: flex; gap: 10px; align-items: flex-start; background: #fff7ed; border: 1px solid #fdba74; border-radius: 10px; padding: 11px 13px; font-size: 12.5px; color: #7c2d12; line-height: 1.6; margin-top: 10px; }   /* v4.88 */
   /* v4.75：数字の大きさ（広告別の全-月別データだけ） */
   .ad-fsz { display: inline-flex; align-items: center; border: 1px solid #d1d5db; border-radius: 8px; background: #fff; overflow: hidden; font-size: 12px; font-weight: 700; white-space: nowrap; }
   .ad-fsz[hidden] { display: none; }
@@ -2604,7 +2605,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.86</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.88</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -3399,6 +3400,7 @@
           <div class="me-card" id="report-ret-card"><div class="h"><span class="me-badge" style="background:#dc2626;">返</span> 返品データ（FBA返品レポート）</div><div class="d">返品日からFNSKU・月へ自動振り分け。返品率は「欠陥品・不良品」を使用（他の状態も保存）。同じ月は上書き。</div><div class="me-status off">未取込</div></div>
         </div>
       </div>
+      <div id="report-closed"></div><!-- v4.88：確定済みの月が含まれるときの注意 -->
       <div id="report-notes" style="margin-top:10px;font-size:13px;color:#166534;line-height:1.6;"></div>
       <div id="report-unknown" style="margin-top:10px;font-size:12px;color:var(--danger);"></div>
     </div>
@@ -6592,7 +6594,7 @@ function buildReportFileTypePanel(){
     + '</div></div></div>';
 }
 let _rpt = null;
-function rptReset(){ _rpt = { ship: [], ad: [], kw: [], pd: [], meFiles: [], ret: null, unknown: [], errors: [], notes: [], meMonth: null, allowPartial: false }; }
+function rptReset(){ _rpt = { ship: [], ad: [], kw: [], pd: [], meFiles: [], ret: null, unknown: [], errors: [], notes: [], meMonth: null, allowPartial: false, reopenClosed: true }; }   // v4.88：reopenClosed＝確定済みの月を解除して入れる
 // ============================================
 // v3.27：日別データの欠け（ADcheck v1.1438「日別データ欠け通知＋不足日を確認」を移植）
 //  ・種類ごとに、その種類の最初の日〜最後の日の間で取り込んでいない日＝欠け。最新日より後（まだ取り込んでいない昨日など）は数えない
@@ -6731,7 +6733,7 @@ function openReportModal(){
   document.getElementById('report-calendar').innerHTML = '<div style="font-size:13px;color:var(--text-tertiary);padding:6px 2px;">ファイルをドロップすると、日別の取込状況（◯＝あり／✕＝なし）が表示されます。</div>';
   document.getElementById('report-notice').innerHTML = '';
   document.getElementById('report-unknown').textContent = '';
-  { const rn = document.getElementById('report-notes'); if (rn) rn.innerHTML = ''; }
+  { const rn = document.getElementById('report-notes'); if (rn) rn.innerHTML = ''; const rc = document.getElementById('report-closed'); if (rc) rc.innerHTML = ''; }
   document.querySelectorAll('#report-me-grid .me-card').forEach(c => { c.classList.remove('hit'); c.querySelector('.me-status').className = 'me-status off'; c.querySelector('.me-status').textContent = '未取込'; });
   rptFillMonthSelect();
   document.getElementById('report-status').textContent = '';
@@ -7086,6 +7088,7 @@ function rptRender(){
     }
   }
   rptUpdateMeWarn();
+  try { rptRenderClosed(); } catch (e) { console.error(e); }   // v4.88
   rptUpdateApply();
 }
 function rptMismatchExists(){
@@ -7108,6 +7111,25 @@ function rptUpdateApply(){
   if (_rpt.ret && _rpt.ret.count) bits.push('返品' + _rpt.ret.count + '件');
   { const pdD = _rpt.pd.filter(x => x.kind === 'day').length, pdM = _rpt.pd.filter(x => x.kind === 'month').length; if (pdD) bits.push('購入商品' + pdD + '日'); if (pdM) bits.push('購入商品（月別）' + pdM + 'か月'); }
   document.getElementById('report-status').textContent = bits.length ? (bits.join(' / ') + (blocked ? '　⚠️ 対の欠けを確認してください' : '')) : '';
+}
+// v4.88：今回入れるデータ（①広告・②出荷・月末データ A の出荷数）のうち、確定済みの月
+function rptClosedYms(){
+  const yms = new Set();
+  (_rpt.ad || []).forEach(a => a.date && yms.add(a.date.slice(0, 7)));
+  (_rpt.ship || []).forEach(sx => (sx.dates || []).forEach(d => yms.add(d.slice(0, 7))));
+  try { if (rptHasMe() && !(_rpt.ship || []).length) { const { plan } = rptMePlan(); Object.keys(plan || {}).forEach(ym => { if (plan[ym] && plan[ym].A) yms.add(ym); }); } } catch (e) {}
+  return Array.from(yms).filter(ym => isAdMonthClosed(ym)).sort();
+}
+function rptRenderClosed(){
+  const box = document.getElementById('report-closed'); if (!box) return;
+  const cy = rptClosedYms();
+  if (!cy.length) { box.innerHTML = ''; return; }
+  const L = cy.map(ym => ym.replace('-', '/')).join('・');
+  box.innerHTML = '<div class="rpt-notice rpt-closed"><span style="font-size:16px;">🔒</span><div><b>' + L + ' は確定済みです。</b>確定済みの月は、確定したときの数字で固定されているので、このまま入れても 全-月別／全-日別データ・全-月日別グラフなどの数字は変わりません。'
+    + '<label style="display:flex;align-items:center;gap:6px;margin-top:6px;font-weight:700;cursor:pointer;"><input type="checkbox" id="report-reopen-closed"' + (_rpt.reopenClosed ? ' checked' : '') + '> 確定を解除して入れる（入れたあと、全-日別データで「この月を確定する」からもう一度確定できます）</label>'
+    + '<div style="margin-top:3px;font-size:12px;color:var(--text-secondary);">チェックを外すと、' + L + ' の広告データ・出荷数データは入れません（ほかの月だけ入れます）</div></div></div>';
+  const cb = document.getElementById('report-reopen-closed');
+  if (cb) cb.addEventListener('change', () => { _rpt.reopenClosed = cb.checked; });
 }
 function applyReportAll(){
   const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.kw.length || _rpt.pd.length || rptHasMe() || (_rpt.ret && _rpt.ret.count);
@@ -7137,6 +7159,16 @@ function applyReportAll(){
       pushUndoState();
       plUndoSnapshot = { plData: JSON.parse(JSON.stringify(plData)), shipments: JSON.parse(JSON.stringify(shipments)) };
       let lastYm = null;
+      // v4.88：確定済みの月：解除して入れる（初期）／入れない
+      const closedYms = rptClosedYms(), closeBefore = {}; let closedSkip = [];
+      if (closedYms.length) {
+        if (_rpt.reopenClosed) { closedYms.forEach(ym => { closeBefore[ym] = adClose[ym]; delete adClose[ym]; }); saveAdClose(); }
+        else {
+          closedSkip = closedYms; const sk = new Set(closedYms);
+          _rpt.ad = _rpt.ad.filter(a => !sk.has(a.date.slice(0, 7)));
+          _rpt.ship = _rpt.ship.map(sx => { const byDate = {}; Object.keys(sx.byDate).forEach(d => { if (!sk.has(d.slice(0, 7))) byDate[d] = sx.byDate[d]; }); return Object.assign({}, sx, { byDate, dates: (sx.dates || []).filter(d => !sk.has(d.slice(0, 7))) }); }).filter(sx => sx.dates.length);
+        }
+      }
       // ① 出荷数データ（対象日をクリア→上書き）
       const shipDatesAll = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => shipDatesAll.add(d)));
       shipDatesAll.forEach(ymd => { const ym = ymd.slice(0, 7), day = String(+ymd.slice(8, 10)); if (shipments[ym]) Object.keys(shipments[ym]).forEach(f => { if (shipments[ym][f]) delete shipments[ym][f][day]; }); });
@@ -7161,7 +7193,7 @@ function applyReportAll(){
           const r = plParseTxnCsv(slot.A.text);
           if (r.ok) { plData[ym].fbaFee = Math.abs(Math.round(r.fbaSigned)); if (r.hasFee) plData[ym].sellingFee = Math.abs(Math.round(r.feeSigned)); }
           const rs = plParseShipFromTxn(slot.A.text, ym);
-          if (rs && rs.ok && rs.rows > 0 && !shipDatesAll.size) { // 出荷CSVを別途入れていない時だけ、トランザクション由来の出荷数を採用
+          if (rs && rs.ok && rs.rows > 0 && !shipDatesAll.size && !closedSkip.includes(ym)) { // 出荷CSVを別途入れていない時だけ、トランザクション由来の出荷数を採用（v4.88：確定済みで入れない月は除く）
             if (!shipments[ym]) shipments[ym] = {};
             for (const fn in rs.agg) { shipments[ym][fn] = rs.agg[fn]; }
           }
@@ -7194,7 +7226,11 @@ function applyReportAll(){
       if (pdAuto.length) parts.push('商品マスタに無い商品 ' + pdAuto.length + '件を撤退済み商品に登録');
       try { if (!document.getElementById('psales-view').hidden) renderPsalesView(); } catch (e) {}
       try { if (typeof renderReturnsView === 'function') renderReturnsView(); } catch (e) {}
-      toast(parts.join(' / ') + ' を反映しました', { label: '元に戻す', onClick: () => { undo(); if (plUndoSnapshot) plUndoApply(); } });
+      const reopened = Object.keys(closeBefore);
+      const clNote = (reopened.length ? '（' + reopened.map(ym => ym.replace('-', '/')).join('・') + ' は確定を解除しました。確定し直すときは 全-日別データで「この月を確定する」）' : '')
+        + (closedSkip.length ? '（' + closedSkip.map(ym => ym.replace('-', '/')).join('・') + ' は確定済みのため入れていません）' : '');
+      try { renderAdTable(); } catch (e) {}
+      toast((parts.length ? parts.join(' / ') + ' を反映しました' : '反映しました') + clNote, { label: '元に戻す', onClick: () => { undo(); if (plUndoSnapshot) plUndoApply(); if (reopened.length) { reopened.forEach(ym => { adClose[ym] = closeBefore[ym]; }); saveAdClose(); try { renderAdTable(); } catch (e) {} } } });
       if (kwSkipped.length) { const ks = Array.from(new Set(kwSkipped)).sort(); setTimeout(() => alert('次の ' + ks.length + '日はKWデータを取り込みませんでした。\n同じ日の広告データと費用合計が大きく違い、Amazon の保存期間（約5か月）切れのデータの形でした（費用がほぼ0、または1か月分）。\n\n' + ks.map(d => d.replace(/-/g, '/')).slice(0, 30).join('、') + (ks.length > 30 ? ' ほか' : '')), 300); }
     } finally {
       btn.disabled = false; btn.classList.remove('is-loading'); btn.innerHTML = orig;
@@ -16122,7 +16158,9 @@ function graphSvg(chart, cat){
   let vis = chart.datasets.filter(d => !d.hidden && !d.y2), vis2 = chart.datasets.filter(d => !d.hidden && d.y2);
   if (!vis.length && vis2.length) { vis = vis2.map(d => Object.assign({}, d, { y2: false })); vis2 = []; cat = { yen: false }; }
   const CNT = { yen: false };
-  const W = 1480, H = 490, padL = 120, padR = vis2.length ? 110 : 48, padT = 46, padB = 42;
+  // v4.86：変更記録の札はグラフの一番上（セールの札の下）に並べるので、その分だけ上を空ける
+  const clN = (chart.keys && graphShowCl) ? graphClHits(chart.keys).length : 0, clRows = clN ? Math.min(2, clN) : 0;
+  const W = 1480, H = 490 + clRows * 23, padL = 120, padR = vis2.length ? 110 : 48, padT = 46 + clRows * 23, padB = 42;
   const plotW = W - padL - padR, plotH = H - padT - padB;
   const n = chart.labels.length;
   let maxV = 0, minV = 0, any = false;
@@ -16224,23 +16262,28 @@ function graphSvg(chart, cat){
   return svg;
 }
 // v4.86：変更記録（ショップ全体）の重ね表示：その日（月別はその月）に縦の点線（記録の色）。メモの札はグラフの下側に2段で
+function graphClHits(keys){
+  const daily = keys[0] && keys[0].length === 10;
+  return (globalChangeLogs || []).filter(l => l && l.date).slice().sort((a, b) => String(a.date).localeCompare(String(b.date)))
+    .map(l => ({ l, i: keys.indexOf(daily ? l.date : String(l.date).slice(0, 7)) })).filter(x => x.i >= 0);
+}
 function graphClOverlay(keys, xOf, n, padT, plotH, W){
   if (!n || !(globalChangeLogs || []).length) return '';
-  const daily = keys[0] && keys[0].length === 10;
-  let s = '', li = 0;
-  (globalChangeLogs || []).filter(l => l && l.date).slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).forEach(l => {
-    const i = keys.indexOf(daily ? l.date : String(l.date).slice(0, 7)); if (i < 0) return;
+  const hitsL = graphClHits(keys), rows = Math.min(2, hitsL.length), top0 = padT - rows * 23;   // 札の段の一番上（セールの札の段の下）
+  let s = '', sb = '', li = 0;   // 線を先に、札を後に（札が線に隠れないように）
+  hitsL.forEach(({ l, i }) => {
     const x = xOf(i), col = l.color || CL_COLORS[0], note = String(l.note || '').trim(), md = (+String(l.date).slice(5, 7)) + '/' + (+String(l.date).slice(8, 10));
     const short = note ? (note.length > 10 ? note.slice(0, 10) + '…' : note) : md;
     s += '<g><title>' + escapeHtml('変更記録 ' + String(l.date).replace(/-/g, '/') + (note ? '：' + note : '')) + '</title>'
-      + '<line x1="' + x.toFixed(1) + '" y1="' + padT + '" x2="' + x.toFixed(1) + '" y2="' + (padT + plotH) + '" stroke="' + col + '" stroke-width="2" stroke-dasharray="2 4" stroke-linecap="round" opacity="0.95" style="pointer-events:none"/>';
-    const bw = short.length * 11.5 + 16, by = padT + plotH - 22 - (li % 2) * 23;
+      + '<line x1="' + x.toFixed(1) + '" y1="' + (top0 + (li % rows) * 23 + 19) + '" x2="' + x.toFixed(1) + '" y2="' + (padT + plotH) + '" stroke="' + col + '" stroke-width="2" stroke-dasharray="2 4" stroke-linecap="round" opacity="0.95" style="pointer-events:none"/>';
+    const bw = short.length * 11.5 + 16, by = top0 + (li % rows) * 23;   // v4.86：グラフの一番上（2段で交互）
     const bx = Math.max(4, Math.min(W - bw - 4, x - bw / 2));
-    s += '<rect x="' + bx.toFixed(1) + '" y="' + by + '" width="' + bw.toFixed(1) + '" height="19" rx="5" fill="' + col + '" opacity="0.92"/>'
+    sb += '<g><title>' + escapeHtml('変更記録 ' + String(l.date).replace(/-/g, '/') + (note ? '：' + note : '')) + '</title><rect x="' + bx.toFixed(1) + '" y="' + by + '" width="' + bw.toFixed(1) + '" height="19" rx="5" fill="' + col + '" opacity="0.92"/>'
       + '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (by + 14) + '" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff" style="fill:#fff">' + escapeHtml(short) + '</text></g>';
+    s += '</g>';
     li++;
   });
-  return s;
+  return s + sb;
 }
 // セール期間の重ね表示：日別＝期間の帯、月別（2年表示）＝開始月の縦破線。バッジは上下2段に振り分け
 function graphSaleOverlay(keys, xOf, n, padT, plotH, W){
