@@ -2596,7 +2596,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.83</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.84</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -15218,7 +15218,7 @@ function renderPlView(){
       + years.map(y => '<option value="' + y + '"' + (y === plYear ? ' selected' : '') + '>' + y + '年</option>').join('')
       + '</select>';
   }
-  h += '<span class="ad-legend" style="margin-left:4px;">実質利益の配色:'
+  h += '<span class="ad-legend" style="margin-left:4px;" title="列ごとに、表に出ている行の中での順位で色を付けています。費用の列（広告費・保管費・FBA手数料・販売手数料）は安いほど青（上位）">配色:'
     + '<span class="lg-hi10">上位10%</span><span class="lg-hi20">上位20%</span>'
     + '<span class="lg-mid">中間</span><span class="lg-lo20">下位20%</span><span class="lg-lo10">下位10%</span></span>';
   h += '<div class="spacer" style="flex:1"></div>';
@@ -15269,6 +15269,11 @@ function renderPlView(){
 
   // 実質利益の配色しきい値（未入力=nullは除外）
   const tiers = plProfitTiers(data.map(d => d.profit));
+  // v4.84：ほかの列にも同じ配色（列ごとの順位。費用の列＝広告費・保管費・FBA手数料・販売手数料は安いほど上位＝青。未入力は除く）
+  const ok = (d, f) => ({ total: d.total != null, seo: d.seo != null, adSales: d.adSales != null, gross: d.gross != null, ad: d.ad != null && d.adEntered, storage: d.storageEntered, fba: d.fbaEntered, sfee: d.sfeeEntered, roas: d.roas != null })[f];
+  const COLT = {}; ['total', 'seo', 'adSales', 'gross', 'ad', 'storage', 'fba', 'sfee', 'roas'].forEach(f => { COLT[f] = plProfitTiers(data.map(d => ok(d, f) ? d[f] : null)); });
+  const INV = { ad: 1, storage: 1, fba: 1, sfee: 1 };
+  const tc = (d, f) => { if (!ok(d, f)) return ''; const c = plTierClass(COLT[f], d[f]); if (!c || !INV[f]) return c; return { ' t-hi10': ' t-lo10', ' t-hi20': ' t-lo20', ' t-lo20': ' t-hi20', ' t-lo10': ' t-hi10' }[c]; };
 
   const thSales = '<th class="pl-c-sales">総売上</th>';
   const thSeo = '<th class="pl-c-sales">SEO売上</th>';
@@ -15303,32 +15308,32 @@ function renderPlView(){
     const profClass = (d.profit == null) ? '' : (tier ? ('pl-profit' + tier) : ('pl-profit' + (d.profit < 0 ? ' pl-neg' : '')));
     // 総売上＝実売上（クリックで手入力。CSVは「月末データ追加」or 期間クリック）
     const salesCell = d.editable
-      ? '<td class="pl-edit pl-c-sales" data-ym="' + d.ym + '" data-f="sales" tabindex="0" title="クリックで総売上を入力">' + (d.total != null ? plYen(d.total) : NA) + '</td>'
-      : '<td class="pl-c-sales">' + yenOrNA(d.total) + '</td>';
+      ? '<td class="pl-edit pl-c-sales' + tc(d, 'total') + '" data-ym="' + d.ym + '" data-f="sales" tabindex="0" title="クリックで総売上を入力">' + (d.total != null ? plYen(d.total) : NA) + '</td>'
+      : '<td class="pl-c-sales' + tc(d, 'total') + '">' + yenOrNA(d.total) + '</td>';
     // 広告費＝実額（クリックで手入力。CSVも可）
     const adCell = d.editable
-      ? '<td class="pl-edit pl-c-warm' + (d.adProv ? ' pl-provc' : '') + '" data-ym="' + d.ym + '" data-f="adCost" tabindex="0" title="クリックで広告費を入力">' + (d.ad != null ? plYen(d.ad) : NA) + (d.adProv ? PROV('B（月の広告レポート）がまだ無いので、①広告データ（日別 ' + d.adProv.days + '日分）の合計。B を入れると本当の値になります') : '') + '</td>'
-      : '<td class="pl-c-warm">' + plYen(d.ad) + '</td>';
+      ? '<td class="pl-edit pl-c-warm' + tc(d, 'ad') + (d.adProv ? ' pl-provc' : '') + '" data-ym="' + d.ym + '" data-f="adCost" tabindex="0" title="クリックで広告費を入力">' + (d.ad != null ? plYen(d.ad) : NA) + (d.adProv ? PROV('B（月の広告レポート）がまだ無いので、①広告データ（日別 ' + d.adProv.days + '日分）の合計。B を入れると本当の値になります') : '') + '</td>'
+      : '<td class="pl-c-warm' + tc(d, 'ad') + '">' + plYen(d.ad) + '</td>';
     // 広告売上＝実額（クリックで手入力。CSVも可）
     const adSalesCell = d.editable
-      ? '<td class="pl-edit pl-c-sales' + (d.adProv ? ' pl-provc' : '') + '" data-ym="' + d.ym + '" data-f="adSales" tabindex="0" title="クリックで広告売上を入力">' + (d.adSales != null ? plYen(d.adSales) : NA) + (d.adProv ? PROV('B がまだ無いので、①広告データ（日別）の合計。広告売上は後から増えるので、B より少なめになります') : '') + '</td>'
-      : '<td class="pl-c-sales">' + plYen(d.adSales) + '</td>';
-    const roasCell = '<td class="pl-c-roas">' + roasStr(d.roas) + '</td>';
+      ? '<td class="pl-edit pl-c-sales' + tc(d, 'adSales') + (d.adProv ? ' pl-provc' : '') + '" data-ym="' + d.ym + '" data-f="adSales" tabindex="0" title="クリックで広告売上を入力">' + (d.adSales != null ? plYen(d.adSales) : NA) + (d.adProv ? PROV('B がまだ無いので、①広告データ（日別）の合計。広告売上は後から増えるので、B より少なめになります') : '') + '</td>'
+      : '<td class="pl-c-sales' + tc(d, 'adSales') + '">' + plYen(d.adSales) + '</td>';
+    const roasCell = '<td class="pl-c-roas' + tc(d, 'roas') + '">' + roasStr(d.roas) + '</td>';
     // 保管費・FBA手数料：表示のみ（手入力なし。CSV取込で設定）
-    const storeCell = '<td class="pl-c-warm' + (d.stProv ? ' pl-provc' : '') + '">' + (d.editable ? (d.storageEntered ? plYen(d.storage) : NA_STORE) : plYen(d.storage))
+    const storeCell = '<td class="pl-c-warm' + tc(d, 'storage') + (d.stProv ? ' pl-provc' : '') + '">' + (d.editable ? (d.storageEntered ? plYen(d.storage) : NA_STORE) : plYen(d.storage))
       + (d.stProv ? PROV('C（保管費）がまだ無いので、直近3か月（' + d.stProv.months.map(ymL).join('・') + '）の平均。C を入れると本当の値になります') : '') + '</td>';
-    const fbaCell = '<td class="pl-c-warm">' + (d.editable ? (d.fbaEntered ? plYen(d.fba) : NA) : plYen(d.fba)) + '</td>';
+    const fbaCell = '<td class="pl-c-warm' + tc(d, 'fba') + '">' + (d.editable ? (d.fbaEntered ? plYen(d.fba) : NA) : plYen(d.fba)) + '</td>';
     // 販売手数料：表示のみ（トランザクションレポート（A）の取込で設定）
-    const sfeeCell = '<td class="pl-c-warm">' + (d.editable ? (d.sfeeEntered ? plYen(d.sfee) : NA) : plYen(d.sfee || 0)) + '</td>';
+    const sfeeCell = '<td class="pl-c-warm' + tc(d, 'sfee') + '">' + (d.editable ? (d.sfeeEntered ? plYen(d.sfee) : NA) : plYen(d.sfee || 0)) + '</td>';
     const periodCell = d.editable
       ? '<td class="pl-period" data-ym="' + d.ym + '" tabindex="0" title="クリックでこの月のデータを追加">' + d.label + '</td>'
       : '<td>' + d.label + '</td>';
     h += '<tr>'
       + periodCell
       + salesCell
-      + '<td class="pl-c-sales">' + yenOrAuto(d.seo) + '</td>'
+      + '<td class="pl-c-sales' + tc(d, 'seo') + '">' + yenOrAuto(d.seo) + '</td>'
       + adSalesCell
-      + '<td class="pl-c-gross">' + yenOrAuto(d.gross) + '</td>'
+      + '<td class="pl-c-gross' + tc(d, 'gross') + '">' + yenOrAuto(d.gross) + '</td>'
       + adCell
       + storeCell
       + fbaCell
