@@ -946,6 +946,7 @@
   .ad-tg-knob span { position: absolute; top: 1px; width: 10px; height: 10px; border-radius: 50%; background: #fff; box-shadow: 0 1px 2px rgba(0,0,0,.3); }
   .ad-cl-edit { font-size: 12px; padding: 4px 11px; border-radius: 6px; border: 1px solid #d1d5db; background: #f3f4f6; color: #6b7280; font-weight: 700; cursor: pointer; white-space: nowrap; font-family: inherit; }
   table.ad-table tr.ad-has-pct td { border-bottom: none; }
+  table.ad-table tr.ad-pctin > td:not(.ad-daycol) { vertical-align: top; padding-top: 8px; }   /* v4.77：比率表記のときは数字を上にそろえる（比率の有る・無いで数字の高さが段々にならないように） */
   table.ad-table tr.ad-pct-row td { padding: 0 4px 5px; font-size: 11.5px; font-weight: 700; }
   table.ad-table tr.ad-cl-top td { border-top: 3px dashed var(--clc) !important; }
   table.ad-table tr.ad-cl-bot td { border-bottom: 2px dashed var(--clc) !important; }
@@ -2592,7 +2593,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.76</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.77</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -10284,7 +10285,7 @@ function renderAdTableCore(){
     const dayTitle = '';   // v3.75：変更記録はバッジに乗せたときの専用の表示（title は使わない＝セール名と取り合わない）
     // v4.76：SEO売上／広告売上の割合は、別の行ではなくセルの中（値の下。ほかの比率と同じ高さ）に出す＝行が低くなる
     const pctIn = (v) => (pctOn && total > 0 && has) ? '<div class="mg-pct" style="text-align:right;color:' + adPctColor(v) + '">' + (Math.round(v * 10) / 10).toFixed(1) + '%</div>' : '';
-    html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + (yoyMode && r._grpTop ? ' ad-yoy-top' : '') + (cls ? ' ad-cl-top ad-cl-bot' : '') + '"' + (cls ? ' style="--clc:' + clCol + '"' : '') + '>'
+    html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + (yoyMode && r._grpTop ? ' ad-yoy-top' : '') + (pctOn && has ? ' ad-pctin' : '') + (cls ? ' ad-cl-top ad-cl-bot' : '') + '"' + (cls ? ' style="--clc:' + clCol + '"' : '') + '>'
       + '<td class="' + dayCls + '"' + dayAttr + dayTitle + dayClick + '>' + r.label + clBadges + '</td>'
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
       + tcell(total, 'adc-sales adc-gstart', 'total')
