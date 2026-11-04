@@ -2592,7 +2592,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.75</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.76</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -10282,13 +10282,15 @@ function renderAdTableCore(){
     const clAll = cls ? cls.filter(l => l && l.date) : [];
     const clBadges = clAll.length ? '<div class="ad-cl-badges">' + clAll.map((l, k) => '<span class="' + (k ? 'ad-cl-chip' : 'ad-cl-b1') + '" data-clym="' + r.ym + '" data-cli="' + k + '" style="background:' + (l.color || CL_COLORS[0]) + '">' + (k ? '' : escapeHtml(String(l.note || '').trim() || String(l.date).slice(5).replace('-', '/'))) + '</span>').join('') + '</div>' : '';
     const dayTitle = '';   // v3.75：変更記録はバッジに乗せたときの専用の表示（title は使わない＝セール名と取り合わない）
-    html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + (yoyMode && r._grpTop ? ' ad-yoy-top' : '') + (pctOn ? ' ad-has-pct' : '') + (cls ? ' ad-cl-top' + (pctOn ? '' : ' ad-cl-bot') : '') + '"' + (cls ? ' style="--clc:' + clCol + '"' : '') + '>'
-      + '<td class="' + dayCls + '"' + (pctOn ? ' rowspan="2"' : '') + dayAttr + dayTitle + dayClick + '>' + r.label + clBadges + '</td>'
+    // v4.76：SEO売上／広告売上の割合は、別の行ではなくセルの中（値の下。ほかの比率と同じ高さ）に出す＝行が低くなる
+    const pctIn = (v) => (pctOn && total > 0 && has) ? '<div class="mg-pct" style="text-align:right;color:' + adPctColor(v) + '">' + (Math.round(v * 10) / 10).toFixed(1) + '%</div>' : '';
+    html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + (yoyMode && r._grpTop ? ' ad-yoy-top' : '') + (cls ? ' ad-cl-top ad-cl-bot' : '') + '"' + (cls ? ' style="--clc:' + clCol + '"' : '') + '>'
+      + '<td class="' + dayCls + '"' + dayAttr + dayTitle + dayClick + '>' + r.label + clBadges + '</td>'
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
       + tcell(total, 'adc-sales adc-gstart', 'total')
       + '<td class="adc-sales ad-roas' + ((total > 0 && has && adCost > 0) ? tierClass('sR', total / adCost) : '') + '">' + ((total > 0 && has && adCost > 0) ? fmtRoas(total / adCost) : '') + '</td>'   // v4.43：売上ROAS＝推計総売上÷広告費。色はほかの列と同じ上位・下位の配色（v4.45：v4.44 の商品-売上データの色は取り消し）
-      + tcell(seo, 'adc-sales-l1', 'seo')
-      + dcell(adSales, 'adc-sales-l2', 'adS')
+      + tcell(seo, 'adc-sales-l1', 'seo').replace(/<\/td>$/, pctIn(Math.max(0, seo) / (total || 1) * 100) + '</td>')
+      + dcell(adSales, 'adc-sales-l2', 'adS').replace(/<\/td>$/, pctIn(adSales / (total || 1) * 100) + '</td>')
       + dcell(adCost, 'adc-sales-l3' + (tblLayout === 'metric' ? ' mg-a adc-gstart' : ''), 'adC')
       + rcell(adSales, adCost, 'adc-sales-l4' + (tblLayout === 'metric' ? ' mg-a' : ''), 'adR')
       + (tblLayout === 'metric' ? MG_PAIRS.map((P, i) => {   // v4.65：広告費とROASの組。広告費の下の％（比率表記がオンのとき）＝SP全体↔SB全体、KW↔商品・動画↔商品コレは楕円
@@ -10304,7 +10306,6 @@ function renderAdTableCore(){
       + trip(s.sb.douga, c.sb.douga, 'adc-sb-b1', 'b', 'dgS', 'dgC', 'dgR')
       + trip(s.sb.shokore, c.sb.shokore, 'adc-sb-b2', 'b', 'skS', 'skC', 'skR')))
       + '</tr>';
-    if (pctOn) html += adPctRowHtml(total, seo, adSales, has, cls ? ' ad-cl-bot" style="--clc:' + clCol : '');
     if (diffAfter[ri]) html += diffAfter[ri];
     if (isM && adSeoShow) html += adSeoRowHtml(r.ym, tblLayout === 'metric' ? 19 : 25);
   });
