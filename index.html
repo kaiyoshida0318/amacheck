@@ -562,13 +562,13 @@
   table.ad-table .adc-bstart { border-left: 2px solid rgba(0,0,0,0.28); }
   /* 広告費/ROAS 2分割：境界線は通常の罫線と同じ濃さで（薄すぎて白く見えるのを解消） */
   table.ad-table .ad-roas { color: var(--black); }
-  table.ad-table tbody td { color: var(--black); font-size: 14px; }
+  table.ad-table tbody td { color: var(--black); font-size: var(--ad-td-fs, 14px); }   /* v4.95：隠したときだけ少し大きく（adApplyGroupHide） */
   /* v4.71：表の数字（全-月別／全-日別／商品-売上データ）は DM Mono（等幅）。日本語は DM Mono に無いので後ろの字で出る。月・日の列、商品名・区分・画像、SEO売上トップ15 の行は今までの字のまま */
   table.ad-table tbody td:not(.ad-daycol):not(.ps-name):not(.ps-kb):not(.ps-img) { font-family: 'DM Mono', Consolas, Menlo, "Hiragino Sans", "Hiragino Kaku Gothic ProN", Meiryo, sans-serif; font-weight: 400; }
   table.ad-table tbody tr.ad-seo-row td { font-family: inherit; }
   table.ad-table tbody td.t-hi10, table.ad-table tbody td.t-hi20, table.ad-table tbody td.t-lo20, table.ad-table tbody td.t-lo10 { font-weight: 700; }   /* 色付き（上位・下位）の数字は太字 */
-  table.ad-table tbody td.ad-tight { font-size: 12.5px; letter-spacing: -0.03em; }   /* 列からはみ出す数字だけ小さく（広告別の 8けたの金額など） */
-  table.ad-table tbody td.ad-tight2 { font-size: 11.5px; letter-spacing: -0.06em; }
+  table.ad-table tbody td.ad-tight { font-size: calc(var(--ad-td-fs, 14px) * 0.893); letter-spacing: -0.03em; }   /* 列からはみ出す数字だけ小さく（広告別の 8けたの金額など） */
+  table.ad-table tbody td.ad-tight2 { font-size: calc(var(--ad-td-fs, 14px) * 0.821); letter-spacing: -0.06em; }
   /* v4.73：全-月別データの広告別で表示は、数字を一律の大きさ（--ad-fs：いちばん窮屈なセルがちょうど入る大きさ。adFitCells が決める） */
   table.ad-table.ad-fsv tbody tr:not(.ad-seo-row) td:not(.ad-daycol) { font-size: var(--ad-fs, 14px); letter-spacing: 0; }
   /* ヘッダーと最初のデータ行の間の罫線を濃く */
@@ -2565,7 +2565,7 @@
   .tab-stale-banner button { font-family: inherit; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 7px; border: none; background: #dc2626; color: #fff; cursor: pointer; white-space: nowrap; }
   #open-sync.sync-warn { border-color: #dc2626 !important; color: #b91c1c !important; background: #fef2f2 !important; }
   /* v4.90：確定済みの印 */
-  table.ad-table td.ad-daycol .ad-lock { font-size: 10px; margin-left: 2px; vertical-align: 1px; cursor: help; }
+  table.ad-table td.ad-daycol .ad-cl-badges span.ad-lock { display: inline-block; flex-shrink: 0; background: none; color: inherit; padding: 0; font-size: 10px; line-height: 14px; cursor: help; overflow: visible; }   /* v4.94：2行目の左端 */
   .ship-closed-banner { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: rgba(217,119,6,0.10); border: 1px solid rgba(217,119,6,0.35); color: #92400e; font-size: 13px; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; }
   .ship-closed-banner button { font-family: inherit; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #d97706; background: #fff; color: #b45309; cursor: pointer; }
   /* v4.90：価格の記録 */
@@ -2641,7 +2641,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.93</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.95</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -10207,11 +10207,13 @@ function adHeadMetric(period, dayCut){   // v4.65：売上｜広告全体｜SP�
   });
   return h1 + '</tr>' + h2 + '</tr>' + h3 + '</tr>';
 }
+let _adHideScale = 1, _adHideK = 1;   // v4.95：隠したグループの分だけ列が広がった割合／数字を大きくする割合
 function adApplyGroupHide(body){
   const tbl = body.querySelector('table.ad-table'); if (!tbl) return;
   const bind = () => tbl.querySelectorAll('.ps-gbtn[data-adg]').forEach(b => b.addEventListener('click', e => { e.stopPropagation(); adToggleGroup(b.dataset.adg); }));
   const D = adGrpDefs();
   const hid = Object.keys(D).filter(g => adGrpHidden.has(g));
+  _adHideScale = 1; _adHideK = 1; tbl.style.removeProperty('--ad-td-fs');   // v4.95
   if (!hid.length) { bind(); return; }
   // 列の幅（colgroup）：隠したグループは 34px の1列、残りは％を広げて表の幅いっぱいに
   const cols = Array.from(tbl.querySelectorAll('colgroup col'));
@@ -10237,12 +10239,13 @@ function adApplyGroupHide(body){
       cs.forEach((c, k) => { if (k === 0) { c.className = 'ps-gcol-td ' + G.tint + ' adc-gstart'; c.innerHTML = ''; c.removeAttribute('style'); } else c.remove(); });
     }));
   });
-  if (scale > 1) tbl.style.fontSize = Math.min(17, Math.round(14 * Math.min(scale, 1.25) * 2) / 2) + 'px';
+  // v4.95：隠したときだけ、残りの列が広くなった分に合わせて数字を少しだけ大きく（広がった割合の 35%、最大 1.12 倍）
+  if (scale > 1) { _adHideScale = scale; _adHideK = Math.min(1.12, 1 + (scale - 1) * 0.35); tbl.style.setProperty('--ad-td-fs', (14 * _adHideK).toFixed(2) + 'px'); }
   bind();
 }
 // v4.71：DM Mono（等幅）にしたので、列からはみ出す数字のセルだけ字を小さく。字の読み込みが終わってからもう一度測る
 let adNumFs = (() => { try { const v = parseFloat(localStorage.getItem('amacheck_ad_numfs')); return v >= 8 && v <= 20 ? v : null; } catch (e) { return null; } })();   // v4.75：null＝自動
-let _adAutoFs = 14;
+let _adAutoFs = 14, _adAutoFs0 = {};   // v4.95：_adAutoFs0＝隠していないときの自動の大きさ（並びごと）
 function adFszPaint(){
   const box = document.getElementById('ad-fsz'); if (!box) return;
   box.hidden = !(adPeriod === 'monthly' && tblLayout === 'type');
@@ -10275,6 +10278,8 @@ function adFitCells(){
       k = Math.min(k, avail / w); R.push([td, avail / w]);
     });
     _adAutoFs = (isFinite(k) && k > 0) ? Math.max(9, Math.min(20, Math.floor(BASE * k * 10) / 10)) : BASE;   // v4.78：0.1px 刻み
+    if (_adHideScale > 1) { const base0 = _adAutoFs0[tblLayout] || (BASE * k / _adHideScale); _adAutoFs = Math.max(9, Math.min(_adAutoFs, Math.floor(base0 * _adHideK * 10) / 10)); }   // v4.95：隠したときは、隠す前の大きさの少しだけ大きい所まで
+    else _adAutoFs0[tblLayout] = _adAutoFs;
     const fs = adNumFs != null ? adNumFs : _adAutoFs;
     tbl.style.setProperty('--ad-fs', fs + 'px');
     // 手で大きくしたとき：入りきらない数字のセルだけ、ちょうど入る大きさに
@@ -10287,7 +10292,7 @@ function adFitCells(){
 }
 // v4.91：商品-売上データの数字は表全体で同じ大きさ。標準表示＝いまの大きさ（入りきらなければ全部をそろって小さく）、詳細表示＝いちばん窮屈なセルにちょうど入る大きさ（自動）か、A−／A＋で決めた大きさ（入りきらないセルだけ小さく）
 let psNumFs = (() => { try { const v = parseFloat(localStorage.getItem('amacheck_ps_numfs')); return v >= 8 && v <= 20 ? v : null; } catch (e) { return null; } })();
-let _psAutoFs = 14;
+let _psAutoFs = 14, _psHideScale = 1, _psAutoFs0 = {};
 function psFszPaint(){
   const box = document.getElementById('ps-fsz'); if (!box) return;
   box.hidden = tblLayout !== 'type';
@@ -10320,7 +10325,11 @@ function psFitCells(){
   });
   const fit = isFinite(k) && k > 0 ? Math.floor(BASE * k * 10) / 10 : BASE;
   const detail = tblLayout === 'type';
-  _psAutoFs = detail ? Math.max(9, Math.min(18, fit)) : Math.max(9, Math.min(BASE, fit));
+  // v4.95：隠したときだけ少し大きく（列が広がった割合の半分、最大 1.2 倍）。隠していないときは今までどおり
+  const hk = _psHideScale > 1 ? Math.min(1.12, 1 + (_psHideScale - 1) * 0.35) : 1;
+  _psAutoFs = detail ? Math.max(9, Math.min(18, fit)) : Math.max(9, Math.min(BASE * hk, fit));
+  if (_psHideScale > 1) { const base0 = _psAutoFs0[tblLayout] || (fit / _psHideScale); _psAutoFs = Math.max(9, Math.min(_psAutoFs, Math.floor(base0 * hk * 10) / 10)); }
+  else _psAutoFs0[tblLayout] = _psAutoFs;
   const fs = (detail && psNumFs != null) ? psNumFs : _psAutoFs;
   tbl.style.setProperty('--psn', fs + 'px');
   if (detail && psNumFs != null) R.forEach(([td, r]) => { const f = Math.floor(BASE * r * 10) / 10; if (f < fs) { td.classList.add('psx'); td.style.setProperty('--psx', Math.max(8, f) + 'px'); } });
@@ -10572,12 +10581,13 @@ function renderAdTableCore(){
     // v3.74：バッジは1行だけ（長いメモは … で切る。全文はマウスを乗せると出る）。2件以上ある月は「他n件」
     // v3.76：記録ごとに1つずつ。1件目は文字入りのバッジ、2件目からは色の小さな四角。乗せると、その記録（その日の分）だけを出す
     const clAll = cls ? cls.filter(l => l && l.date) : [];
-    const clBadges = clAll.length ? '<div class="ad-cl-badges">' + clAll.map((l, k) => '<span class="' + ((k || !isM) ? 'ad-cl-chip' : 'ad-cl-b1') + '" data-clym="' + clYm + '" data-cli="' + clMonAll.indexOf(l) + '" style="background:' + (l.color || CL_COLORS[0]) + '">' + ((k || !isM) ? '' : escapeHtml(String(l.note || '').trim() || String(l.date).slice(5).replace('-', '/'))) + '</span>').join('') + '</div>' : '';
+    const lockHtml = (isM && isAdMonthClosed(r.ym)) ? '<span class="ad-lock" title="確定済み：この月の数字は確定したときのまま固定しています（出荷数・価格・広告データを直しても変わりません。全-日別データで解除できます）">🔒</span>' : '';   // v4.94：🔒は2行目（変更記録の札の左）
+    const clBadges = (clAll.length || lockHtml) ? '<div class="ad-cl-badges">' + lockHtml + clAll.map((l, k) => '<span class="' + ((k || !isM) ? 'ad-cl-chip' : 'ad-cl-b1') + '" data-clym="' + clYm + '" data-cli="' + clMonAll.indexOf(l) + '" style="background:' + (l.color || CL_COLORS[0]) + '">' + ((k || !isM) ? '' : escapeHtml(String(l.note || '').trim() || String(l.date).slice(5).replace('-', '/'))) + '</span>').join('') + '</div>' : '';
     const dayTitle = '';   // v3.75：変更記録はバッジに乗せたときの専用の表示（title は使わない＝セール名と取り合わない）
     // v4.76：SEO売上／広告売上の割合は、別の行ではなくセルの中（値の下。ほかの比率と同じ高さ）に出す＝行が低くなる
     const pctIn = (v) => (pctOn && total > 0 && has) ? '<div class="mg-pct" style="text-align:right;color:' + adPctColor(v) + '">' + (Math.round(v * 10) / 10).toFixed(1) + '%</div>' : '';
     html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + (yoyMode && r._grpTop ? ' ad-yoy-top' : '') + (pctOn && has ? ' ad-pctin' : '') + (cls ? ' ad-cl-top ad-cl-bot' : '') + '"' + (cls ? ' style="--clc:' + clCol + '"' : '') + '>'
-      + '<td class="' + dayCls + '"' + dayAttr + dayTitle + dayClick + '>' + r.label + (isM && isAdMonthClosed(r.ym) ? '<span class="ad-lock" title="確定済み：この月の数字は確定したときのまま固定しています（出荷数・価格・広告データを直しても変わりません。全-日別データで解除できます）">🔒</span>' : '') + clBadges + '</td>'   // v4.90
+      + '<td class="' + dayCls + '"' + dayAttr + dayTitle + dayClick + '>' + r.label + clBadges + '</td>'   // v4.90／v4.94：🔒は clBadges の中
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
       + tcell(total, 'adc-sales adc-gstart', 'total')
       + '<td class="adc-sales ad-roas' + ((total > 0 && has && adCost > 0) ? tierClass('sR', total / adCost) : '') + '">' + ((total > 0 && has && adCost > 0) ? fmtRoas(total / adCost) : '') + '</td>'   // v4.43：売上ROAS＝推計総売上÷広告費。色はほかの列と同じ上位・下位の配色（v4.45：v4.44 の商品-売上データの色は取り消し）
@@ -11111,6 +11121,7 @@ function renderPsalesTable(){
   // 空いた幅に合わせて文字を大きく（13px〜17px）
   { const wrap = body.querySelector('.ps-wrap'), tbl = body.querySelector('table.ps-table');
     if (wrap && tbl) { const sc = wrap.clientWidth / tw; const fs = Math.max(13, Math.min(17, Math.round(13 * sc * 2) / 2)); tbl.style.setProperty('--ps-fs', fs + 'px');
+      _psHideScale = (segs.some(x => x.col) && sc > 1) ? sc : 1;   // v4.95：隠したグループの分だけ列が広がった割合
       // v3.63：それでも列からはみ出す数字（7けたの金額など）は、そのセルだけ少し小さく・字間を詰める
       tblFontThen(psFitCells);   // v4.71：DM Mono の読み込み後にも測り直す
     } }
