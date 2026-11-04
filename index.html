@@ -961,6 +961,14 @@
   .ad-cl-badges span { display: block; color: #fff; font-size: 9.5px; font-weight: 700; padding: 0 4px; border-radius: 3px; min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 14px; }
   .ad-cl-badges em { font-style: normal; font-size: 9px; font-weight: 700; color: var(--text-tertiary); white-space: nowrap; flex-shrink: 0; }
   table.ad-table tr.ad-cl-top td.ad-daycol { padding-top: 3px; padding-bottom: 3px; }
+  table.ad-table td.ad-daycol .ad-cl-badges { justify-content: center; }
+  /* v4.86：全-月日別グラフの表：変更記録の行を点線で囲む */
+  table.graph-table tr.gt-cl td { border-top: 2px dashed var(--clc) !important; border-bottom: 2px dashed var(--clc) !important; }
+  table.graph-table tr.gt-cl td:first-child { border-left: 2px dashed var(--clc) !important; }
+  table.graph-table tr.gt-cl td:last-child { border-right: 2px dashed var(--clc) !important; }
+  .gt-cl-b { display: inline-block; margin-left: 6px; padding: 0 5px; border-radius: 4px; color: #fff; font-size: 10.5px; font-weight: 700; line-height: 1.5; vertical-align: 1px; cursor: help; white-space: nowrap; }
+  .graph-chip.gchip-cl.on { border-color: #f97316; color: #ea580c; background: rgba(249,115,22,0.07); }
+  .graph-chip.gchip-cl.on .dot { background: #f97316; }   /* v4.86：日別は色の四角だけ（日の列の真ん中） */
   table.ad-table tr.ad-seo-row td { background: #eef4fb !important; padding: 0; text-align: left; border-bottom: 1px solid var(--border); }
   .ad-seo-box { padding: 10px 14px 12px; }
   .ad-seo-h { font-size: 12.5px; font-weight: 800; color: var(--text-secondary); margin-bottom: 10px; }
@@ -2596,7 +2604,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.85</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.86</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -9788,7 +9796,7 @@ function adTgHtml(on, color, label){
 function adPaintSwitches(){
   const box = document.getElementById('ad-switches'); if (!box) return;
   box.hidden = false;   // v4.64：比率表記は日別でも出す（SEO売上トップ15・変更記録は月別だけ）
-  ['ad-sw-seo', 'ad-cl-grp'].forEach(id => { const b = document.getElementById(id); if (b) b.hidden = adPeriod !== 'monthly'; });
+  ['ad-sw-seo'].forEach(id => { const b = document.getElementById(id); if (b) b.hidden = adPeriod !== 'monthly'; });   // v4.86：変更記録は日別でも出す
   { const g = document.getElementById('ad-cl-grp'); if (g) g.classList.toggle('on', !!adClShow); }   // v4.74
   [['ad-sw-seo', adSeoShow, '#1565C0', 'SEO売上トップ15'], ['ad-sw-pct', adPctMode, '#16a34a', '比率表記'], ['ad-sw-cl', adClShow, '#f97316', '変更記録']].forEach(([id, on, col, lb]) => {
     const b = document.getElementById(id); if (!b) return;
@@ -10089,14 +10097,14 @@ function renderAdTableCore(){
     for (let d = 1; d <= days; d++) {
       const dateStr = adMonth + '-' + String(d).padStart(2, '0');
       if (dateStr > rowsEnd) break;
-      rows.push({ label: d, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr), saleNames: saleNamesForDate(dateStr) });
+      rows.push({ label: d, ds: dateStr, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr), saleNames: saleNamesForDate(dateStr) });
     }
   } else if (adPeriod === 'last2m') {
     if (!adRangeEnd) adRangeEnd = defaultAdRangeEnd();
     if (!adRangeStart) adRangeStart = adShiftDay(adRangeEnd, -59);
     adRangeDates(adRangeStart, adRangeEnd).forEach(dateStr => {
       const mo = +dateStr.slice(5, 7), da = +dateStr.slice(8, 10);
-      rows.push({ label: mo + '/' + da, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr), saleNames: saleNamesForDate(dateStr) });
+      rows.push({ label: mo + '/' + da, ds: dateStr, m: adMetricsResolved(dateStr, adProduct), total: totalSalesResolved(dateStr, adProduct), sale: dateInAnySale(dateStr), saleNames: saleNamesForDate(dateStr) });
     });
   } else {
     const monthRow = (prefix, label) => {
@@ -10283,13 +10291,16 @@ function renderAdTableCore(){
     // v3.73：月別の 比率表記（月の列を2行ぶち抜き）・変更記録（点線枠とバッジ）
     const isM = adPeriod === 'monthly' && r.ym;
     const pctOn = adPctMode && (isM || adPeriod !== 'monthly');   // v4.64：日別でも 比率表記の行（SEO／広告の割合）
-    const cls = isM && adClShow ? clMap[r.ym] : null;
+    // v4.86：日別でも、変更記録の日の行を点線で囲む（バッジは色の四角だけ）
+    const clDay = (!isM && adClShow && r.ds) ? (clMap[r.ds.slice(0, 7)] || []).filter(l => l && l.date === r.ds) : null;
+    const cls = isM && adClShow ? clMap[r.ym] : (clDay && clDay.length ? clDay : null);
+    const clYm = isM ? r.ym : (r.ds ? r.ds.slice(0, 7) : ''), clMonAll = (clMap[clYm] || []).filter(l => l && l.date);
     const clCol = cls ? (cls[0].color || CL_COLORS[0]) : '';
     const clNotes = cls ? cls.filter(l => String(l.note || '').trim()) : [];
     // v3.74：バッジは1行だけ（長いメモは … で切る。全文はマウスを乗せると出る）。2件以上ある月は「他n件」
     // v3.76：記録ごとに1つずつ。1件目は文字入りのバッジ、2件目からは色の小さな四角。乗せると、その記録（その日の分）だけを出す
     const clAll = cls ? cls.filter(l => l && l.date) : [];
-    const clBadges = clAll.length ? '<div class="ad-cl-badges">' + clAll.map((l, k) => '<span class="' + (k ? 'ad-cl-chip' : 'ad-cl-b1') + '" data-clym="' + r.ym + '" data-cli="' + k + '" style="background:' + (l.color || CL_COLORS[0]) + '">' + (k ? '' : escapeHtml(String(l.note || '').trim() || String(l.date).slice(5).replace('-', '/'))) + '</span>').join('') + '</div>' : '';
+    const clBadges = clAll.length ? '<div class="ad-cl-badges">' + clAll.map((l, k) => '<span class="' + ((k || !isM) ? 'ad-cl-chip' : 'ad-cl-b1') + '" data-clym="' + clYm + '" data-cli="' + clMonAll.indexOf(l) + '" style="background:' + (l.color || CL_COLORS[0]) + '">' + ((k || !isM) ? '' : escapeHtml(String(l.note || '').trim() || String(l.date).slice(5).replace('-', '/'))) + '</span>').join('') + '</div>' : '';
     const dayTitle = '';   // v3.75：変更記録はバッジに乗せたときの専用の表示（title は使わない＝セール名と取り合わない）
     // v4.76：SEO売上／広告売上の割合は、別の行ではなくセルの中（値の下。ほかの比率と同じ高さ）に出す＝行が低くなる
     const pctIn = (v) => (pctOn && total > 0 && has) ? '<div class="mg-pct" style="text-align:right;color:' + adPctColor(v) + '">' + (Math.round(v * 10) / 10).toFixed(1) + '%</div>' : '';
@@ -12208,8 +12219,8 @@ function pmRenderInfo(fresh){
   if (!rows.length) h += '<div class="pm-empty">この商品の出荷数・購入商品データがまだありません。</div>';
   else {
     const svgCat = Object.assign({}, cat, { barY1: !!cat.bar && !chart.years });
-    const sv = graphShowSale; graphShowSale = pm.showSale;
-    try { h += '<div class="pm-chart" id="pm-chart">' + graphSvg(chart, svgCat) + '<div class="graph-tip" id="pm-tip"></div></div>'; } finally { graphShowSale = sv; }
+    const sv = graphShowSale, svc = graphShowCl; graphShowSale = pm.showSale; graphShowCl = false;   // v4.86：商品の画面のグラフには変更記録を出さない
+    try { h += '<div class="pm-chart" id="pm-chart">' + graphSvg(chart, svgCat) + '<div class="graph-tip" id="pm-tip"></div></div>'; } finally { graphShowSale = sv; graphShowCl = svc; }
   }
   h += '<div class="graph-foot-note">※推計総売上＝出荷数×販売価格（セール中はセール価格）' + (pm.cat === 'sales' ? '（線）。棒＝SEO売上（下）＋広告売上（上）' : '') + '。広告の数字（広告売上・広告費・ROAS・個数）は、④購入商品データ（日別）か E（月別）がある期間だけ出ます（無い期間は「—」）。'
     + (daily ? '' : '月別で E がまだ無い月は ④ の日別の合計（速報）で、④ のある日だけで集計します（グラフの白抜きの点・表の月の横の「速報」）。') + '広告費は「' + (pm.costMode === 'alloc' ? '売上比で分ける：キャンペーンの広告費を、そのキャンペーンで売れた売上の比率で各商品に割り当て（参考）' : '宣伝商品に全額：SP は宣伝した商品に全額。SB は割り当てない') + '」。</div>';
@@ -15837,6 +15848,7 @@ let graphDateTo = null;
 let graphDayPreset = '30';         // '30' | 'thismonth' | '2month' | null（手動指定）
 let graphDailyGroup = 'month';     // 日別表の色分け 'month' | 'none'
 let graphShowSale = true;          // セール期間の重ね表示
+let graphShowCl = true;            // v4.86：変更記録の重ね表示（グラフの縦の点線・表の点線の枠）
 let graphHideChart = false;        // v3.18：グラフを隠す（表だけ見る）
 let graphQuickActive = null;       // 押されたクイック期間ボタン
 let _graphInited = false;
@@ -16205,10 +16217,30 @@ function graphSvg(chart, cat){
       hits += '<circle class="gpt" cx="' + cx.toFixed(1) + '" cy="' + cy.toFixed(1) + '" r="' + hitR.toFixed(1) + '" fill="transparent" style="cursor:pointer" data-tip="' + escapeHtml(txt) + '"/>';
     });
   });
+  if (chart.keys && graphShowCl) svg += graphClOverlay(chart.keys, xOf, n, padT, plotH, W);   // v4.86：変更記録は棒・線の上に（点に乗せたときの表示は邪魔しない）
   svg += hits;
   if (!any) svg += '<text x="' + (padL + plotW / 2) + '" y="' + (padT + plotH / 2) + '" text-anchor="middle" font-size="20" fill="#9ca3af">この期間・項目のデータがありません</text>';
   svg += '</svg>';
   return svg;
+}
+// v4.86：変更記録（ショップ全体）の重ね表示：その日（月別はその月）に縦の点線（記録の色）。メモの札はグラフの下側に2段で
+function graphClOverlay(keys, xOf, n, padT, plotH, W){
+  if (!n || !(globalChangeLogs || []).length) return '';
+  const daily = keys[0] && keys[0].length === 10;
+  let s = '', li = 0;
+  (globalChangeLogs || []).filter(l => l && l.date).slice().sort((a, b) => String(a.date).localeCompare(String(b.date))).forEach(l => {
+    const i = keys.indexOf(daily ? l.date : String(l.date).slice(0, 7)); if (i < 0) return;
+    const x = xOf(i), col = l.color || CL_COLORS[0], note = String(l.note || '').trim(), md = (+String(l.date).slice(5, 7)) + '/' + (+String(l.date).slice(8, 10));
+    const short = note ? (note.length > 10 ? note.slice(0, 10) + '…' : note) : md;
+    s += '<g><title>' + escapeHtml('変更記録 ' + String(l.date).replace(/-/g, '/') + (note ? '：' + note : '')) + '</title>'
+      + '<line x1="' + x.toFixed(1) + '" y1="' + padT + '" x2="' + x.toFixed(1) + '" y2="' + (padT + plotH) + '" stroke="' + col + '" stroke-width="2" stroke-dasharray="2 4" stroke-linecap="round" opacity="0.95" style="pointer-events:none"/>';
+    const bw = short.length * 11.5 + 16, by = padT + plotH - 22 - (li % 2) * 23;
+    const bx = Math.max(4, Math.min(W - bw - 4, x - bw / 2));
+    s += '<rect x="' + bx.toFixed(1) + '" y="' + by + '" width="' + bw.toFixed(1) + '" height="19" rx="5" fill="' + col + '" opacity="0.92"/>'
+      + '<text x="' + (bx + bw / 2).toFixed(1) + '" y="' + (by + 14) + '" text-anchor="middle" font-size="11.5" font-weight="700" fill="#fff" style="fill:#fff">' + escapeHtml(short) + '</text></g>';
+    li++;
+  });
+  return s;
 }
 // セール期間の重ね表示：日別＝期間の帯、月別（2年表示）＝開始月の縦破線。バッジは上下2段に振り分け
 function graphSaleOverlay(keys, xOf, n, padT, plotH, W){
@@ -16301,6 +16333,7 @@ function renderGraphView(){
     if (graphDateTo) h += '<span class="graph-note">基準日：' + graphDateTo.replace(/-/g, '/') + '（データの最終日）</span>';
   }
   if (chart.keys) h += '<button class="graph-chip' + (graphShowSale ? ' on' : '') + '" id="graph-sale"><span class="dot"></span>セール期間を重ねる</button>';
+  h += '<button class="graph-chip gchip-cl' + (graphShowCl ? ' on' : '') + '" id="graph-cl" title="変更記録（全-月別データの「変更記録」で付けたもの）を、グラフの縦の点線と下の表の点線の枠で出す"><span class="dot"></span>変更記録を重ねる</button>';   // v4.86
   h += '</div>';
 
   // 3段目：系列トグル
@@ -16366,6 +16399,7 @@ function renderGraphView(){
   on('#graph-dfrom', 'change', e => { if (!e.target.value) return; graphDateFrom = e.target.value; graphDayPreset = null; graphQuickActive = null; renderGraphView(); });
   on('#graph-dto', 'change', e => { if (!e.target.value) return; graphDateTo = e.target.value; graphQuickActive = null; graphApplyDayPreset(); renderGraphView(); });   // to を変えたらプリセットを再適用
   on('#graph-sale', 'click', () => { graphShowSale = !graphShowSale; renderGraphView(); });
+  on('#graph-cl', 'click', () => { graphShowCl = !graphShowCl; renderGraphView(); });   // v4.86
   on('#graph-ad-guide', 'click', () => { document.getElementById('ad-guide-modal').hidden = false; });
   body.querySelectorAll('#graph-items button').forEach(b => b.addEventListener('click', () => {
     const k = b.dataset.k;
@@ -16437,6 +16471,9 @@ function buildGraphTable(model){
   const sepIdx = extraCols.length - 1;
   const synthBadge = '<span class="gt-badge" title="全体収支が未入力のため、日別データ（出荷×販売価格・広告データ）から集計">日別集計</span>';
 
+  // v4.86：変更記録のある日（月別はその月）の行は点線の枠（記録の色）＋小さな札
+  const clOf = key => graphShowCl ? (globalChangeLogs || []).filter(l => l && l.date && (key.length === 10 ? l.date === key : String(l.date).slice(0, 7) === key)) : [];
+  const clBadgeOf = key => { const ls = clOf(key); return ls.length ? ls.map(l => '<span class="gt-cl-b" style="background:' + (l.color || CL_COLORS[0]) + '" title="' + escapeHtml('変更記録 ' + String(l.date).replace(/-/g, '/') + (String(l.note || '').trim() ? '：' + String(l.note).trim() : '')) + '">' + escapeHtml((t => t.length > 8 ? t.slice(0, 8) + '…' : t)(String(l.note || '').trim() || ((+String(l.date).slice(5, 7)) + '/' + (+String(l.date).slice(8, 10))))) + '</span>').join('') : ''; };
   // 行を組み立てる
   const trs = [];   // { cls, cells: [html...], m }
   if (yoy) {
@@ -16472,7 +16509,7 @@ function buildGraphTable(model){
         const dw = new Date(r.key + 'T00:00:00').getDay();
         const dcls = dw === 0 ? ' gt-sun' : (dw === 6 ? ' gt-sat' : '');
         const sn = saleNamesForDate(r.key);
-        trs.push({ cls, m: r.m, lead: '<td class="grp-label' + dcls + '">' + graphPeriodText(r.key) + (sn.length ? '<span class="gt-sale" title="' + escapeHtml(sn.join(' / ')) + '">SALE</span>' : '') + '</td>' });
+        trs.push({ cls, m: r.m, cl: clOf(r.key), lead: '<td class="grp-label' + dcls + '">' + graphPeriodText(r.key) + clBadgeOf(r.key) + (sn.length ? '<span class="gt-sale" title="' + escapeHtml(sn.join(' / ')) + '">SALE</span>' : '') + '</td>' });
       } else {
         const y = +r.key.slice(0, 4), mo = +r.key.slice(5, 7);
         if (graphTableGroup === 'recent1y') {
@@ -16483,7 +16520,7 @@ function buildGraphTable(model){
           if (g !== prevGrp) { prevGrp = g; grpNo++; if (i) cls += 'grp-start '; }
           cls += (grpNo % 2) ? 'grp-b' : 'grp-a';
         }
-        trs.push({ cls, m: r.m, lead: '<td class="grp-label">' + r.key.replace('-', '/') + (r.synth ? synthBadge : '') + '</td>' });
+        trs.push({ cls, m: r.m, cl: clOf(r.key), lead: '<td class="grp-label">' + r.key.replace('-', '/') + clBadgeOf(r.key) + (r.synth ? synthBadge : '') + '</td>' });
       }
     });
   }
@@ -16513,7 +16550,8 @@ function buildGraphTable(model){
   items.forEach(it => h += '<th style="color:' + ccText(it.color) + '">' + it.label + '</th>');   // ヘッダーは系列色（グラフと対応。v4.38：薄い色は少し濃く）
   h += '</tr></thead><tbody>';
   trs.forEach(t => {
-    h += '<tr' + (t.cls ? ' class="' + t.cls.trim() + '"' : '') + '>' + t.lead;
+    const clc = t.cl && t.cl.length ? (t.cl[0].color || CL_COLORS[0]) : '';
+    h += '<tr' + ((t.cls || clc) ? ' class="' + ((t.cls || '') + (clc ? ' gt-cl' : '')).trim() + '"' : '') + (clc ? ' style="--clc:' + clc + '"' : '') + '>' + t.lead;
     extraCols.forEach((c, i) => h += gcell(c.key, t.m, c.fmt, i === sepIdx ? 'gt-adsep' : ''));
     items.forEach(it => h += gcell(it.key, t.m, it.y2 ? { yen: false } : cat));
     h += '</tr>';
