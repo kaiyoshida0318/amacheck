@@ -2559,6 +2559,33 @@
   table:not(.cmp-grp-tbl) thead th { text-align: center !important; }
   #compare-view table thead th { text-align: revert-layer; }
   #open-export .hb-dl { width: 15px; height: 15px; stroke-width: 2.4; color: #0f766e; vertical-align: -3px; margin-right: 0; }   /* v4.70 */
+  /* v4.89：別のタブで更新されたとき／同期の衝突 */
+  .tab-stale-banner { position: fixed; left: 50%; top: 10px; transform: translateX(-50%); z-index: 100000; background: #fef2f2; border: 2px solid #dc2626; color: #7f1d1d; font-size: 14px; font-weight: 700; padding: 10px 14px; border-radius: 10px; box-shadow: 0 8px 24px rgba(0,0,0,.2); display: flex; align-items: center; gap: 12px; max-width: 92vw; }
+  .tab-stale-banner[hidden] { display: none; }
+  .tab-stale-banner button { font-family: inherit; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: 7px; border: none; background: #dc2626; color: #fff; cursor: pointer; white-space: nowrap; }
+  #open-sync.sync-warn { border-color: #dc2626 !important; color: #b91c1c !important; background: #fef2f2 !important; }
+  /* v4.90：確定済みの印 */
+  table.ad-table td.ad-daycol .ad-lock { font-size: 10px; margin-left: 2px; vertical-align: 1px; cursor: help; }
+  .ship-closed-banner { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; background: rgba(217,119,6,0.10); border: 1px solid rgba(217,119,6,0.35); color: #92400e; font-size: 13px; padding: 8px 12px; border-radius: 8px; margin-bottom: 10px; }
+  .ship-closed-banner button { font-family: inherit; font-size: 12px; font-weight: 700; padding: 4px 10px; border-radius: 6px; border: 1px solid #d97706; background: #fff; color: #b45309; cursor: pointer; }
+  /* v4.90：価格の記録 */
+  .ep-box { margin: -2px 0 10px; font-size: 12px; color: var(--text-secondary); }
+  .ep-change { background: #fff7ed; border: 1px solid #fdba74; border-radius: 8px; padding: 8px 10px; margin-bottom: 6px; color: #7c2d12; }
+  .ep-change[hidden] { display: none; }
+  .ep-q { font-weight: 700; margin-bottom: 4px; }
+  .ep-opt { display: flex; align-items: center; gap: 5px; margin: 3px 0; cursor: pointer; flex-wrap: wrap; }
+  .ep-opt input[type=date] { font-size: 12px; padding: 2px 4px; }
+  .ep-hist { display: flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+  .ep-ttl { font-weight: 700; color: var(--text-secondary); }
+  .ep-none { color: var(--text-tertiary); }
+  .ep-seg { display: inline-flex; align-items: center; gap: 3px; background: var(--bg-secondary); border: 1px solid var(--border); border-radius: 999px; padding: 1px 8px; color: var(--black); }
+  .ep-x { border: none; background: none; color: #b91c1c; cursor: pointer; font-size: 11px; padding: 0 0 0 2px; }
+  .ep-btn { font-family: inherit; font-size: 11.5px; padding: 2px 8px; border-radius: 6px; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); cursor: pointer; }
+  .ep-btn.ep-ok { border-color: var(--accent); color: var(--accent); font-weight: 700; }
+  .ep-addrow { margin-top: 5px; display: flex; align-items: center; gap: 5px; flex-wrap: wrap; }
+  .ep-addrow[hidden] { display: none; }
+  .ep-addrow input { font-size: 12px; padding: 2px 4px; }
+  .ph-mark { display: inline-block; margin-left: 4px; font-size: 9.5px; font-weight: 700; color: #0f766e; background: #ccfbf1; border-radius: 3px; padding: 0 3px; vertical-align: 1px; }
 </style>
 </head>
 <body>
@@ -2605,7 +2632,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.88</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.90</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -3276,6 +3303,15 @@
           <input type="number" id="edit-cost" min="0" step="1" placeholder="0" style="width:100%;font-size:14px;padding:6px 8px;font-family:ui-monospace,Menlo,monospace;text-align:right;">
         </div>
       </div>
+      <div class="ep-box" id="edit-price-box"><!-- v4.90：販売価格の記録（値段を変えた日より前の月は、前の価格で計算） -->
+        <div class="ep-change" id="edit-price-change" hidden>
+          <div class="ep-q">販売価格を変えました。どちらですか？</div>
+          <label class="ep-opt"><input type="radio" name="edit-pch" value="from" checked> 値段を変えた：<input type="date" id="edit-price-from"> からの価格（それより前の月は前の価格のまま）</label>
+          <label class="ep-opt"><input type="radio" name="edit-pch" value="fix"> 入力のまちがいを直す（過去の月もこの価格で計算し直す）</label>
+        </div>
+        <div class="ep-hist"><span class="ep-ttl">価格の記録</span><span id="edit-price-hist"></span><button type="button" class="ep-btn" id="edit-price-add">＋ 前の価格を足す</button></div>
+        <div class="ep-addrow" id="edit-price-addrow" hidden><input type="date" id="edit-ph-date"> より前は ¥<input type="number" id="edit-ph-price" min="0" step="1" style="width:90px;text-align:right;"> だった <button type="button" class="ep-btn ep-ok" id="edit-ph-ok">足す</button><button type="button" class="ep-btn" id="edit-ph-cancel">やめる</button></div>
+      </div>
       <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;">
         <div>
           <label style="display:block;margin-bottom:4px;font-size:12px;color:var(--text-secondary);">販売手数料</label>
@@ -3674,7 +3710,10 @@ function lzGet(key, fallback){
     return JSON.parse(raw); // 旧・非圧縮データ（次回保存時に自動で圧縮化）
   } catch (e) { return fallback; }
 }
+let _shipClosedWarned = {};
 function saveShipments(){
+  // v4.90：商品-出荷数データで確定済みの月を直したとき（1か月に1回）知らせる
+  try { const v = document.getElementById('shipment-view'); if (v && !v.hidden && typeof currentMonth === 'string' && isAdMonthClosed(currentMonth) && !_shipClosedWarned[currentMonth]) { _shipClosedWarned[currentMonth] = true; const ym = currentMonth; toast('🔒 ' + ym.replace('-', '/') + ' は確定済みなので、直した出荷数は 全-月別データなどには出ません', { label: '確定を解除', onClick: () => { reopenAdMonth(ym); renderShipmentTable(); } }); } } catch (e) {}
   return persistKey(STORAGE_SHIPMENTS, shipments);
 }
 function genSaleId(){ return 's' + Date.now().toString(36) + Math.random().toString(36).slice(2, 6); }
@@ -3927,7 +3966,35 @@ function idbSet(key, val){
   return new Promise((res) => { try { const tx = _idb.transaction('kv', 'readwrite'); tx.objectStore('kv').put(val, key); tx.oncomplete = () => res(true); tx.onerror = () => res(false); tx.onabort = () => res(false); } catch (e) { res(false); } });
 }
 // 保存の共通入口：IDBがあればIDB（write-behind）、無ければlocalStorage圧縮
+// v4.89：タブが2つ以上あるとき、別のタブで保存された種類のデータを、このタブの古い中身で上書きしない
+//   localStorage 'amacheck_kv_<key>' ＝その種類のデータの保存回数。起動したとき（_syncArmed の時点）の値を覚え、保存の前に見比べる
+const KV_PREFIX = 'amacheck_kv_';
+let _kver = {}, _tabStale = new Set(), _tabStaleShown = false;
+function kvGet(key){ try { return +localStorage.getItem(KV_PREFIX + key) || 0; } catch (e) { return 0; } }
+function kvBump(key){ const n = kvGet(key) + 1; try { localStorage.setItem(KV_PREFIX + key, String(n)); } catch (e) {} _kver[key] = n; }
+function kvRemember(){ _kver = {}; AMACHECK_KEYS.forEach(k => { _kver[k] = kvGet(k); }); }
+function kvBumpAll(){ AMACHECK_KEYS.forEach(k => kvBump(k)); }   // 同期の取得・バックアップの復元で全部入れ替えたとき（ほかのタブを古い扱いにする）
+function tabStaleBanner(){
+  let el = document.getElementById('tab-stale-banner');
+  if (!el) { el = document.createElement('div'); el.id = 'tab-stale-banner'; el.className = 'tab-stale-banner'; document.body.appendChild(el); }
+  el.innerHTML = '⚠️ 別のタブ（または同期の取得）でデータが更新されました。このタブの表示は古いままで、このタブでの保存は止めています。'
+    + '<button type="button" onclick="location.reload()">再読み込みして最新にする</button>';
+  el.hidden = false;
+}
+window.addEventListener('storage', e => {
+  if (!e.key || e.key.indexOf(KV_PREFIX) !== 0 || !_syncArmed) return;
+  const k = e.key.slice(KV_PREFIX.length);
+  if ((+e.newValue || 0) !== (_kver[k] || 0)) { _tabStale.add(k); tabStaleBanner(); }
+});
 function persistKey(key, obj){
+  if (_syncArmed) {
+    if (_tabStale.size || kvGet(key) !== (_kver[key] || 0)) {   // 別のタブで保存されている（古くなったタブでは、どの種類も保存しない）
+      _tabStale.add(key); tabStaleBanner();
+      if (!_tabStaleShown) { _tabStaleShown = true; setTimeout(() => { if (confirm('別のタブで新しく保存されたデータがあるため、このタブの変更は保存しませんでした（上書きして消さないため）。\n\n再読み込みして最新の内容にしますか？\n（再読み込みしたあと、もう一度やり直してください）')) location.reload(); }, 0); }
+      return false;
+    }
+    kvBump(key);
+  }
   if (_idbReady) {
     idbSet(key, obj).then(ok => { if (!ok && !_lsQuotaWarned) { _lsQuotaWarned = true; alert('⚠️ データの保存に失敗しました。ブラウザの空き容量をご確認ください。'); } });
     scheduleSync();
@@ -3973,16 +4040,36 @@ async function ghUpload(cfg, payloadObj, sha){
   return j.content.sha;
 }
 function setSyncStatus(msg){ const el = document.getElementById('sync-status'); if (el) el.textContent = msg; }
+// v4.89：GitHub に、この端末が最後に取得／アップロードしたあとで別の端末が上げたデータがあれば、自動では上書きしない
+let _syncConflict = false, _syncConflictShown = false;
+function syncConflictMark(on){
+  _syncConflict = on; const b = document.getElementById('open-sync'); if (b) b.classList.toggle('sync-warn', !!on);
+  if (on) { setSyncStatus('⚠️ GitHub に別の端末の新しいデータがあります。上書きしないよう自動アップロードを止めています。先に「取得」してください');
+    if (!_syncConflictShown) { _syncConflictShown = true; toast('⚠️ GitHub に別の端末の新しいデータがあります。自動アップロードを止めました。「☁ 同期」→「取得」で最新にしてください'); } }
+}
 async function syncUpload(manual){
   const cfg = ghCfg();
   if (!ghConfigured(cfg)) { if (manual) toast('先に同期設定（ユーザー名・リポジトリ・PAT）を入力してください'); return; }
-  if (_syncBusy) return; _syncBusy = true; setSyncStatus('アップロード中…');
+  if (_syncBusy) return;
+  if (_tabStale.size) { setSyncStatus('⚠️ 別のタブで更新されたため、このタブからはアップロードしません（再読み込みしてください）'); if (manual) alert('別のタブでデータが更新されています。このタブの中身は古いので、アップロードしません。\n再読み込みしてからやり直してください。'); return; }   // v4.89
+  if (_syncConflict && !manual) return;   // v4.89：取得するまで自動アップロードは止める
+  _syncBusy = true; setSyncStatus('アップロード中…');
   try {
     let sha = _syncSha;
     try { sha = (await ghMeta(cfg)).sha; } catch (e) {}
+    // v4.89：GitHub の版が、この端末が知っている版と違う＝別の端末が上げた
+    let conflict = false;
+    if (sha && cfg.lastSha && sha !== cfg.lastSha) conflict = true;
+    else if (sha && !cfg.lastSha) {   // 前の版からの切り替え直後：中身の更新日時で比べる（1回だけ）
+      try { const d = await ghDownload(cfg); const rAt = (d.obj && d.obj.updatedAt) || 0; if (rAt > (cfg.lastUpdatedAt || 0) + 1000) conflict = true; } catch (e) {}
+    }
+    if (conflict) {
+      if (!manual) { syncConflictMark(true); return; }
+      if (!confirm('GitHub に、別の端末が上げた新しいデータがあります。\nこのままアップロードすると、そのデータはこの端末の内容で上書きされて消えます。\n\n先に「取得」するのがおすすめです。それでもアップロード（上書き）しますか？')) { setSyncStatus('アップロードを取りやめました。先に「取得」してください'); return; }
+    }
     const payload = { app: 'amacheck', version: 1, updatedAt: Date.now(), data: amacheckStateMap() };
     _syncSha = await ghUpload(cfg, payload, sha);
-    cfg.lastUpdatedAt = payload.updatedAt; ghSaveCfg(cfg);
+    cfg.lastUpdatedAt = payload.updatedAt; cfg.lastSha = _syncSha; ghSaveCfg(cfg); syncConflictMark(false);   // v4.89：この版を覚える
     setSyncStatus('✅ アップロード完了：' + new Date().toLocaleString());
     if (manual) toast('GitHubにアップロードしました');
   } catch (e) { setSyncStatus('⚠️ ' + e.message); if (manual) alert('アップロードに失敗しました。\n\n' + e.message + '\n\nユーザー名・リポジトリ名・PATの権限（Contents: Read and write）をご確認ください。'); }
@@ -4000,7 +4087,8 @@ async function syncDownload(){
     _syncSha = sha;
     const keys = AMACHECK_KEYS.filter(k => obj.data[k] !== undefined && obj.data[k] !== null);
     for (const k of keys) { if (_idbReady) await idbSet(k, obj.data[k]); else lzSet(k, obj.data[k]); }
-    cfg.lastUpdatedAt = remoteAt; ghSaveCfg(cfg);
+    kvBumpAll();   // v4.89：ほかのタブを古い扱いに
+    cfg.lastUpdatedAt = remoteAt; cfg.lastSha = sha; ghSaveCfg(cfg); _syncConflict = false;   // v4.89：取得した時点の GitHub の版
     alert('GitHubから取得しました。ページを再読み込みします。'); location.reload();
   } catch (e) { setSyncStatus('⚠️ ' + e.message); alert('取得に失敗しました。\n\n' + e.message); }
 }
@@ -4080,6 +4168,7 @@ async function bootstrap(){
   else { let ch = false; Object.keys(CAMP_URL_OLD).forEach(n => { if (campUrls[n] === CAMP_URL_OLD[n]) { campUrls[n] = CAMP_URL_DEFAULTS[n]; ch = true; } }); if (ch) saveCampUrls(); }
   init();
   if (_adFix.days) setTimeout(() => toast('一時停止などのキャンペーンの広告データを ' + _adFix.days + '日分 合計に追加しました（確定済みの月は、確定を解除して確定し直すと反映されます）'), 800);
+  kvRemember();   // v4.89：このタブが読み込んだ時点の保存回数（これより後に別のタブで保存されたら古い扱い）
   _syncArmed = true; // 初回ロード後に自動同期を有効化（起動時の無駄アップロードを防止）
   dailyGapWatch(); setInterval(dailyGapWatch, 1500);   // v3.27：日別データの欠けを見張る
 }
@@ -4116,7 +4205,7 @@ function importAllData(file){
         if (_idbReady) { const ok = await idbSet(k, data[k]); if (!ok) okAll = false; }
         else { if (!lzSet(k, data[k])) okAll = false; }
       }
-      if (okAll) { alert('復元しました。ページを再読み込みします。'); location.reload(); }
+      if (okAll) { kvBumpAll(); alert('復元しました。ページを再読み込みします。'); location.reload(); }   // v4.89
       else { alert('一部のデータを保存できませんでした。空き容量をご確認のうえ再度お試しください。'); }
     })();
   };
@@ -4422,8 +4511,14 @@ function init(){
   document.getElementById('edit-modal').addEventListener('click', (e) => { if (e.target.id === 'edit-modal') closeEditModal(); });
   // 価格入力時に利益額・利益率をリアルタイム計算
   ['edit-selling-price','edit-cost','edit-selling-fee','edit-fba-fee'].forEach(id => {
-    document.getElementById(id).addEventListener('input', () => { updateProfitDisplay(); markDirty(); });
+    document.getElementById(id).addEventListener('input', () => { updateProfitDisplay(); markDirty(); if (id === 'edit-selling-price') epChangeShow(); });
   });
+  // v4.90：価格の記録
+  document.getElementById('edit-price-add').addEventListener('click', () => { const r = document.getElementById('edit-price-addrow'); r.hidden = !r.hidden; if (!r.hidden) { document.getElementById('edit-ph-date').value = ''; document.getElementById('edit-ph-price').value = ''; } });
+  document.getElementById('edit-ph-cancel').addEventListener('click', () => { document.getElementById('edit-price-addrow').hidden = true; });
+  document.getElementById('edit-ph-ok').addEventListener('click', epAddPast);
+  document.querySelectorAll('input[name="edit-pch"]').forEach(r => r.addEventListener('change', markDirty));
+  document.getElementById('edit-price-from').addEventListener('change', markDirty);
   // ↑↓キーで前後（フィールド内では発動しない）／Ctrl+S, Ctrl+Enter
   document.addEventListener('keydown', (e) => {
     if (document.getElementById('edit-modal').hidden) return;
@@ -4615,7 +4710,8 @@ function priceCellHtml(p, field, col){
   if (!hasVal) display = '<span class="price-empty">-</span>';
   else if (field === 'margin') display = Number(val).toFixed(1) + '%';
   else display = '¥' + Math.round(val).toLocaleString();
-  return '<td class="' + cls + '" data-field="' + field + '" data-col="' + col + '">' + display + '</td>';
+  const ph = field === 'sellingPrice' ? priceHistText(p) : '';   // v4.90：価格の記録があれば小さな印（乗せると記録）
+  return '<td class="' + cls + '" data-field="' + field + '" data-col="' + col + '"' + (ph ? ' title="価格の記録\n' + escapeHtml(ph) + '"' : '') + '>' + display + (ph ? '<span class="ph-mark">記録</span>' : '') + '</td>';
 }
 
 // ============================================
@@ -4757,7 +4853,9 @@ function parseMasterText(text){
       // 既存レコードを更新（フィールド単位でマージ。color/imageUrlなどは保持）
       const existing = existingMap.get(fnsku);
       Object.keys(data).forEach(k => {
-        if (data[k] !== '' && data[k] !== undefined) existing[k] = data[k];
+        if (data[k] === '' || data[k] === undefined) return;
+        if (k === 'sellingPrice') { if (existing.sellingPrice != null && existing.sellingPrice !== '' && +existing.sellingPrice !== +data[k]) setProductPrice(existing, data[k], todayStr()); else setProductPrice(existing, data[k], ''); return; }   // v4.90：変わった販売価格は今日からの価格
+        existing[k] = data[k];
       });
       updated++;
     } else {
@@ -5217,6 +5315,8 @@ function renderShipmentTable(){
     renderMonthlyTable();
   } else {
     renderDailyTable();
+    // v4.90：確定済みの月は、ここで直しても 全-月別データなどの数字が変わらないことを知らせる
+    if (isAdMonthClosed(currentMonth)) body.insertAdjacentHTML('afterbegin', '<div class="ship-closed-banner">🔒 <b>' + currentMonth.replace('-', '/') + ' は確定済みです。</b>ここで出荷数を直しても、全-月別／全-日別データ・全-月日別グラフなどの数字は確定したときのまま変わりません。<button type="button" onclick="reopenAdMonth(\'' + currentMonth + '\'); renderShipmentTable();">確定を解除する</button></div>');
   }
   adjustHiddenTableHeight();
 }
@@ -5730,7 +5830,7 @@ function clearMasterCells(){
     for (let c = rect.minCol; c <= rect.maxCol; c++) {
       const field = MASTER_FIELDS[c];
       if (MASTER_EDITABLE.has(field) && product[field] !== undefined) {
-        delete product[field];
+        delete product[field]; if (field === 'sellingPrice') delete product.priceHist;   // v4.90
         cleared++;
       }
     }
@@ -5741,6 +5841,7 @@ function clearMasterCells(){
   }
 }
 
+let _pastePriceN = 0;
 function copyMasterCells(){
   if (!masterSelection) return;
   const rect = getMasterSelectionRect();
@@ -5801,14 +5902,16 @@ async function pasteMasterCells(){
       const colIdx = startCol + cIdx;
       const field = MASTER_FIELDS[colIdx];
       if (!field || !MASTER_EDITABLE.has(field)) return; // 計算列はスキップ
-      if (val == null) delete product[field];
+      if (field === 'sellingPrice') { if (val == null) setProductPrice(product, null); else if (product.sellingPrice != null && +product.sellingPrice !== +val) { setProductPrice(product, val, todayStr()); _pastePriceN = (_pastePriceN || 0) + 1; } else setProductPrice(product, val, ''); }   // v4.90：貼り付けた販売価格は今日からの価格
+      else if (val == null) delete product[field];
       else product[field] = val;
       pasted++;
     });
   });
   saveProducts();
   renderMasterList();
-  toast(data.length + '行 × ' + data[0].length + '列 を貼り付け（編集可能セルのみ）');
+  toast(data.length + '行 × ' + data[0].length + '列 を貼り付け（編集可能セルのみ）' + (_pastePriceN ? '。販売価格を変えた ' + _pastePriceN + '件は、今日からの価格として記録しました（過去の月は前の価格のまま）' : ''));
+  _pastePriceN = 0;
 }
 
 // 価格セルのダブルクリック編集
@@ -5844,7 +5947,17 @@ function editMasterPriceCell(cell, initialChar){
     if (committed) return;
     committed = true;
     const raw = input.value.trim();
-    if (raw === '') { delete product[field]; }
+    if (field === 'sellingPrice') {   // v4.90：販売価格を変えたときは「いつからか」を聞く
+      const n = raw === '' ? null : parseFloat(raw), old = product.sellingPrice != null && product.sellingPrice !== '' ? +product.sellingPrice : null;
+      if (n != null && isNaN(n)) { cell.innerHTML = originalHtml; return; }
+      if (n != null && old != null && n !== old) {
+        const ans = prompt('販売価格を ¥' + old.toLocaleString() + ' → ¥' + n.toLocaleString() + ' にします。\nいつからの価格ですか？（例：' + todayStr() + '）\nその日より前の月は、前の価格のまま計算します。\n\n空欄で OK＝入力のまちがいを直す（過去の月もこの価格で計算し直す）', todayStr());
+        if (ans === null) { cell.innerHTML = originalHtml; return; }
+        const from = ans.trim();
+        if (from && !/^\d{4}-\d{2}-\d{2}$/.test(from)) { alert('日付は 2026-11-04 の形で入れてください。変更は取りやめました。'); cell.innerHTML = originalHtml; return; }
+        setProductPrice(product, n, from);
+      } else setProductPrice(product, n, '');
+    } else if (raw === '') { delete product[field]; }
     else {
       const n = parseFloat(raw);
       if (!isNaN(n)) product[field] = n;
@@ -7131,6 +7244,47 @@ function rptRenderClosed(){
   const cb = document.getElementById('report-reopen-closed');
   if (cb) cb.addEventListener('change', () => { _rpt.reopenClosed = cb.checked; });
 }
+// v4.90：レポート追加の取り消し用。書き換わる所だけ前の値を取っておく（undefined＝前は無かった）
+let _rptLastUndo = null;
+function rptUndoCapture(closeBefore){
+  const has = (o, k) => !!o && Object.prototype.hasOwnProperty.call(o, k);
+  const U = { ad: {}, camp: {}, kw: {}, pdD: {}, pdM: {}, ret: {}, close: Object.assign({}, closeBefore || {}), pl: plUndoSnapshot };
+  (_rpt.ad || []).forEach(a => { if (!(a.date in U.ad)) { U.ad[a.date] = has(adData, a.date) ? adData[a.date] : undefined; U.camp[a.date] = has(adCampData, a.date) ? adCampData[a.date] : undefined; } });
+  (_rpt.kw || []).forEach(k => (k.dates || []).forEach(d => { if (!(d in U.kw)) U.kw[d] = has(adKwData, d) ? adKwData[d] : undefined; }));
+  if ((_rpt.kw || []).length) U.bid = JSON.parse(JSON.stringify(kwBidHist || {}));
+  (_rpt.pd || []).forEach(x => { const o = x.kind === 'day' ? purchData.day : purchData.month, t = x.kind === 'day' ? U.pdD : U.pdM; if (!(x.key in t)) t[x.key] = has(o, x.key) ? o[x.key] : undefined; });
+  if ((_rpt.pd || []).length) { U.pdMeta = JSON.parse(JSON.stringify(purchData.monthMeta || {})); U.products = JSON.parse(JSON.stringify(products)); }
+  if (_rpt.ret && _rpt.ret.count) Object.keys(_rpt.ret.agg || {}).forEach(ym => { U.ret[ym] = has(returnsData, ym) ? returnsData[ym] : undefined; });
+  return U;
+}
+function rptUndoApply(U){
+  if (!U) { toast('元に戻せる取り込みがありません'); return; }
+  const put = (o, k, v) => { if (v === undefined) delete o[k]; else o[k] = v; };
+  Object.keys(U.ad).forEach(d => { put(adData, d, U.ad[d]); put(adCampData, d, U.camp[d]); });
+  Object.keys(U.kw).forEach(d => put(adKwData, d, U.kw[d]));
+  if (U.bid) kwBidHist = U.bid;
+  Object.keys(U.pdD).forEach(k => put(purchData.day, k, U.pdD[k]));
+  Object.keys(U.pdM).forEach(k => put(purchData.month, k, U.pdM[k]));
+  if (U.pdMeta) purchData.monthMeta = U.pdMeta;
+  if (U.products) { products.length = 0; U.products.forEach(p => products.push(p)); }
+  Object.keys(U.ret).forEach(ym => put(returnsData, ym, U.ret[ym]));
+  Object.keys(U.close).forEach(ym => { adClose[ym] = U.close[ym]; });
+  if (U.pl) { plData = U.pl.plData; shipments = U.pl.shipments; if (plUndoSnapshot === U.pl) plUndoSnapshot = null; }
+  if (Object.keys(U.ad).length) { saveAdData(); saveAdCampData(); }
+  if (Object.keys(U.kw).length) saveAdKwData();
+  if (U.bid) saveBidHist();
+  if (Object.keys(U.pdD).length || Object.keys(U.pdM).length) savePurchData();
+  if (U.products) saveProducts();
+  if (Object.keys(U.ret).length) saveReturns();
+  if (Object.keys(U.close).length) saveAdClose();
+  if (U.pl) { savePlData(); saveShipments(); }
+  if (_rptLastUndo === U) _rptLastUndo = null;
+  _graphMetricCache = {}; try { _cmpCache = {}; } catch (e) {} try { _adSeoCache = {}; } catch (e) {}
+  try { renderShipmentTable(); } catch (e) {} try { renderPlView(); } catch (e) {} try { renderAdTable(); } catch (e) {}
+  try { if (!document.getElementById('psales-view').hidden) renderPsalesView(); } catch (e) {}
+  try { if (typeof renderReturnsView === 'function') renderReturnsView(); } catch (e) {}
+  toast('取り込みを取り消して、取り込む前の状態に戻しました（広告・KW・購入商品・返品・出荷数・月末データ・確定）');
+}
 function applyReportAll(){
   const anyData = _rpt.ship.length || _rpt.ad.length || _rpt.kw.length || _rpt.pd.length || rptHasMe() || (_rpt.ret && _rpt.ret.count);
   if (!anyData) { toast('取り込めるデータがありません'); return; }
@@ -7169,6 +7323,8 @@ function applyReportAll(){
           _rpt.ship = _rpt.ship.map(sx => { const byDate = {}; Object.keys(sx.byDate).forEach(d => { if (!sk.has(d.slice(0, 7))) byDate[d] = sx.byDate[d]; }); return Object.assign({}, sx, { byDate, dates: (sx.dates || []).filter(d => !sk.has(d.slice(0, 7))) }); }).filter(sx => sx.dates.length);
         }
       }
+      // v4.90：「元に戻す」で全部戻せるように、書き換える前の値を取っておく（①広告・キャンペーン別・③KW・入札額の記録・④／E・返品・商品マスタ・確定・出荷数・全体収支）
+      const U = rptUndoCapture(closeBefore);
       // ① 出荷数データ（対象日をクリア→上書き）
       const shipDatesAll = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => shipDatesAll.add(d)));
       shipDatesAll.forEach(ymd => { const ym = ymd.slice(0, 7), day = String(+ymd.slice(8, 10)); if (shipments[ym]) Object.keys(shipments[ym]).forEach(f => { if (shipments[ym][f]) delete shipments[ym][f][day]; }); });
@@ -7230,7 +7386,8 @@ function applyReportAll(){
       const clNote = (reopened.length ? '（' + reopened.map(ym => ym.replace('-', '/')).join('・') + ' は確定を解除しました。確定し直すときは 全-日別データで「この月を確定する」）' : '')
         + (closedSkip.length ? '（' + closedSkip.map(ym => ym.replace('-', '/')).join('・') + ' は確定済みのため入れていません）' : '');
       try { renderAdTable(); } catch (e) {}
-      toast((parts.length ? parts.join(' / ') + ' を反映しました' : '反映しました') + clNote, { label: '元に戻す', onClick: () => { undo(); if (plUndoSnapshot) plUndoApply(); if (reopened.length) { reopened.forEach(ym => { adClose[ym] = closeBefore[ym]; }); saveAdClose(); try { renderAdTable(); } catch (e) {} } } });
+      _rptLastUndo = U;
+      toast((parts.length ? parts.join(' / ') + ' を反映しました' : '反映しました') + clNote, { label: '元に戻す', onClick: () => rptUndoApply(U) });   // v4.90：全部戻す
       if (kwSkipped.length) { const ks = Array.from(new Set(kwSkipped)).sort(); setTimeout(() => alert('次の ' + ks.length + '日はKWデータを取り込みませんでした。\n同じ日の広告データと費用合計が大きく違い、Amazon の保存期間（約5か月）切れのデータの形でした（費用がほぼ0、または1か月分）。\n\n' + ks.map(d => d.replace(/-/g, '/')).slice(0, 30).join('、') + (ks.length > 30 ? ' ほか' : '')), 300); }
     } finally {
       btn.disabled = false; btn.classList.remove('is-loading'); btn.innerHTML = orig;
@@ -8546,7 +8703,7 @@ function buildAnalysisSheets(fromYm, toYm, want){
       recs.forEach(([d, fn, q]) => {
         const ds = ym + '-' + String(d).padStart(2, '0');
         const p = pMap[fn] || { fnsku: fn };
-        const normal = num(p.sellingPrice);
+        const normal = pMap[fn] ? priceAt(p, ds) : num(p.sellingPrice);   // v4.90：その日の販売価格
         const sp = pMap[fn] ? salePriceForProductOnDate(p, ds) : null;
         const price = sp != null ? sp : (normal || 0);
         const cost = num(p.cost);
@@ -9533,8 +9690,41 @@ function salePriceForProductOnDate(product, dateStr){
 function priceForProductOnDate(product, dateStr){
   const sp = salePriceForProductOnDate(product, dateStr);
   if (sp != null) return sp;
-  return Number(product.sellingPrice) || 0;
+  return priceAt(product, dateStr);   // v4.90：その日に有効だった販売価格（価格の記録）
 }
+// v4.90：販売価格の記録 p.priceHist = [{ from:'YYYY-MM-DD'（'' ＝最初から）, price }]。from の日から、次の記録の前日までその価格。記録が無ければ p.sellingPrice を全期間に
+function priceAt(p, ds){
+  const h = p && p.priceHist;
+  if (!h || !h.length) return Number(p && p.sellingPrice) || 0;
+  let v = h[0].price;
+  for (const e of h) { if (!e.from || e.from <= ds) v = e.price; else break; }
+  return Number(v) || 0;
+}
+function priceHistNorm(h){
+  const m = new Map(); (h || []).filter(e => e && isFinite(+e.price) && e.price !== '' && e.price != null).forEach(e => m.set(e.from || '', +e.price));   // 同じ日は後の方
+  let out = Array.from(m.entries()).map(([from, price]) => ({ from, price })).sort((a, b) => a.from < b.from ? -1 : (a.from > b.from ? 1 : 0));
+  out = out.filter((e, i) => i === 0 || e.price !== out[i - 1].price);   // 続けて同じ価格はまとめる
+  if (out.length && out[0].from) out[0] = { from: '', price: out[0].price };   // いちばん古い記録は「最初から」
+  return out;
+}
+// 販売価格を変える。from＝その日からの価格（それより前は前の価格のまま）／from が空＝入力のまちがいを直す（いま有効な価格を置き換える）
+function setProductPrice(p, newPrice, from){
+  const old = (p.sellingPrice != null && p.sellingPrice !== '' && isFinite(+p.sellingPrice)) ? +p.sellingPrice : null;
+  if (newPrice == null || newPrice === '' || !isFinite(+newPrice)) { delete p.sellingPrice; delete p.priceHist; return; }
+  newPrice = +newPrice;
+  let h = (p.priceHist && p.priceHist.length) ? p.priceHist.map(e => ({ from: e.from || '', price: +e.price })) : (old != null ? [{ from: '', price: old }] : []);
+  if (!from || old == null) { if (h.length) h[h.length - 1].price = newPrice; else h = [{ from: '', price: newPrice }]; }
+  else { h = h.filter(e => (e.from || '') !== from); h.push({ from, price: newPrice }); }
+  h = priceHistNorm(h);
+  if (h.length > 1) p.priceHist = h; else delete p.priceHist;
+  p.sellingPrice = h.length ? h[h.length - 1].price : newPrice;
+}
+function priceHistText(p){
+  const h = p && p.priceHist; if (!h || h.length < 2) return '';
+  const f = d => d.replace(/-/g, '/');
+  return h.map((e, i) => { const nx = h[i + 1]; const to = nx ? f(gYmdAdd(nx.from, -1)) : ''; return (e.from ? f(e.from) : '最初') + '〜' + (to || '') + '：¥' + Math.round(e.price).toLocaleString(); }).join('\n');
+}
+function gYmdAdd(ds, n){ const d = new Date(ds + 'T00:00:00'); d.setDate(d.getDate() + n); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0') + '-' + String(d.getDate()).padStart(2, '0'); }
 // その日がいずれかのセール期間に含まれるか
 function dateInAnySale(dateStr){
   return saleRanges.some(s => dateStr >= s.start && dateStr <= s.end);
@@ -10341,7 +10531,7 @@ function renderAdTableCore(){
     // v4.76：SEO売上／広告売上の割合は、別の行ではなくセルの中（値の下。ほかの比率と同じ高さ）に出す＝行が低くなる
     const pctIn = (v) => (pctOn && total > 0 && has) ? '<div class="mg-pct" style="text-align:right;color:' + adPctColor(v) + '">' + (Math.round(v * 10) / 10).toFixed(1) + '%</div>' : '';
     html += '<tr class="' + (r.sale ? 'ad-sale-row' : '') + (yoyMode && r._grpTop ? ' ad-yoy-top' : '') + (pctOn && has ? ' ad-pctin' : '') + (cls ? ' ad-cl-top ad-cl-bot' : '') + '"' + (cls ? ' style="--clc:' + clCol + '"' : '') + '>'
-      + '<td class="' + dayCls + '"' + dayAttr + dayTitle + dayClick + '>' + r.label + clBadges + '</td>'
+      + '<td class="' + dayCls + '"' + dayAttr + dayTitle + dayClick + '>' + r.label + (isM && isAdMonthClosed(r.ym) ? '<span class="ad-lock" title="確定済み：この月の数字は確定したときのまま固定しています（出荷数・価格・広告データを直しても変わりません。全-日別データで解除できます）">🔒</span>' : '') + clBadges + '</td>'   // v4.90
       // 全体：総売上 / SEO売上 / 広告売上 / 広告費 / ROAS
       + tcell(total, 'adc-sales adc-gstart', 'total')
       + '<td class="adc-sales ad-roas' + ((total > 0 && has && adCost > 0) ? tierClass('sR', total / adCost) : '') + '">' + ((total > 0 && has && adCost > 0) ? fmtRoas(total / adCost) : '') + '</td>'   // v4.43：売上ROAS＝推計総売上÷広告費。色はほかの列と同じ上位・下位の配色（v4.45：v4.44 の商品-売上データの色は取り消し）
@@ -11538,6 +11728,55 @@ function openEditModal(fnsku){
   pm.fnsku = fnsku; pmFillEditTabs();   // v3.66
 }
 
+// v4.90：商品を編集の「価格の記録」。_epH＝作業中の記録、_epCur＝開いたときの（記録の上での）いまの価格
+let _epH = [], _epCur = null;
+function epLoad(p){
+  _epCur = (p.sellingPrice != null && p.sellingPrice !== '' && isFinite(+p.sellingPrice)) ? +p.sellingPrice : null;
+  _epH = (p.priceHist && p.priceHist.length) ? p.priceHist.map(e => ({ from: e.from || '', price: +e.price })) : (_epCur != null ? [{ from: '', price: _epCur }] : []);
+  const fd = document.getElementById('edit-price-from'); if (fd) fd.value = todayStr();
+  const fx = document.querySelector('input[name="edit-pch"][value="from"]'); if (fx) fx.checked = true;
+  const ar = document.getElementById('edit-price-addrow'); if (ar) ar.hidden = true;
+  epRender(); epChangeShow();
+}
+function epRender(){
+  const el = document.getElementById('edit-price-hist'); if (!el) return;
+  const f = d => d.replace(/-/g, '/');
+  if (_epH.length < 2) { el.innerHTML = '<span class="ep-none">' + (_epH.length ? '変更なし（いまの価格を最初から使う）' : 'なし') + '</span>'; return; }
+  el.innerHTML = _epH.map((e, i) => { const nx = _epH[i + 1];
+    return '<span class="ep-seg">' + (e.from ? f(e.from) : '最初') + '〜' + (nx ? f(gYmdAdd(nx.from, -1)) : '') + '：<b>¥' + Math.round(e.price).toLocaleString() + '</b>'
+      + (i > 0 ? '<button type="button" class="ep-x" data-i="' + i + '" title="この変更を消す（前の価格がそのまま続く）">✕</button>' : '') + '</span>'; }).join('');
+  el.querySelectorAll('.ep-x').forEach(b => b.addEventListener('click', () => { _epH.splice(+b.dataset.i, 1); _epH = priceHistNorm(_epH); epAfterHistEdit(); }));
+}
+function epAfterHistEdit(){   // 記録を直したら、いまの価格の欄も記録の最新にそろえる
+  const last = _epH.length ? _epH[_epH.length - 1].price : null, prev = _epCur; _epCur = last;
+  const inp = document.getElementById('edit-selling-price'); if (inp && last != null && (inp.value.trim() === '' || +inp.value === prev)) inp.value = last;   // 欄で新しい価格を入れている途中なら、そのまま残す
+  epRender(); epChangeShow(); try { updateProfitDisplay(); } catch (e) {} markDirty();
+}
+function epChangeShow(){
+  const box = document.getElementById('edit-price-change'), inp = document.getElementById('edit-selling-price'); if (!box || !inp) return;
+  const v = inp.value.trim() === '' ? null : +inp.value;
+  box.hidden = !(_epCur != null && v != null && isFinite(v) && v !== _epCur);
+}
+function epAddPast(){
+  const d = (document.getElementById('edit-ph-date').value || '').trim(), pr = document.getElementById('edit-ph-price').value.trim();
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(d) || pr === '' || !isFinite(+pr)) { toast('日付と価格を入れてください'); return; }
+  const tmp = { priceHist: _epH.length ? _epH : null, sellingPrice: _epCur };
+  const atD = priceAt(tmp, d);
+  _epH = priceHistNorm([{ from: '', price: +pr }, { from: d, price: atD }].concat(_epH.filter(e => e.from && e.from > d)));
+  document.getElementById('edit-price-addrow').hidden = true; epAfterHistEdit();
+}
+function epApply(p){
+  const raw = document.getElementById('edit-selling-price').value.trim();
+  if (raw === '') { delete p.sellingPrice; delete p.priceHist; return; }
+  const v = +raw; if (!isFinite(v)) return;
+  const h = priceHistNorm(_epH);
+  if (h.length > 1) p.priceHist = h; else delete p.priceHist;
+  p.sellingPrice = h.length ? h[h.length - 1].price : v;
+  if (_epCur == null || v === _epCur) { setProductPrice(p, v, ''); return; }
+  const mode = (document.querySelector('input[name="edit-pch"]:checked') || {}).value || 'from';
+  const from = mode === 'from' ? ((document.getElementById('edit-price-from').value || '').trim() || todayStr()) : '';
+  setProductPrice(p, v, from);
+}
 function markDirty(){
   if (editDirty) return;
   editDirty = true;
@@ -11563,6 +11802,7 @@ function loadProductIntoEditModal(fnsku){
   document.getElementById('edit-image-data').value = p.imageUrl || '';
   // 価格5項目
   document.getElementById('edit-selling-price').value = (p.sellingPrice != null) ? p.sellingPrice : '';
+  epLoad(p);   // v4.90：価格の記録
   document.getElementById('edit-cost').value = (p.cost != null) ? p.cost : '';
   document.getElementById('edit-selling-fee').value = (p.sellingFee != null) ? p.sellingFee : '';
   document.getElementById('edit-fba-fee').value = (p.fbaFee != null) ? p.fbaFee : '';
@@ -11691,7 +11931,7 @@ function applyEditData(){
       if (!isNaN(n)) p[field] = n;
     }
   };
-  readPrice('edit-selling-price', 'sellingPrice');
+  epApply(p);   // v4.90：販売価格は価格の記録とあわせて（値段を変えた／まちがいを直す）
   readPrice('edit-cost', 'cost');
   readPrice('edit-selling-fee', 'sellingFee');
   readPrice('edit-fba-fee', 'fbaFee');
@@ -15056,6 +15296,7 @@ function plApplyPending(){
   toast('反映しました（' + n + '件）', { label: '元に戻す', onClick: plUndoApply });
 }
 function plUndoApply(){
+  if (_rptLastUndo && _rptLastUndo.pl && _rptLastUndo.pl === plUndoSnapshot) { rptUndoApply(_rptLastUndo); return; }   // v4.90：レポート追加の取り消しは全部戻す
   if (!plUndoSnapshot) { toast('元に戻せる反映がありません'); return; }
   plData = plUndoSnapshot.plData;
   shipments = plUndoSnapshot.shipments;
