@@ -405,6 +405,9 @@
   .camp-name-edit:hover { background: var(--bg-secondary); outline: 1px dashed var(--border-strong); }
   .camp-type-select, .camp-name-input { font-size: 13px; padding: 6px 8px; border: 1px solid var(--border-strong); border-radius: 6px; }
   .camp-name-input { width: 100%; box-sizing: border-box; }
+  .camp-dup-warn { margin-top: 4px; font-size: 11.5px; line-height: 1.45; color: #b45309; background: #fffbeb; border: 1px solid #fcd34d; border-radius: 6px; padding: 4px 7px; text-align: left; white-space: normal; }
+  .camp-dup-warn:empty { display: none; }
+  .camp-name-input.dup { border-color: #f59e0b; background: #fffbeb; }
   .camp-draft-box { border: 1px dashed var(--purple); border-radius: 10px; padding: 6px 12px 14px; margin-bottom: 18px; background: rgba(126,34,206,0.04); }
   .camp-draft-box .draft-title { font-size: 13px; font-weight: 700; color: var(--purple); margin: 10px 2px; }
   .camp-empty { color: var(--text-tertiary); font-size: 13px; padding: 16px 0; text-align: center; }
@@ -2647,7 +2650,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.01</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.05</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -5352,8 +5355,7 @@ function renderDailyTable(){
   const saleInfo = saleDaysForMonth(currentMonth, days);
   const hasSale = Object.keys(saleInfo).length > 0;
 
-  let html = '<div class="ship-hint"><svg class="icn"><use href="#i-info"/></svg>'
-    + '<span>表ヘッダーの<strong>日付（数字）</strong>をクリックすると、その日の出荷数をすぐに入力できます。</span></div>';
+  let html = '';   // v5.02：「表ヘッダーの日付をクリックすると…」の案内をなくした（v5.01 で機能を廃止）
   let colg = '<colgroup><col style="width:104px"><col style="width:96px"><col style="width:44px"><col style="width:170px">';
   for (let d = 1; d <= days; d++) colg += '<col style="width:36px">';
   colg += '<col style="width:60px"></colgroup>';
@@ -7341,6 +7343,11 @@ function applyReportAll(){
       }
       // v4.90：「元に戻す」で全部戻せるように、書き換える前の値を取っておく（①広告・キャンペーン別・③KW・入札額の記録・④／E・返品・商品マスタ・確定・出荷数・全体収支）
       const U = rptUndoCapture(closeBefore);
+      // v5.04：古いキャンペーン名（広告キャンペーンで名前を変える前の名前）のレポートは、新しい名前に直して入れる
+      { const AL = campAliasMap(); if (Object.keys(AL).length) { const fx = v => { const k = String(v || '').trim(); return AL[k] || v; };
+        (_rpt.ad || []).forEach(a => (a.camps || []).forEach(x => { x.name = fx(x.name); }));
+        (_rpt.kw || []).forEach(k => (k.dates || []).forEach(d => ((k.byDate || {})[d] || []).forEach(r => { r.campaign = fx(r.campaign); })));
+        (_rpt.pd || []).forEach(x => (x.rows || []).forEach(r => { r.c = fx(r.c); })); } }
       // ① 出荷数データ（対象日をクリア→上書き）
       const shipDatesAll = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => shipDatesAll.add(d)));
       shipDatesAll.forEach(ymd => { const ym = ymd.slice(0, 7), day = String(+ymd.slice(8, 10)); if (shipments[ym]) Object.keys(shipments[ym]).forEach(f => { if (shipments[ym][f]) delete shipments[ym][f][day]; }); });
@@ -11585,7 +11592,7 @@ function renderCampaignDraft(){
   campaignDrafts.forEach((d, i) => {
     html += '<tr>'
       + '<td class="col-sw"><label class="switch"><input type="checkbox" ' + (d.active ? 'checked' : '') + ' onchange="updateDraft(' + i + ',\'active\',this.checked)"><span class="slider"></span></label></td>'
-      + '<td class="col-name"><input type="text" class="camp-name-input" placeholder="キャンペーン名" value="' + escapeHtml(d.name) + '" oninput="updateDraft(' + i + ',\'name\',this.value)" onchange="autoFillDraftProduct(' + i + ')"></td>'
+      + '<td class="col-name"><input type="text" class="camp-name-input" placeholder="キャンペーン名" value="' + escapeHtml(d.name) + '" oninput="updateDraft(' + i + ',\'name\',this.value)" onchange="autoFillDraftProduct(' + i + ')"><div class="camp-dup-warn" id="camp-dup-warn-' + i + '"></div></td>'
       + '<td class="col-product"><input type="text" class="camp-name-input camp-product-input" placeholder="商品（自動）" value="' + escapeHtml(d.product || '') + '" oninput="updateDraft(' + i + ',\'product\',this.value)"></td>'
       + '<td class="col-status"><span class="camp-status ' + (d.active ? 'on' : 'off') + '">' + (d.active ? '配信中' : '一時停止') + '</span></td>'
       + '<td class="col-type"><select class="camp-type-select" onchange="updateDraft(' + i + ',\'type\',this.value)">'
@@ -11604,7 +11611,32 @@ function renderCampaignDraft(){
     + '<button class="primary" onclick="registerCampaigns()"><svg class="icn"><use href="#i-check"/></svg> 登録</button>'
     + '</div></div>';
   wrap.innerHTML = html;
+  campaignDrafts.forEach((d, i) => campDraftWarn(i));
 }
+// v5.05：すでにある名前（または名前を変える前の古い名前）と同じかを調べる
+function campNameConflict(name, exceptId){
+  const k = String(name || '').trim(); if (!k) return null;
+  const c1 = (adCampaigns || []).find(c => c.id !== exceptId && String(c.name || '').trim() === k);
+  if (c1) return { kind: 'dup', c: c1 };
+  const c2 = (adCampaigns || []).find(c => c.id !== exceptId && (c.aliases || []).some(a => String(a || '').trim() === k));
+  if (c2) return { kind: 'alias', c: c2 };
+  return null;
+}
+function campConflictText(name, cf){
+  if (!cf) return '';
+  if (cf.kind === 'dup') return '「' + name + '」はすでに登録されています。同じ名前にすると、2つは1つのキャンペーンとして扱われ（データはまとめて集計）、注視やURLなどの設定は、もともとこの名前だった側のものが残ります。';
+  return '「' + name + '」は「' + cf.c.name + '」の以前の名前です。この名前のレポートは「' + cf.c.name + '」として取り込まれます。';
+}
+function campDraftWarn(i){
+  const d = campaignDrafts[i], box = document.getElementById('camp-dup-warn-' + i); if (!d || !box) return;
+  const nm = String(d.name || '').trim();
+  let cf = campNameConflict(nm, null);
+  let txt = cf ? (cf.kind === 'dup' ? '⚠ 登録済みの名前です。既存のキャンペーンと1つにまとまります（注視・URLは既存側が残る）' : '⚠ 「' + cf.c.name + '」の以前の名前です。この名前のレポートはそちらに入ります') : '';
+  if (!txt && nm && campaignDrafts.some((x, j) => j !== i && String(x.name || '').trim() === nm)) txt = '⚠ 同じ名前の行があります。1つにまとまります';
+  box.textContent = txt;
+  const inp = box.parentNode && box.parentNode.querySelector('input.camp-name-input'); if (inp) inp.classList.toggle('dup', !!txt);
+}
+window.campDraftWarn = campDraftWarn;
 function addCampaignDraftRow(){
   campaignDrafts.push({ name: '', type: 'sp', active: true, asin: '', product: '', productEdited: false });
   renderCampaignDraft();
@@ -11613,6 +11645,7 @@ function updateDraft(i, field, val){
   if (!campaignDrafts[i]) return;
   campaignDrafts[i][field] = val;
   if (field === 'product') campaignDrafts[i].productEdited = true;
+  if (field === 'name') campaignDrafts.forEach((d, j) => campDraftWarn(j));   // v5.05：同じ名前の注意をその場で出す
   if (field === 'active') renderCampaignDraft(); // ステータス表示を更新
 }
 function autoFillDraftProduct(i){
@@ -11626,6 +11659,11 @@ function cancelDrafts(){ campaignDrafts = []; renderCampaignDraft(); }
 function registerCampaigns(){
   const valid = campaignDrafts.filter(d => (d.name || '').trim());
   if (!valid.length) { toast('キャンペーン名を入力してください'); return; }
+  // v5.05：すでにある名前で登録しようとしたら、まとまることを伝えて確かめる
+  { const msgs = [], seen = {};
+    valid.forEach(d => { const nm = d.name.trim(); const cf = campNameConflict(nm, null);
+      if (cf) msgs.push('・' + campConflictText(nm, cf)); else if (seen[nm]) msgs.push('・「' + nm + '」が2行以上あります。1つのキャンペーンとして扱われます。'); seen[nm] = 1; });
+    if (msgs.length && !confirm('同じ名前のキャンペーンがあります。\n\n' + Array.from(new Set(msgs)).join('\n') + '\n\nこのまま登録しますか？')) return; }
   valid.forEach(d => {
     const prod = (d.product || '').trim() || extractAdProduct(d.name);
     adCampaigns.push({ id: genCampId(), name: d.name.trim(), product: prod, type: d.type || 'sp', active: !!d.active, offMonth: null, asin: (d.asin || '').trim() });
@@ -11644,6 +11682,35 @@ function toggleCampaign(id, checked){
   saveCampaigns();
   renderCampaignList();
 }
+// v5.04：広告キャンペーンの名前を変えたら、取り込んだデータ・設定の中の古い名前も新しい名前にそろえる（どの画面のドロップダウン・表示にも新しい名前が出る）
+//   ③KWデータ（campaign）・④購入商品データ（c）・①のキャンペーン別（name）・注視（キー 'M|名前|…'）・入札額の記録・管理画面のURL・全-比較のパネル・いま選んでいるキャンペーン
+//   古い名前は c.aliases に残し、あとで古い名前のレポートを取り込んでも新しい名前に直す（campAliasMap）
+function campAliasMap(){
+  const m = {}; (adCampaigns || []).forEach(c => (c.aliases || []).forEach(a => { const k = String(a || '').trim(); if (k && k !== String(c.name || '').trim()) m[k] = String(c.name || '').trim(); }));
+  return m;
+}
+function campRenameEverywhere(c, oldN, newN){
+  let n = 0;
+  const fixKey = k => (typeof k === 'string' && k.indexOf('M|' + oldN + '|') === 0) ? 'M|' + newN + '|' + k.slice(('M|' + oldN + '|').length) : k;
+  Object.keys(adKwData || {}).forEach(d => (adKwData[d] || []).forEach(r => { if (String(r.campaign || '').trim() === oldN) { r.campaign = newN; n++; } }));
+  const fixP = list => (list || []).forEach(r => { if (String(r.c || '').trim() === oldN) { r.c = newN; n++; } });
+  Object.keys((purchData && purchData.day) || {}).forEach(d => fixP(purchData.day[d]));
+  Object.keys((purchData && purchData.month) || {}).forEach(k => fixP(purchData.month[k]));
+  Object.keys(adCampData || {}).forEach(d => (Array.isArray(adCampData[d]) ? adCampData[d] : []).forEach(x => { if (String(x.name || '').trim() === oldN) { x.name = newN; n++; } }));
+  const moveKeys = (obj) => { let ch = false; Object.keys(obj || {}).forEach(k => { const k2 = fixKey(k); if (k2 !== k) { if (!(k2 in obj)) obj[k2] = obj[k]; delete obj[k]; ch = true; } }); return ch; };
+  const wCh = moveKeys(kwWatch), bCh = moveKeys(kwBidHist);
+  let uCh = false, pCh = false;
+  if (campUrls && campUrls[oldN] != null) { if (campUrls[newN] == null) campUrls[newN] = campUrls[oldN]; delete campUrls[oldN]; uCh = true; }
+  if (campPanels && campPanels[oldN] != null) { if (campPanels[newN] == null) campPanels[newN] = campPanels[oldN]; delete campPanels[oldN]; pCh = true; }
+  try { if (kwCamp === oldN) kwCamp = newN; } catch (e) {}
+  try { if (kwaCamp === oldN) kwaCamp = newN; } catch (e) {}
+  try { if (kwmmCamp === oldN) kwmmCamp = newN; } catch (e) {}
+  c.aliases = Array.from(new Set((c.aliases || []).concat([oldN]))).filter(a => a !== newN);
+  if (n) { saveAdKwData(); savePurchData(); saveAdCampData(); }
+  if (wCh) saveKwWatch(); if (bCh) saveBidHist(); if (uCh) saveCampUrls(); if (pCh) saveCampPanels();
+  try { _cmpCache = {}; } catch (e) {} try { _graphMetricCache = {}; } catch (e) {}
+  toast('キャンペーン名を「' + newN + '」に変えました' + (n || wCh || uCh || pCh ? '（取り込んだデータ・注視・URL などの古い名前もそろえました）' : ''));
+}
 function startEditCampaignName(id, span){
   const c = adCampaigns.find(x => x.id === id);
   if (!c) return;
@@ -11652,12 +11719,17 @@ function startEditCampaignName(id, span){
   input.className = 'camp-name-input';
   input.value = c.name || '';
   const commit = () => {
-    c.name = input.value.trim() || c.name;
+    if (input._done) return; input._done = true;
+    const oldN = String(c.name || '').trim(), newN = input.value.trim() || c.name;
+    if (String(newN).trim() !== oldN) { const cf = campNameConflict(newN, c.id);   // v5.05：すでにある名前に変えるときも確かめる
+      if (cf && !confirm(campConflictText(String(newN).trim(), cf) + '\n\nこの名前に変えますか？')) { renderCampaignList(); return; } }
+    c.name = newN;
+    if (oldN && newN && oldN !== String(newN).trim()) campRenameEverywhere(c, oldN, String(newN).trim());   // v5.04：ほかの画面・取り込んだデータの名前もそろえる
     saveCampaigns();
     renderCampaignList();
   };
   input.addEventListener('blur', commit);
-  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') renderCampaignList(); });
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') input.blur(); if (e.key === 'Escape') { input._done = true; renderCampaignList(); } });
   span.replaceWith(input);
   input.focus();
   input.select();
@@ -12836,7 +12908,7 @@ function kwRefreshWatchViews(){
 }
 // 表の行の共通の動き：注視のチェック・商品画像・行のクリック
 function kwBindRows(root, keysFn){
-  root.querySelectorAll('input.kww-chk').forEach(c => { c.addEventListener('click', e => e.stopPropagation()); c.addEventListener('change', () => kwWatchSet(c.dataset.wkey, c.checked)); });
+  root.querySelectorAll('input.kww-chk').forEach(c => { c.addEventListener('click', e => e.stopPropagation()); c.addEventListener('change', () => { kwWatchSet(c.dataset.wkey, c.checked); if (kwaCand && root.closest && root.closest('#kwall-view')) setTimeout(() => { try { renderKwAllView(); } catch (e) {} }, 350); }); });   // v5.03：注視候補だけのときは、注視に入れた行を消す（件数も）
   root.querySelectorAll('td.kwa-prod[data-fnsku] .kwa-img').forEach(im => im.addEventListener('click', e => { e.stopPropagation(); const f = im.closest('td').dataset.fnsku; if (f) openProductModal(f, 'info'); }));
   root.querySelectorAll('tr.kwa-row').forEach(tr => tr.addEventListener('click', e => {
     if (e.target.closest('input, button, select, a, textarea, .kwa-img')) return;
@@ -12886,7 +12958,7 @@ function renderKwAllView(){
   const camps = Array.from(new Set(base.map(x => String(x.e.campaign || '')))).filter(Boolean).sort((a, b) => a.localeCompare(b, 'ja'));
   if (kwaCamp && camps.indexOf(kwaCamp) < 0) kwaCamp = '';
   if (kwaCamp) base = base.filter(x => x.e.campaign === kwaCamp);
-  const candSet = new Set(base.filter(x => x.t.cost > 0).sort((a, b) => b.t.cost - a.t.cost).slice(0, KWA_CAND_N).filter(x => x.t.roas < KWA_CAND_ROAS).map(x => x.e.key));
+  const candSet = new Set(base.filter(x => x.t.cost > 0).sort((a, b) => b.t.cost - a.t.cost).slice(0, KWA_CAND_N).filter(x => x.t.roas < KWA_CAND_ROAS && !kwIsWatched(x.e.key)).map(x => x.e.key));   // v5.03：すでに注視に入れているKWは候補に出さない
   let list = base;
   const q = kwaQ.trim().toLowerCase();
   if (q) list = list.filter(x => String(x.e.target || '').toLowerCase().indexOf(q) > -1);   // v4.00：検索は KW・ASINターゲットだけ（商品名・キャンペーン名では探さない）
@@ -12905,7 +12977,7 @@ function renderKwAllView(){
     + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwaCamp ? ' selected' : '') + '>' + escapeHtml(c) + ((act && act.set.size && !act.set.has(String(c).trim())) ? '（停止中）' : '') + '</option>').join('') + '</select></div>'   // v4.01
     + '<span class="kwa-sep"></span>'
     + '<div class="kwa-grp">'
-    + chip('kwa-cand', kwaCand, '注視候補だけ<em>' + candSet.size + '</em>', 'この期間で、広告費が上位' + KWA_CAND_N + '位以内 かつ ROAS ' + Math.round(KWA_CAND_ROAS * 100) + '%未満のKW（インパクトが大きくて効率が悪いもの）', 'cand')
+    + chip('kwa-cand', kwaCand, '注視候補だけ<em>' + candSet.size + '</em>', 'この期間で、広告費が上位' + KWA_CAND_N + '位以内 かつ ROAS ' + Math.round(KWA_CAND_ROAS * 100) + '%未満のKW（インパクトが大きくて効率が悪いもの）。すでに注視に入れているKWは出しません', 'cand')
     + chip('kwa-stop', kwaStop, '停止中も出す', '止まっているKWも表に出します')
     + chip('kwa-zero', kwaZero, '表示0も出す', 'この期間に表示も広告費も0のKWも表に出します')
     + '</div>'
