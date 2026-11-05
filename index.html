@@ -2647,7 +2647,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.98</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.99</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -16392,7 +16392,7 @@ function graphBuildModel(){
   // v3.23：「売上・利益」は SEO売上（下）＋広告売上（上）の積み上げ棒＝総売上。月は横に並べる（年重ねにしない）
   const barMode = graphCategory === 'sales';
   const showSeo = barMode && !graphHiddenItems.has('seoActual'), showAd = barMode && !graphHiddenItems.has('adSalesActual');
-  const lineItems = barMode ? visItems.filter(it => it.key !== 'seoActual' && it.key !== 'adSalesActual' && !(it.key === 'salesActual' && showSeo && showAd)) : visItems;
+  const lineItems = barMode ? visItems.filter(it => it.key !== 'seoActual' && it.key !== 'adSalesActual') : visItems;   // v4.99：総売上は棒があっても折れ線で出す（棒の上の端を結ぶ線。前は棒＝総売上として線を出していなかった）
   let chart = {
     labels, keys: rows.map(r => r.key), years: null,
     datasets: lineItems.map(it => ({ label: it.label, seriesLabel: it.label, color: it.color, data: rows.map(r => val(r, it.key)), meta, dash: (ccItemDash(it) || []).slice(), width: 3, rec: 0, y2: !!it.y2 })),
@@ -16674,7 +16674,7 @@ function renderGraphView(){
   if (!daily) {
     h += '<span class="graph-lbl">表示</span>'
       + (graphCategory === 'sales'   // v3.23：売上・利益は棒なので年重ねはしない（月を横に並べる）
-        ? seg('graph-fy', 'alt', [['jan', '選んだ期間', '上で選んだ期間の月を横一列で表示'], ['2y', '2年', '直近24か月を横一列で表示']], graphView2y ? '2y' : 'jan') + '<span class="graph-note">棒＝SEO売上（下）＋広告売上（上）＝総売上</span>'
+        ? seg('graph-fy', 'alt', [['jan', '選んだ期間', '上で選んだ期間の月を横一列で表示'], ['2y', '2年', '直近24か月を横一列で表示']], graphView2y ? '2y' : 'jan') + '<span class="graph-note">棒＝SEO売上（下）＋広告売上（上）、青い線＝総売上</span>'
         : seg('graph-fy', 'alt', [['jan', '1月始まり', '1〜12月の軸に年ごとの線を重ねる'], ['may', '5月始まり', '5〜4月の軸に年度ごとの線を重ねる'], ['2y', '2年', '直近24か月を横一列で表示']], graphView2y ? '2y' : graphPeriodStart));
   } else {
     h += '<span class="graph-lbl">期間</span>'
