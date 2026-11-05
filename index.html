@@ -2647,7 +2647,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.99</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.01</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -5384,7 +5384,7 @@ function renderDailyTable(){
   html += '<th>ASIN</th><th>FNSKU</th><th>画像</th><th>商品名</th>';
   for (let d = 1; d <= days; d++) {
     const saleCls = saleInfo[d] ? ' sale-day' : '';
-    html += '<th class="day day-clickable' + saleCls + '" data-day="' + d + '" title="クリックで' + d + '日の出荷数を入力" onclick="openInputForDay(' + d + ')">' + d + '</th>';
+    html += '<th class="day' + saleCls + '" data-day="' + d + '">' + d + '</th>';   // v5.01：日のクリックでの取り込みは廃止（レポート追加から）
   }
   html += '<th class="total">合計</th></tr></thead><tbody>';
 
@@ -10004,6 +10004,8 @@ function adYoyOrder(rows){
   const byMonth = {};
   valid.forEach(r => { const m = +r.ym.slice(5, 7); (byMonth[m] || (byMonth[m] = [])).push(r); });
   Object.keys(byMonth).forEach(k => byMonth[k].sort((a, b) => b.ym.localeCompare(a.ym)));
+  // v5.00：前年同月比・前年同月比差異は「今年と前年」の2年だけ（各月の新しい方と、その12か月前）
+  Object.keys(byMonth).forEach(k => { const g = byMonth[k]; byMonth[k] = (g.length >= 2 && g[1].ym === ymAddMonths(g[0].ym, -12)) ? g.slice(0, 2) : g.slice(0, 1); });
   const months = Object.keys(byMonth).map(Number).sort((a, b) => ((lm - a + 12) % 12) - ((lm - b + 12) % 12));
   const out = [];
   months.forEach((m, gi) => byMonth[m].forEach((r, ri) => { r._grpTop = (ri === 0 && gi > 0); out.push(r); }));
@@ -10566,7 +10568,7 @@ function renderAdTableCore(){
         + '<td class="' + cls + (has ? tierClass(idC, cost) : '') + '">' + (has ? yen0(cost) : '') + shHtml('C', pk, cost) + '</td>'
         + rcell(sales, cost, cls, idR);
     };
-    const dayClickable = (adPeriod === 'daily') && !isAdMonthClosed(adMonth);
+    const dayClickable = false;   // v5.01：日のクリックで広告データを追加する機能は廃止（レポート追加から）
     const dayCls = 'ad-daycol' + (r.sale ? ' ad-sale' : '') + (dayClickable ? ' ad-day-clickable' : '') + (dayCut ? ' ad-daycut' : '');
     const saleLabel = (r.saleNames && r.saleNames.length) ? ('🏷 セール：' + r.saleNames.join(' / ')) : 'セール期間';
     const saleTip = r.sale ? (saleLabel + (dayClickable ? '｜クリックで広告データを追加' : '')) : '';
@@ -15678,9 +15680,7 @@ function renderPlView(){
     const fbaCell = '<td class="pl-c-warm' + tc(d, 'fba') + '">' + (d.editable ? (d.fbaEntered ? plYen(d.fba) : NA) : plYen(d.fba)) + '</td>';
     // 販売手数料：表示のみ（トランザクションレポート（A）の取込で設定）
     const sfeeCell = '<td class="pl-c-warm' + tc(d, 'sfee') + '">' + (d.editable ? (d.sfeeEntered ? plYen(d.sfee) : NA) : plYen(d.sfee || 0)) + '</td>';
-    const periodCell = d.editable
-      ? '<td class="pl-period" data-ym="' + d.ym + '" tabindex="0" title="クリックでこの月のデータを追加">' + d.label + '</td>'
-      : '<td>' + d.label + '</td>';
+    const periodCell = '<td>' + d.label + '</td>';   // v5.01：月のクリックでの取り込みは廃止（レポート追加から）
     h += '<tr>'
       + periodCell
       + salesCell
