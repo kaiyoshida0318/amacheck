@@ -965,7 +965,8 @@
   .ad-cl-badges span { display: block; color: #fff; font-size: 9.5px; font-weight: 700; padding: 0 4px; border-radius: 3px; min-width: 0; max-width: 100%; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; line-height: 14px; }
   .ad-cl-badges em { font-style: normal; font-size: 9px; font-weight: 700; color: var(--text-tertiary); white-space: nowrap; flex-shrink: 0; }
   table.ad-table tr.ad-cl-top td.ad-daycol { padding-top: 3px; padding-bottom: 3px; }
-  table.ad-table td.ad-daycol .ad-cl-badges { justify-content: center; }
+  table.ad-table td.ad-daycol .ad-cl-badges { justify-content: flex-start; }   /* v4.98：🔒と札は左端から（🔒が縦一直線になるように） */
+  table.ad-table tr.ad-cl-top td.ad-daycol .ad-cl-badges { margin-left: -2px; }   /* 変更記録の行は左に点線の枠（2px）がある分だけ戻す */
   table.ad-table.ad-cl-daily col.col-day { width: 66px; }   /* v4.96 */
   table.ad-table.ad-cl-daily td.ad-daycol { padding-left: 4px; padding-right: 4px; }
   /* v4.86：全-月日別グラフの表：変更記録の行を点線で囲む */
@@ -2646,7 +2647,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v4.97</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v4.98</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
