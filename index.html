@@ -2653,7 +2653,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.09</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.10</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -4188,6 +4188,7 @@ async function bootstrap(){
   campUrls = await load(STORAGE_CAMPURL, null);
   if (!campUrls || typeof campUrls !== 'object' || Array.isArray(campUrls)) { campUrls = Object.assign({}, CAMP_URL_DEFAULTS); saveCampUrls(); }
   else { let ch = false; Object.keys(CAMP_URL_OLD).forEach(n => { if (campUrls[n] === CAMP_URL_OLD[n]) { campUrls[n] = CAMP_URL_DEFAULTS[n]; ch = true; } }); if (ch) saveCampUrls(); }
+  try { campAliasSweep(); } catch (e) { console.warn('campAliasSweep', e); }   // v5.10：以前の名前のままのデータを今の名前にそろえる
   init();
   if (_adFix.days) setTimeout(() => toast('一時停止などのキャンペーンの広告データを ' + _adFix.days + '日分 合計に追加しました（確定済みの月は、確定を解除して確定し直すと反映されます）'), 800);
   kvRemember();   // v4.89：このタブが読み込んだ時点の保存回数（これより後に別のタブで保存されたら古い扱い）
@@ -11726,7 +11727,8 @@ function campAliasMap(){
   const m = {}; (adCampaigns || []).forEach(c => (c.aliases || []).forEach(a => { const k = String(a || '').trim(); if (k && k !== String(c.name || '').trim()) m[k] = String(c.name || '').trim(); }));
   return m;
 }
-function campRenameEverywhere(c, oldN, newN){
+// v5.10：取り込んだデータ・設定の中の古い名前を新しい名前に置き換える部分だけ（名前の変更と、起動時のそろえ直しで使う）
+function campRenameData(oldN, newN){
   let n = 0;
   const fixKey = k => (typeof k === 'string' && k.indexOf('M|' + oldN + '|') === 0) ? 'M|' + newN + '|' + k.slice(('M|' + oldN + '|').length) : k;
   Object.keys(adKwData || {}).forEach(d => (adKwData[d] || []).forEach(r => { if (String(r.campaign || '').trim() === oldN) { r.campaign = newN; n++; } }));
@@ -11742,11 +11744,31 @@ function campRenameEverywhere(c, oldN, newN){
   try { if (kwCamp === oldN) kwCamp = newN; } catch (e) {}
   try { if (kwaCamp === oldN) kwaCamp = newN; } catch (e) {}
   try { if (kwmmCamp === oldN) kwmmCamp = newN; } catch (e) {}
-  c.aliases = Array.from(new Set((c.aliases || []).concat([oldN]))).filter(a => a !== newN);
   if (n) { saveAdKwData(); savePurchData(); saveAdCampData(); }
   if (wCh) saveKwWatch(); if (bCh) saveBidHist(); if (uCh) saveCampUrls(); if (pCh) saveCampPanels();
-  try { _cmpCache = {}; } catch (e) {} try { _graphMetricCache = {}; } catch (e) {}
-  toast('キャンペーン名を「' + newN + '」に変えました' + (n || wCh || uCh || pCh ? '（取り込んだデータ・注視・URL などの古い名前もそろえました）' : ''));
+  if (n || wCh || bCh || uCh || pCh) campNameCachesReset();
+  return { n, any: !!(n || wCh || bCh || uCh || pCh) };
+}
+// v5.10：名前を覚えている一時データを捨てる（KW-全体データ・注視などの KW の索引 kwIndex は件数と金額が同じだと作り直さないので、名前を変えても古い名前のままドロップダウンに出ていた）
+function campNameCachesReset(){
+  try { _kwIdx = null; _kwIdxSig = ''; } catch (e) {}
+  try { _cmpCache = {}; } catch (e) {} try { _graphMetricCache = {}; } catch (e) {} try { _adSeoCache = {}; } catch (e) {}
+  try { graphResetCache(); } catch (e) {}
+}
+// v5.10：起動時に、以前の名前（aliases）のままのデータがあれば今の名前にそろえる（バックアップの復元・別の PC からの同期などで古い名前が戻ってきたとき）
+//        今どれかのキャンペーンが使っている名前は、別のキャンペーンの以前の名前でも置き換えない
+function campAliasSweep(){
+  const cur = new Set((adCampaigns || []).map(c => String(c.name || '').trim()).filter(Boolean));
+  let n = 0;
+  (adCampaigns || []).forEach(c => { const nm = String(c.name || '').trim(); if (!nm) return;
+    (c.aliases || []).forEach(a => { const k = String(a || '').trim(); if (!k || k === nm || cur.has(k)) return; n += campRenameData(k, nm).any ? 1 : 0; }); });
+  return n;
+}
+function campRenameEverywhere(c, oldN, newN){
+  const r = campRenameData(oldN, newN);
+  c.aliases = Array.from(new Set((c.aliases || []).concat([oldN]))).filter(a => a !== newN);
+  campNameCachesReset();
+  toast('キャンペーン名を「' + newN + '」に変えました' + (r.any ? '（取り込んだデータ・注視・URL などの古い名前もそろえました）' : ''));
 }
 function startEditCampaignName(id, span){
   const c = adCampaigns.find(x => x.id === id);
