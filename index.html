@@ -507,6 +507,7 @@
   .ad-fsz-l { padding: 0 6px 0 8px; color: #64748b; }
   .ad-fsz button { font-family: inherit; font-size: 12px; font-weight: 700; border: none; border-left: 1px solid #e5e7eb; background: #fff; color: #334155; padding: 4px 7px; cursor: pointer; line-height: 1.3; }
   .ad-fsz button:hover { background: #f1f5f9; }
+  .ad-fsz button:disabled { color: #cbd5e1; cursor: not-allowed; background: #fff; }   /* v5.09：A＋の上限 */
   .ad-fsz .ad-fsz-v { min-width: 44px; color: #0f766e; }
   .ad-fsz.man .ad-fsz-v { background: #0f766e; color: #fff; }
   #ad-view .toolbar .ad-cl-grp .ad-tg { border-top-right-radius: 0; border-bottom-right-radius: 0; padding-right: 8px; }
@@ -2652,7 +2653,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.08</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.09</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -2909,7 +2910,7 @@
         <button type="button" class="ad-tg" id="ad-sw-pct" data-sw="pct"></button>
         <span class="ad-cl-grp" id="ad-cl-grp"><button type="button" class="ad-tg" id="ad-sw-cl" data-sw="cl"></button><button type="button" class="ad-cl-pen" id="ad-cl-edit" title="変更記録（ショップ全体）を追加・編集"><svg class="icn"><use href="#i-pencil"/></svg></button></span><!-- v4.74：変更記録編集は 変更記録 の右のペンに統合 -->
       </span>
-      <span class="ad-fsz" id="ad-fsz" hidden title="表の数字の大きさ（全-月別データの詳細表示だけ。自動＝いちばん窮屈なセルにちょうど入る大きさ）"><span class="ad-fsz-l">数字</span><button type="button" data-fsz="-1" title="数字を小さく">A−</button><button type="button" class="ad-fsz-v" id="ad-fsz-v" data-fsz="0" title="押すと自動に戻す">自動</button><button type="button" data-fsz="1" title="数字を大きく（入りきらない数字だけは自動で小さくなります）">A＋</button></span><!-- v4.75 -->
+      <span class="ad-fsz" id="ad-fsz" hidden title="表の数字の大きさ（全-月別データの詳細表示だけ。自動＝いちばん窮屈なセルにちょうど入る大きさ）"><span class="ad-fsz-l">数字</span><button type="button" data-fsz="-1" title="数字を小さく">A−</button><button type="button" class="ad-fsz-v" id="ad-fsz-v" data-fsz="0" title="押すと自動に戻す">自動</button><button type="button" data-fsz="1" title="数字を大きく（全部の数字を同じ大きさのまま。列の幅を配り直します）">A＋</button></span><!-- v4.75 -->
       <div class="spacer"></div>
       <span class="ad-legend" title="列ごとに、表に出ている行の中での順位で色を付けています。広告費の列は安いほど青（上位）">配色:
         <span class="lg-hi10">上位10%</span>
@@ -10262,16 +10263,17 @@ function adApplyGroupHide(body){
 }
 // v4.71：DM Mono（等幅）にしたので、列からはみ出す数字のセルだけ字を小さく。字の読み込みが終わってからもう一度測る
 let adNumFs = (() => { try { const v = parseFloat(localStorage.getItem('amacheck_ad_numfs')); return v >= 8 && v <= 20 ? v : null; } catch (e) { return null; } })();   // v4.75：null＝自動
-let _adAutoFs = 14, _adAutoFs0 = {};   // v4.95：_adAutoFs0＝隠していないときの自動の大きさ（並びごと）
+let _adAutoFs = 14, _adAutoFs0 = {}, _adFsMax = 20, _adFsEff = null;   // v5.09：_adFsMax＝列の幅を配り直して全部入るいちばん大きい大きさ／_adFsEff＝いま実際に出している大きさ   // v4.95：_adAutoFs0＝隠していないときの自動の大きさ（並びごと）
 function adFszPaint(){
   const box = document.getElementById('ad-fsz'); if (!box) return;
   box.hidden = !(adPeriod === 'monthly' && tblLayout === 'type');
   box.classList.toggle('man', adNumFs != null);
-  const v = document.getElementById('ad-fsz-v'); if (v) v.textContent = adNumFs != null ? (adNumFs.toFixed(1) + 'px') : '自動';
+  const v = document.getElementById('ad-fsz-v'); if (v) v.textContent = adNumFs != null ? ((_adFsEff != null ? _adFsEff : adNumFs).toFixed(1) + 'px') : '自動';
+  const up = box.querySelector('button[data-fsz="1"]'); if (up) { const atMax = (adNumFs != null ? (_adFsEff != null ? _adFsEff : adNumFs) : _adAutoFs) >= _adFsMax - 0.05; up.disabled = atMax; up.title = atMax ? 'これ以上大きくすると入りきらない数字が出るので、ここが上限です' : '数字を大きく（全部の数字を同じ大きさのまま。列の幅を配り直します）'; }   // v5.09
 }
 function adSetNumFs(d){
   if (d === 0) adNumFs = null;
-  else adNumFs = Math.max(9, Math.min(20, Math.round(((adNumFs != null ? adNumFs : _adAutoFs) + d * 0.1) * 10) / 10));   // v4.78：0.1px ずつ
+  else adNumFs = Math.max(9, Math.min(20, _adFsMax, Math.round(((adNumFs != null ? (_adFsEff != null ? _adFsEff : adNumFs) : _adAutoFs) + d * 0.1) * 10) / 10));   // v4.78：0.1px ずつ。v5.09：上限は列を配り直して全部入る大きさ
   try { if (adNumFs == null) localStorage.removeItem('amacheck_ad_numfs'); else localStorage.setItem('amacheck_ad_numfs', String(adNumFs)); } catch (e) {}
   adFitCells();
 }
@@ -10283,24 +10285,57 @@ function adFitCells(){
   tbl.querySelectorAll('tbody td.ad-fsx').forEach(td => { td.classList.remove('ad-fsx'); td.style.removeProperty('font-size'); });
   try { adFszPaint(); } catch (e) {}
   // v4.73：全-月別データの広告別で表示は、数字を一律の大きさに。いちばん窮屈なセルがちょうど入る大きさ（セルいっぱい）にする
+  // v5.09：A＋で自動より大きくしたときは、余白のある列（ROAS・SB など）から窮屈な列（売上など）へ幅を配り直して、全部の数字を同じ大きさのまま入れる
+  //        （以前は入りきらないセルだけ個別に小さくしていたので、大きさがばらばらになっていた）。どの列も「数字＋余白」と見出しの字が入る幅より細くしない。入りきらなくなる所が A＋ の上限
   if (adPeriod === 'monthly' && tblLayout === 'type') {
     const BASE = 14; tbl.style.setProperty('--ad-fs', BASE + 'px'); tbl.classList.add('ad-fsv');
+    const cols = Array.from(tbl.querySelectorAll('colgroup col'));
+    cols.forEach(c => { if (c.dataset.w0 == null) c.dataset.w0 = c.style.width || ''; c.style.width = c.dataset.w0; });   // 配り直す前の幅に戻してから測る
+    const cr = cols.map(c => c.getBoundingClientRect()), tw = tbl.getBoundingClientRect().width;
+    const colOf = el => { const r = el.getBoundingClientRect(), x = (r.left + r.right) / 2; return cr.findIndex(q => x >= q.left && x < q.right); };
+    const lineW = el => { let w = 0; Array.from(el.childNodes).forEach(n => { if (n.nodeType === 3 ? !n.textContent.trim() : n.nodeName !== 'SPAN') return; const r = document.createRange(); r.selectNodeContents(n); Array.from(r.getClientRects()).forEach(x => { w = Math.max(w, x.width); }); }); return w; };
+    const N = cols.length, Wn = new Array(N).fill(0), Pd = new Array(N).fill(0), Hd = new Array(N).fill(0);
+    const fixed = cols.map(c => /\bcol-(day|gstrip)\b/.test(c.className));
     let k = Infinity; const R = [];
     tbl.querySelectorAll('tbody tr:not(.ad-seo-row) td:not(.ad-daycol)').forEach(td => {
       if (td.colSpan > 1 || td.offsetParent === null) return;
-      let w = 0;
-      Array.from(td.childNodes).forEach(n => { if (n.nodeType === 3 ? !n.textContent.trim() : n.nodeName !== 'SPAN') return; const r = document.createRange(); r.selectNodeContents(n); Array.from(r.getClientRects()).forEach(x => { w = Math.max(w, x.width); }); });
-      if (!(w > 0)) return;
-      const cs = getComputedStyle(td), avail = td.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth) - 2;
-      k = Math.min(k, avail / w); R.push([td, avail / w]);
+      const w = lineW(td); if (!(w > 0)) return;
+      const cs = getComputedStyle(td), cw = td.getBoundingClientRect().width, avail = cw - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth) - 2;
+      k = Math.min(k, avail / w); R.push(td);
+      const j = colOf(td); if (j >= 0) { Wn[j] = Math.max(Wn[j], w); Pd[j] = Math.max(Pd[j], cw - avail); }
+    });
+    if (tbl.tHead) tbl.tHead.querySelectorAll('th').forEach(th => {   // 見出し（広告売上・広告費・ROAS…）の字が入る幅より細くしない
+      if (th.colSpan > 1) return; const j = colOf(th); if (j < 0) return;
+      let w = 0; const r = document.createRange(); r.selectNodeContents(th); Array.from(r.getClientRects()).forEach(x => { w = Math.max(w, x.width); });
+      const cs = getComputedStyle(th); Hd[j] = Math.max(Hd[j], w + parseFloat(cs.paddingLeft) + parseFloat(cs.paddingRight) + 2);
     });
     _adAutoFs = (isFinite(k) && k > 0) ? Math.max(9, Math.min(20, Math.floor(BASE * k * 10) / 10)) : BASE;   // v4.78：0.1px 刻み
     if (_adHideScale > 1) { const base0 = _adAutoFs0[tblLayout] || (BASE * k / _adHideScale); _adAutoFs = Math.max(9, Math.min(_adAutoFs, Math.floor(base0 * _adHideK * 10) / 10)); }   // v4.95：隠したときは、隠す前の大きさの少しだけ大きい所まで
     else _adAutoFs0[tblLayout] = _adAutoFs;
-    const fs = adNumFs != null ? adNumFs : _adAutoFs;
+    // 配り直したときに入る、いちばん大きい数字の大きさ（_adFsMax）
+    const vj = cols.map((c, j) => j).filter(j => !fixed[j]);
+    const T = vj.reduce((a, j) => a + cr[j].width, 0);
+    const need = (j, f) => Wn[j] > 0 ? Math.max(Wn[j] * f / BASE + Pd[j] + 1, Hd[j]) : Math.max(cr[j].width, Hd[j]);
+    const sumNeed = f => vj.reduce((a, j) => a + need(j, f), 0);
+    let fmax = _adAutoFs; for (let f = 20; f > _adAutoFs; f = Math.round((f - 0.1) * 10) / 10) { if (sumNeed(f) <= T) { fmax = f; break; } }
+    _adFsMax = Math.max(_adAutoFs, fmax);
+    let fs = adNumFs != null ? Math.min(adNumFs, _adFsMax) : _adAutoFs;
+    const spread = f => {   // 数字＋余白の幅を先に取り、残りは元の幅の割合で配る
+      const left = Math.max(0, T - sumNeed(f));
+      vj.forEach(j => { cols[j].style.width = ((need(j, f) + left * cr[j].width / T) / tw * 100).toFixed(3) + '%'; });
+    };
+    if (fs > _adAutoFs + 0.001 && T > 0) {
+      for (let t = 0; t < 4; t++) {   // 念のため：配り直したあと入りきらないセルがあれば、全部そろって 0.1px ずつ小さく
+        spread(fs); tbl.style.setProperty('--ad-fs', fs + 'px');
+        let m = Infinity; R.forEach(td => { const w = lineW(td); if (!(w > 0)) return; const cs = getComputedStyle(td); const av = td.getBoundingClientRect().width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight) - parseFloat(cs.borderLeftWidth) - parseFloat(cs.borderRightWidth) - 2; m = Math.min(m, av / w); });
+        if (!(m < 1)) break;
+        const f2 = Math.max(_adAutoFs, Math.floor(fs * m * 10) / 10); if (f2 >= fs) { fs = Math.round((fs - 0.1) * 10) / 10; } else fs = f2;
+        _adFsMax = Math.min(_adFsMax, fs);
+        if (fs <= _adAutoFs + 0.001) { cols.forEach(c => { c.style.width = c.dataset.w0; }); fs = _adAutoFs; break; }
+      }
+    }
+    _adFsEff = fs;
     tbl.style.setProperty('--ad-fs', fs + 'px');
-    // 手で大きくしたとき：入りきらない数字のセルだけ、ちょうど入る大きさに
-    if (adNumFs != null) R.forEach(([td, r]) => { const f = Math.floor(BASE * r * 10) / 10; if (f < fs) { td.classList.add('ad-fsx'); td.style.fontSize = Math.max(8, f) + 'px'; } });
     try { adFszPaint(); } catch (e) {}
     return;
   }
