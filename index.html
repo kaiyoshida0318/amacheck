@@ -925,9 +925,10 @@
     border-radius: 6px;
     transition: all 0.15s;
   }
-  .period-btn.active {
-    background: #fff;
-    color: var(--black);
+  .period-btn.active {   /* v5.08：白だと選択中が分かりにくいので、ほかの切り替え（.graph-seg）と同じ緑の地＋白い字に */
+    background: var(--accent);
+    color: #fff;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.15);
   }
   .period-btn:hover:not(.active) { color: var(--black); }
   /* 全-月別データ：月全体／月途中 のペアボタン（2つをくっつけたセグメント型・選択は緑） */
@@ -2651,7 +2652,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.07</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.08</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
