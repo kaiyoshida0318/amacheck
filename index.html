@@ -2212,6 +2212,8 @@
   .kwm-body.nochart { display: flex; flex-direction: column; }
   .kwm-body.nochart .kwm-tblwrap { flex: 1 1 auto; max-height: none; min-height: 0; }
   .kwm-ctrl { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+  .kwm-ctrl.kwm-ctrl-fix { flex-shrink: 0; padding: 14px 30px 12px; border-bottom: 1px solid #eef0f3; background: #fff; }   /* v5.11：スクロールの外で上に固定 */
+  .kwm-ctrl-fix + .kwm-body { padding-top: 14px; }
   .kwm-seg { display: inline-flex; gap: 6px; }
   .kwm-seg button { font-size: 15px; padding: 8px 20px; border-radius: 6px; border: 1px solid var(--border); background: var(--bg-secondary); color: var(--text-secondary); cursor: pointer; font-family: inherit; font-weight: 600; }
   .kwm-seg button.on { background: var(--purple); border-color: var(--purple); color: #fff; }
@@ -2653,7 +2655,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.10</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.11</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -8429,8 +8431,8 @@ function renderKwModal(){
     h += '<div class="kwm-memo"><span class="kwm-memo-l">📝 メモ' + (w.at ? '<em>' + escapeHtml(String(w.at).replace(/-/g, '/')) + '〜注視</em>' : '') + '</span>'
       + '<textarea id="kwm-memo-ta" rows="1" placeholder="例：10/20 入札を¥92→¥56に下げた。1週間後にROASを確認">' + escapeHtml(w.memo || '') + '</textarea><span class="kwm-memo-st" id="kwm-memo-st"></span></div>';
   }
-  h += '<div class="kwm-body' + (kwm.hideChart ? ' nochart' : '') + '">';
-  h += '<div class="kwm-ctrl">' + seg('kwm-period', [['daily', '日別'], ['monthly', '月別']], kwm.period);
+  // v5.11：操作の行（日別／月別・月・期間・指標）はスクロールの外に出して、上に固定（スクロールするのはその下＝.kwm-body だけ）
+  h += '<div class="kwm-ctrl kwm-ctrl-fix">' + seg('kwm-period', [['daily', '日別'], ['monthly', '月別']], kwm.period);
   if (isDaily) {
     h += '<select class="kwm-select" id="kwm-month">' + dayMonths.map(m => '<option value="' + m + '"' + (m === kwm.month ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') + '</select>';
     h += seg('kwm-preset', [['30', '30日'], ['2month', '先月-今月'], ['thismonth', '今月']], kwm.preset);
@@ -8441,6 +8443,7 @@ function renderKwModal(){
     h += '<select class="kwm-select" id="kwm-metric"><optgroup label="組み合わせ（棒＋折れ線）">' + Object.keys(KWM_COMBOS).map(k => opt([k, KWM_COMBOS[k].label])).join('') + '</optgroup>'
       + '<optgroup label="1つだけ（月別は前年と重ねられる）">' + KWM_SINGLES.filter(([k]) => bidOk || k !== 'bid').map(opt).join('') + '</optgroup></select>'; }
   h += '</div>';
+  h += '<div class="kwm-body' + (kwm.hideChart ? ' nochart' : '') + '">';
   const _cmb = KWM_COMBOS[kwm.metric] || null, _bidAx = (_cmb && _cmb.bid) || null;   // v4.16
   const bidLineOn = !!_bidAx && bidOk && !kwm.hiddenSeries.has('bid');
   h += '<div class="kwm-note">※ ' + (bidLineOn ? '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の階段の線</span>＝入札額（' + (_bidAx === 'y1' ? 'CPC と同じ右の目盛り' : '右端の紫の目盛り') + '）。札は変えた' + (isDaily ? '日' : '月') + (changes.some(c => c.approx) ? '（<span style="color:#6b7280;font-weight:700;">灰色の札</span>＝目安：③の入札額は取得した時点の値のため、変えた日は正確でない）' : '') : '<span style="color:' + KWM_BID_COLOR + ';font-weight:700;">紫の縦線</span>＝入札額を変えた' + (isDaily ? '日' : '月')) + (isDaily ? '／<span style="color:#c2185b;font-weight:700;">ピンクの帯</span>＝セール期間' : '') + '　ROAS の色：<span class="kw-r-hi">300%以上</span>・<span class="kw-r-mid">200〜299%</span>・<span class="kw-r-lo">199%以下</span>' + (!isDaily && labels.length && labels[labels.length - 1] === (lastDs || '').slice(0, 7) && lastDs.slice(8, 10) !== String(daysInMonth(lastDs.slice(0, 7))).padStart(2, '0') ? '　／　' + lastDs.slice(0, 7).replace('-', '/') + ' は途中の月（' + (+lastDs.slice(8, 10)) + '日まで）' : '') + '</div>';
@@ -12825,7 +12828,7 @@ function pmKwWrap(h){
   });
   l += '</div>';
   // v4.39：KW の見出し（名前・注視中・ページを開く・入札額）とメモ欄は、商品名の行の右の空きへ（表を広く）
-  const bi = h.indexOf('<div class="kwm-body');
+  const bi = h.indexOf('<div class="kwm-ctrl');   // v5.11：操作の行は .kwm-body の外に出たので、そこから右の枠へ（上に固定）
   const top = bi > 0 ? h.slice(0, bi) : '', rest = bi > 0 ? h.slice(bi) : h;
   return pmTabsHtml('kw', 'pm-x-kw') + pmProdRowHtml(p) + (top ? '<div class="pm-kwtop">' + top + '</div>' : '') + '<div class="pm-kwwrap">' + l + '<div class="pm-kwmain">' + rest + '</div></div>';   // v4.41：商品名の行の下に1行（KWの見出し・メモ・入札額）
 }
