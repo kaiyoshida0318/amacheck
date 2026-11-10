@@ -2655,7 +2655,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.11</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.12</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -13152,7 +13152,24 @@ function kwwProdName(x){ return x.ps.length ? (x.ps[0].name || x.ps[0].asin || '
 
 // ---------------- 注視分-KW一覧 ----------------
 // v4.02：入札額＝最新、ほか＝選んだ月の合計（途中の月はデータの最新日まで）。並びは列の見出しを押して（初期＝注視チェック日の古い順）
-let kwwSortKey = 'at', kwwSortDir = 'asc', kwwMonth = '';
+let kwwSortKey = 'memo', kwwSortDir = 'asc', kwwMonth = '';   // v5.12：最初はメモの先頭の日付の古い順（以前は注視チェック日の古い順）
+// v5.12：メモの先頭に書いた日付を数（yyyymmdd）にする。読めないときは null（並べると一番下）
+//   1109・11/09・11/9・11-09・11月9日・2026/11/09・2026-11-09・20261109（先頭の【（[ や空白は飛ばす。「1109-1108に…」は最初の 1109＝11/9）
+//   年が無いときは今年。今日より8日以上先になるときは前の年
+function kwwMemoDate(memo){
+  const t = String(memo || '').replace(/^[\s　【（(\[「]+/, '');
+  const ok = (y, m, d) => (m >= 1 && m <= 12 && d >= 1 && new Date(y, m - 1, d).getDate() === d) ? y * 10000 + m * 100 + d : null;   // 2/30 などは読まない
+  let m;
+  if ((m = t.match(/^(\d{4})[\/\-.年](\d{1,2})[\/\-.月](\d{1,2})/))) return ok(+m[1], +m[2], +m[3]);
+  if ((m = t.match(/^(20\d{2})(\d{2})(\d{2})(?!\d)/))) return ok(+m[1], +m[2], +m[3]);
+  let md = null;
+  if ((m = t.match(/^(\d{1,2})[\/\-.月](\d{1,2})(?!\d)/))) md = [+m[1], +m[2]];
+  else if ((m = t.match(/^(\d{2})(\d{2})(?!\d)/))) md = [+m[1], +m[2]];
+  if (!md) return null;
+  const now = new Date(), y0 = now.getFullYear(), lim = new Date(y0, now.getMonth(), now.getDate() + 7);
+  let y = y0; if (new Date(y, md[0] - 1, md[1]) > lim) y--;
+  return ok(y, md[0], md[1]);
+}
 const KWW_COLS = [['cost', '広告費', 'yen'], ['sales', '売上', 'yen'], ['roas', 'ROAS', 'roas'], ['clicks', 'クリック', 'num'], ['cpc', 'CPC', 'yen'], ['imp', '表示', 'num'], ['cvr', 'CVR', 'pct']];
 function renderKwWatchView(){
   const body = document.getElementById('kwwatch-body'); if (!body) return;
@@ -13165,13 +13182,14 @@ function renderKwWatchView(){
   if (!kwwMonth || months.indexOf(kwwMonth) < 0) kwwMonth = months[0];
   const [mf, mt] = kwMonthRangeOf(kwwMonth);
   items.forEach(x => { x.T = (x.e && x.e.rows.some(r => r.ds >= mf && r.ds <= mt)) ? kwSum(x.e.rows, mf, mt) : null; });
-  const val = (x, k) => k === 'at' ? (x.w.at || '') : (k === 'bid' ? (x.e ? x.e.bidNow : null) : (k === 'name' ? kwwProdName(x) : (x.T ? x.T[k] : null)));
+  items.forEach(x => { x.md = kwwMemoDate(x.w.memo); });   // v5.12
+  const val = (x, k) => k === 'memo' ? x.md : k === 'at' ? (x.w.at || '') : (k === 'bid' ? (x.e ? x.e.bidNow : null) : (k === 'name' ? kwwProdName(x) : (x.T ? x.T[k] : null)));
   const dir = kwwSortDir === 'asc' ? 1 : -1;
   items.sort((a, b) => {
     const x = val(a, kwwSortKey), y = val(b, kwwSortKey);
     if (typeof x === 'string' || typeof y === 'string') return (String(x || '').localeCompare(String(y || ''), 'ja') * dir) || String(a.k).localeCompare(String(b.k), 'ja');
-    if (x == null && y == null) return 0; if (x == null) return 1; if (y == null) return -1;
-    return (x - y) * dir;
+    if (x == null && y == null) return String(a.w.at || '').localeCompare(String(b.w.at || '')) || String(a.k).localeCompare(String(b.k), 'ja'); if (x == null) return 1; if (y == null) return -1;
+    return ((x - y) * dir) || String(a.w.at || '').localeCompare(String(b.w.at || '')) || String(a.k).localeCompare(String(b.k), 'ja');   // v5.12：同じ日付は注視チェック日の古い順
   });
   const keys = items.map(x => x.k);
   const th = (k, l, cls) => '<th class="sortable' + (cls ? ' ' + cls : '') + (kwwSortKey === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwwSortKey === k ? (kwwSortDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
@@ -13180,7 +13198,7 @@ function renderKwWatchView(){
     + '<span class="kwa-flex"></span><span class="kwa-lbl">注視 ' + items.length + '件</span></div>';
   h += '<div class="table-wrap kw-wrap kwa-wrap kww-wrap"><table class="kw-table kwa-table kww-table"><thead><tr>' + th('name', '商品') + '<th>KW／ターゲット</th>'
     + th('bid', '入札額<span class="kwa-hs">最新</span>', 'num') + th('at', '注視<br>チェック日')
-    + KWW_COLS.map(([k, l]) => th(k, l, 'num')).join('') + '<th>メモ</th><th class="kww-xh">注視</th></tr></thead><tbody>';   // v4.04：外すの列の見出し
+    + KWW_COLS.map(([k, l]) => th(k, l, 'num')).join('') + th('memo', 'メモ<span class="kwa-hs">先頭の日付</span>', 'kww-memoh') + '<th class="kww-xh">注視</th></tr></thead><tbody>';   // v4.04：外すの列の見出し
   items.forEach(x => {
     const e = x.e;
     h += '<tr class="kw-row kwa-row kww-row' + (x.stopped ? ' kw-stopped' : '') + '" data-key="' + escapeHtml(x.k) + '">';
@@ -13207,7 +13225,7 @@ function renderKwWatchView(){
   body.querySelectorAll('.kww-table th.sortable').forEach(t => t.addEventListener('click', () => {
     const k = t.dataset.k;
     if (kwwSortKey === k) kwwSortDir = kwwSortDir === 'asc' ? 'desc' : 'asc';
-    else { kwwSortKey = k; kwwSortDir = (k === 'at' || k === 'name') ? 'asc' : 'desc'; }
+    else { kwwSortKey = k; kwwSortDir = (k === 'at' || k === 'name' || k === 'memo') ? 'asc' : 'desc'; }   // v5.12：メモ（先頭の日付）は最初は古い順
     renderKwWatchView();
   }));
   // メモ：乗せると全文、押すと書き直す画面
