@@ -46,6 +46,7 @@
     line-height: 1.6;
   }
   .container { max-width: 1400px; margin: 0 auto; padding: 20px 20px; }
+  body.view-mpl .container { max-width: 1880px; }   /* v5.17：月次収支-暫定は列が多いので広げる（横スクロールを出さない） */
 
   .logo {   /* v4.49：小さく／v4.51：小さすぎたので中間（高さ約50px。v4.48 まで約58px、v4.49 は36px） */
     background: var(--logo-color);
@@ -2704,7 +2705,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.15</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.17</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -4681,6 +4682,7 @@ function switchView(name, fromPop){
   document.getElementById('pl-view').hidden = (name !== 'pl');
   document.getElementById('returns-view').hidden = (name !== 'returns');
   document.getElementById('mpl-view').hidden = (name !== 'mpl');   // v5.13
+  document.body.classList.toggle('view-mpl', name === 'mpl');   // v5.17：ページの横幅を広げる
   if (name === 'graph') renderGraphView();
   if (name === 'trend') renderTrendView();
   if (name === 'compare') { renderCompareView(); try { _yoyPageLock(true); } catch (e) {} }
@@ -16541,7 +16543,7 @@ function mplSheet(D, g){
         c[colOf(k, 'spC')] = { v: x.spC, s: Y }; c[colOf(k, 'sbC')] = { v: x.sbC, s: Y };
         c[colOf(k, 'post')] = { f: cc('pre') + '-' + cc('spC') + '-' + cc('sbC'), v: it.profit * x.n - x.spC - x.sbC, s: Object.assign({}, Y, { b: 1 }) };
       });
-      rows.push({ h: Math.max(17, mplLines(s.items.length === 1 ? s.name : '', MPL_XW[0]) * 13.5 + 3, mplLines(it.info.v || '-', MPL_XW[1]) * 13.5 + 3), cells: c });   // v5.15：メイリオは行の高さを多めに使う myRows.push(rn); itemRows.push(rn);   // 折り返した行の数に合わせた高さ
+      rows.push({ h: Math.max(17, mplLines(s.items.length === 1 ? s.name : '', MPL_XW[0]) * 13.5 + 3, mplLines(it.info.v || '-', MPL_XW[1]) * 13.5 + 3), cells: c }); myRows.push(rn); itemRows.push(rn);   // 折り返した行の数に合わせた高さ（v5.15：メイリオは行の高さを多めに使う）。v5.16：v5.15 でここが注釈になり合計が 0 になっていたのを直した
     });
     if (s.items.length > 1) {
       merges.push('A' + first + ':A' + (first + s.items.length));
