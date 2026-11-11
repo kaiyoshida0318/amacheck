@@ -2705,7 +2705,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.17</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.18</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -2745,7 +2745,7 @@
       商品-出荷数データ
     </button>
     <button class="tab" data-tab="mpl" title="前々月と前月の商品ごとの収支（暫定）。広告費は売上比で分ける。グループごとにエクセル（A4横）を出力">
-      月次収支-暫定
+      商品-月次収支(暫定)
     </button>
     <span class="tab-group tab-group-gap tg-all">【全体】</span>
     <button class="tab" data-tab="ad">
@@ -16315,7 +16315,7 @@ function renderMplView(){
     if (!g.series.length) return;
     const all = []; g.series.forEach(s => s.items.forEach(it => all.push(it)));
     h += '<div class="mpl-gt">' + escapeHtml(g.name) + '<span class="mpl-gsub">' + all.length + '商品</span></div>';
-    h += '<table class="mpl-table"><thead><tr><th rowspan="2" class="mpl-s">商品</th><th rowspan="2" class="mpl-v">バリエーション</th><th rowspan="2">販価</th><th rowspan="2">原価</th><th rowspan="2">手数料</th><th rowspan="2">送料</th><th rowspan="2">利益額</th><th rowspan="2">利益率</th>'
+    h += '<table class="mpl-table"><colgroup>' + '<col>'.repeat(8 + MPL_MCOLS.length * 2) + '</colgroup><thead><tr><th rowspan="2" class="mpl-s">商品</th><th rowspan="2" class="mpl-v">バリエーション</th><th rowspan="2">販価</th><th rowspan="2">原価</th><th rowspan="2">手数料</th><th rowspan="2">送料</th><th rowspan="2">利益額</th><th rowspan="2">利益率</th>'
       + D.yms.map((ym, k) => '<th colspan="' + MPL_MCOLS.length + '" class="mpl-mh' + (k ? ' mpl-m2' : '') + '">' + mplYmLabel(ym) + '</th>').join('') + '</tr><tr>'
       + D.yms.map((ym, k) => MPL_MCOLS.map(([key, l], i) => '<th class="' + (MPL_SMALL[key] ? 'mpl-sm' : '') + (i === 0 ? ' mpl-mfirst' : '') + (key === 'post' ? ' mpl-post' : '') + '">' + l + '</th>').join('')).join('') + '</tr></thead><tbody>';
     const cells = (items, isSum) => D.yms.map((ym, k) => MPL_MCOLS.map(([key, , f], i) => {
@@ -16338,12 +16338,26 @@ function renderMplView(){
   });
   h += '</div>';
   body.innerHTML = h;
+  mplAlignCols();   // v5.18：グループの表どうしで列の幅をそろえる
   const sel = document.getElementById('mpl-month'); if (sel) sel.addEventListener('change', () => { mplMonth = sel.value; renderMplView(); });
   document.getElementById('mpl-edit').addEventListener('click', mplEditOpen);
   document.getElementById('mpl-xlsx').addEventListener('click', () => { try { mplExportXlsx(D); } catch (e) { console.error(e); alert('エクセルを作れませんでした。\n\n' + e.message); } });
   try { adjustHiddenTableHeight(); } catch (e) {}
 }
 window.renderMplView = renderMplView;
+// v5.18：グループごとの表は列の幅を自動で決めるので、表どうしでずれていた。全部の表で列ごとに一番広い幅を測って、その幅（固定）にそろえる
+function mplAlignCols(){
+  const ts = Array.from(document.querySelectorAll('#mpl-view table.mpl-table')); if (!ts.length) return;
+  ts.forEach(t => { t.style.tableLayout = ''; t.style.width = ''; t.querySelectorAll('col').forEach(c => { c.style.width = ''; }); });
+  const z = parseFloat((document.querySelector('.container') || {}).style.zoom) || 1;   // 測った幅は表示倍率込みなので割る
+  const n = ts[0].querySelectorAll('col').length, mx = new Array(n).fill(0);
+  ts.forEach(t => t.querySelectorAll('col').forEach((c, i) => { mx[i] = Math.max(mx[i], c.getBoundingClientRect().width / z); }));
+  if (!mx.some(w => w > 0)) return;
+  const tot = mx.reduce((a, w) => a + Math.ceil(w), 0);
+  ts.forEach(t => { t.querySelectorAll('col').forEach((c, i) => { c.style.width = Math.ceil(mx[i]) + 'px'; }); t.style.tableLayout = 'fixed'; t.style.width = tot + 'px'; });
+}
+let _mplRsT = 0;
+window.addEventListener('resize', () => { clearTimeout(_mplRsT); _mplRsT = setTimeout(() => { const v = document.getElementById('mpl-view'); if (v && !v.hidden) mplAlignCols(); }, 150); });
 
 // ---------- グループを編集 ----------
 function mplEditOpen(){
@@ -16351,7 +16365,7 @@ function mplEditOpen(){
   let bg = document.getElementById('mpl-edit-modal');
   if (!bg) {
     bg = document.createElement('div'); bg.id = 'mpl-edit-modal'; bg.className = 'mpl-ed-bg';
-    bg.innerHTML = '<div class="mpl-ed-box"><div class="mpl-ed-head"><b>月次収支-暫定：グループを編集</b><span class="spacer" style="flex:1"></span><button type="button" class="mpl-ed-x" title="閉じる">✕</button></div><div class="mpl-ed-body"></div></div>';
+    bg.innerHTML = '<div class="mpl-ed-box"><div class="mpl-ed-head"><b>商品-月次収支(暫定)：グループを編集</b><span class="spacer" style="flex:1"></span><button type="button" class="mpl-ed-x" title="閉じる">✕</button></div><div class="mpl-ed-body"></div></div>';
     document.body.appendChild(bg);
     bg.addEventListener('mousedown', e => { if (e.target === bg) mplEditClose(); });
     bg.querySelector('.mpl-ed-x').addEventListener('click', mplEditClose);
