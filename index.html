@@ -1854,6 +1854,55 @@
   .kww-memo-v:hover { border-color: #c4b5fd; background: #faf5ff; }
   .kww-memo-v.empty { color: var(--text-tertiary); }
   .ad-saletip-pop.kww-memo-tip { white-space: pre-wrap; max-width: 420px; font-size: 12.5px; line-height: 1.5; font-weight: 500; }
+  /* v5.13：月次収支-暫定 */
+  #mpl-view .mpl-tools { gap: 10px; flex-wrap: wrap; align-items: center; }
+  .mpl-lbl { font-size: 12px; font-weight: 600; color: var(--text-secondary); display: inline-flex; align-items: center; gap: 6px; }
+  .mpl-note { font-size: 11.5px; color: var(--text-tertiary); }
+  .mpl-src { font-size: 11.5px; color: var(--text-secondary); margin: 2px 0 6px; display: flex; gap: 18px; flex-wrap: wrap; }
+  .mpl-warn { color: #b45309; }
+  .mpl-chg { background: #fef08a; padding: 0 5px; border-radius: 3px; font-weight: 700; }
+  .mpl-scroll { overflow: auto; padding-bottom: 10px; }
+  .mpl-empty { padding: 30px; text-align: center; color: var(--text-tertiary); }
+  .mpl-gt { font-size: 15px; font-weight: 800; margin: 14px 0 6px; }
+  .mpl-gsub { font-size: 11px; font-weight: 600; color: var(--text-tertiary); margin-left: 8px; }
+  table.mpl-table { border-collapse: collapse; font-size: 11.5px; background: #fff; font-variant-numeric: tabular-nums; }
+  table.mpl-table th, table.mpl-table td { border: 1px solid #d1d5db; padding: 2px 5px; white-space: nowrap; }
+  table.mpl-table th { background: #f3f4f6; font-size: 11px; font-weight: 700; text-align: center; }
+  table.mpl-table th.mpl-mh { background: #e5e7eb; font-size: 12.5px; }
+  table.mpl-table th.mpl-m2 { background: #dbeafe; }
+  table.mpl-table td.num { text-align: right; font-family: 'DM Mono', monospace; }
+  table.mpl-table .mpl-sm { color: #6b7280; font-size: 10.5px; padding: 2px 3px; }
+  table.mpl-table .mpl-mfirst { border-left: 2px solid #9ca3af; }
+  table.mpl-table td.mpl-post { font-weight: 700; }
+  table.mpl-table td.mpl-neg { color: #dc2626; }
+  table.mpl-table td.mpl-s { font-weight: 700; vertical-align: middle; min-width: 104px; max-width: 190px; white-space: normal; }
+  table.mpl-table td.mpl-v { min-width: 118px; max-width: 220px; white-space: normal; }
+  table.mpl-table td.mpl-chgc { background: #fef08a; }
+  table.mpl-table tr.mpl-sum td { background: #f9fafb; font-weight: 600; }
+  table.mpl-table tr.mpl-total td { background: #dbeafe; font-weight: 800; }
+  .mpl-ed-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9500; display: flex; align-items: center; justify-content: center; }
+  .mpl-ed-bg[hidden] { display: none; }
+  .mpl-ed-box { background: #fff; border-radius: 12px; width: min(1040px, 94vw); max-height: 90vh; display: flex; flex-direction: column; box-shadow: 0 20px 50px rgba(0,0,0,0.25); }
+  .mpl-ed-head { display: flex; align-items: center; padding: 14px 18px; border-bottom: 1px solid var(--border); font-size: 15px; }
+  .mpl-ed-x { border: none; background: #f3f4f6; border-radius: 50%; width: 30px; height: 30px; cursor: pointer; }
+  .mpl-ed-body { padding: 10px 18px 18px; overflow: auto; }
+  .mpl-ed-sec { font-weight: 800; font-size: 13px; margin: 10px 0 6px; display: flex; align-items: center; gap: 12px; }
+  .mpl-ed-groups { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; }
+  .mpl-ed-g { display: inline-flex; gap: 3px; align-items: center; border: 1px solid var(--border); border-radius: 8px; padding: 4px 6px; background: #f9fafb; }
+  .mpl-ed-g input { width: 130px; font-size: 13px; padding: 3px 6px; border: 1px solid var(--border); border-radius: 5px; }
+  .mpl-ed-g button { font-size: 11px; padding: 2px 6px; border: 1px solid var(--border); background: #fff; border-radius: 5px; cursor: pointer; }
+  .mpl-ed-g button:disabled { opacity: 0.35; cursor: default; }
+  .mpl-ed-help { font-size: 11.5px; color: var(--text-tertiary); margin: 8px 0 2px; line-height: 1.5; }
+  .mpl-ed-wd { font-weight: 500; font-size: 12px; color: var(--text-secondary); }
+  .mpl-ed-t { border-collapse: collapse; width: 100%; font-size: 12px; }
+  .mpl-ed-t th { background: #f3f4f6; position: sticky; top: 0; padding: 5px 6px; text-align: left; font-size: 11px; z-index: 1; }
+  .mpl-ed-t td { border-bottom: 1px solid #eef0f3; padding: 3px 6px; }
+  .mpl-ed-t td.nm { max-width: 330px; }
+  .mpl-ed-t td.sku { color: var(--text-tertiary); font-size: 11px; }
+  .mpl-ed-t tr.wd td { opacity: 0.55; }
+  .mpl-ed-t select, .mpl-ed-t input { font-size: 12px; padding: 3px 5px; border: 1px solid var(--border); border-radius: 5px; }
+  .mpl-ed-t input.mpl-ed-ss { width: 200px; }
+  .mpl-ed-t input.mpl-ed-sv { width: 160px; }
   .kww-mm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9500; display: flex; align-items: center; justify-content: center; }
   .kww-mm-bg[hidden] { display: none; }
   .kww-mm-box { background: #fff; width: min(560px, 94vw); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); padding: 16px 18px; }
@@ -2655,7 +2704,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.12</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.15</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -2693,6 +2742,9 @@
     </button>
     <button class="tab" data-tab="shipment">
       商品-出荷数データ
+    </button>
+    <button class="tab" data-tab="mpl" title="前々月と前月の商品ごとの収支（暫定）。広告費は売上比で分ける。グループごとにエクセル（A4横）を出力">
+      月次収支-暫定
     </button>
     <span class="tab-group tab-group-gap tg-all">【全体】</span>
     <button class="tab" data-tab="ad">
@@ -2982,6 +3034,9 @@
   </div>
   <div id="returns-view" hidden>
     <div id="returns-body"></div>
+  </div>
+  <div id="mpl-view" hidden><!-- v5.13：月次収支-暫定 -->
+    <div id="mpl-body"></div>
   </div>
 
   <!-- 撤退済み商品画面 -->
@@ -3666,6 +3721,7 @@ const CCF = { cost: ccTri(CC.cost), roas: ccTri(CC.roas), cvr: ccTri(CC.cvr), ct
 // 系列に点線を付ける（内訳のさらに内訳・売上のグラフの広告費）。年を重ねる表示では点線は年の区別に使うので、色で見分ける
 function ccItemDash(it){ const k = it.key || ''; if (k === 'adCostActual') return CC_DASH.cost; if (/SpKw|SbDouga/.test(k)) return CC_DASH.d1; if (/SpShohin|SbShokore/.test(k)) return CC_DASH.d2; return null; }
 const STORAGE_ANALYZE = 'amacheck_analyze_v1';   // v4.37：確認メモ（分析ボタン。ADcheck v1.1510 の確認メモを移植）
+const STORAGE_MPL = 'amacheck_mpl_v1';   // v5.13：月次収支-暫定のグループ・商品（まとめる名前）・バリエーション
 const STORAGE_CAMPTPL = 'amacheck_camptpl_v1';   // v4.26：パネルの文字の配置の型（自分で足した分）   // v4.23：全-比較のキャンペーンのパネルの文言・色・位置   // v4.12：③を取り込んだ時点の入札額の記録（入札を変えた日を正しく出すため）   // v3.91：注視しているKW（【入札単価対策】）
 const STORAGE_CHGLOG = 'amacheck_changelog_v1';   // v3.73：変更記録（ショップ全体。全-月別データの点線枠）
 const STORAGE_PURCH = 'amacheck_purchase_v1';   // v3.41：④／E 購入商品データ（買われた商品別の広告売上）
@@ -3969,7 +4025,7 @@ const CAMP_URL_OLD = {
 function saveCampUrls(){ return persistKey(STORAGE_CAMPURL, campUrls); }
 function campUrlOf(name){ const u = campUrls && campUrls[String(name || '').trim()]; return (typeof u === 'string' && /^https:\/\//i.test(u)) ? u : ''; }
 
-const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH, STORAGE_CHGLOG, STORAGE_KWWATCH, STORAGE_BIDHIST, STORAGE_CAMPPANEL, STORAGE_CAMPTPL, STORAGE_ANALYZE];
+const AMACHECK_KEYS = [STORAGE_PRODUCTS, STORAGE_SHIPMENTS, STORAGE_SALES, STORAGE_ADDATA, STORAGE_ADCAMP, STORAGE_ADKW, STORAGE_ADCLOSE, STORAGE_PL, STORAGE_RETURNS, STORAGE_CAT, STORAGE_CAMPAIGNS, STORAGE_CAMPURL, STORAGE_PURCH, STORAGE_CHGLOG, STORAGE_KWWATCH, STORAGE_BIDHIST, STORAGE_CAMPPANEL, STORAGE_CAMPTPL, STORAGE_ANALYZE, STORAGE_MPL];
 
 // ==== 永続化: IndexedDB（大容量）優先。使えない時は localStorage(圧縮) にフォールバック ====
 function idbOpen(){
@@ -4027,7 +4083,7 @@ function persistKey(key, obj){
   const r = lzSet(key, obj); scheduleSync(); return r;
 }
 function amacheckStateMap(){
-  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData, [STORAGE_CHGLOG]: globalChangeLogs, [STORAGE_KWWATCH]: kwWatch, [STORAGE_BIDHIST]: kwBidHist, [STORAGE_CAMPPANEL]: campPanels, [STORAGE_CAMPTPL]: campTpls, [STORAGE_ANALYZE]: analyzeStore };
+  return { [STORAGE_PRODUCTS]: products, [STORAGE_SHIPMENTS]: shipments, [STORAGE_SALES]: saleRanges, [STORAGE_ADDATA]: adData, [STORAGE_ADCAMP]: adCampData, [STORAGE_ADKW]: adKwData, [STORAGE_ADCLOSE]: adClose, [STORAGE_PL]: plData, [STORAGE_RETURNS]: returnsData, [STORAGE_CAT]: categories, [STORAGE_CAMPAIGNS]: adCampaigns, [STORAGE_CAMPURL]: campUrls, [STORAGE_PURCH]: purchData, [STORAGE_CHGLOG]: globalChangeLogs, [STORAGE_KWWATCH]: kwWatch, [STORAGE_BIDHIST]: kwBidHist, [STORAGE_CAMPPANEL]: campPanels, [STORAGE_CAMPTPL]: campTpls, [STORAGE_ANALYZE]: analyzeStore, [STORAGE_MPL]: mplCfg };
 }
 
 // ================= GitHub クラウド同期 =================
@@ -4175,6 +4231,7 @@ async function bootstrap(){
   campPanels = await load(STORAGE_CAMPPANEL, {});   // v4.23
   campTpls = await load(STORAGE_CAMPTPL, []);   // v4.26
   if (!Array.isArray(campTpls)) campTpls = [];
+  mplCfg = await load(STORAGE_MPL, { groups: ['耐火バッグ', 'その他'], map: {} }); mplNormCfg();   // v5.13
   analyzeStore = await load(STORAGE_ANALYZE, {});   // v4.37：確認メモ
   if (!analyzeStore || typeof analyzeStore !== 'object' || Array.isArray(analyzeStore)) analyzeStore = {};
   if (!campPanels || typeof campPanels !== 'object' || Array.isArray(campPanels)) campPanels = {};
@@ -4623,11 +4680,13 @@ function switchView(name, fromPop){
   try { _yoyPageLock(name === 'compare'); } catch (e) {}
   document.getElementById('pl-view').hidden = (name !== 'pl');
   document.getElementById('returns-view').hidden = (name !== 'returns');
+  document.getElementById('mpl-view').hidden = (name !== 'mpl');   // v5.13
   if (name === 'graph') renderGraphView();
   if (name === 'trend') renderTrendView();
   if (name === 'compare') { renderCompareView(); try { _yoyPageLock(true); } catch (e) {} }
   if (name === 'pl') renderPlView();
   if (name === 'returns') renderReturnsView();
+  if (name === 'mpl') renderMplView();   // v5.13
   if (name === 'shipment') renderShipmentTable();
   if (name === 'psales' || stKubun) { psKubun = stKubun; renderPsalesView(); }
   if (name === 'master') renderMasterList();
@@ -7695,7 +7754,7 @@ function toggleHeader(){
 // ヘッダー非表示時、表の下端を画面いっぱいまで伸ばす
 // v4.81：表のスクロール枠を、画面の下端までちょうどに（ヘッダーを隠したときも出しているときも。枠の下にある注記などの分は残す）
 const FIT_SCROLLS = ['#shipment-view .table-wrap', '#ad-view .table-wrap', '#psales-view .table-wrap', '#master-view .master-scroll', '#withdrawn-view .master-scroll',
-  '#kwall-view .kw-wrap', '#kwwatch-view .kw-wrap', '#kwwtrend-view .kwmm-scroll', '#pl-view .pl-scroll', '#returns-view .ret-scroll', '#returns-view .ret-grouped-wrap'];
+  '#kwall-view .kw-wrap', '#kwwatch-view .kw-wrap', '#kwwtrend-view .kwmm-scroll', '#pl-view .pl-scroll', '#returns-view .ret-scroll', '#returns-view .ret-grouped-wrap', '#mpl-view .mpl-scroll'];
 function fitScrollToBottom(el){
   const c = document.querySelector('.container') || document.body;
   const z = parseFloat(c.style.zoom) || 1;
@@ -16141,6 +16200,411 @@ function retBuildUnitGrouped(units, months){
   if (!any) return '<div class="ret-empty">この期間に表示できるデータがありません。</div>';
   return h;
 }
+// ===================== v5.13：月次収支-暫定 =====================
+// 前々月と前月を横に並べ、商品（バリエーション）ごとに 個数・前利益・広告費（SP／SB）・後利益。
+// 広告費は商品-売上データの「売上比で分ける」と同じ計算（psCompute を psCostMode='alloc' で回す）。グループ（耐火バッグ／その他 など）ごとに表とエクセルのシート。
+// グループ・商品（まとめる名前）・バリエーション（表示名）は「グループを編集」で変えられる（mplCfg。STORAGE_MPL に保存）。
+let mplCfg = { groups: ['耐火バッグ', 'その他'], map: {} };   // map[fnsku] = { g: グループ名, s: 商品（まとめる名前）, v: バリエーション }
+let mplMonth = '';   // 右（新しい方）の月。空＝前月（無ければデータのある最新の月）
+let mplShowWd = false;   // 編集画面で撤退済みの商品も出す
+function saveMplCfg(){ return persistKey(STORAGE_MPL, mplCfg); }
+function mplNormCfg(){
+  if (!mplCfg || typeof mplCfg !== 'object' || Array.isArray(mplCfg)) mplCfg = {};
+  const gs = Array.isArray(mplCfg.groups) ? mplCfg.groups.map(g => String(g || '').trim()).filter(Boolean) : [];
+  mplCfg.groups = Array.from(new Set(gs)); if (!mplCfg.groups.length) mplCfg.groups = ['耐火バッグ', 'その他'];
+  if (!mplCfg.map || typeof mplCfg.map !== 'object' || Array.isArray(mplCfg.map)) mplCfg.map = {};
+}
+function mplYmAdd(ym, n){ const [y, m] = ym.split('-').map(Number); const d = new Date(y, m - 1 + n, 1); return d.getFullYear() + '-' + String(d.getMonth() + 1).padStart(2, '0'); }
+function mplYmLabel(ym){ return (+ym.slice(5, 7)) + '月'; }
+function mplLastDay(ym){ return ym + '-' + String(daysInMonth(ym)).padStart(2, '0'); }
+function mplProducts(){ const seen = new Set(); return products.filter(p => { const a = String(p.asin || '').toUpperCase(); if (!a || p.autoFromPurchase || seen.has(a)) return false; seen.add(a); return true; }); }
+// 決めていない商品：名前か分類に「耐火」があれば「耐火」の付いたグループ、無ければ「その他」（無ければ一番下のグループ）
+function mplDefGroup(p){
+  const gs = mplCfg.groups, t = (p.name || '') + ' ' + catOf(p.fnsku);
+  if (/耐火/.test(t)) { const g = gs.find(x => /耐火/.test(x)); if (g) return g; }
+  return gs.indexOf('その他') >= 0 ? 'その他' : gs[gs.length - 1];
+}
+// 商品（まとめる名前）＝分類（返品率の画面の「カテゴリ設定」）、無ければ商品名。バリエーション＝商品名（商品が商品名のときは空）
+function mplInfo(p){
+  const m = (mplCfg.map && mplCfg.map[p.fnsku]) || {}, cat = catOf(p.fnsku), hasCat = !!cat && cat !== '未分類';
+  const g = (m.g && mplCfg.groups.indexOf(m.g) >= 0) ? m.g : mplDefGroup(p);
+  const sDef = hasCat ? cat : (p.name || p.sku || p.asin || '');
+  const s = (m.s && String(m.s).trim()) || sDef;
+  const vDef = (s === (p.name || '')) ? '' : (p.name || '');
+  const v = (m.v != null && String(m.v).trim() !== '') ? String(m.v).trim() : vDef;
+  return { g, s, v, sDef, vDef };
+}
+function mplCompute(ym){
+  const keep = { m: psMonth, d: psDay, c: psCostMode };
+  try { psMonth = ym; psDay = ''; psCostMode = 'alloc'; return psCompute({ keepWithdrawn: true }); }
+  finally { psMonth = keep.m; psDay = keep.d; psCostMode = keep.c; }
+}
+function mplSrcLabel(c, ym){
+  const pr = c.pr || {};
+  if (pr.src === 'E') return purchProv(ym) ? '暫定（④月別・' + purchProvMd(ym) + ' 取得）' : '確定（④月別）';
+  if (pr.src === 'daily') { const all = daysInMonth(ym); return '速報（④日別 ' + pr.nDays + '日分' + (pr.nDays < all ? '／' + all + '日中' : '') + '）'; }
+  return '④購入商品データなし（広告費を割り当てられない）';
+}
+function mplMonthsAvail(){ try { return psMonthsList(); } catch (e) { return []; } }
+function mplPickMonth(){
+  const ms = mplMonthsAvail();
+  if (mplMonth && ms.indexOf(mplMonth) >= 0) return mplMonth;
+  const prev = mplYmAdd(todayStr().slice(0, 7), -1);
+  return ms.indexOf(prev) >= 0 ? prev : (ms[0] || prev);
+}
+// 表の中身：groups[{ name, series[{ name, items[] }] }]。item.m[0]＝前々月、m[1]＝前月
+function mplData(ymR){
+  const ymL = mplYmAdd(ymR, -1), yms = [ymL, ymR];
+  const C = yms.map(mplCompute);
+  const byA = C.map(c => { const o = {}; (c.rows || []).forEach(r => { o[r.asin] = r; }); return o; });
+  const groups = mplCfg.groups.map(name => ({ name, series: [], _s: {} }));
+  const gIdx = {}; groups.forEach((g, i) => { gIdx[g.name] = i; });
+  const priceChanged = [];
+  mplProducts().forEach((p, pi) => {
+    const A = String(p.asin).toUpperCase();
+    const m = [0, 1].map(k => {
+      const r = byA[k][A];
+      if (!r) return { n: 0, kw: 0, sh: 0, au: 0, sb: 0, seo: 0, spC: 0, sbC: 0 };
+      const n = r.ship || 0, adU = (r.spAllU || 0) + (r.sbAllU || 0);
+      return { n, kw: r.spKwU || 0, sh: r.spShU || 0, au: r.spAuU || 0, sb: r.sbAllU || 0, seo: Math.max(0, n - adU), spC: Math.round(r.spAllC || 0), sbC: Math.round(r.sbAllC || 0) };
+    });
+    if (!m.some(x => x.n > 0 || x.spC > 0 || x.sbC > 0)) return;
+    const price = priceAt(p, mplLastDay(ymR)), priceL = priceAt(p, mplLastDay(ymL));   // 販価＝その月末の通常の販売価格（セール価格ではない）
+    const cost = Number(p.cost) || 0, fee = Number(p.sellingFee) || 0, ship = Number(p.fbaFee) || 0;
+    const profit = price - cost - fee - ship;
+    const info = mplInfo(p), g = groups[gIdx[info.g] != null ? gIdx[info.g] : groups.length - 1];
+    const it = { p, pi, info, price, priceL, cost, fee, ship, profit, rate: price > 0 ? profit / price : null, m, chg: priceL > 0 && price > 0 && priceL !== price };
+    if (it.chg) priceChanged.push(it);
+    let s = g._s[info.s]; if (!s) { s = g._s[info.s] = { name: info.s, items: [], pi }; g.series.push(s); }
+    s.items.push(it);
+  });
+  groups.forEach(g => { g.series.sort((a, b) => a.pi - b.pi); g.series.forEach(s => s.items.sort((a, b) => a.pi - b.pi)); delete g._s; });
+  return { ymL, ymR, yms, C, groups, priceChanged, unassigned: C.map(c => Math.max(0, Math.round((c.costTotal || 0) - (c.costAssigned || 0)))), src: C.map((c, k) => mplSrcLabel(c, yms[k])) };
+}
+function mplSum(items, k, f){ return items.reduce((a, it) => a + f(it, it.m[k]), 0); }
+const MPL_MCOLS = [   // 月ごとの列
+  ['n', '個数', (it, x) => x.n], ['kw', 'KW', (it, x) => x.kw], ['sh', '商品', (it, x) => x.sh], ['au', 'オート', (it, x) => x.au], ['sb', 'SB', (it, x) => x.sb], ['seo', 'SEO', (it, x) => x.seo],
+  ['pre', '前利益', (it, x) => it.profit * x.n], ['spC', 'SP広告費', (it, x) => x.spC], ['sbC', 'SB広告費', (it, x) => x.sbC], ['post', '後利益', (it, x) => it.profit * x.n - x.spC - x.sbC]
+];
+const MPL_SMALL = { kw: 1, sh: 1, au: 1, sb: 1, seo: 1 };
+
+// ---------- 画面 ----------
+function renderMplView(){
+  const body = document.getElementById('mpl-body'); if (!body) return;
+  mplNormCfg();
+  const ymR = mplPickMonth(); mplMonth = ymR;
+  const ms = mplMonthsAvail();
+  const D = mplData(ymR);
+  const yen = v => (v < 0 ? '−' : '') + Math.abs(Math.round(v)).toLocaleString();
+  const num = v => Math.round(v).toLocaleString();
+  let h = '<div class="graph-toolbar mpl-tools">'
+    + '<label class="mpl-lbl">前月 <select id="mpl-month" class="graph-select">' + (ms.length ? ms : [ymR]).map(m => '<option value="' + m + '"' + (m === ymR ? ' selected' : '') + '>' + m.replace('-', '/') + '</option>').join('') + '</select></label>'
+    + '<span class="mpl-note">' + D.ymL.replace('-', '/') + ' と ' + D.ymR.replace('-', '/') + ' を並べています（左＝前々月、右＝前月）。広告費は SP・SB とも<b>売上比で分ける</b>（商品-売上データと同じ計算）。暫定</span>'
+    + '<div class="spacer" style="flex:1"></div>'
+    + '<button class="utility" id="mpl-edit"><svg class="icn"><use href="#i-tag"/></svg> グループを編集</button>'
+    + '<button class="primary" id="mpl-xlsx"><svg class="icn"><use href="#i-file-spreadsheet"/></svg> エクセルを出力</button>'
+    + '</div>';
+  h += '<div class="mpl-src">' + D.yms.map((ym, k) => '<span><b>' + mplYmLabel(ym) + '</b>：' + escapeHtml(D.src[k]) + (D.unassigned[k] > 0 ? '・<span class="mpl-warn">どの商品にも割り当てられなかった広告費 ¥' + num(D.unassigned[k]) + '（表には入っていない）</span>' : '') + '</span>').join('') + '</div>';
+  if (D.priceChanged.length) h += '<div class="mpl-src"><span class="mpl-chg">販価</span> ' + mplYmLabel(D.ymL) + '末と' + mplYmLabel(D.ymR) + '末で販価が違う商品（表の販価・利益額は ' + mplYmLabel(D.ymR) + '末。前利益は両月ともこの利益額で計算）：' + D.priceChanged.map(it => escapeHtml(it.info.s + (it.info.v ? ' ' + it.info.v : '')) + ' ¥' + num(it.priceL) + '→¥' + num(it.price)).join('、') + '</div>';
+  h += '<div class="mpl-scroll">';
+  const any = D.groups.some(g => g.series.length);
+  if (!any) h += '<div class="mpl-empty">' + escapeHtml(D.ymL.replace('-', '/') + '・' + D.ymR.replace('-', '/')) + ' に出荷も広告費もある商品がありません。</div>';
+  D.groups.forEach(g => {
+    if (!g.series.length) return;
+    const all = []; g.series.forEach(s => s.items.forEach(it => all.push(it)));
+    h += '<div class="mpl-gt">' + escapeHtml(g.name) + '<span class="mpl-gsub">' + all.length + '商品</span></div>';
+    h += '<table class="mpl-table"><thead><tr><th rowspan="2" class="mpl-s">商品</th><th rowspan="2" class="mpl-v">バリエーション</th><th rowspan="2">販価</th><th rowspan="2">原価</th><th rowspan="2">手数料</th><th rowspan="2">送料</th><th rowspan="2">利益額</th><th rowspan="2">利益率</th>'
+      + D.yms.map((ym, k) => '<th colspan="' + MPL_MCOLS.length + '" class="mpl-mh' + (k ? ' mpl-m2' : '') + '">' + mplYmLabel(ym) + '</th>').join('') + '</tr><tr>'
+      + D.yms.map((ym, k) => MPL_MCOLS.map(([key, l], i) => '<th class="' + (MPL_SMALL[key] ? 'mpl-sm' : '') + (i === 0 ? ' mpl-mfirst' : '') + (key === 'post' ? ' mpl-post' : '') + '">' + l + '</th>').join('')).join('') + '</tr></thead><tbody>';
+    const cells = (items, isSum) => D.yms.map((ym, k) => MPL_MCOLS.map(([key, , f], i) => {
+      const v = mplSum(items, k, f);
+      const t = (key === 'pre' || key === 'spC' || key === 'sbC' || key === 'post') ? yen(v) : num(v);
+      return '<td class="num' + (MPL_SMALL[key] ? ' mpl-sm' : '') + (i === 0 ? ' mpl-mfirst' : '') + (key === 'post' ? ' mpl-post' : '') + (key === 'post' && v < 0 ? ' mpl-neg' : '') + '">' + t + '</td>';
+    }).join('')).join('');
+    g.series.forEach(s => {
+      s.items.forEach((it, j) => {
+        h += '<tr>' + (j === 0 ? '<td class="mpl-s" rowspan="' + (s.items.length + (s.items.length > 1 ? 1 : 0)) + '">' + escapeHtml(s.name) + '</td>' : '')
+          + '<td class="mpl-v">' + escapeHtml(it.info.v || '-') + '</td>'
+          + '<td class="num' + (it.chg ? ' mpl-chgc' : '') + '"' + (it.chg ? ' title="' + mplYmLabel(D.ymL) + '末 ¥' + num(it.priceL) + ' → ' + mplYmLabel(D.ymR) + '末 ¥' + num(it.price) + '"' : '') + '>' + num(it.price) + '</td><td class="num">' + num(it.cost) + '</td><td class="num">' + num(it.fee) + '</td><td class="num">' + num(it.ship) + '</td>'
+          + '<td class="num">' + yen(it.profit) + '</td><td class="num">' + (it.rate == null ? '-' : Math.round(it.rate * 100) + '%') + '</td>'
+          + cells([it]) + '</tr>';
+      });
+      if (s.items.length > 1) h += '<tr class="mpl-sum"><td class="mpl-v">計</td><td colspan="6"></td>' + cells(s.items) + '</tr>';
+    });
+    h += '<tr class="mpl-total"><td colspan="2">' + escapeHtml(g.name) + ' 合計</td><td colspan="6"></td>' + cells(all) + '</tr>';
+    h += '</tbody></table>';
+  });
+  h += '</div>';
+  body.innerHTML = h;
+  const sel = document.getElementById('mpl-month'); if (sel) sel.addEventListener('change', () => { mplMonth = sel.value; renderMplView(); });
+  document.getElementById('mpl-edit').addEventListener('click', mplEditOpen);
+  document.getElementById('mpl-xlsx').addEventListener('click', () => { try { mplExportXlsx(D); } catch (e) { console.error(e); alert('エクセルを作れませんでした。\n\n' + e.message); } });
+  try { adjustHiddenTableHeight(); } catch (e) {}
+}
+window.renderMplView = renderMplView;
+
+// ---------- グループを編集 ----------
+function mplEditOpen(){
+  mplNormCfg();
+  let bg = document.getElementById('mpl-edit-modal');
+  if (!bg) {
+    bg = document.createElement('div'); bg.id = 'mpl-edit-modal'; bg.className = 'mpl-ed-bg';
+    bg.innerHTML = '<div class="mpl-ed-box"><div class="mpl-ed-head"><b>月次収支-暫定：グループを編集</b><span class="spacer" style="flex:1"></span><button type="button" class="mpl-ed-x" title="閉じる">✕</button></div><div class="mpl-ed-body"></div></div>';
+    document.body.appendChild(bg);
+    bg.addEventListener('mousedown', e => { if (e.target === bg) mplEditClose(); });
+    bg.querySelector('.mpl-ed-x').addEventListener('click', mplEditClose);
+  }
+  bg.hidden = false;
+  mplEditPaint();
+}
+function mplEditClose(){ const bg = document.getElementById('mpl-edit-modal'); if (bg) bg.hidden = true; if (!document.getElementById('mpl-view').hidden) renderMplView(); }
+function mplEditPaint(){
+  const bg = document.getElementById('mpl-edit-modal'); if (!bg) return;
+  const box = bg.querySelector('.mpl-ed-body');
+  const gs = mplCfg.groups;
+  let h = '<div class="mpl-ed-sec">グループ（エクセルのシートになる。上から順）</div><div class="mpl-ed-groups">';
+  gs.forEach((g, i) => {
+    h += '<div class="mpl-ed-g" data-i="' + i + '"><input type="text" class="mpl-ed-gname" value="' + escapeHtml(g) + '" maxlength="31">'
+      + '<button type="button" data-a="up"' + (i === 0 ? ' disabled' : '') + ' title="上へ">▲</button><button type="button" data-a="down"' + (i === gs.length - 1 ? ' disabled' : '') + ' title="下へ">▼</button>'
+      + '<button type="button" data-a="del"' + (gs.length <= 1 ? ' disabled' : '') + ' title="このグループを消す（入っていた商品は自動の振り分けに戻る）">消す</button></div>';
+  });
+  h += '<button type="button" class="utility mpl-ed-add">＋ グループを足す</button></div>';
+  h += '<div class="mpl-ed-help">決めていない商品（グループに「（自動）」と出るもの）は、名前か分類に「耐火」があれば「耐火」の付いたグループ、無ければ「その他」（無ければ一番下のグループ）に入ります。「商品」が同じものは表で1つにまとまります（空欄＝分類。分類は返品率の画面の「カテゴリ設定」）。「バリエーション」の空欄＝商品名。</div>';
+  const list = mplProducts().filter(p => mplShowWd || productStatus(p) !== 'withdrawn');
+  const series = Array.from(new Set(mplProducts().map(p => mplInfo(p).s))).sort((a, b) => a.localeCompare(b, 'ja'));
+  h += '<div class="mpl-ed-sec">商品 <label class="mpl-ed-wd"><input type="checkbox" id="mpl-ed-wd"' + (mplShowWd ? ' checked' : '') + '> 撤退済みも出す</label></div>';
+  h += '<datalist id="mpl-ed-series">' + series.map(s => '<option value="' + escapeHtml(s) + '">').join('') + '</datalist>';
+  h += '<div class="mpl-ed-tw"><table class="mpl-ed-t"><thead><tr><th>商品名（商品マスタ）</th><th>SKU</th><th>グループ</th><th>商品（まとめる名前）</th><th>バリエーション</th></tr></thead><tbody>';
+  list.forEach(p => {
+    const inf = mplInfo(p), m = mplCfg.map[p.fnsku] || {};
+    h += '<tr data-f="' + escapeHtml(p.fnsku) + '"' + (productStatus(p) === 'withdrawn' ? ' class="wd"' : '') + '><td class="nm">' + escapeHtml(p.name || '') + '</td><td class="sku">' + escapeHtml(p.sku || '') + '</td>'
+      + '<td><select class="mpl-ed-sg">' + gs.map(g => '<option value="' + escapeHtml(g) + '"' + (g === inf.g ? ' selected' : '') + '>' + escapeHtml(g) + (!m.g && g === inf.g ? '（自動）' : '') + '</option>').join('') + '</select></td>'
+      + '<td><input type="text" class="mpl-ed-ss" list="mpl-ed-series" value="' + escapeHtml(m.s || '') + '" placeholder="' + escapeHtml(inf.sDef) + '"></td>'
+      + '<td><input type="text" class="mpl-ed-sv" value="' + escapeHtml(m.v || '') + '" placeholder="' + escapeHtml(inf.vDef || '-') + '"></td></tr>';
+  });
+  h += '</tbody></table></div>';
+  box.innerHTML = h;
+  const setMap = (f, k, v) => { const o = Object.assign({}, mplCfg.map[f] || {}); if (v) o[k] = v; else delete o[k]; if (Object.keys(o).length) mplCfg.map[f] = o; else delete mplCfg.map[f]; saveMplCfg(); };
+  box.querySelectorAll('.mpl-ed-g').forEach(row => {
+    const i = +row.dataset.i, inp = row.querySelector('.mpl-ed-gname');
+    inp.addEventListener('change', () => {
+      const nv = inp.value.replace(/[\[\]:*?\/\\]/g, '').trim(), old = mplCfg.groups[i];
+      if (!nv || (nv !== old && mplCfg.groups.indexOf(nv) >= 0)) { toast(nv ? '同じ名前のグループがあります' : '名前が空です'); inp.value = old; return; }
+      mplCfg.groups[i] = nv; Object.keys(mplCfg.map).forEach(f => { if (mplCfg.map[f].g === old) mplCfg.map[f].g = nv; }); saveMplCfg(); mplEditPaint();
+    });
+    row.querySelectorAll('button[data-a]').forEach(b => b.addEventListener('click', () => {
+      const a = b.dataset.a, G = mplCfg.groups;
+      if (a === 'up' && i > 0) { [G[i - 1], G[i]] = [G[i], G[i - 1]]; }
+      else if (a === 'down' && i < G.length - 1) { [G[i + 1], G[i]] = [G[i], G[i + 1]]; }
+      else if (a === 'del' && G.length > 1) {
+        if (!confirm('グループ「' + G[i] + '」を消します。入っていた商品は自動の振り分け（耐火→耐火の付いたグループ、ほか→その他）に戻ります。')) return;
+        const old = G[i]; G.splice(i, 1); Object.keys(mplCfg.map).forEach(f => { if (mplCfg.map[f].g === old) { delete mplCfg.map[f].g; if (!Object.keys(mplCfg.map[f]).length) delete mplCfg.map[f]; } });
+      }
+      saveMplCfg(); mplEditPaint();
+    }));
+  });
+  box.querySelector('.mpl-ed-add').addEventListener('click', () => { let n = 1, nm; do { nm = '新しいグループ' + (n > 1 ? n : ''); n++; } while (mplCfg.groups.indexOf(nm) >= 0); mplCfg.groups.push(nm); saveMplCfg(); mplEditPaint(); });
+  const wd = box.querySelector('#mpl-ed-wd'); if (wd) wd.addEventListener('change', () => { mplShowWd = wd.checked; mplEditPaint(); });
+  box.querySelectorAll('tr[data-f]').forEach(tr => {
+    const f = tr.dataset.f;
+    tr.querySelector('.mpl-ed-sg').addEventListener('change', e => { setMap(f, 'g', e.target.value); mplEditPaint(); });
+    tr.querySelector('.mpl-ed-ss').addEventListener('change', e => { setMap(f, 's', e.target.value.trim()); mplEditPaint(); });
+    tr.querySelector('.mpl-ed-sv').addEventListener('change', e => { setMap(f, 'v', e.target.value.trim()); });
+  });
+}
+
+// ---------- エクセル（xlsx を自前で組み立てる：SheetJS の無料版は文字の太さ・色・罫線・印刷の向きを書けないため） ----------
+function xlsxCrcTable(){ if (xlsxCrcTable.t) return xlsxCrcTable.t; const t = new Uint32Array(256); for (let n = 0; n < 256; n++) { let c = n; for (let k = 0; k < 8; k++) c = (c & 1) ? (0xEDB88320 ^ (c >>> 1)) : (c >>> 1); t[n] = c >>> 0; } return (xlsxCrcTable.t = t); }
+function xlsxCrc(u8){ const t = xlsxCrcTable(); let c = 0xFFFFFFFF; for (let i = 0; i < u8.length; i++) c = t[(c ^ u8[i]) & 0xFF] ^ (c >>> 8); return (c ^ 0xFFFFFFFF) >>> 0; }
+function xlsxZip(files){   // 無圧縮（STORE）の zip。files=[{ name, text }]
+  const enc = new TextEncoder(), parts = [], cen = []; let off = 0;
+  const d = new Date(), dt = ((d.getFullYear() - 1980) << 9) | ((d.getMonth() + 1) << 5) | d.getDate(), tm = (d.getHours() << 11) | (d.getMinutes() << 5) | (d.getSeconds() >> 1);
+  files.forEach(f => {
+    const name = enc.encode(f.name), data = enc.encode(f.text), crc = xlsxCrc(data);
+    const lh = new DataView(new ArrayBuffer(30));
+    lh.setUint32(0, 0x04034b50, true); lh.setUint16(4, 20, true); lh.setUint16(6, 0x0800, true); lh.setUint16(8, 0, true); lh.setUint16(10, tm, true); lh.setUint16(12, dt, true);
+    lh.setUint32(14, crc, true); lh.setUint32(18, data.length, true); lh.setUint32(22, data.length, true); lh.setUint16(26, name.length, true); lh.setUint16(28, 0, true);
+    parts.push(new Uint8Array(lh.buffer), name, data);
+    const ch = new DataView(new ArrayBuffer(46));
+    ch.setUint32(0, 0x02014b50, true); ch.setUint16(4, 20, true); ch.setUint16(6, 20, true); ch.setUint16(8, 0x0800, true); ch.setUint16(10, 0, true); ch.setUint16(12, tm, true); ch.setUint16(14, dt, true);
+    ch.setUint32(16, crc, true); ch.setUint32(20, data.length, true); ch.setUint32(24, data.length, true); ch.setUint16(28, name.length, true); ch.setUint16(30, 0, true); ch.setUint16(32, 0, true);
+    ch.setUint16(34, 0, true); ch.setUint16(36, 0, true); ch.setUint32(38, 0, true); ch.setUint32(42, off, true);
+    cen.push(new Uint8Array(ch.buffer), name);
+    off += 30 + name.length + data.length;
+  });
+  const cenLen = cen.reduce((a, u) => a + u.length, 0);
+  const end = new DataView(new ArrayBuffer(22));
+  end.setUint32(0, 0x06054b50, true); end.setUint16(8, files.length, true); end.setUint16(10, files.length, true); end.setUint32(12, cenLen, true); end.setUint32(16, off, true);
+  const all = parts.concat(cen, [new Uint8Array(end.buffer)]); const out = new Uint8Array(all.reduce((a, u) => a + u.length, 0)); let p = 0; all.forEach(u => { out.set(u, p); p += u.length; });
+  return out;
+}
+function xlsxEsc(s){ return String(s).replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;'); }
+function xlsxCol(i){ let s = ''; i++; while (i > 0) { const m = (i - 1) % 26; s = String.fromCharCode(65 + m) + s; i = Math.floor((i - 1) / 26); } return s; }
+// sheets=[{ name, cols:[幅], rows:[{ h, cells:[{ v, f, s }] }], merges:['A1:B2'], landscape, fitPage }]。s＝{ b, sz, color, fill, fmt, al, va, wrap, bd, it }
+function xlsxBuild(sheets){
+  // v5.15：書体は s.fn（無ければメイリオ）。日本語の書体だけ charset=128
+  const fontXml = (s) => { const fn = s.fn || 'Meiryo', jp = /Meiryo|Gothic|ゴシック|明朝|メイリオ/.test(fn); return '<font>' + (s.b ? '<b/>' : '') + (s.it ? '<i/>' : '') + '<sz val="' + (s.sz || 9) + '"/>' + (s.color ? '<color rgb="FF' + s.color + '"/>' : '') + '<name val="' + xlsxEsc(fn) + '"/><family val="' + (jp ? 3 : 2) + '"/>' + (jp ? '<charset val="128"/>' : '') + '</font>'; };
+  const fonts = [fontXml({})], fills = ['<fill><patternFill patternType="none"/></fill>', '<fill><patternFill patternType="gray125"/></fill>'];
+  const borders = ['<border><left/><right/><top/><bottom/><diagonal/></border>'], bdKey = { '0|': 0 };
+  // v5.14：bd＝細い線（4辺）、bm＝太い線にする辺（'L''R''T''B' の組み合わせ）
+  const bid = s => {
+    const bm = String(s.bm || ''), k = (s.bd ? 1 : 0) + '|' + ['L', 'R', 'T', 'B'].filter(x => bm.indexOf(x) >= 0).join('');
+    if (bdKey[k] != null) return bdKey[k];
+    const side = (tag, x) => bm.indexOf(x) >= 0 ? '<' + tag + ' style="medium"><color rgb="FF000000"/></' + tag + '>' : (s.bd ? '<' + tag + ' style="thin"><color rgb="FF9CA3AF"/></' + tag + '>' : '<' + tag + '/>');
+    bdKey[k] = borders.length; borders.push('<border>' + side('left', 'L') + side('right', 'R') + side('top', 'T') + side('bottom', 'B') + '<diagonal/></border>');
+    return bdKey[k];
+  };
+  const numFmts = [], xfs = ['<xf numFmtId="0" fontId="0" fillId="0" borderId="0" xfId="0"/>'], fmtId = { '': 0, '#,##0': 3, '0%': 9 }, xfKey = { '{}': 0 }, fontKey = {}, fillKey = {};
+  const sid = s => {
+    s = s || {}; const k = JSON.stringify(s); if (xfKey[k] != null) return xfKey[k];
+    const fk = [s.b ? 1 : 0, s.sz || 9, s.color || '', s.it ? 1 : 0, s.fn || ''].join('|');
+    if (fontKey[fk] == null) { fontKey[fk] = fonts.length; fonts.push(fontXml(s)); }
+    let fl = 0; if (s.fill) { if (fillKey[s.fill] == null) { fillKey[s.fill] = fills.length; fills.push('<fill><patternFill patternType="solid"><fgColor rgb="FF' + s.fill + '"/><bgColor indexed="64"/></patternFill></fill>'); } fl = fillKey[s.fill]; }
+    let nf = 0; if (s.fmt) { if (fmtId[s.fmt] == null) { fmtId[s.fmt] = 164 + numFmts.length; numFmts.push('<numFmt numFmtId="' + fmtId[s.fmt] + '" formatCode="' + xlsxEsc(s.fmt) + '"/>'); } nf = fmtId[s.fmt]; }
+    const al = { l: 'left', c: 'center', r: 'right' }[s.al] || '';
+    const align = (al || s.wrap || s.va) ? '<alignment' + (al ? ' horizontal="' + al + '"' : '') + ' vertical="' + (s.va || 'center') + '"' + (s.wrap ? ' wrapText="1"' : '') + '/>' : '<alignment vertical="center"/>';
+    xfKey[k] = xfs.length;
+    xfs.push('<xf numFmtId="' + nf + '" fontId="' + fontKey[fk] + '" fillId="' + fl + '" borderId="' + bid(s) + '" xfId="0" applyNumberFormat="1" applyFont="1" applyFill="1" applyBorder="1" applyAlignment="1">' + align + '</xf>');
+    return xfKey[k];
+  };
+  const sheetXml = sh => {
+    const rowsX = sh.rows.map((r, ri) => {
+      const cs = (r.cells || []).map((c, ci) => {
+        if (!c) return ''; const ref = xlsxCol(ci) + (ri + 1), st = sid(c.s);
+        if (c.f) return '<c r="' + ref + '" s="' + st + '"><f>' + xlsxEsc(c.f) + '</f>' + (typeof c.v === 'number' && isFinite(c.v) ? '<v>' + c.v + '</v>' : '') + '</c>';
+        if (typeof c.v === 'number' && isFinite(c.v)) return '<c r="' + ref + '" s="' + st + '"><v>' + c.v + '</v></c>';
+        if (c.v == null || c.v === '') return '<c r="' + ref + '" s="' + st + '"/>';
+        return '<c r="' + ref + '" s="' + st + '" t="inlineStr"><is><t xml:space="preserve">' + xlsxEsc(c.v) + '</t></is></c>';
+      }).join('');
+      return '<row r="' + (ri + 1) + '"' + (r.h ? ' ht="' + r.h + '" customHeight="1"' : '') + '>' + cs + '</row>';
+    }).join('');
+    return '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">'
+      + '<sheetPr><pageSetUpPr fitToPage="1"/></sheetPr><sheetViews><sheetView workbookViewId="0" showGridLines="0" zoomScale="100"/></sheetViews><sheetFormatPr defaultRowHeight="15"/>'
+      + '<cols>' + sh.cols.map((w, i) => '<col min="' + (i + 1) + '" max="' + (i + 1) + '" width="' + w + '" customWidth="1"/>').join('') + '</cols>'
+      + '<sheetData>' + rowsX + '</sheetData>'
+      + (sh.merges && sh.merges.length ? '<mergeCells count="' + sh.merges.length + '">' + sh.merges.map(m => '<mergeCell ref="' + m + '"/>').join('') + '</mergeCells>' : '')
+      + '<printOptions horizontalCentered="1"/><pageMargins left="0.3" right="0.3" top="0.4" bottom="0.4" header="0.2" footer="0.2"/>'
+      + '<pageSetup paperSize="9" orientation="landscape" fitToWidth="1" fitToHeight="1"/></worksheet>';
+  };
+  const sx = sheets.map(sheetXml);   // 先に作る（スタイルが集まる）
+  const styles = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<styleSheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main">'
+    + (numFmts.length ? '<numFmts count="' + numFmts.length + '">' + numFmts.join('') + '</numFmts>' : '')
+    + '<fonts count="' + fonts.length + '">' + fonts.join('') + '</fonts><fills count="' + fills.length + '">' + fills.join('') + '</fills><borders count="' + borders.length + '">' + borders.join('') + '</borders>'
+    + '<cellStyleXfs count="1"><xf numFmtId="0" fontId="0" fillId="0" borderId="0"/></cellStyleXfs><cellXfs count="' + xfs.length + '">' + xfs.join('') + '</cellXfs>'
+    + '<cellStyles count="1"><cellStyle name="Normal" xfId="0" builtinId="0"/></cellStyles></styleSheet>';
+  const wb = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships"><bookViews><workbookView/></bookViews><sheets>'
+    + sheets.map((s, i) => '<sheet name="' + xlsxEsc(s.name) + '" sheetId="' + (i + 1) + '" r:id="rId' + (i + 1) + '"/>').join('') + '</sheets><calcPr calcId="191029" fullCalcOnLoad="1"/></workbook>';
+  const wbRels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">'
+    + sheets.map((s, i) => '<Relationship Id="rId' + (i + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet' + (i + 1) + '.xml"/>').join('')
+    + '<Relationship Id="rId' + (sheets.length + 1) + '" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/styles" Target="styles.xml"/></Relationships>';
+  const ct = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types"><Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/><Default Extension="xml" ContentType="application/xml"/>'
+    + '<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/><Override PartName="/xl/styles.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.styles+xml"/>'
+    + sheets.map((s, i) => '<Override PartName="/xl/worksheets/sheet' + (i + 1) + '.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>').join('') + '</Types>';
+  const rels = '<?xml version="1.0" encoding="UTF-8" standalone="yes"?>\n<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships"><Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/></Relationships>';
+  return xlsxZip([{ name: '[Content_Types].xml', text: ct }, { name: '_rels/.rels', text: rels }, { name: 'xl/workbook.xml', text: wb }, { name: 'xl/_rels/workbook.xml.rels', text: wbRels }, { name: 'xl/styles.xml', text: styles }]
+    .concat(sx.map((x, i) => ({ name: 'xl/worksheets/sheet' + (i + 1) + '.xml', text: x }))));
+}
+// 1グループ＝1シート（A4横1枚に収まるよう印刷を縮小）
+const MPL_XW = [18, 20];   // 商品・バリエーションの列の幅
+function mplLines(t, w){ let u = 0; for (const ch of String(t || '')) u += /[\x20-\x7e]/.test(ch) ? 0.9 : 1.65; return Math.max(1, Math.ceil(u / Math.max(1, w - 1))); }   // 9pt で折り返す行の数（目安）
+function mplSheet(D, g){
+  const NM = MPL_MCOLS.length, nCols = 8 + NM * 2, rows = [], merges = [];
+  const L = xlsxCol, YEN = '#,##0;[Red]-#,##0';
+  const B = { bd: 1 }, HD = { bd: 1, b: 1, fill: 'E5E7EB', al: 'c', wrap: 1 }, HDS = { bd: 1, b: 1, fill: 'F3F4F6', al: 'c', color: '6B7280', sz: 8 };
+  const NF = 'Segoe UI';   // v5.15：数字＝Segoe UI（Windows の標準。丸みがあって読みやすく、数字の幅がそろう）、文字＝メイリオ（xlsxBuild の既定）
+  const T = Object.assign({}, B, { al: 'l', wrap: 1 }), N = Object.assign({}, B, { fmt: '#,##0', fn: NF }), NS = Object.assign({}, N, { color: '6B7280', sz: 8 }), Y = Object.assign({}, B, { fmt: YEN, fn: NF });
+  const blankRow = n => Array.from({ length: n }, () => null);
+  const title = '【月次】全体収支-amazon（' + D.ymL.slice(0, 4) + '年' + (+D.ymL.slice(5, 7)) + '-' + (D.ymR.slice(0, 4) !== D.ymL.slice(0, 4) ? D.ymR.slice(0, 4) + '年' : '') + (+D.ymR.slice(5, 7)) + '月）　' + g.name;
+  const r1 = blankRow(nCols); r1[0] = { v: title, s: { b: 1, sz: 16 } }; rows.push({ h: 32, cells: r1 }); merges.push('A1:' + L(nCols - 1) + '1');
+  const r2 = blankRow(nCols); r2[0] = { v: '暫定（' + todayStr().replace(/-/g, '/') + ' Amacheck で作成）　広告費は SP・SB とも「売上比で分ける」（商品-売上データと同じ計算）　販価は' + mplYmLabel(D.ymR) + '末の価格　' + D.yms.map((ym, k) => mplYmLabel(ym) + '：' + D.src[k]).join('　'), s: { sz: 8, color: '6B7280' } };
+  rows.push({ h: 16, cells: r2 }); merges.push('A2:' + L(nCols - 1) + '2');
+  const r3 = blankRow(nCols); for (let i = 0; i < 8; i++) r3[i] = { v: ['商品', 'バリエーション', '販価', '原価', '手数料', '送料', '利益額', '利益率'][i], s: HD };
+  D.yms.forEach((ym, k) => { const c0 = 8 + k * NM; r3[c0] = { v: mplYmLabel(ym), s: Object.assign({}, HD, { fill: k ? 'DBEAFE' : 'E5E7EB', sz: 10 }) }; for (let i = 1; i < NM; i++) r3[c0 + i] = { v: '', s: HD }; merges.push(L(c0) + '3:' + L(c0 + NM - 1) + '3'); });
+  rows.push({ h: 18, cells: r3 });
+  const r4 = blankRow(nCols); for (let i = 0; i < 8; i++) { r4[i] = { v: '', s: HD }; merges.push(L(i) + '3:' + L(i) + '4'); }
+  D.yms.forEach((ym, k) => MPL_MCOLS.forEach(([key, l], i) => { r4[8 + k * NM + i] = { v: l, s: MPL_SMALL[key] ? HDS : HD }; }));
+  rows.push({ h: 18, cells: r4 });
+  const colOf = (k, key) => 8 + k * NM + MPL_MCOLS.findIndex(c => c[0] === key);
+  const itemRows = [], blocks = [];   // blocks＝商品のまとまり（計の行まで）の [最初の行, 最後の行]
+  g.series.forEach(s => {
+    const first = rows.length + 1, myRows = [];
+    s.items.forEach((it, j) => {
+      const rn = rows.length + 1, c = blankRow(nCols);
+      c[0] = { v: j === 0 ? s.name : '', s: T }; c[1] = { v: it.info.v || '-', s: T };
+      c[2] = { v: it.price, s: Object.assign({}, N, it.chg ? { fill: 'FEF08A' } : {}) }; c[3] = { v: it.cost, s: N }; c[4] = { v: it.fee, s: N }; c[5] = { v: it.ship, s: N };
+      c[6] = { f: 'C' + rn + '-D' + rn + '-E' + rn + '-F' + rn, v: it.profit, s: Y };
+      c[7] = { f: 'IF(C' + rn + '>0,G' + rn + '/C' + rn + ',0)', v: it.rate || 0, s: Object.assign({}, B, { fmt: '0%', fn: NF }) };
+      D.yms.forEach((ym, k) => {
+        const x = it.m[k], cc = key => L(colOf(k, key)) + rn;
+        c[colOf(k, 'n')] = { v: x.n, s: N }; ['kw', 'sh', 'au', 'sb', 'seo'].forEach(key => { c[colOf(k, key)] = { v: x[key], s: NS }; });
+        c[colOf(k, 'pre')] = { f: '$G' + rn + '*' + cc('n'), v: it.profit * x.n, s: Y };
+        c[colOf(k, 'spC')] = { v: x.spC, s: Y }; c[colOf(k, 'sbC')] = { v: x.sbC, s: Y };
+        c[colOf(k, 'post')] = { f: cc('pre') + '-' + cc('spC') + '-' + cc('sbC'), v: it.profit * x.n - x.spC - x.sbC, s: Object.assign({}, Y, { b: 1 }) };
+      });
+      rows.push({ h: Math.max(17, mplLines(s.items.length === 1 ? s.name : '', MPL_XW[0]) * 13.5 + 3, mplLines(it.info.v || '-', MPL_XW[1]) * 13.5 + 3), cells: c });   // v5.15：メイリオは行の高さを多めに使う myRows.push(rn); itemRows.push(rn);   // 折り返した行の数に合わせた高さ
+    });
+    if (s.items.length > 1) {
+      merges.push('A' + first + ':A' + (first + s.items.length));
+      const rn = rows.length + 1, c = blankRow(nCols), SF = { fill: 'F3F4F6' };
+      c[0] = { v: '', s: T }; c[1] = { v: '計', s: Object.assign({}, T, SF, { b: 1 }) }; for (let i = 2; i < 8; i++) c[i] = { v: '', s: Object.assign({}, B, SF) };
+      D.yms.forEach((ym, k) => MPL_MCOLS.forEach(([key, , f], i) => {
+        const col = L(8 + k * NM + i);
+        c[8 + k * NM + i] = { f: 'SUM(' + col + first + ':' + col + (first + s.items.length - 1) + ')', v: mplSum(s.items, k, f), s: Object.assign({}, MPL_SMALL[key] ? NS : (key === 'n' ? N : Y), SF, key === 'post' ? { b: 1 } : {}) };
+      }));
+      rows.push({ h: 17, cells: c });
+    }
+    blocks.push([first, rows.length]);
+  });
+  // 合計
+  const rnT = rows.length + 1, cT = blankRow(nCols), TF = { fill: 'DBEAFE', b: 1 }, all = [];
+  g.series.forEach(s => s.items.forEach(it => all.push(it)));
+  cT[0] = { v: g.name + ' 合計', s: Object.assign({}, T, TF) }; cT[1] = { v: '', s: Object.assign({}, T, TF) }; merges.push('A' + rnT + ':B' + rnT);
+  for (let i = 2; i < 8; i++) cT[i] = { v: '', s: Object.assign({}, B, TF) };
+  D.yms.forEach((ym, k) => MPL_MCOLS.forEach(([key, , f], i) => {
+    const col = L(8 + k * NM + i);
+    cT[8 + k * NM + i] = { f: itemRows.length ? 'SUM(' + itemRows.map(r => col + r).join(',') + ')' : '0', v: mplSum(all, k, f), s: Object.assign({}, MPL_SMALL[key] ? NS : (key === 'n' ? N : Y), TF) };
+  }));
+  rows.push({ h: 19, cells: cT });
+  // 最終利益（後利益の合計）を大きく
+  const rnF = rows.length + 1, cF = blankRow(nCols);
+  D.yms.forEach((ym, k) => {
+    const c0 = 8 + k * NM, cPost = L(colOf(k, 'post'));
+    cF[c0] = { v: mplYmLabel(ym) + ' 最終利益（後利益の合計）', s: { b: 1, al: 'r', sz: 10 } }; merges.push(L(c0) + rnF + ':' + L(c0 + 6) + rnF);
+    const FS = { b: 1, sz: 12, fmt: YEN, bd: 1, fill: 'FEF3C7', fn: NF };
+    cF[c0 + 7] = { f: cPost + rnT, v: mplSum(all, k, MPL_MCOLS[MPL_MCOLS.length - 1][2]), s: FS }; cF[c0 + 8] = { v: '', s: FS }; cF[c0 + 9] = { v: '', s: FS };
+    merges.push(L(c0 + 7) + rnF + ':' + L(c0 + 9) + rnF);
+  });
+  rows.push({ h: 24, cells: cF });
+  // v5.14：太枠（ユーザーが入れた形に合わせる）：商品のまとまり（計まで）と合計の行を囲む、月の列の左右、見出しの月の部分、最終利益の金額
+  const med = (rn, ci, sides) => { const row = rows[rn - 1], c = row && row.cells[ci]; if (!c) return; c.s = Object.assign({}, c.s || {}, { bm: ((c.s && c.s.bm) || '') + sides }); };
+  const mS = k => 8 + k * NM, mE = k => 8 + k * NM + NM - 1;
+  [3, 4].forEach(rn => D.yms.forEach((ym, k) => { if (rn === 3) for (let ci = mS(k); ci <= mE(k); ci++) med(rn, ci, 'T'); med(rn, mS(k), 'L'); med(rn, mE(k), 'R'); }));
+  blocks.concat([[rnT, rnT]]).forEach(([a, z]) => {
+    for (let rn = a; rn <= z; rn++) {
+      med(rn, 0, 'L'); med(rn, nCols - 1, 'R');
+      D.yms.forEach((ym, k) => { med(rn, mS(k), 'L'); med(rn, mE(k), 'R'); });
+      for (let ci = 0; ci < nCols; ci++) { if (rn === a) med(rn, ci, 'T'); if (rn === z) med(rn, ci, 'B'); }
+    }
+  });
+  D.yms.forEach((ym, k) => { const c0 = 8 + k * NM; med(rnF, c0 + 7, 'LTB'); med(rnF, c0 + 8, 'TB'); med(rnF, c0 + 9, 'RTB'); });
+  // 注記
+  const notes = ['前利益＝利益額×個数、後利益＝前利益−SP広告費−SB広告費。KW・商品・オート（SP）と SB は④購入商品データで広告経由に数えた個数、SEO＝個数−広告経由。'];
+  if (D.unassigned.some(v => v > 0)) notes.push('どの商品にも割り当てられなかった広告費（全グループ共通。この表には入っていない）：' + D.yms.map((ym, k) => mplYmLabel(ym) + ' ¥' + D.unassigned[k].toLocaleString()).join('　'));
+  const chg = all.filter(it => it.chg);
+  if (chg.length) notes.push('黄色の販価＝' + mplYmLabel(D.ymL) + '末と' + mplYmLabel(D.ymR) + '末で販価が違う：' + chg.map(it => (it.info.s + (it.info.v ? ' ' + it.info.v : '')) + ' ¥' + it.priceL.toLocaleString() + '→¥' + it.price.toLocaleString()).join('、'));
+  notes.forEach(t => { const rn = rows.length + 1, c = blankRow(nCols); c[0] = { v: t, s: { sz: 8, color: '6B7280' } }; rows.push({ h: 15, cells: c }); merges.push('A' + rn + ':' + L(nCols - 1) + rn); });
+  const cols = MPL_XW.concat([6, 6, 6, 6, 7, 5.5]).concat([].concat(...D.yms.map(() => MPL_MCOLS.map(([key]) => MPL_SMALL[key] ? 4.6 : (key === 'n' ? 5.5 : 9)))));
+  return { name: g.name.slice(0, 31), cols, rows, merges };
+}
+function mplExportXlsx(D){
+  const gs = D.groups.filter(g => g.series.length);
+  if (!gs.length) { toast('出す商品がありません'); return; }
+  const u8 = xlsxBuild(gs.map(g => mplSheet(D, g)));
+  const name = 'Amacheck_月次収支_' + D.ymL.replace('-', '') + '-' + D.ymR.slice(5, 7) + '_暫定_' + todayStr().replace(/-/g, '') + '.xlsx';
+  saleSaveBlob(new Blob([u8], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' }), name);
+  toast('エクセルを出力しました（' + gs.map(g => g.name).join('・') + '）');
+}
+
 function renderReturnsView(){
   const body = document.getElementById('returns-body');
   if (!body) return;
