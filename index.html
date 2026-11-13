@@ -1724,6 +1724,12 @@
   #kwall-view .kwa-tools, #kwwatch-view .kwa-tools { width: calc((100vw - 24px) / var(--pz, 1)); margin-left: calc(50% - (50vw - 12px) / var(--pz, 1)); box-sizing: border-box; }   /* 表と同じ幅 */
   .kwa-tools { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 18px; margin: 0 0 10px; padding: 8px 12px; background: var(--bg-card); border: 1px solid var(--border); border-radius: 12px; }
   .kwa-grp { display: inline-flex; align-items: center; gap: 8px; }
+  .kww-set { font-size: 12.5px; font-weight: 700; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); cursor: pointer; }   /* v5.21：確定30日 */
+  .kww-set:hover { background: #f3f4f6; }
+  .kww-set.on { background: var(--accent); color: #fff; border-color: var(--accent); }
+  .kww-set-r { font-size: 12px; color: var(--text-tertiary); }
+  #kww-month.dim { opacity: 0.5; }
+  .kwa-tools .graph-select.kwa-camp#kww-month { min-width: 0; width: auto; padding: 0 30px 0 12px; }   /* v5.22：月のドロップダウンは中身（一番長い月の名前）にぴったりの幅 */
   .kwa-sep { width: 1px; align-self: stretch; background: var(--border); }
   .kwa-flex { flex: 1 1 0; min-width: 0; }
   .kwa-tools .graph-seg.sm button { padding: 6px 12px; font-size: 13.5px; }
@@ -2719,7 +2725,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.20</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.22</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -7931,7 +7937,7 @@ function setSalePartMode(on){
 // 表示と同じく％に丸めてから判定（199.6% は 200% と表示されるので黄土色）
 function kwJudgeOf(roas){ if (roas == null) return ''; const p = Math.round(roas * 100); return p >= 300 ? 'hi' : (p >= 200 ? 'mid' : 'lo'); }
 const kwCls = j => (j ? 'kw-r-' + j : '');
-let kwRange = 'day';              // 'day'（日別・既定）| 'month'（月別）| 'last30' | 'custom'（v2.95：既定は日別の最新日）
+let kwRange = 'day';              // 'day'（日別・既定）| 'month'（月別）| 'last30' | 'settled30'（v5.21：確定30日）| 'custom'（v2.95：既定は日別の最新日）
 let kwMonth = null;               // 'YYYY-MM'（null＝データのある最新の月）
 let kwDay = null;                 // 'YYYY-MM-DD'（kwRange='day' のとき。null＝データの最新日に自動で合わせる）
 let kwFrom = null, kwTo = null;   // custom 用 'YYYY-MM-DD'
@@ -7980,6 +7986,9 @@ function kwCopyFallback(text, done){
   document.body.appendChild(ta); ta.select(); try { document.execCommand('copy'); done(); } catch (e) { toast('コピーできませんでした'); } ta.remove();
 }
 
+// v5.21：確定30日＝今日の30日前を最後の日とする30日間。広告の売上はクリックした日から最大14日あと（SP 7日・SB 14日）まで付くので、30日以上たった日だけなら出そろっている
+function kwSettled30(){ const e = gAddDays(todayStr(), -30); return [gAddDays(e, -29), e]; }
+const KW_SETTLED_TIP = '30日以上たった日だけの30日間（今日の30日前まで）。広告の売上はクリックした日から最大14日あとまで増えるので、直近の日を入れずに出そろった数字で見られます';
 function kwDates(){ return Object.keys(adKwData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort(); }
 // 選んだ期間 → [from, to]（基準はデータの最終日）
 function kwPeriod(){
@@ -7987,6 +7996,7 @@ function kwPeriod(){
   const last = ds[ds.length - 1];
   if (kwRange === 'custom' && kwFrom && kwTo) return kwFrom <= kwTo ? [kwFrom, kwTo] : [kwTo, kwFrom];
   if (kwRange === 'last30') return [gAddDays(last, -29), last];
+  if (kwRange === 'settled30') return kwSettled30();   // v5.21
   if (kwRange === 'day') { const d = (kwDay && adKwData[kwDay]) ? kwDay : last; return [d, d]; }   // 日別：1日だけ（既定＝最新日）
   return kwMonthRangeOf(kwCurMonth());   // 年月（既定＝最新の月）
 }
@@ -8128,7 +8138,7 @@ function renderAdKwView(){
   // キャンペーンだけ選んだときは「いま見ているもの」にそのキャンペーンのタイプ（SP／SB）を出す
   const campTypes = kwCamp ? Array.from(new Set(allRows.filter(r => r.campaign === kwCamp).map(typeOf).filter(Boolean))).sort() : [];
   const crumbType = (kwType === 'all' && campTypes.length) ? campTypes.join('・') : typeName;
-  const segD = (id, list, cur, big) => '<div class="graph-seg sm' + (big ? ' kw-big' : '') + '" id="' + id + '">' + list.map(([v, l, dis, tip]) => '<button type="button" data-v="' + v + '" class="' + (v === cur ? 'active' : '') + '"' + (dis ? ' disabled title="' + (tip || 'データがありません') + '"' : '') + '>' + l + '</button>').join('') + '</div>';
+  const segD = (id, list, cur, big) => '<div class="graph-seg sm' + (big ? ' kw-big' : '') + '" id="' + id + '">' + list.map(([v, l, dis, tip]) => '<button type="button" data-v="' + v + '" class="' + (v === cur ? 'active' : '') + '"' + (dis ? ' disabled title="' + (tip || 'データがありません') + '"' : (tip ? ' title="' + tip + '"' : '')) + '>' + l + '</button>').join('') + '</div>';   // v5.21：押せるボタンにも説明
   // ===== v2.95：上＝期間、次＝キャンペーン＋検索（いつも使う）。広告タイプ・種別・まとめ方は「詳しい条件」に畳む =====
   const GROUP_NAME = { kwmatch: 'キーワード×マッチ', kw: 'キーワード', camp: 'キャンペーン' };
   const dayMode = kwRange === 'day';
@@ -8149,9 +8159,9 @@ function renderAdKwView(){
   h += '<span class="kw-sub2">日別</span><select class="graph-select kw-day' + (dayMode ? ' on' : '') + '" id="kw-day" title="1日を選ぶと、その日1日分の成績を一覧で見られます（最初はデータの最新日）">' + (dayMode ? '' : '<option value="" selected>日を選ぶ</option>') + dayOpts + '</select>';
   // 月別（右）
   h += '<span class="kw-sub2">月別</span><select class="graph-select kw-month' + (kwRange === 'month' ? ' on' : '') + '" id="kw-month" title="年月を選ぶ（途中の月は、データのある日まで）">' + (kwRange === 'month' ? '' : '<option value="" selected>月を選ぶ</option>') + kwMonthsWithData().map(ym => '<option value="' + ym + '"' + (kwRange === 'month' && ym === curYm ? ' selected' : '') + '>' + kwMonthLabel(ym) + '</option>').join('') + '</select>';
-  h += segD('kw-range', [['last30', '直近30日'], ['custom', '期間指定']], kwRange);
+  h += segD('kw-range', [['last30', '直近30日'], ['settled30', '確定30日', false, KW_SETTLED_TIP], ['custom', '期間指定']], kwRange);   // v5.21：確定30日
   if (kwRange === 'custom') h += '<span class="graph-range"><input type="date" class="graph-select kw-date" id="kw-from" value="' + (kwFrom || from) + '"> ～ <input type="date" class="graph-select kw-date" id="kw-to" value="' + (kwTo || to) + '"></span>';
-  h += '<span class="graph-note">' + from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）　データの最終日 ' + all[all.length - 1].replace(/-/g, '/') + '</span></div></div>';
+  h += '<span class="graph-note">' + from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日' + (kwRange === 'settled30' ? '・30日以上たった日だけ＝広告の売上が出そろっている' : '') + '）　データの最終日 ' + all[all.length - 1].replace(/-/g, '/') + '</span></div></div>';
   // キャンペーン＋検索＋詳しい条件ボタン
   h += '<div class="kw-row2"><div class="kw-lbl2">キャンペーン</div><div class="kw-lv kw-lv-grow">';
   h += '<select class="graph-select kw-sel kw-camp2" id="kw-camp"><option value="">すべて（' + camps.length + '件）</option>' + camps.map(c => '<option value="' + escapeHtml(c) + '"' + (c === kwCamp ? ' selected' : '') + '>' + escapeHtml(c) + ((kwShowPaused && act && !act.set.has(String(c).trim())) ? '（停止中）' : '') + '</option>').join('') + '</select>';
@@ -13346,7 +13356,7 @@ function kwwProdName(x){ return x.ps.length ? (x.ps[0].name || x.ps[0].asin || '
 
 // ---------------- 注視分-KW一覧 ----------------
 // v4.02：入札額＝最新、ほか＝選んだ月の合計（途中の月はデータの最新日まで）。並びは列の見出しを押して（初期＝注視チェック日の古い順）
-let kwwSortKey = 'memo', kwwSortDir = 'asc', kwwMonth = '';   // v5.12：最初はメモの先頭の日付の古い順（以前は注視チェック日の古い順）
+let kwwSortKey = 'memo', kwwSortDir = 'asc', kwwMonth = '', kwwSettled = false;   // v5.21：kwwSettled＝確定30日で見る（月を選び直すと月に戻る）   // v5.12：最初はメモの先頭の日付の古い順（以前は注視チェック日の古い順）
 // v5.12：メモの先頭に書いた日付を数（yyyymmdd）にする。読めないときは null（並べると一番下）
 //   1109・11/09・11/9・11-09・11月9日・2026/11/09・2026-11-09・20261109（先頭の【（[ や空白は飛ばす。「1109-1108に…」は最初の 1109＝11/9）
 //   年が無いときは今年。今日より8日以上先になるときは前の年
@@ -13374,7 +13384,7 @@ function renderKwWatchView(){
   const prevWrap = body.querySelector('.kwa-wrap'), keepTop = prevWrap ? prevWrap.scrollTop : 0;
   const months = kwMonthsWithData();   // 新しい順
   if (!kwwMonth || months.indexOf(kwwMonth) < 0) kwwMonth = months[0];
-  const [mf, mt] = kwMonthRangeOf(kwwMonth);
+  const [mf, mt] = kwwSettled ? kwSettled30() : kwMonthRangeOf(kwwMonth);
   items.forEach(x => { x.T = (x.e && x.e.rows.some(r => r.ds >= mf && r.ds <= mt)) ? kwSum(x.e.rows, mf, mt) : null; });
   items.forEach(x => { x.md = kwwMemoDate(x.w.memo); });   // v5.12
   const val = (x, k) => k === 'memo' ? x.md : k === 'at' ? (x.w.at || '') : (k === 'bid' ? (x.e ? x.e.bidNow : null) : (k === 'name' ? kwwProdName(x) : (x.T ? x.T[k] : null)));
@@ -13387,8 +13397,10 @@ function renderKwWatchView(){
   });
   const keys = items.map(x => x.k);
   const th = (k, l, cls) => '<th class="sortable' + (cls ? ' ' + cls : '') + (kwwSortKey === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwwSortKey === k ? (kwwSortDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
-  let h = '<div class="kwa-tools kww-tools"><div class="kwa-grp" title="入札額は最新の値、ほかの数字はこの月の合計（途中の月はデータの最新日まで）"><span class="kwa-lbl">月</span><select class="graph-select kwa-camp" id="kww-month">'
-    + months.map(m => '<option value="' + m + '"' + (m === kwwMonth ? ' selected' : '') + '>' + kwMonthLabel(m) + '</option>').join('') + '</select></div>'
+  let h = '<div class="kwa-tools kww-tools"><div class="kwa-grp" title="入札額は最新の値、ほかの数字はこの月の合計（途中の月はデータの最新日まで）"><span class="kwa-lbl">月</span><select class="graph-select kwa-camp' + (kwwSettled ? ' dim' : '') + '" id="kww-month">'
+    + months.map(m => '<option value="' + m + '"' + (m === kwwMonth ? ' selected' : '') + '>' + kwMonthLabel(m) + '</option>').join('') + '</select>'
+    + '<button type="button" class="kww-set' + (kwwSettled ? ' on' : '') + '" id="kww-settled" title="' + KW_SETTLED_TIP + '">確定30日</button>'   // v5.21
+    + (kwwSettled ? '<span class="kww-set-r">' + mf.replace(/-/g, '/') + '〜' + mt.replace(/-/g, '/') + '（30日）</span>' : '') + '</div>'
     + '<span class="kwa-flex"></span><span class="kwa-lbl">注視 ' + items.length + '件</span></div>';
   h += '<div class="table-wrap kw-wrap kwa-wrap kww-wrap"><table class="kw-table kwa-table kww-table"><thead><tr>' + th('name', '商品') + '<th>KW／ターゲット</th>'
     + th('bid', '入札額<span class="kwa-hs">最新</span>', 'num') + th('at', '注視<br>チェック日')
@@ -13415,7 +13427,8 @@ function renderKwWatchView(){
   const wrap = body.querySelector('.kwa-wrap'); if (wrap && keepTop) wrap.scrollTop = keepTop;
 
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
-  on('#kww-month', 'change', e => { kwwMonth = e.target.value; renderKwWatchView(); });
+  on('#kww-month', 'change', e => { kwwMonth = e.target.value; kwwSettled = false; renderKwWatchView(); });
+  on('#kww-settled', 'click', () => { kwwSettled = !kwwSettled; renderKwWatchView(); });   // v5.21
   body.querySelectorAll('.kww-table th.sortable').forEach(t => t.addEventListener('click', () => {
     const k = t.dataset.k;
     if (kwwSortKey === k) kwwSortDir = kwwSortDir === 'asc' ? 'desc' : 'asc';
