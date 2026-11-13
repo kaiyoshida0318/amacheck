@@ -2085,6 +2085,24 @@
   table.kw-table { border-collapse: separate; border-spacing: 0; width: 100%; font-size: 14.5px; }
   table.kw-table th, table.kw-table td { padding: 7px 8px; border-bottom: 1px solid var(--border); white-space: nowrap; text-align: left; }
   table.kw-table thead th { position: sticky; top: 0; z-index: 2; background: var(--bg-secondary); color: var(--text-secondary); font-weight: 700; font-size: 13.5px; }
+  /* v5.29：期間の帯（KW-日月別データの表の列名の上）。色＝日別 緑青／月別 灰／直近30日 青／確定30日 紫／期間指定 橙 */
+  table.kw-table thead tr.kw-colh th { top: 34px; }
+  #adkw-view table.kw-table thead tr.kw-ptr th { text-align: left !important; }   /* 列名の中央寄せに負けないように */
+  table.kw-table thead tr.kw-ptr th { z-index: 3; padding: 0; text-align: left; height: 34px; border-bottom: 1px solid var(--border); --pc: #64748b; --pbg: #f8fafc; background: var(--pbg); box-shadow: inset 4px 0 0 var(--pc); }
+  .kw-ptr-in { position: sticky; left: 0; display: inline-flex; align-items: center; gap: 10px; padding: 0 14px; height: 34px; white-space: nowrap; font-size: 13px; font-weight: 600; color: var(--text-secondary); }
+  .kw-pchip { background: var(--pc); color: #fff; font-weight: 800; font-size: 12.5px; padding: 3px 10px; border-radius: 999px; }
+  .kw-pdate { color: var(--pc); font-size: 14px; font-weight: 800; }
+  .kw-pnote { font-size: 11.5px; color: var(--text-tertiary); font-weight: 600; }
+  .kw-psep { color: #cbd5e1; }
+  .kw-pctx { color: var(--text-secondary); }
+  table.kw-table tr.kw-ptr.pb-day th { --pc: #0d9488; --pbg: #f0fdfa; }
+  table.kw-table tr.kw-ptr.pb-month th { --pc: #64748b; --pbg: #f8fafc; }
+  table.kw-table tr.kw-ptr.xr-l th { --pc: #3b82f6; --pbg: #eff6ff; }
+  table.kw-table tr.kw-ptr.xr-l .kw-pdate { color: #1d4ed8; }
+  table.kw-table tr.kw-ptr.xr-s th { --pc: #8b5cf6; --pbg: #f5f3ff; }
+  table.kw-table tr.kw-ptr.xr-s .kw-pdate { color: #6d28d9; }
+  table.kw-table tr.kw-ptr.pb-custom th { --pc: #ea580c; --pbg: #fff7ed; }
+  table.kw-table tr.kw-ptr.pb-custom .kw-pdate { color: #c2410c; }
   table.kw-table th.sortable { cursor: pointer; user-select: none; }
   table.kw-table th.sortable:hover, table.kw-table th.sorted { color: var(--purple); }
   table.kw-table .num { text-align: right; font-variant-numeric: tabular-nums; }
@@ -2757,7 +2775,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.28</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.29</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -8304,7 +8322,14 @@ function renderAdKwView(){
   h += '<div class="table-wrap kw-wrap">';
   {
     const th = (k, l) => '<th class="sortable num' + (kwSortKey === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwSortKey === k ? (kwSortDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
-    h += '<table class="kw-table"><thead><tr><th class="sortable kw-jh' + (kwSortKey === 'roas' ? '' : '') + '" data-k="roas">判定</th>' + labelHead()
+    // v5.29：列名の上に「期間の帯」（列名と一緒に止まるので、下へスクロールしてヘッダーを隠しても、いまの期間が分かる）。期間の種類ごとに色の札
+    const PB = { day: ['日別', 'pb-day'], month: ['月別', 'pb-month'], last30: ['直近30日', 'xr-l'], settled30: ['確定30日', 'xr-s'], custom: ['期間指定', 'pb-custom'] }[kwRange] || ['期間', 'pb-month'];
+    const pbDate = dayMode ? graphPeriodText(curDay) + '（1日）' : kwRange === 'month' ? kwMonthLabel(curYm) : from.replace(/-/g, '/') + '〜' + to.replace(/-/g, '/') + '（' + span + '日）';
+    const nColsH = (kwGroup === 'camp' ? 3 : 4) + (kwGroup === 'kwmatch' ? 2 : 0) + 11;
+    h += '<table class="kw-table"><thead><tr class="kw-ptr ' + PB[1] + '"><th colspan="' + nColsH + '"><div class="kw-ptr-in"><span class="kw-pchip">' + PB[0] + '</span><b class="kw-pdate">' + pbDate + '</b>'
+      + (kwRange === 'settled30' ? '<span class="kw-pnote">売上が出そろった30日</span>' : kwRange === 'last30' ? '<span class="kw-pnote">最後の1〜2週間は売上がまだ増える途中</span>' : '')
+      + '<span class="kw-psep">｜</span><span class="kw-pctx">' + crumbType + ' › ' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + ' › ' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + (kwSearch.trim() ? '　検索「' + escapeHtml(kwSearch.trim()) + '」' : '') + '</span></div></th></tr>'
+      + '<tr class="kw-colh"><th class="sortable kw-jh' + (kwSortKey === 'roas' ? '' : '') + '" data-k="roas">判定</th>' + labelHead()
       + (kwGroup === 'kwmatch' ? th('bid', '入札額') : '') + th('imp', '表示') + th('clicks', 'クリック') + th('ctr', 'CTR') + th('cpc', 'CPC') + th('cost', '広告費') + th('orders', '注文') + th('sales', '売上') + th('cvr', 'CVR') + th('roas', 'ROAS') + th('acos', 'ACOS') + th('share', '上部シェア' + '<button type="button" class="kw-help kw-qs" data-help="share" title="上部シェアとは？" aria-label="上部シェアとは？">?</button>')
       + (kwGroup === 'kwmatch' ? '<th class="kwa-wh" title="☑すると【入札単価対策】の注視分に出ます">注視</th>' : '')   // v3.91
       + '</tr></thead><tbody>';
@@ -8326,6 +8351,7 @@ function renderAdKwView(){
 
   // イベント
   const segOn = (id, fn) => body.querySelectorAll('#' + id + ' button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); renderAdKwView(); }));
+  { const pb = body.querySelector('table.kw-table tr.kw-ptr th'); if (pb) { const hh = pb.offsetHeight; body.querySelectorAll('table.kw-table tr.kw-colh th').forEach(c => { c.style.top = hh + 'px'; }); } }   // v5.29：列名は期間の帯の下で止める
   segOn('kw-range', v => { kwRange = v; if (v === 'custom' && !kwFrom) { kwFrom = from; kwTo = to; } });
   // 上の段を変えても、下の段（種別・キャンペーン）は新しい条件に含まれていれば残す（含まれなければ描画時に「すべて」へ）
   segOn('kw-type', v => { if (kwType !== v) { kwType = v; if (kwKind !== 'all' && !allRows.some(r => (v === 'all' || typeOf(r) === v) && r.kind === kwKind)) kwKind = 'all'; } });
