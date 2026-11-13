@@ -1734,14 +1734,31 @@
   .tgsw.on .tgsw-k { left: 16px; }
   .tgsw.on .tgsw-s { background: var(--accent); color: #fff; }
   .kwm-tblhead .tgsw { font-size: 13px; }
-  table.kwm-tbl tr.kwm-avg td { position: sticky; z-index: 1; background: #ecfdf5; font-weight: 700; border-bottom: 2px solid #10b981; }
-  table.kwm-tbl tr.kwm-avg td.hot { background: #e6f7ef; }
-  table.kwm-tbl tr.kwm-avg td.lbl { color: #047857; }
-  .kwm-avg-sub { font-size: 11px; font-weight: 600; color: #059669; margin-top: 2px; }
+  table.kwm-tbl tr.kwm-avg td { position: sticky; z-index: 1; font-weight: 700; }
+  /* v5.26：テーマカラー 直近30日＝青（.xr-l）・確定30日＝紫（.xr-s）。モーダルの平均の行・スイッチと、注視分-KW一覧のボタン・足した ROAS 列でそろえる */
+  table.kwm-tbl tr.kwm-avg.xr-l td { background: #eff6ff; border-bottom: 2px solid #3b82f6; }
+  table.kwm-tbl tr.kwm-avg.xr-l td.hot { background: #e3eefe; }
+  table.kwm-tbl tr.kwm-avg.xr-l td.lbl, table.kwm-tbl tr.kwm-avg.xr-l .kwm-avg-sub { color: #1d4ed8; }
+  table.kwm-tbl tr.kwm-avg.xr-s td { background: #f5f3ff; border-bottom: 2px solid #8b5cf6; }
+  table.kwm-tbl tr.kwm-avg.xr-s td.hot { background: #ede9fe; }
+  table.kwm-tbl tr.kwm-avg.xr-s td.lbl, table.kwm-tbl tr.kwm-avg.xr-s .kwm-avg-sub { color: #6d28d9; }
+  .kwm-avg-sub { font-size: 11px; font-weight: 600; margin-top: 2px; }
+  .tgsw.xr-l.on { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; } .tgsw.xr-l.on .tgsw-t { background: #3b82f6; }
+  .tgsw.xr-s.on { border-color: #8b5cf6; background: #f5f3ff; color: #6d28d9; } .tgsw.xr-s.on .tgsw-t { background: #8b5cf6; }
+  .kwm-tblhead .tgsw + .tgsw { margin-left: 6px; }
   .kww-set { font-size: 12.5px; font-weight: 700; padding: 6px 12px; border-radius: 8px; border: 1px solid var(--border); background: #fff; color: var(--text-secondary); cursor: pointer; }   /* v5.21：確定30日 */
   .kww-set:hover { background: #f3f4f6; }
   .kww-set.on { background: var(--accent); color: #fff; border-color: var(--accent); }
   .kww-set-r { font-size: 12px; color: var(--text-tertiary); }
+  .kww-seg .kww-xm { display: inline-block; width: 1.1em; margin-right: 3px; font-weight: 800; }   /* v5.25：＋（消えている）／✓（出ている） */
+  .kww-seg { gap: 3px; }
+  .kww-table th.kww-xrh.xr-l, .kww-table td.kww-xrc.xr-l { background: #eff6ff; }   /* v5.25：足した ROAS 列。v5.26：直近30日＝青・確定30日＝紫 */
+  .kww-table th.kww-xrh.xr-s, .kww-table td.kww-xrc.xr-s { background: #f5f3ff; }
+  .kww-table tr:hover td.kww-xrc.xr-l { background: #e3eefe; } .kww-table tr:hover td.kww-xrc.xr-s { background: #ede9fe; }
+  .kww-table th.kww-xrh.xr-l .kwa-hs { color: #1d4ed8; } .kww-table th.kww-xrh.xr-s .kwa-hs { color: #6d28d9; }
+  .kww-table th.kww-xrh.xr-l { border-bottom: 2px solid #3b82f6; } .kww-table th.kww-xrh.xr-s { border-bottom: 2px solid #8b5cf6; }
+  .kww-seg button.xr-l.active { background: #3b82f6; } .kww-seg button.xr-s.active { background: #8b5cf6; }
+  .kww-set-r b.xr-l { color: #1d4ed8; } .kww-set-r b.xr-s { color: #6d28d9; }
   #kww-month.dim { opacity: 0.5; }
   .kwa-tools .graph-select.kwa-camp#kww-month { min-width: 0; width: auto; padding: 0 30px 0 12px; }   /* v5.22：月のドロップダウンは中身（一番長い月の名前）にぴったりの幅 */
   .kwa-sep { width: 1px; align-self: stretch; background: var(--border); }
@@ -2739,7 +2756,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.24</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.26</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -8002,11 +8019,14 @@ function kwCopyFallback(text, done){
 
 // v5.21：確定30日＝今日の30日前を最後の日とする30日間。広告の売上はクリックした日から最大14日あと（SP 7日・SB 14日）まで付くので、30日以上たった日だけなら出そろっている
 // v5.23：オン・オフのスイッチ（つまみが動く＋ON/OFF の札。押すと切り替わるのが分かるように）
-function tgSwitchHtml(id, label, on, tipOn, tipOff){
-  return '<button type="button" class="tgsw' + (on ? ' on' : '') + '" id="' + id + '" role="switch" aria-checked="' + (on ? 'true' : 'false') + '" title="' + escapeHtml(on ? tipOn : tipOff) + '">'
+function tgSwitchHtml(id, label, on, tipOn, tipOff, cls){
+  return '<button type="button" class="tgsw' + (cls ? ' ' + cls : '') + (on ? ' on' : '') + '" id="' + id + '" role="switch" aria-checked="' + (on ? 'true' : 'false') + '" title="' + escapeHtml(on ? tipOn : tipOff) + '">'
     + '<span class="tgsw-t"><span class="tgsw-k"></span></span><span class="tgsw-l">' + label + '</span></button>';   // v5.24：末尾の ON／OFF の札は外した
 }
-let kwmSettledOn = false;   // v5.23：個別モーダルの日別データに「確定30日の平均」の行を出す
+let kwmSettledOn = false, kwmLastOn = false;   // v5.23：個別モーダルの日別データに「確定30日の平均」の行を出す。v5.26：「直近30日の平均」も（両方なら2行）
+// v5.26：直近30日＝データの最終日までの30日間（注視分-KW一覧と同じ）。テーマカラー：直近30日＝青（.xr-l）、確定30日＝紫（.xr-s）
+function kwLast30(){ const ds = kwDates(), e = ds.length ? ds[ds.length - 1] : todayStr(); return [gAddDays(e, -29), e]; }
+const KW_LAST_TIP = 'データの最終日までの30日間。直近の日は売上がまだ増える途中（クリックから最大14日）なので、少し低めに出ることがあります';
 function kwSettled30(){ const e = gAddDays(todayStr(), -30); return [gAddDays(e, -29), e]; }
 const KW_SETTLED_TIP = '30日以上たった日だけの30日間（今日の30日前まで）。広告の売上はクリックした日から最大14日あとまで増えるので、直近の日を入れずに出そろった数字で見られます';
 function kwDates(){ return Object.keys(adKwData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort(); }
@@ -8709,7 +8729,8 @@ function renderKwModal(){
   const hot = new Set(_cmb ? _cmb.bars.concat(_cmb.lines) : [M]);
   const cell = (a, k) => { const v = kwmVal(a, k); const cls = (hot.has(k) ? ' hot' : '') + (k === 'roas' && v != null ? ' ' + kwCls(kwJudgeOf(v / 100)) : ''); return '<td class="num' + cls + '">' + (a ? kwmFmt(k, v) : '—') + '</td>'; };
   h += '<div class="kwm-tblhead">📋 ' + (isDaily ? '日別' : '月別') + 'データ'
-    + (isDaily ? tgSwitchHtml('kwm-avg-tg', '確定30日の平均', kwmSettledOn, 'ON：表の一番上に確定30日（' + kwSettled30().map(d => d.replace(/-/g, '/')).join('〜') + '）の1日あたりの平均を表示中。押すと OFF', 'OFF：押すと ON（表の一番上に確定30日 ' + kwSettled30().map(d => d.replace(/-/g, '/')).join('〜') + ' の1日あたりの平均の行が入る）。' + KW_SETTLED_TIP) : '')   // v5.23
+    + (isDaily ? [['kwm-avgl-tg', '直近30日', kwmLastOn, kwLast30(), KW_LAST_TIP, 'xr-l'], ['kwm-avg-tg', '確定30日', kwmSettledOn, kwSettled30(), KW_SETTLED_TIP, 'xr-s']].map(([id, nm, onv, rg, tip, cls]) => { const r = rg.map(d => d.replace(/-/g, '/')).join('〜');
+        return tgSwitchHtml(id, nm + 'の平均', onv, 'ON：表の一番上に' + nm + '（' + r + '）の1日あたりの平均を表示中。押すと OFF', 'OFF：押すと ON（表の一番上に' + nm + ' ' + r + ' の1日あたりの平均の行が入る）。' + tip, cls); }).join('') : '')   // v5.23・v5.26：直近30日（青）・確定30日（紫）
     + (!isDaily ? '<div class="kwm-seg sm" id="kwm-yoy"><button type="button" data-v="0" class="' + (!kwm.tblYoy ? 'on blue' : '') + '">通常</button><button type="button" data-v="1" class="' + (kwm.tblYoy ? 'on blue' : '') + '">前年同月比</button></div>' : '')
     + '</div>';   // v3.22：「グラフを隠す」は廃止（下へスクロールすると、この見出しと表の列名が上で止まる）
   // セール（v2.91）：期間に重なるセールを名前のチップで。日別はセール中の日の行をピンクに
@@ -8720,8 +8741,10 @@ function renderKwModal(){
   const monthEnd = ym => ym + '-' + String(daysInMonth(ym)).padStart(2, '0');
   h += '<div class="kwm-tblwrap"><table class="kwm-tbl"><thead><tr><th>' + (isDaily ? '日付' : '月') + '</th>' + (kwm.tblYoy && !isDaily ? '<th></th>' : '') + COLS.map(([k, l]) => '<th class="num' + (hot.has(k) ? ' hot' : '') + '">' + l + (k === 'share' ? '<button type="button" class="kw-help kw-qs" data-help="share" title="上部シェアとは？" aria-label="上部シェアとは？">?</button>' : '') + '</th>').join('') + '</tr></thead><tbody>';   // v2.90：メモ列は削除（入札変更は行の紫枠、セールはグラフで見る）
   // v5.23：確定30日の平均（1日あたり。表示・クリック・広告費・注文・売上はデータのある日数で割る。率は30日の合計から。入札額は日ごとの値の平均）
-  if (isDaily && kwmSettledOn) {
-    const [s5, e5] = kwSettled30(), md5 = d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10));
+  // v5.26：直近30日の平均も（両方なら 直近→確定 の2行。どちらも全部の列を出す）
+  if (isDaily) [['l', '直近30日', kwmLastOn, kwLast30()], ['s', '確定30日', kwmSettledOn, kwSettled30()]].forEach(([tk, nm, onv, rg]) => {
+    if (!onv) return;
+    const [s5, e5] = rg, md5 = d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10));
     const nd5 = kwDates().filter(d => d >= s5 && d <= e5).length;
     const A = { imp: 0, clicks: 0, cost: 0, orders: 0, sales: 0, shareW: 0, shareImp: 0 }, bids = [];
     Object.keys(aggMap).forEach(d => { if (d < s5 || d > e5) return; const a = aggMap[d]; Object.keys(A).forEach(k => { A[k] += a[k] || 0; });
@@ -8729,9 +8752,9 @@ function renderKwModal(){
     const per = v => nd5 ? v / nd5 : null;
     const V = { imp: per(A.imp), clicks: per(A.clicks), cost: per(A.cost), orders: per(A.orders), sales: per(A.sales), ctr: kwmVal(A, 'ctr'), cpc: kwmVal(A, 'cpc'), cvr: kwmVal(A, 'cvr'), roas: kwmVal(A, 'roas'), share: kwmVal(A, 'share'), bid: bids.length ? bids.reduce((x, y) => x + y, 0) / bids.length : null };
     const fmtA = k => { const v = V[k]; if (v == null || isNaN(v)) return '—'; if (k === 'imp' || k === 'clicks' || k === 'orders') return v < 100 ? v.toFixed(1) : Math.round(v).toLocaleString(); return kwmFmt(k, v); };
-    h += '<tr class="kwm-avg"><td class="lbl">確定30日 平均<div class="kwm-avg-sub">' + md5(s5) + '〜' + md5(e5) + '・1日あたり（' + nd5 + '日）</div></td>'
+    h += '<tr class="kwm-avg xr-' + tk + '"><td class="lbl">' + nm + ' 平均<div class="kwm-avg-sub">' + md5(s5) + '〜' + md5(e5) + '・1日あたり（' + nd5 + '日）</div></td>'
       + COLS.map(([k]) => '<td class="num' + (hot.has(k) ? ' hot' : '') + (k === 'roas' && V.roas != null ? ' ' + kwCls(kwJudgeOf(V.roas / 100)) : '') + '">' + fmtA(k) + '</td>').join('') + '</tr>';
-  }
+  });
   if (!isDaily && kwm.tblYoy) {
     const lastM = labels[labels.length - 1];
     if (lastM) for (let back = 0; back < 12; back++) {
@@ -8769,11 +8792,13 @@ function renderKwModal(){
   { // v3.22：表の見出し（📋 日別データ）が上に着いたら止め、その下に表の列名を止める
     const bodyEl = box.querySelector('.kwm-body'), th = box.querySelector('.kwm-tblhead');
     if (bodyEl && th) { const padTop = parseFloat(getComputedStyle(bodyEl).paddingTop) || 0; th.style.top = (-padTop) + 'px'; box.querySelectorAll('table.kwm-tbl thead th').forEach(c => { c.style.top = (th.offsetHeight - padTop) + 'px'; });
-      const thd = box.querySelector('table.kwm-tbl thead'); box.querySelectorAll('table.kwm-tbl tr.kwm-avg td').forEach(c => { c.style.top = (th.offsetHeight - padTop + (thd ? thd.offsetHeight : 0)) + 'px'; }); }   // v5.23：平均の行は列名の下で止める
+      const thd = box.querySelector('table.kwm-tbl thead'); let topA = th.offsetHeight - padTop + (thd ? thd.offsetHeight : 0);
+      box.querySelectorAll('table.kwm-tbl tr.kwm-avg').forEach(tr => { tr.querySelectorAll('td').forEach(c => { c.style.top = topA + 'px'; }); topA += tr.offsetHeight - 2; }); }   // v5.23：平均の行は列名の下で止める（v5.26：2行なら重ねて）
     if (bodyEl && _keepScroll) bodyEl.scrollTop = _keepScroll;
   }
   on('#kwm-close', 'click', closeKwModal);
   on('#kwm-avg-tg', 'click', () => { kwmSettledOn = !kwmSettledOn; renderKwModal(); });   // v5.23
+  on('#kwm-avgl-tg', 'click', () => { kwmLastOn = !kwmLastOn; renderKwModal(); });   // v5.26
   { // v4.13：メモ欄（高さは中身に合わせる。打ち終わって0.6秒で保存）
     const ta = box.querySelector('#kwm-memo-ta'), st = box.querySelector('#kwm-memo-st');
     if (ta) {
@@ -13393,7 +13418,7 @@ function kwwProdName(x){ return x.ps.length ? (x.ps[0].name || x.ps[0].asin || '
 
 // ---------------- 注視分-KW一覧 ----------------
 // v4.02：入札額＝最新、ほか＝選んだ月の合計（途中の月はデータの最新日まで）。並びは列の見出しを押して（初期＝注視チェック日の古い順）
-let kwwSortKey = 'memo', kwwSortDir = 'asc', kwwMonth = '', kwwMode = 'month';   // v5.24：kwwMode＝'month'（月のドロップダウン）| 'last30'（直近30日）| 'settled30'（確定30日）。月を選ぶと month に戻る   // v5.12：最初はメモの先頭の日付の古い順（以前は注視チェック日の古い順）
+let kwwSortKey = 'memo', kwwSortDir = 'asc', kwwMonth = '', kwwXR = { last30: false, settled30: false };   // v5.25：kwwXR＝ROAS の右に足す列（直近30日ROAS・確定30日ROAS。片方・両方・なし）。数字は月のまま（v5.24 の kwwMode は廃止）   // v5.12：最初はメモの先頭の日付の古い順（以前は注視チェック日の古い順）
 // v5.12：メモの先頭に書いた日付を数（yyyymmdd）にする。読めないときは null（並べると一番下）
 //   1109・11/09・11/9・11-09・11月9日・2026/11/09・2026-11-09・20261109（先頭の【（[ や空白は飛ばす。「1109-1108に…」は最初の 1109＝11/9）
 //   年が無いときは今年。今日より8日以上先になるときは前の年
@@ -13421,10 +13446,12 @@ function renderKwWatchView(){
   const prevWrap = body.querySelector('.kwa-wrap'), keepTop = prevWrap ? prevWrap.scrollTop : 0;
   const months = kwMonthsWithData();   // 新しい順
   if (!kwwMonth || months.indexOf(kwwMonth) < 0) kwwMonth = months[0];
-  const [mf, mt] = kwwMode === 'settled30' ? kwSettled30() : kwwMode === 'last30' ? [gAddDays(ix.ds[ix.ds.length - 1], -29), ix.ds[ix.ds.length - 1]] : kwMonthRangeOf(kwwMonth);   // v5.24：直近30日はデータの最終日まで
-  items.forEach(x => { x.T = (x.e && x.e.rows.some(r => r.ds >= mf && r.ds <= mt)) ? kwSum(x.e.rows, mf, mt) : null; });
+  const [mf, mt] = kwMonthRangeOf(kwwMonth);
+  const lastD = ix.ds[ix.ds.length - 1], XR = { last30: [gAddDays(lastD, -29), lastD], settled30: kwSettled30() };   // v5.25：直近30日はデータの最終日まで
+  const sumIn = (x, f, t2) => (x.e && x.e.rows.some(r => r.ds >= f && r.ds <= t2)) ? kwSum(x.e.rows, f, t2) : null;
+  items.forEach(x => { x.T = sumIn(x, mf, mt); x.XL = kwwXR.last30 ? sumIn(x, XR.last30[0], XR.last30[1]) : null; x.XS = kwwXR.settled30 ? sumIn(x, XR.settled30[0], XR.settled30[1]) : null; });
   items.forEach(x => { x.md = kwwMemoDate(x.w.memo); });   // v5.12
-  const val = (x, k) => k === 'memo' ? x.md : k === 'at' ? (x.w.at || '') : (k === 'bid' ? (x.e ? x.e.bidNow : null) : (k === 'name' ? kwwProdName(x) : (x.T ? x.T[k] : null)));
+  const val = (x, k) => k === 'memo' ? x.md : k === 'at' ? (x.w.at || '') : (k === 'bid' ? (x.e ? x.e.bidNow : null) : (k === 'name' ? kwwProdName(x) : k === 'roasL' ? (x.XL ? x.XL.roas : null) : k === 'roasS' ? (x.XS ? x.XS.roas : null) : (x.T ? x.T[k] : null)));
   const dir = kwwSortDir === 'asc' ? 1 : -1;
   items.sort((a, b) => {
     const x = val(a, kwwSortKey), y = val(b, kwwSortKey);
@@ -13434,14 +13461,17 @@ function renderKwWatchView(){
   });
   const keys = items.map(x => x.k);
   const th = (k, l, cls) => '<th class="sortable' + (cls ? ' ' + cls : '') + (kwwSortKey === k ? ' sorted' : '') + '" data-k="' + k + '">' + l + (kwwSortKey === k ? (kwwSortDir === 'asc' ? ' ▲' : ' ▼') : '') + '</th>';
-  let h = '<div class="kwa-tools kww-tools"><div class="kwa-grp" title="入札額は最新の値、ほかの数字はこの月の合計（途中の月はデータの最新日まで）"><span class="kwa-lbl">月</span><select class="graph-select kwa-camp' + (kwwMode !== 'month' ? ' dim' : '') + '" id="kww-month">'
+  const fmtR = r => r.map(d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10))).join('〜');
+  const XDEF = [['last30', 'roasL', '直近30日', 'データの最終日までの30日間（' + fmtR(XR.last30) + '）', 'xr-l'], ['settled30', 'roasS', '確定30日', KW_SETTLED_TIP, 'xr-s']];   // v5.26：最後はテーマカラーの class
+  const xOn = XDEF.filter(d => kwwXR[d[0]]);
+  let h = '<div class="kwa-tools kww-tools"><div class="kwa-grp" title="入札額は最新の値、ほかの数字はこの月の合計（途中の月はデータの最新日まで）"><span class="kwa-lbl">月</span><select class="graph-select kwa-camp" id="kww-month">'
     + months.map(m => '<option value="' + m + '"' + (m === kwwMonth ? ' selected' : '') + '>' + kwMonthLabel(m) + '</option>').join('') + '</select>'
-    + '<div class="graph-seg sm kww-seg" id="kww-range">' + [['last30', '直近30日', 'データの最終日までの30日間'], ['settled30', '確定30日', KW_SETTLED_TIP]].map(([v, l, tp]) => '<button type="button" data-v="' + v + '" class="' + (kwwMode === v ? 'active' : '') + '" title="' + escapeHtml(tp) + '">' + l + '</button>').join('') + '</div>'   // v5.24：［直近30日｜確定30日］（KW-日月別データと同じ形）
-    + (kwwMode !== 'month' ? '<span class="kww-set-r">' + mf.replace(/-/g, '/') + '〜' + mt.replace(/-/g, '/') + '（30日）</span>' : '') + '</div>'
+    + '<div class="graph-seg sm kww-seg" id="kww-xr">' + XDEF.map(([v, , l, tp, xc]) => '<button type="button" data-v="' + v + '" class="' + xc + (kwwXR[v] ? ' active' : '') + '" aria-pressed="' + (kwwXR[v] ? 'true' : 'false') + '" title="' + escapeHtml((kwwXR[v] ? '押すと列を消す。' : '押すと ROAS の右に列を足す。') + tp) + '"><span class="kww-xm">' + (kwwXR[v] ? '✓' : '＋') + '</span>' + l + 'ROAS</button>').join('') + '</div>'   // v5.25：片方・両方・なし（それぞれ押すたびに入れる／消す）
+    + (xOn.length ? '<span class="kww-set-r">' + xOn.map(d => '<b class="' + d[4] + '">' + d[2] + '</b> ' + fmtR(XR[d[0]])).join('　') + '</span>' : '') + '</div>'
     + '<span class="kwa-flex"></span><span class="kwa-lbl">注視 ' + items.length + '件</span></div>';
   h += '<div class="table-wrap kw-wrap kwa-wrap kww-wrap"><table class="kw-table kwa-table kww-table"><thead><tr>' + th('name', '商品') + '<th>KW／ターゲット</th>'
     + th('bid', '入札額<span class="kwa-hs">最新</span>', 'num') + th('at', '注視<br>チェック日')
-    + KWW_COLS.map(([k, l]) => th(k, l, 'num')).join('') + th('memo', 'メモ<span class="kwa-hs">先頭の日付</span>', 'kww-memoh') + '<th class="kww-xh">注視</th></tr></thead><tbody>';   // v4.04：外すの列の見出し
+    + KWW_COLS.map(([k, l]) => th(k, k === 'roas' && xOn.length ? 'ROAS<span class="kwa-hs">' + (+kwwMonth.slice(5, 7)) + '月</span>' : l, 'num') + (k === 'roas' ? xOn.map(d => th(d[1], 'ROAS<span class="kwa-hs">' + d[2] + '</span>', 'num kww-xrh ' + d[4])).join('') : '')).join('')   // v5.25：ROAS の右に 直近30日・確定30日 + th('memo', 'メモ<span class="kwa-hs">先頭の日付</span>', 'kww-memoh') + '<th class="kww-xh">注視</th></tr></thead><tbody>';   // v4.04：外すの列の見出し
   items.forEach(x => {
     const e = x.e;
     h += '<tr class="kw-row kwa-row kww-row' + (x.stopped ? ' kw-stopped' : '') + '" data-key="' + escapeHtml(x.k) + '">';
@@ -13449,11 +13479,12 @@ function renderKwWatchView(){
       const p = x.k.split('|');
       h += '<td class="kwa-prod none">—</td><td class="kwa-kw"><div class="kwa-w"><b>' + escapeHtml(p[3] || '') + '</b></div><div class="kwa-sub">' + escapeHtml((p[4] || '') + '・' + (p[1] || '')) + '</div></td>'
         + '<td class="num">—</td><td class="kww-at">' + escapeHtml(String(x.w.at || '').replace(/-/g, '/')) + '</td>'
-        + '<td colspan="' + KWW_COLS.length + '" class="kww-nodata">③KWデータにこのKWがありません（データを消した可能性があります）</td>';
+        + '<td colspan="' + (KWW_COLS.length + xOn.length) + '" class="kww-nodata">③KWデータにこのKWがありません（データを消した可能性があります）</td>';
     } else {
       h += kwProdCell(x.ps) + kwWordCell(e, x.stopped) + '<td class="num">' + kwYen(e.bidNow) + '</td>'
         + '<td class="kww-at">' + escapeHtml(String(x.w.at || '').replace(/-/g, '/')) + '</td>'
-        + KWW_COLS.map(([k, , f]) => { const v = x.T ? x.T[k] : null; return '<td class="num' + (k === 'cost' ? ' strong' : '') + (k === 'roas' ? ' strong ' + kwCls(kwJudgeOf(v)) : '') + '">' + (x.T ? kwwFmt(f, v) : '—') + '</td>'; }).join('');
+        + KWW_COLS.map(([k, , f]) => { const v = x.T ? x.T[k] : null; return '<td class="num' + (k === 'cost' ? ' strong' : '') + (k === 'roas' ? ' strong ' + kwCls(kwJudgeOf(v)) : '') + '">' + (x.T ? kwwFmt(f, v) : '—') + '</td>'
+          + (k === 'roas' ? xOn.map(d => { const S = d[0] === 'last30' ? x.XL : x.XS, rv = S ? S.roas : null; return '<td class="num strong kww-xrc ' + d[4] + ' ' + kwCls(kwJudgeOf(rv)) + '">' + (S ? kwwFmt(f, rv) : '—') + '</td>'; }).join('') : ''); }).join('');
     }
     const memo = String(x.w.memo || '');
     h += '<td class="kww-mc"><div class="kww-memo-v' + (memo ? '' : ' empty') + '" data-wkey="' + escapeHtml(x.k) + '">' + (memo ? escapeHtml(memo) : '＋ メモ') + '</div></td>'
@@ -13464,8 +13495,12 @@ function renderKwWatchView(){
   const wrap = body.querySelector('.kwa-wrap'); if (wrap && keepTop) wrap.scrollTop = keepTop;
 
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
-  on('#kww-month', 'change', e => { kwwMonth = e.target.value; kwwMode = 'month'; renderKwWatchView(); });
-  body.querySelectorAll('#kww-range button').forEach(b => b.addEventListener('click', () => { kwwMode = b.dataset.v; renderKwWatchView(); }));   // v5.24
+  on('#kww-month', 'change', e => { kwwMonth = e.target.value; renderKwWatchView(); });
+  body.querySelectorAll('#kww-xr button').forEach(b => b.addEventListener('click', () => {   // v5.25：押すたびに入れる／消す
+    const v = b.dataset.v; kwwXR[v] = !kwwXR[v];
+    if (!kwwXR[v] && kwwSortKey === (v === 'last30' ? 'roasL' : 'roasS')) { kwwSortKey = 'memo'; kwwSortDir = 'asc'; }   // 並べていた列を消したら最初の並びに
+    renderKwWatchView();
+  }));
   body.querySelectorAll('.kww-table th.sortable').forEach(t => t.addEventListener('click', () => {
     const k = t.dataset.k;
     if (kwwSortKey === k) kwwSortDir = kwwSortDir === 'asc' ? 'desc' : 'asc';
