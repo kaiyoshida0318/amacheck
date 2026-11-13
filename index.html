@@ -1743,7 +1743,7 @@
   table.kwm-tbl tr.kwm-avg.xr-l + tr.kwm-avg.xr-s td { border-top: 2px solid #3b82f6; }   /* v5.28：2行のとき、1行目の下線は2行目に重なって隠れるので、2行目の上に青い線を引く */
   table.kwm-tbl tr.kwm-avg.xr-s td.hot { background: #ede9fe; }
   table.kwm-tbl tr.kwm-avg.xr-s td.lbl, table.kwm-tbl tr.kwm-avg.xr-s .kwm-avg-sub { color: #6d28d9; }
-  .kwm-avg-sub { font-size: 11px; font-weight: 600; margin-top: 2px; }
+  .kwm-avg-sub { font-size: 11px; font-weight: 600; margin-left: 6px; }   /* v5.32：名前の右に同じ行で */
   .tgsw.xr-l.on { border-color: #3b82f6; background: #eff6ff; color: #1d4ed8; } .tgsw.xr-l.on .tgsw-t { background: #3b82f6; }
   .tgsw.xr-s.on { border-color: #8b5cf6; background: #f5f3ff; color: #6d28d9; } .tgsw.xr-s.on .tgsw-t { background: #8b5cf6; }
   .kwm-tblhead .tgsw + .tgsw { margin-left: 6px; }
@@ -2793,7 +2793,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.31</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.32</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -8819,7 +8819,7 @@ function renderKwModal(){
     const per = v => nd5 ? v / nd5 : null;
     const V = { imp: per(A.imp), clicks: per(A.clicks), cost: per(A.cost), orders: per(A.orders), sales: per(A.sales), ctr: kwmVal(A, 'ctr'), cpc: kwmVal(A, 'cpc'), cvr: kwmVal(A, 'cvr'), roas: kwmVal(A, 'roas'), share: kwmVal(A, 'share'), bid: bids.length ? bids.reduce((x, y) => x + y, 0) / bids.length : null };
     const fmtA = k => { const v = V[k]; if (v == null || isNaN(v)) return '—'; if (k === 'imp' || k === 'clicks' || k === 'orders') return v < 100 ? v.toFixed(1) : Math.round(v).toLocaleString(); return kwmFmt(k, v); };
-    h += '<tr class="kwm-avg xr-' + tk + '"><td class="lbl">' + nm + ' 平均<div class="kwm-avg-sub">' + md5(s5) + '〜' + md5(e5) + '・1日あたり（' + nd5 + '日）</div></td>'
+    h += '<tr class="kwm-avg xr-' + tk + '"><td class="lbl" title="' + nm + '（' + s5.replace(/-/g, '/') + '〜' + e5.replace(/-/g, '/') + '）の1日あたりの平均。データのある ' + nd5 + '日で割っています">' + nm + ' 平均<span class="kwm-avg-sub">' + md5(s5) + '〜' + md5(e5) + '</span></td>'   // v5.32：1段に（期間は小さく右に、日数はツールチップ）
       + COLS.map(([k]) => '<td class="num' + (hot.has(k) ? ' hot' : '') + (k === 'roas' && V.roas != null ? ' ' + kwCls(kwJudgeOf(V.roas / 100)) : '') + '">' + fmtA(k) + '</td>').join('') + '</tr>';
   });
   if (!isDaily && kwm.tblYoy) {
