@@ -1740,6 +1740,7 @@
   table.kwm-tbl tr.kwm-avg.xr-l td.hot { background: #e3eefe; }
   table.kwm-tbl tr.kwm-avg.xr-l td.lbl, table.kwm-tbl tr.kwm-avg.xr-l .kwm-avg-sub { color: #1d4ed8; }
   table.kwm-tbl tr.kwm-avg.xr-s td { background: #f5f3ff; border-bottom: 2px solid #8b5cf6; }
+  table.kwm-tbl tr.kwm-avg.xr-l + tr.kwm-avg.xr-s td { border-top: 2px solid #3b82f6; }   /* v5.28：2行のとき、1行目の下線は2行目に重なって隠れるので、2行目の上に青い線を引く */
   table.kwm-tbl tr.kwm-avg.xr-s td.hot { background: #ede9fe; }
   table.kwm-tbl tr.kwm-avg.xr-s td.lbl, table.kwm-tbl tr.kwm-avg.xr-s .kwm-avg-sub { color: #6d28d9; }
   .kwm-avg-sub { font-size: 11px; font-weight: 600; margin-top: 2px; }
@@ -2756,7 +2757,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.26</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.28</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -8027,8 +8028,8 @@ let kwmSettledOn = false, kwmLastOn = false;   // v5.23：個別モーダルの�
 // v5.26：直近30日＝データの最終日までの30日間（注視分-KW一覧と同じ）。テーマカラー：直近30日＝青（.xr-l）、確定30日＝紫（.xr-s）
 function kwLast30(){ const ds = kwDates(), e = ds.length ? ds[ds.length - 1] : todayStr(); return [gAddDays(e, -29), e]; }
 const KW_LAST_TIP = 'データの最終日までの30日間。直近の日は売上がまだ増える途中（クリックから最大14日）なので、少し低めに出ることがあります';
-function kwSettled30(){ const e = gAddDays(todayStr(), -30); return [gAddDays(e, -29), e]; }
-const KW_SETTLED_TIP = '30日以上たった日だけの30日間（今日の30日前まで）。広告の売上はクリックした日から最大14日あとまで増えるので、直近の日を入れずに出そろった数字で見られます';
+function kwSettled30(){ const ds = kwDates(), e = gAddDays(ds.length ? ds[ds.length - 1] : todayStr(), -30); return [gAddDays(e, -29), e]; }   // v5.27：今日ではなくデータの最終日から数える（直近30日のすぐ前の30日。重なり・すき間なし）
+const KW_SETTLED_TIP = '直近30日のすぐ前の30日間（データの最終日の30日前まで）。30日以上たった日だけなので、広告の売上（クリックした日から最大14日あとまで増える）が出そろった数字で見られます';
 function kwDates(){ return Object.keys(adKwData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort(); }
 // 選んだ期間 → [from, to]（基準はデータの最終日）
 function kwPeriod(){
@@ -8799,6 +8800,23 @@ function renderKwModal(){
   on('#kwm-close', 'click', closeKwModal);
   on('#kwm-avg-tg', 'click', () => { kwmSettledOn = !kwmSettledOn; renderKwModal(); });   // v5.23
   on('#kwm-avgl-tg', 'click', () => { kwmLastOn = !kwmLastOn; renderKwModal(); });   // v5.26
+  { // v5.27：表の上でホイールを上に回したときは、見出し（📋 日別データ）が上で止まっている位置で止める。それより上（グラフなど）へは表の外（見出しの行・左右の余白）で回す
+    const bodyEl = box.querySelector('.kwm-body'), th = box.querySelector('.kwm-tblhead'), tw = box.querySelector('.kwm-tblwrap');
+    if (bodyEl && th && tw) {
+      let armed = 0;
+      const stopAt = () => Math.round(tw.getBoundingClientRect().top - bodyEl.getBoundingClientRect().top - bodyEl.clientTop + bodyEl.scrollTop - th.offsetHeight);   // 見出しが止まり始める scrollTop
+      bodyEl.addEventListener('wheel', ev => { if (!tw.contains(ev.target)) armed = 0; }, { passive: true });
+      tw.addEventListener('wheel', ev => {
+        if (ev.deltaY >= 0 || ev.ctrlKey) { armed = 0; return; }
+        const s = bodyEl.scrollTop, stop = stopAt();
+        if (s < stop - 1) { armed = 0; return; }   // まだ見出しが止まっていない（上にグラフが見えている）ときはふつうに
+        armed = Date.now();
+        const dy = ev.deltaMode === 1 ? ev.deltaY * 40 : ev.deltaMode === 2 ? ev.deltaY * bodyEl.clientHeight : ev.deltaY;
+        if (s + dy <= stop) { ev.preventDefault(); bodyEl.scrollTop = stop; }
+      }, { passive: false });
+      bodyEl.addEventListener('scroll', () => { if (armed && Date.now() - armed < 500) { const stop = stopAt(); if (bodyEl.scrollTop < stop) bodyEl.scrollTop = stop; } }, { passive: true });   // なめらかスクロールで行き過ぎたとき
+    }
+  }
   { // v4.13：メモ欄（高さは中身に合わせる。打ち終わって0.6秒で保存）
     const ta = box.querySelector('#kwm-memo-ta'), st = box.querySelector('#kwm-memo-st');
     if (ta) {
@@ -13447,7 +13465,7 @@ function renderKwWatchView(){
   const months = kwMonthsWithData();   // 新しい順
   if (!kwwMonth || months.indexOf(kwwMonth) < 0) kwwMonth = months[0];
   const [mf, mt] = kwMonthRangeOf(kwwMonth);
-  const lastD = ix.ds[ix.ds.length - 1], XR = { last30: [gAddDays(lastD, -29), lastD], settled30: kwSettled30() };   // v5.25：直近30日はデータの最終日まで
+  const XR = { last30: kwLast30(), settled30: kwSettled30() };   // v5.25：直近30日はデータの最終日まで
   const sumIn = (x, f, t2) => (x.e && x.e.rows.some(r => r.ds >= f && r.ds <= t2)) ? kwSum(x.e.rows, f, t2) : null;
   items.forEach(x => { x.T = sumIn(x, mf, mt); x.XL = kwwXR.last30 ? sumIn(x, XR.last30[0], XR.last30[1]) : null; x.XS = kwwXR.settled30 ? sumIn(x, XR.settled30[0], XR.settled30[1]) : null; });
   items.forEach(x => { x.md = kwwMemoDate(x.w.memo); });   // v5.12
