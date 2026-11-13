@@ -2793,7 +2793,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.32</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.33</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -8060,7 +8060,8 @@ function tgSwitchHtml(id, label, on, tipOn, tipOff, cls){
   return '<button type="button" class="tgsw' + (cls ? ' ' + cls : '') + (on ? ' on' : '') + '" id="' + id + '" role="switch" aria-checked="' + (on ? 'true' : 'false') + '" title="' + escapeHtml(on ? tipOn : tipOff) + '">'
     + '<span class="tgsw-t"><span class="tgsw-k"></span></span><span class="tgsw-l">' + label + '</span></button>';   // v5.24：末尾の ON／OFF の札は外した
 }
-let kwmSettledOn = false, kwmLastOn = false;   // v5.23：個別モーダルの日別データに「確定30日の平均」の行を出す。v5.26：「直近30日の平均」も（両方なら2行）
+let kwmSettledOn = false, kwmLastOn = false, kwmSettledOnM = false, kwmLastOnM = false;   // v5.33：…OnM＝月別の「合計」の行（日別の平均とは別に覚える）
+//   // v5.23：個別モーダルの日別データに「確定30日の平均」の行を出す。v5.26：「直近30日の平均」も（両方なら2行）
 // v5.26：直近30日＝データの最終日までの30日間（注視分-KW一覧と同じ）。テーマカラー：直近30日＝青（.xr-l）、確定30日＝紫（.xr-s）
 function kwLast30(){ const ds = kwDates(), e = ds.length ? ds[ds.length - 1] : todayStr(); return [gAddDays(e, -29), e]; }
 const KW_LAST_TIP = 'データの最終日までの30日間。直近の日は売上がまだ増える途中（クリックから最大14日）なので、少し低めに出ることがあります';
@@ -8796,9 +8797,10 @@ function renderKwModal(){
   const hot = new Set(_cmb ? _cmb.bars.concat(_cmb.lines) : [M]);
   const cell = (a, k) => { const v = kwmVal(a, k); const cls = (hot.has(k) ? ' hot' : '') + (k === 'roas' && v != null ? ' ' + kwCls(kwJudgeOf(v / 100)) : ''); return '<td class="num' + cls + '">' + (a ? kwmFmt(k, v) : '—') + '</td>'; };
   h += '<div class="kwm-tblhead">📋 ' + (isDaily ? '日別' : '月別') + 'データ'
-    + (isDaily ? [['kwm-avgl-tg', '直近30日', kwmLastOn, kwLast30(), KW_LAST_TIP, 'xr-l'], ['kwm-avg-tg', '確定30日', kwmSettledOn, kwSettled30(), KW_SETTLED_TIP, 'xr-s']].map(([id, nm, onv, rg, tip, cls]) => { const r = rg.map(d => d.replace(/-/g, '/')).join('〜');
-        return tgSwitchHtml(id, nm + 'の平均', onv, 'ON：表の一番上に' + nm + '（' + r + '）の1日あたりの平均を表示中。押すと OFF', 'OFF：押すと ON（表の一番上に' + nm + ' ' + r + ' の1日あたりの平均の行が入る）。' + tip, cls); }).join('') : '')   // v5.23・v5.26：直近30日（青）・確定30日（紫）
     + (!isDaily ? '<div class="kwm-seg sm" id="kwm-yoy"><button type="button" data-v="0" class="' + (!kwm.tblYoy ? 'on blue' : '') + '">通常</button><button type="button" data-v="1" class="' + (kwm.tblYoy ? 'on blue' : '') + '">前年同月比</button></div>' : '')
+    // v5.23・v5.26：日別＝直近30日（青）・確定30日（紫）の平均の行。v5.33：月別にも（こちらは30日の合計の行。前年同月比の右）
+    + [['kwm-avgl-tg', '直近30日', isDaily ? kwmLastOn : kwmLastOnM, kwLast30(), KW_LAST_TIP, 'xr-l'], ['kwm-avg-tg', '確定30日', isDaily ? kwmSettledOn : kwmSettledOnM, kwSettled30(), KW_SETTLED_TIP, 'xr-s']].map(([id, nm, onv, rg, tip, cls]) => { const r = rg.map(d => d.replace(/-/g, '/')).join('〜'), what = isDaily ? '1日あたりの平均' : '30日の合計';
+        return tgSwitchHtml(id, nm + (isDaily ? 'の平均' : 'の合計'), onv, 'ON：表の一番上に' + nm + '（' + r + '）の' + what + 'を表示中。押すと OFF', 'OFF：押すと ON（表の一番上に' + nm + ' ' + r + ' の' + what + 'の行が入る）。' + tip, cls); }).join('')
     + '</div>';   // v3.22：「グラフを隠す」は廃止（下へスクロールすると、この見出しと表の列名が上で止まる）
   // セール（v2.91）：期間に重なるセールを名前のチップで。日別はセール中の日の行をピンクに
   const salesIn = (f, t) => (saleRanges || []).filter(sr => sr.start && sr.end && sr.start <= t && sr.end >= f).sort((a, b) => String(a.start).localeCompare(String(b.start)));
@@ -8809,17 +8811,23 @@ function renderKwModal(){
   h += '<div class="kwm-tblwrap"><table class="kwm-tbl"><thead><tr><th>' + (isDaily ? '日付' : '月') + '</th>' + (kwm.tblYoy && !isDaily ? '<th></th>' : '') + COLS.map(([k, l]) => '<th class="num' + (hot.has(k) ? ' hot' : '') + '">' + l + (k === 'share' ? '<button type="button" class="kw-help kw-qs" data-help="share" title="上部シェアとは？" aria-label="上部シェアとは？">?</button>' : '') + '</th>').join('') + '</tr></thead><tbody>';   // v2.90：メモ列は削除（入札変更は行の紫枠、セールはグラフで見る）
   // v5.23：確定30日の平均（1日あたり。表示・クリック・広告費・注文・売上はデータのある日数で割る。率は30日の合計から。入札額は日ごとの値の平均）
   // v5.26：直近30日の平均も（両方なら 直近→確定 の2行。どちらも全部の列を出す）
-  if (isDaily) [['l', '直近30日', kwmLastOn, kwLast30()], ['s', '確定30日', kwmSettledOn, kwSettled30()]].forEach(([tk, nm, onv, rg]) => {
+  // v5.33：月別のときは「30日の合計」の行（表示・クリック・広告費・注文・売上は合計、率は合計から、入札額は期間の最後の日の値）。前年同月比のときは左の2列をまとめる
+  const dayAgg = isDaily ? aggMap : kwmAgg(rows, r => r.ds);
+  [['l', '直近30日', isDaily ? kwmLastOn : kwmLastOnM, kwLast30()], ['s', '確定30日', isDaily ? kwmSettledOn : kwmSettledOnM, kwSettled30()]].forEach(([tk, nm, onv, rg]) => {
     if (!onv) return;
     const [s5, e5] = rg, md5 = d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10));
     const nd5 = kwDates().filter(d => d >= s5 && d <= e5).length;
     const A = { imp: 0, clicks: 0, cost: 0, orders: 0, sales: 0, shareW: 0, shareImp: 0 }, bids = [];
-    Object.keys(aggMap).forEach(d => { if (d < s5 || d > e5) return; const a = aggMap[d]; Object.keys(A).forEach(k => { A[k] += a[k] || 0; });
-      if (bidOk) { const v0 = _bh0 ? kwBidAt(kwm.key, d) : null, b = v0 != null ? v0 : a.bid; if (b != null) bids.push(b); } });
-    const per = v => nd5 ? v / nd5 : null;
-    const V = { imp: per(A.imp), clicks: per(A.clicks), cost: per(A.cost), orders: per(A.orders), sales: per(A.sales), ctr: kwmVal(A, 'ctr'), cpc: kwmVal(A, 'cpc'), cvr: kwmVal(A, 'cvr'), roas: kwmVal(A, 'roas'), share: kwmVal(A, 'share'), bid: bids.length ? bids.reduce((x, y) => x + y, 0) / bids.length : null };
-    const fmtA = k => { const v = V[k]; if (v == null || isNaN(v)) return '—'; if (k === 'imp' || k === 'clicks' || k === 'orders') return v < 100 ? v.toFixed(1) : Math.round(v).toLocaleString(); return kwmFmt(k, v); };
-    h += '<tr class="kwm-avg xr-' + tk + '"><td class="lbl" title="' + nm + '（' + s5.replace(/-/g, '/') + '〜' + e5.replace(/-/g, '/') + '）の1日あたりの平均。データのある ' + nd5 + '日で割っています">' + nm + ' 平均<span class="kwm-avg-sub">' + md5(s5) + '〜' + md5(e5) + '</span></td>'   // v5.32：1段に（期間は小さく右に、日数はツールチップ）
+    let bidEnd = null, bidEndD = '';
+    Object.keys(dayAgg).forEach(d => { if (d < s5 || d > e5) return; const a = dayAgg[d]; Object.keys(A).forEach(k => { A[k] += a[k] || 0; });
+      if (bidOk) { const v0 = _bh0 ? kwBidAt(kwm.key, d) : null, b = v0 != null ? v0 : a.bid; if (b != null) { bids.push(b); if (d >= bidEndD) { bidEnd = b; bidEndD = d; } } } });
+    if (bidOk && !isDaily && _bh0) { const v0 = kwBidAt(kwm.key, e5); if (v0 != null) bidEnd = v0; }
+    const per = v => isDaily ? (nd5 ? v / nd5 : null) : (nd5 ? v : null);
+    const V = { imp: per(A.imp), clicks: per(A.clicks), cost: per(A.cost), orders: per(A.orders), sales: per(A.sales), ctr: kwmVal(A, 'ctr'), cpc: kwmVal(A, 'cpc'), cvr: kwmVal(A, 'cvr'), roas: kwmVal(A, 'roas'), share: kwmVal(A, 'share'),
+      bid: isDaily ? (bids.length ? bids.reduce((x, y) => x + y, 0) / bids.length : null) : bidEnd };
+    const fmtA = k => { const v = V[k]; if (v == null || isNaN(v)) return '—'; if (isDaily && (k === 'imp' || k === 'clicks' || k === 'orders')) return v < 100 ? v.toFixed(1) : Math.round(v).toLocaleString(); return kwmFmt(k, v); };
+    const tip = nm + '（' + s5.replace(/-/g, '/') + '〜' + e5.replace(/-/g, '/') + '）の' + (isDaily ? '1日あたりの平均。データのある ' + nd5 + '日で割っています' : '30日の合計（データのある日 ' + nd5 + '日）。率は合計から、入札額は最後の日の値');
+    h += '<tr class="kwm-avg xr-' + tk + '"><td class="lbl"' + (kwm.tblYoy && !isDaily ? ' colspan="2"' : '') + ' title="' + tip + '">' + nm + (isDaily ? ' 平均' : ' 合計') + '<span class="kwm-avg-sub">' + md5(s5) + '〜' + md5(e5) + '</span></td>'   // v5.32：1段に（期間は小さく右に、日数はツールチップ）
       + COLS.map(([k]) => '<td class="num' + (hot.has(k) ? ' hot' : '') + (k === 'roas' && V.roas != null ? ' ' + kwCls(kwJudgeOf(V.roas / 100)) : '') + '">' + fmtA(k) + '</td>').join('') + '</tr>';
   });
   if (!isDaily && kwm.tblYoy) {
@@ -8864,8 +8872,8 @@ function renderKwModal(){
     if (bodyEl && _keepScroll) bodyEl.scrollTop = _keepScroll;
   }
   on('#kwm-close', 'click', closeKwModal);
-  on('#kwm-avg-tg', 'click', () => { kwmSettledOn = !kwmSettledOn; renderKwModal(); });   // v5.23
-  on('#kwm-avgl-tg', 'click', () => { kwmLastOn = !kwmLastOn; renderKwModal(); });   // v5.26
+  on('#kwm-avg-tg', 'click', () => { if (isDaily) kwmSettledOn = !kwmSettledOn; else kwmSettledOnM = !kwmSettledOnM; renderKwModal(); });   // v5.23・v5.33：月別は別に覚える
+  on('#kwm-avgl-tg', 'click', () => { if (isDaily) kwmLastOn = !kwmLastOn; else kwmLastOnM = !kwmLastOnM; renderKwModal(); });   // v5.26
   { // v5.27：表の上でホイールを上に回したときは、見出し（📋 日別データ）が上で止まっている位置で止める。それより上（グラフなど）へは表の外（見出しの行・左右の余白）で回す
     const bodyEl = box.querySelector('.kwm-body'), th = box.querySelector('.kwm-tblhead'), tw = box.querySelector('.kwm-tblwrap');
     if (bodyEl && th && tw) {
