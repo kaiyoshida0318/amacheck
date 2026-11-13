@@ -2775,7 +2775,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.29</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.30</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -8185,10 +8185,15 @@ function renderAdKwView(){
   kwCampAllow = (kwShowPaused || !nPaused) ? null : new Set(campsAct);
   const [from, to] = kwPeriod();
   const days = kwDayList(from, to);
-  const rows = kwRows(from, to);
+  // v5.30：「有効なものだけ」のときは、止まっているキーワード（ステータスが停止系・KWデータの最新日に出てこない）も表・合計から外す（以前はキャンペーン単位だけ）
+  const stopInfo = kwStopMap(act);
+  const rowsAll = kwRows(from, to);
+  const isStopRow = r => stopInfo.map.has(kwMatchKey(r));
+  const nStopKw = new Set(rowsAll.filter(r => isStopRow(r) && (!act || !act.set.size || act.set.has(String(r.campaign || '').trim()))).map(kwMatchKey)).size;   // 有効なキャンペーンの中で止まっているKWの数（停止中キャンペーンの分はキャンペーンの件数で数える）
+  const rows = kwShowPaused ? rowsAll : rowsAll.filter(r => !isStopRow(r));
   const span = days.length;
   const pTo = gAddDays(from, -1), pFrom = gAddDays(from, -span);
-  const prevRows = kwRows(pFrom, pTo);
+  const prevRows = kwShowPaused ? kwRows(pFrom, pTo) : kwRows(pFrom, pTo).filter(r => !isStopRow(r));
   const tot = kwTotals(rows), prev = kwTotals(prevRows);
   const hasPrev = kwDates().some(d => d >= pFrom && d <= pTo);
   const seg = (id, list, cur) => '<div class="graph-seg sm" id="' + id + '">' + list.map(([v, l]) => '<button type="button" data-v="' + v + '" class="' + (v === cur ? 'active' : '') + '">' + l + '</button>').join('') + '</div>';
@@ -8209,7 +8214,7 @@ function renderAdKwView(){
   if (kwType !== 'all') moreChanged.push(kwType);
   if (kwKind !== 'all') moreChanged.push(kwKind);
   if (kwGroup !== 'kwmatch') moreChanged.push('まとめ方：' + GROUP_NAME[kwGroup]);
-  if (kwShowPaused && nPaused) moreChanged.push('停止中も表示');
+  if (kwShowPaused && (nPaused || nStopKw)) moreChanged.push('停止中も表示');
   let h = '<div class="kw-steps kw-steps2"' + (kwStepsHidden ? ' hidden' : '') + '>';
   // 期間
   h += '<div class="kw-row2"><div class="kw-lbl2">期間</div><div class="kw-lv">';
@@ -8248,7 +8253,8 @@ function renderAdKwView(){
     h += '<div class="kw-more-box">';
     h += '<div class="kw-row2"><div class="kw-lbl2 sub">広告タイプ</div><div class="kw-lv">' + segD('kw-type', [['all', 'すべて'], ['SP', 'SP（スポンサープロダクト）'], ['SB', 'SB（スポンサーブランド）']], kwType) + '</div></div>';
     h += '<div class="kw-row2"><div class="kw-lbl2 sub">種別</div><div class="kw-lv">' + segD('kw-kind', [['all', 'すべて']].concat(KW_KINDS.map(k => [k, k, !hasKind(k), (kwType === 'all' ? '' : typeName + '×') + k + ' のデータはまだありません'])), kwKind) + '</div></div>';
-    if (nPaused) h += '<div class="kw-row2"><div class="kw-lbl2 sub">キャンペーン</div><div class="kw-lv">' + segD('kw-paused', [['0', '有効なものだけ'], ['1', '停止中も出す（' + nPaused + '件）']], kwShowPaused ? '1' : '0') + '<span class="graph-note">有効・停止中は ①広告データの最新日（' + act.date.replace(/-/g, '/') + '）の状態で判定</span></div></div>';
+    if (nPaused || nStopKw) h += '<div class="kw-row2"><div class="kw-lbl2 sub">停止中</div><div class="kw-lv">' + segD('kw-paused', [['0', '有効なものだけ'], ['1', '停止中も出す（' + [nPaused ? 'キャンペーン ' + nPaused + '件' : '', nStopKw ? 'KW ' + nStopKw + '件' : ''].filter(Boolean).join('・') + '）']], kwShowPaused ? '1' : '0')
+      + '<span class="graph-note">キャンペーンは ①広告データの最新日' + (act ? '（' + act.date.replace(/-/g, '/') + '）' : '') + 'の状態、KWは ステータスが停止系か・KWデータの最新日（' + stopInfo.latest.replace(/-/g, '/') + '）に出てこないかで判定</span></div></div>';   // v5.30：KW単位の停止も
     h += '<div class="kw-row2"><div class="kw-lbl2 sub">まとめ方<button type="button" class="kw-help" id="kw-group-help" title="まとめ方とマッチの説明" aria-label="まとめ方とマッチの説明">?</button></div><div class="kw-lv">' + segD('kw-group', [['kwmatch', 'キーワード×マッチ'], ['kw', 'キーワード'], ['camp', 'キャンペーン']], kwGroup)
       + '<span class="graph-note">日別・月別の推移は、表の行をクリックすると開く画面で見られます</span>'
       + (moreChanged.length ? '<button type="button" class="kw-more-reset" id="kw-more-reset" title="広告タイプ＝すべて、種別＝すべて、まとめ方＝キーワード×マッチ に戻します">初期の条件に戻す</button>' : '') + '</div></div>';
@@ -8297,8 +8303,7 @@ function renderAdKwView(){
     + (() => { const ck = kwCheckAll(); const n = ck.bad.length + ck.diff.length; return n ? '<button type="button" class="kwc-warn' + (ck.bad.length ? ' bad' : '') + '" id="kw-check-open" title="KWデータと広告データの費用合計を日ごとに比べた結果">⚠ KWデータを確認（' + (ck.bad.length ? '正しくない日 ' + ck.bad.length + '日' : '') + (ck.bad.length && ck.diff.length ? '・' : '') + (ck.diff.length ? '合わない日 ' + ck.diff.length + '日' : '') + '）</button>' : ''; })()   // v3.13：問題のない時はボタンを出さない（取り込み時の点検は残す）
     + '<label class="kw-chk" title="選んだ期間に広告費が0円（クリックが0回）の行も一覧に出します。表示はあるのにクリックされないキーワードを探す時に"><input type="checkbox" id="kw-showzero"' + (kwHideZero ? '' : ' checked') + '> 費用0の行も出す</label></div>';
 
-  const stopInfo = kwStopMap(act);
-  // グループ内のキーワードがすべて止まっていれば「停」
+  // グループ内のキーワードがすべて止まっていれば「停」（stopInfo は上で作った。v5.30）
   const stopOf = (gp) => {
     const ks = Array.from(gp.mkeys || []); if (!ks.length) return null;
     const infos = ks.map(k => stopInfo.map.get(k)); if (infos.some(x => !x)) return null;
