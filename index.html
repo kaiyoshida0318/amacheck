@@ -1904,6 +1904,17 @@
   .mpl-ed-t select, .mpl-ed-t input { font-size: 12px; padding: 3px 5px; border: 1px solid var(--border); border-radius: 5px; }
   .mpl-ed-t input.mpl-ed-ss { width: 200px; }
   .mpl-ed-t input.mpl-ed-sv { width: 160px; }
+  .rpt-fsum { margin-top: 6px; font-size: 12.5px; }   /* v5.19 */
+  .rpt-res-c { font-size: 13.5px; margin: 4px 0 10px; }
+  .rpt-res-t { border-collapse: collapse; width: 100%; font-size: 12.5px; }
+  .rpt-res-t th { background: #f3f4f6; text-align: left; padding: 5px 8px; font-size: 11.5px; }
+  .rpt-res-t td { border-bottom: 1px solid #eef0f3; padding: 5px 8px; vertical-align: top; }
+  .rpt-res-miss { color: #b45309; font-weight: 600; }
+  .rpt-res-n { font-size: 11.5px; color: var(--text-tertiary); margin: 6px 0 4px; }
+  .rpt-det { margin-top: 4px; font-size: 12px; }
+  .rpt-det summary { cursor: pointer; color: var(--text-secondary); }
+  .rpt-det > div { margin: 4px 0 0 14px; color: var(--text-tertiary); font-size: 11.5px; max-height: 160px; overflow: auto; word-break: break-all; }
+  .rpt-err { margin-top: 6px; padding: 6px 10px; border-radius: 6px; background: #fef2f2; border: 1px solid #fecaca; color: #991b1b; font-size: 12px; word-break: break-all; }
   .kww-mm-bg { position: fixed; inset: 0; background: rgba(0,0,0,0.4); z-index: 9500; display: flex; align-items: center; justify-content: center; }
   .kww-mm-bg[hidden] { display: none; }
   .kww-mm-box { background: #fff; width: min(560px, 94vw); border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.3); padding: 16px 18px; }
@@ -2552,6 +2563,9 @@
   .rpt-pill-cal { background: #e0f2fe; color: #0369a1; border: 1px solid #7dd3fc; }
   .rpt-pill-me { background: #f3e8ff; color: #6d28d9; border: 1px solid #c4b5fd; }
   #report-calendar .rcal-wrap { border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  #report-calendar .rcal-mon { display: flex; align-items: center; gap: 8px; margin: 0 0 8px; font-size: 13px; font-weight: 600; color: var(--text-secondary); }   /* v5.20 */
+  #report-calendar .rcal-mon select { font-size: 13.5px; font-weight: 700; padding: 5px 10px; border: 1px solid var(--border); border-radius: 8px; background: #fff; cursor: pointer; }
+  #report-calendar .rcal-mon-n { font-size: 12px; font-weight: 500; color: var(--text-tertiary); }
   table.rcal { border-collapse: collapse; width: 100%; table-layout: fixed; font-size: 11.5px; }
   table.rcal th, table.rcal td { border: 1px solid var(--border-light, #eef1f4); text-align: center; padding: 5px 0; }
   table.rcal th.lab, table.rcal td.lab { width: 150px; text-align: left; padding-left: 12px; font-weight: 600; background: #fff; }
@@ -2705,7 +2719,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.18</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.20</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -6771,7 +6785,7 @@ const REPORT_FILE_TYPES = [
   { badge: 'E', pattern: 'E-購入商品データ-2026-09.csv', label: '月末：購入商品データ（買われた商品別の広告売上）', key: 'ファイル名の年月（例 2025-01）', dest: '商品-売上データ（確定）', url: 'https://advertising-japan.amazon.com/reporting?ephemeralAdvertiser=true' },
   { badge: '返', pattern: '167067020635.csv（数字でOK）', label: '返品データ（FBA返品レポート）', key: 'FNSKU（＋返品日で月へ）', dest: '返品率（欠陥品・不良品を使用）', url: 'https://sellercentral-japan.amazon.com/reportcentral/CUSTOMER_RETURNS/1' }
 ];
-const REPORT_FILE_TIP = '①②（広告データ・出荷数データ）を同じ日付でそろえて入れると、その日が対で取り込まれます。片方だけの日は取り込み時に確認が出ます（チェックを入れれば取込可）。ファイル名に「広告データ」「出荷数データ」を入れると確実に振り分けられます。';
+const REPORT_FILE_TIP = '①②（広告データ・出荷数データ）を同じ日付でそろえて入れると、その日が対で取り込まれます。片方だけの日は取り込み時に確認が出ます（チェックを入れれば取込可）。ファイル名に「広告データ」「出荷数データ」を入れると確実に振り分けられます。<br>🗂 v5.19：拡張ツールがファイル名の末尾に付ける <b>_get取得日時</b>（例 購入商品データ-2026-1012_get20261111-1209.csv）を見て、<b>同じ種類・同じ日付のファイルは取得日時がいちばん新しいものだけ</b>使います（休日明けに数回分まとめて入れて OK）。_get の無いファイルはファイルの更新日時で比べます。取り込みはその日のデータを丸ごと入れ替えるので、同じ日を何度入れても倍になりません。';
 function buildReportFileTypePanel(){
   const card = (t) => '<div style="border:1px solid var(--border);border-radius:6px;padding:8px 12px;background:#fff;">'
     + '<div style="display:flex;align-items:center;gap:8px;margin-bottom:4px;">'
@@ -6792,7 +6806,95 @@ function buildReportFileTypePanel(){
     + '</div></div></div>';
 }
 let _rpt = null;
-function rptReset(){ _rpt = { ship: [], ad: [], kw: [], pd: [], meFiles: [], ret: null, unknown: [], errors: [], notes: [], meMonth: null, allowPartial: false, reopenClosed: true }; }   // v4.88：reopenClosed＝確定済みの月を解除して入れる
+function rptReset(){ _rpt = { ship: [], ad: [], kw: [], pd: [], meFiles: [], ret: null, unknown: [], errors: [], notes: [], meMonth: null, allowPartial: false, reopenClosed: true,
+  files: [], hashes: {}, dupSame: [], dupSkip: [], multi: [] }; }   // v5.19：files＝選んだファイル（zip の中も1つずつ）、dupSame＝中身が同じで読み飛ばし、dupSkip＝古い取得で読み飛ばし、multi＝期間が2日以上
+// ============================================
+// v5.19：30日分の日別データを休日をはさんでまとめて取り込むときのルール（ADcheck／RPP 一括ダウンローダーの仕様書を Amacheck に流用）
+//  ・拡張ツールは取り込み用のファイル名の末尾（拡張子の前）に _getYYYYMMDD-HHMM（取得日時）を付ける。無い古い形もそのまま読める
+//  ・同じ種類・同じ日付のファイルは、取得日時がいちばん新しいもの1つだけ使う（取得日時＝_get → 無ければファイルの更新日時。同じなら更新日時 → 後に選んだ方）
+//  ・読めなかったファイルは候補に入らないので、自然に次に新しいファイルが使われる
+//  ・取り込みはその日・その種類を丸ごと入れ替え（①④③は日ごと、②は日ごとに全商品を消してから入れる）
+// ============================================
+let _rptSeq = 0;
+const RPT_GET_RE = /_get(\d{4})(\d{2})(\d{2})-(\d{2})(\d{2})/;
+function rptGetTime(name){ const m = String(name || '').match(RPT_GET_RE); if (!m) return null; const t = new Date(+m[1], +m[2] - 1, +m[3], +m[4], +m[5]).getTime(); return isFinite(t) ? t : null; }
+function rptStripGet(name){ return String(name || '').replace(RPT_GET_RE, ''); }
+function rptHash(t){ let h = 2166136261 >>> 0; for (let i = 0; i < t.length; i++) { h ^= t.charCodeAt(i); h = Math.imul(h, 16777619) >>> 0; } return t.length + ':' + h.toString(36); }
+// a の方が新しければ正
+function rptNewer(a, b){ const A = a || {}, B = b || {}; return ((A.gt || 0) - (B.gt || 0)) || ((A.lm || 0) - (B.lm || 0)) || ((A.seq || 0) - (B.seq || 0)); }
+// v5.19：選んだファイルのまとめ（取り込む前の画面と、取り込んだ後の結果で使う）
+function rptFileCounts(){
+  const fs = (_rpt && _rpt.files) || [];
+  return { all: fs.length, ok: fs.filter(f => f.st === 'ok').length, dup: fs.filter(f => f.st === 'dup').length, same: fs.filter(f => f.st === 'same').length, err: fs.filter(f => f.st === 'err').length };
+}
+function rptFilesNoteHtml(){
+  if (!_rpt || !(_rpt.files || []).length) return '';
+  const c = rptFileCounts(), esc = escapeHtml, sk = c.dup + c.same;
+  const det = (sum, list) => list.length ? '<details class="rpt-det"><summary>' + sum + '</summary><div>' + list.map(esc).join('<br>') + '</div></details>' : '';
+  let h = '<div class="rpt-fsum">🗂 選んだファイル <b>' + c.all + '</b>（zip の中も1つずつ）／取り込む <b>' + c.ok + '</b>'
+    + (sk ? '／<b style="color:#b45309;">古い重複として読み飛ばす ' + sk + '</b>' : '') + (c.err ? '／<b style="color:#dc2626;">読めない ' + c.err + '</b>' : '') + '</div>';
+  if (c.dup) h += det('読み飛ばす ' + c.dup + 'ファイル：同じ種類・同じ日付で、取得日時がもっと新しいファイルがある', _rpt.dupSkip);
+  if (c.same) h += det('読み飛ばす ' + c.same + 'ファイル：中身がまったく同じファイルをもう選んでいる', _rpt.dupSame);
+  if ((_rpt.errors || []).length) h += '<div class="rpt-err">⚠️ 読めなかったファイル（' + _rpt.errors.length + '）：<br>' + _rpt.errors.map(esc).join('<br>') + '</div>';
+  if ((_rpt.multi || []).length) h += det('ℹ️ 期間が2日以上のファイル ' + _rpt.multi.length + '（今までどおり取り込みます。1日＝1ファイルの運用では出ないはず）', _rpt.multi);
+  return h;
+}
+function rptShowResult(res){
+  const esc = escapeHtml, md = d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10)), c = res.counts;
+  let h = '<div class="rpt-res-c">選んだファイル <b>' + c.all + '</b>（zip の中も1つずつ）／取り込んだ <b>' + c.ok + '</b>／古い重複として読み飛ばした <b>' + (c.dup + c.same) + '</b>' + (c.err ? '／<b style="color:#dc2626;">読めなかった ' + c.err + '</b>' : '') + '</div>';
+  if (res.kinds.length) {
+    h += '<table class="rpt-res-t"><thead><tr><th>種類</th><th>取り込んだ日付</th><th>抜けている日（お知らせ）</th></tr></thead><tbody>';
+    res.kinds.forEach(([lbl, ds]) => {
+      const u = Array.from(new Set(ds)).sort(), set = new Set(u), miss = [];
+      for (let d = missToDate(u[0]), i = 0; i < 400; d.setDate(d.getDate() + 1), i++) { const x = missDs(d); if (x > u[u.length - 1]) break; if (!set.has(x)) miss.push(x); }
+      const span = Math.round((missToDate(u[u.length - 1]) - missToDate(u[0])) / 86400000) + 1;
+      h += '<tr><td>' + lbl + '</td><td>' + md(u[0]) + (u.length > 1 ? '〜' + md(u[u.length - 1]) : '') + ' の ' + u.length + '日分' + (miss.length ? '（' + span + '日の期間）' : '') + '</td><td>' + (miss.length ? '<span class="rpt-res-miss">' + miss.map(md).join('・') + '</span>' : '<span style="color:var(--text-tertiary);">なし</span>') + '</td></tr>';
+    });
+    h += '</tbody></table><div class="rpt-res-n">抜けている日は、その日に実績が無くてファイルが出なかっただけのこともあります（エラーではありません）。</div>';
+  }
+  const det = (sum, list, open) => list.length ? '<details class="rpt-det"' + (open ? ' open' : '') + '><summary>' + sum + '</summary><div>' + list.map(esc).join('<br>') + '</div></details>' : '';
+  if (res.errors.length) h += '<div class="rpt-err">⚠️ 読めなかったファイル（' + res.errors.length + '）：<br>' + res.errors.map(esc).join('<br>') + '</div>';
+  h += det('古い重複として読み飛ばした ' + res.dupSkip.length + 'ファイル（同じ種類・同じ日付で、取得日時がもっと新しいファイルを使った）', res.dupSkip);
+  h += det('中身がまったく同じで読み飛ばした ' + res.dupSame.length + 'ファイル', res.dupSame);
+  h += det('ℹ️ 期間が2日以上のファイル ' + res.multi.length, res.multi);
+  let bg = document.getElementById('rpt-result-modal');
+  if (!bg) {
+    bg = document.createElement('div'); bg.id = 'rpt-result-modal'; bg.className = 'mpl-ed-bg';
+    bg.innerHTML = '<div class="mpl-ed-box" style="width:min(760px,94vw);"><div class="mpl-ed-head"><b>📂 取り込みの結果</b><span class="spacer" style="flex:1"></span><button type="button" class="mpl-ed-x" title="閉じる">✕</button></div><div class="mpl-ed-body"></div><div style="padding:0 18px 16px;text-align:right;"><button type="button" class="primary rpt-res-ok">OK</button></div></div>';
+    document.body.appendChild(bg);
+    const close = () => { bg.hidden = true; };
+    bg.addEventListener('mousedown', e => { if (e.target === bg) close(); }); bg.querySelector('.mpl-ed-x').addEventListener('click', close); bg.querySelector('.rpt-res-ok').addEventListener('click', close);
+  }
+  bg.querySelector('.mpl-ed-body').innerHTML = h; bg.hidden = false;
+}
+function rptDedupe(){
+  if (!_rpt) return;
+  const lost = {}, keep = {};   // seq → 読み飛ばした日付の数／使う日付の数
+  const L = (m, n) => { if (m) lost[m.seq] = (lost[m.seq] || 0) + (n == null ? 1 : n); }, K = (m, n) => { if (m) keep[m.seq] = (keep[m.seq] || 0) + (n == null ? 1 : n); };   // n＝0 も 0 として数える
+  // 1日1件の種類（①広告・④購入商品の日別）
+  const one = (list, keyOf) => { const best = {}; list.forEach(x => { const k = keyOf(x); if (k == null) return; if (!best[k] || rptNewer(x.m, best[k].m) > 0) best[k] = x; });
+    return list.filter(x => { const k = keyOf(x); if (k == null || best[k] === x) { K(x.m); return true; } L(x.m); return false; }); };
+  _rpt.ad = one(_rpt.ad, x => x.date);
+  _rpt.pd = one(_rpt.pd, x => x.kind === 'day' ? x.key : null);
+  _rpt.meFiles = one(_rpt.meFiles, x => x.ym ? x.key + '|' + x.ym : null);
+  // 1ファイルに何日も入る種類（②出荷数・③KW）：日ごとに一番新しいファイルの日を使い、古い方からその日を消す
+  const multi = (list, recount) => {
+    list.forEach(x => { if (x._nd == null) x._nd = (x.dates || []).length; });   // 読み込んだ時点の日数（期間が2日以上かの判定用）
+    const best = {}; list.forEach(x => (x.dates || []).forEach(d => { if (!best[d] || rptNewer(x.m, best[d].m) > 0) best[d] = x; }));
+    list.forEach(x => { const ds = x.dates || []; const ks = ds.filter(d => best[d] === x); if (ks.length < ds.length) { L(x.m, ds.length - ks.length); ds.forEach(d => { if (best[d] !== x) delete x.byDate[d]; }); x.dates = ks; if (recount) recount(x); } K(x.m, ks.length); });
+    return list.filter(x => (x.dates || []).length);
+  };
+  _rpt.ship = multi(_rpt.ship, x => { let q = 0; Object.keys(x.byDate).forEach(d => Object.keys(x.byDate[d]).forEach(f => { q += +x.byDate[d][f] || 0; })); x.totalQty = q; });
+  _rpt.kw = multi(_rpt.kw, x => { x.count = x.dates.reduce((a, d) => a + ((x.byDate[d] || []).length), 0); });
+  // 古い重複として丸ごと読み飛ばしたファイル（使う日付が1つも残らなかった）
+  (_rpt.files || []).forEach(f => { if (f.st === 'ok' && lost[f.seq] && !keep[f.seq]) f.st = 'dup'; else if (f.st === 'dup' && keep[f.seq]) f.st = 'ok'; });
+  _rpt.dupSkip = (_rpt.files || []).filter(f => f.st === 'dup').map(f => f.name);
+  // 期間が2日以上のファイル（この運用は1日＝1ファイルが前提。気づけるように名前を出す）
+  const mm = new Set(_rpt.multi.filter(t => /（返品データ）$/.test(t)));
+  _rpt.ship.concat(_rpt.kw).forEach(x => { if (x._nd > 1) mm.add(x.name); });
+  _rpt.ad.filter(x => x.fix).forEach(x => mm.add(x.name));
+  _rpt.multi = Array.from(mm);
+}   // v4.88：reopenClosed＝確定済みの月を解除して入れる
 // ============================================
 // v3.27：日別データの欠け（ADcheck v1.1438「日別データ欠け通知＋不足日を確認」を移植）
 //  ・種類ごとに、その種類の最初の日〜最後の日の間で取り込んでいない日＝欠け。最新日より後（まだ取り込んでいない昨日など）は数えない
@@ -6971,29 +7073,43 @@ async function rptStage(files){
   for (const f of arr) {
     try {
       const buf = await readFileBytes(f);
-      if (/\.zip$/i.test(f.name)) (await unzipCsvEntries(buf)).forEach(e => units.push({ name: e.name, bytes: e.bytes }));
-      else units.push({ name: f.name, bytes: buf });
-    } catch (e) { _rpt.errors.push(f.name + '：展開エラー'); }
+      if (/\.zip$/i.test(f.name)) (await unzipCsvEntries(buf)).forEach(e => units.push({ name: e.name, bytes: e.bytes, lm: f.lastModified || 0 }));
+      else units.push({ name: f.name, bytes: buf, lm: f.lastModified || 0 });
+    } catch (e) { _rpt.errors.push(f.name + '：展開エラー'); _rpt.files.push({ name: f.name, seq: ++_rptSeq, st: 'err' }); }
   }
   units.forEach(u => {
+    // v5.19：取得日時（ファイル名の _getYYYYMMDD-HHMM → 無ければファイルの更新日時）と選んだ順。同じ種類・同じ日付は一番新しいものだけ使う（rptDedupe）
+    const gt = rptGetTime(u.name), M = { file: u.name, gt: gt != null ? gt : (u.lm || 0), gtName: gt != null, lm: u.lm || 0, seq: ++_rptSeq };
+    const FR = { name: u.name, seq: M.seq, gtName: M.gtName, st: 'ok' }; _rpt.files.push(FR);
     const text = decodeAdBytes(u.bytes);
-    if (text == null) { _rpt.errors.push(u.name + '：文字コード不明'); return; }
-    const fname = u.name;
+    if (text == null) { _rpt.errors.push(u.name + '：文字コード不明'); FR.st = 'err'; return; }
+    { const hsh = rptHash(text); if (_rpt.hashes[hsh]) { _rpt.dupSame.push(u.name); FR.st = 'same'; return; } _rpt.hashes[hsh] = u.name; }   // 中身がまったく同じファイル（同じファイルを2回選んだ等）は1つだけ
+    const nErr = _rpt.errors.length, nUnk = _rpt.unknown.length;
+    rptStageOne(u, text, M);
+    if (_rpt.errors.length > nErr || _rpt.unknown.length > nUnk) FR.st = 'err';
+  });
+  rptDedupe();
+  rptRender();
+}
+// 1ファイルを種類ごとに読む（v5.19 で rptStage から分けた。ファイル名から日付を読むときは _get… を外した名前で読む）
+function rptStageOne(u, text, M){
+  {
+    const fname = u.name, nm = rptStripGet(fname);
     // v3.41：④購入商品データ（日別）／E 購入商品データ（月別）。ファイル名に「購入商品データ」か、中身の列（購入ASIN・関連性）で判別。①より先に見る
     if (fname.indexOf('購入商品データ') > -1 || isPurchCsvText(text)) {
-      const pk = purchKeyFromName(fname);
+      const pk = purchKeyFromName(nm);
       if (!pk) { _rpt.errors.push(fname + '：ファイル名から日付を読み取れません（例：購入商品データ-2026-1025.csv／E-購入商品データ-2026-09.csv）'); return; }
       const pr = parsePurchCsv(text);
       if (!pr.ok) { _rpt.errors.push(fname + '：' + pr.msg); return; }
-      const provAt = pk.kind === 'month' ? purchProvFromName(fname, pk.key) : null;   // v4.82
+      const provAt = pk.kind === 'month' ? purchProvFromName(nm, pk.key) : null;   // v4.82
       if (pk.kind === 'month') {
         const st = _rpt.pd.find(x => x.kind === 'month' && x.key === pk.key), ymL = pk.key.replace('-', '/');
         if (provAt && st && (!st.provAt || st.provAt >= provAt)) { _rpt.notes.push('🛒 ' + escapeHtml(fname) + '：' + ymL + ' は' + (st.provAt ? 'もっと新しい暫定' : '確定') + 'の E も入れたので、こちらは使いません'); return; }
         if (provAt && purchData.month[pk.key] && purchHasRows(purchData.month[pk.key]) && !purchProv(pk.key)) { _rpt.notes.push('🛒 ' + escapeHtml(fname) + '：' + ymL + ' は確定の E が入っているので、暫定は入れません'); return; }
       }
       { const old = _rpt.pd.find(x => x.kind === pk.kind && x.key === pk.key && x.name !== fname); if (old && pk.kind === 'month') { const on = escapeHtml(old.name); _rpt.notes = _rpt.notes.filter(n => n.indexOf(on) < 0); _rpt.notes.push('🛒 ' + on + '：' + pk.key.replace('-', '/') + ' は ' + escapeHtml(fname) + ' のほうを使います'); } }   // v4.82
-      _rpt.pd = _rpt.pd.filter(x => !(x.kind === pk.kind && x.key === pk.key));
-      _rpt.pd.push({ name: fname, kind: pk.kind, key: pk.key, rows: pr.rows, sum: pr.sum, provAt });
+      if (pk.kind === 'month') _rpt.pd = _rpt.pd.filter(x => !(x.kind === pk.kind && x.key === pk.key));   // 日別は rptDedupe で取得日時の新しい方
+      _rpt.pd.push({ name: fname, kind: pk.kind, key: pk.key, rows: pr.rows, sum: pr.sum, provAt, m: M });
       const lbl = pk.kind === 'day' ? ('④購入商品データ・' + (+pk.key.slice(5, 7)) + '/' + (+pk.key.slice(8, 10)) + '・速報') : ('E 購入商品データ・' + pk.key.replace('-', '/') + (provAt ? '・暫定（' + (+provAt.slice(5, 7)) + '/' + (+provAt.slice(8, 10)) + ' 取得。' + (+ymAddMonths(pk.key, 1).slice(5, 7)) + '/16 以降に取り直し）' : '・確定'));
       const had = pk.kind === 'day' ? purchData.day[pk.key] : purchData.month[pk.key];
       if (pk.kind === 'month') _rpt.notes.push('🛒 ' + escapeHtml(fname) + '（' + lbl + '）：' + (pr.count ? pr.count + '行・広告売上 ¥' + Math.round(pr.sum).toLocaleString() : '<b style="color:#b45309;">0行</b>（この月は Amazon に購入商品のデータがありません）') + (had ? '（取込済みを上書き）' : ''));
@@ -7002,7 +7118,7 @@ async function rptStage(files){
     // ③ KWデータ（キーワード/ターゲット別・日別）は中身で判別（日付は中の「日付」列）。①より先に見る
     if (isKwCsvText(text)) {
       const kr = parseKwCsv(text);
-      if (kr.ok) _rpt.kw.push({ name: fname, byDate: kr.byDate, dates: kr.dates, count: kr.count });
+      if (kr.ok) _rpt.kw.push({ name: fname, byDate: kr.byDate, dates: kr.dates, count: kr.count, m: M });
       else _rpt.errors.push(fname + '：' + kr.msg);
       return;
     }
@@ -7011,7 +7127,7 @@ async function rptStage(files){
       const br = parseAdCsvByDate(text);
       if (!br.ok) { _rpt.errors.push(fname + '：' + br.msg); return; }
       const pk = adReportPickDays(br);
-      pk.use.forEach(d => { const r = br.byDate[d]; _rpt.ad.push({ name: fname, date: d, agg: r.agg, count: r.count, camps: r.camps, fix: 1 }); });
+      pk.use.forEach(d => { const r = br.byDate[d]; _rpt.ad.push({ name: fname, date: d, agg: r.agg, count: r.count, camps: r.camps, fix: 1, m: M }); });
       const fmt = d => (+d.slice(5, 7)) + '/' + (+d.slice(8, 10));
       _rpt.notes.push('📄 ' + fname + '（Amazon の日別キャンペーンレポート・' + br.dates.length + '日分）：'
         + (pk.use.length ? '今の数字と違う <b>' + pk.use.length + '日（' + pk.use.map(fmt).join('・') + '）</b>を入れ替えます。' : '<b>すべて今の数字と同じ</b>なので、入れ替える日はありません。')
@@ -7020,16 +7136,16 @@ async function rptStage(files){
     }
     // ① ファイル名で優先判別：「広告データ」→広告(日別) / 「出荷数データ」→出荷
     if (fname.indexOf('広告データ') > -1) {
-      const dt = detectDateFromName(fname);
+      const dt = detectDateFromName(nm);
       if (!dt) { _rpt.errors.push(fname + '：ファイル名から日付を読み取れません（例：広告データ-2026-0916.csv）'); return; }
       const ar = parseAdCsv(text);
-      if (ar.ok) _rpt.ad.push({ name: fname, date: dt, agg: ar.agg, count: ar.count, camps: ar.camps });
+      if (ar.ok) _rpt.ad.push({ name: fname, date: dt, agg: ar.agg, count: ar.count, camps: ar.camps, m: M });
       else _rpt.errors.push(fname + '：' + ar.msg);
       return;
     }
     if (fname.indexOf('出荷数データ') > -1) {
       const sr = parseShipCsv(text);
-      if (sr.ok) _rpt.ship.push({ name: fname, byDate: sr.byDate, dates: sr.dates, totalQty: sr.totalQty, matched: sr.matched, unmatched: sr.unmatched });
+      if (sr.ok) _rpt.ship.push({ name: fname, byDate: sr.byDate, dates: sr.dates, totalQty: sr.totalQty, matched: sr.matched, unmatched: sr.unmatched, m: M });
       else _rpt.errors.push(fname + '：' + sr.msg);
       return;
     }
@@ -7039,31 +7155,30 @@ async function rptStage(files){
       if (rr.ok) {
         if (!_rpt.ret) _rpt.ret = { agg: {}, count: 0, months: [] };
         for (const ym in rr.agg) { if (!_rpt.ret.agg[ym]) _rpt.ret.agg[ym] = {}; for (const fn in rr.agg[ym]) { if (!_rpt.ret.agg[ym][fn]) _rpt.ret.agg[ym][fn] = {}; for (const dp in rr.agg[ym][fn]) _rpt.ret.agg[ym][fn][dp] = (_rpt.ret.agg[ym][fn][dp] || 0) + rr.agg[ym][fn][dp]; } }
-        _rpt.ret.count += rr.count; _rpt.ret.months = Object.keys(_rpt.ret.agg).sort();
+        _rpt.ret.count += rr.count; _rpt.ret.months = Object.keys(_rpt.ret.agg).sort(); _rpt.multi.push(fname + '（返品データ）');
         return;
       }
     }
     // ② 内容で判別（月末データ／従来の日別広告26-0713／出荷）
     const t = detectPlType(text);
-    const dailyDate = detectDateFromName(fname);
+    const dailyDate = detectDateFromName(nm);
     if (t === 'ad' && dailyDate) { // 日別 広告データ（ファイル名 26-0713 等）
       const ar = parseAdCsv(text);
-      if (ar.ok) _rpt.ad.push({ name: fname, date: dailyDate, agg: ar.agg, count: ar.count, camps: ar.camps });
+      if (ar.ok) _rpt.ad.push({ name: fname, date: dailyDate, agg: ar.agg, count: ar.count, camps: ar.camps, m: M });
       else _rpt.errors.push(fname + '：' + ar.msg);
       return;
     }
     const meKey = { fbaFee: 'A', ad: 'B', storage: 'C', sales: 'D' }[t];
     if (meKey) {   // 月末データ：ファイルごとに月を読み取り、その月へ振り分ける（複数月を一度に取込可）
-      const nameYm = detectMonthFromName(fname), bodyYm = rptMonthFromContent(meKey, text);
-      _rpt.meFiles.push({ key: meKey, name: fname, text, nameYm, bodyYm, ym: nameYm || bodyYm || '' });
+      const nameYm = detectMonthFromName(nm), bodyYm = rptMonthFromContent(meKey, text);
+      _rpt.meFiles.push({ key: meKey, name: fname, text, nameYm, bodyYm, ym: nameYm || bodyYm || '', m: M });
       return;
     }
     // 月末データでなければ出荷数CSVとして判定
     const sr = parseShipCsv(text);
-    if (sr.ok) { _rpt.ship.push({ name: fname, byDate: sr.byDate, dates: sr.dates, totalQty: sr.totalQty, matched: sr.matched, unmatched: sr.unmatched }); return; }
+    if (sr.ok) { _rpt.ship.push({ name: fname, byDate: sr.byDate, dates: sr.dates, totalQty: sr.totalQty, matched: sr.matched, unmatched: sr.unmatched, m: M }); return; }
     _rpt.unknown.push(fname);
-  });
-  rptRender();
+  }
 }
 // ===== 月末データ（A〜D）：ファイルごとに月へ振り分け =====
 const RPT_ME_KEYS = ['A', 'B', 'C', 'D'];
@@ -7226,7 +7341,11 @@ function rptRender(){
     calBox.innerHTML = '<div style="font-size:13px;color:var(--text-tertiary);padding:6px 2px;">（広告データ・出荷数データはまだありません）</div>';
     noticeBox.innerHTML = '';
   } else {
-    const dom = rptDominantMonth();
+    // v5.20：日別データが2か月以上にまたがるときは、表示する月をドロップダウンで選べる（初期＝データの多い月）
+    const allDs = new Set([...adDates, ...shipDates, ...kwDates, ...pdDates]);
+    const calMonths = Array.from(new Set(Array.from(allDs).map(d => d.slice(0, 7)))).sort();
+    if (!_rpt.calMonth || calMonths.indexOf(_rpt.calMonth) < 0) _rpt.calMonth = calMonths.indexOf(rptDominantMonth()) >= 0 ? rptDominantMonth() : calMonths[calMonths.length - 1];
+    const dom = _rpt.calMonth;
     const y = +dom.slice(0, 4), mo = +dom.slice(5, 7);
     const nd = new Date(y, mo, 0).getDate();
     let head = '<tr><th class="lab">種別＼日（' + dom + '）</th>';
@@ -7242,22 +7361,26 @@ function rptRender(){
       }
       return '<tr>' + h + '</tr>';
     };
-    calBox.innerHTML = '<div class="rcal-wrap"><table class="rcal"><thead>' + head + '</thead><tbody>'
+    // 対になっていない日（①②。全部の月）
+    const missAll = [];
+    Array.from(new Set([...adDates, ...shipDates])).sort().forEach(ymd => { const a = adDates.has(ymd), s = shipDates.has(ymd); if (a && !s && !adPair.has(ymd)) return; if (a !== s) missAll.push({ ymd, which: a ? '出荷数' : '広告' }); });
+    let monSel = '';
+    if (calMonths.length >= 2) {
+      const nIn = ym => Array.from(allDs).filter(d => d.slice(0, 7) === ym).length;
+      monSel = '<div class="rcal-mon">表示する月 <select id="rcal-month">' + calMonths.map(ym => '<option value="' + ym + '"' + (ym === dom ? ' selected' : '') + '>' + ym.replace('-', '/') + '（' + nIn(ym) + '日分）' + (missAll.some(m => m.ymd.slice(0, 7) === ym) ? ' ⚠' : '') + '</option>').join('') + '</select>'
+        + '<span class="rcal-mon-n">' + calMonths.length + 'か月分のデータ（' + calMonths[0].replace('-', '/') + '〜' + calMonths[calMonths.length - 1].replace('-', '/') + '）</span></div>';
+    }
+    calBox.innerHTML = monSel + '<div class="rcal-wrap"><table class="rcal"><thead>' + head + '</thead><tbody>'
       + rowHtml('① 広告データ', 'キャンペーンレポート', adDates, shipDates)
       + rowHtml('② 出荷数データ', '注文数量', shipDates, adPair)
       + rowHtml('③ KWデータ', 'キーワード／ターゲット別', kwDates, adOrShip)
       + rowHtml('④ 購入商品データ', '買われた商品別の広告売上', pdDates, adOrShip)
       + '</tbody></table></div>';
-    // 対になっていない日
-    const miss = [];
-    for (let d = 1; d <= nd; d++) {
-      const ymd = dom + '-' + String(d).padStart(2, '0');
-      const a = adDates.has(ymd), s = shipDates.has(ymd);
-      if (a && !s && !adPair.has(ymd)) continue;
-      if (a !== s) miss.push({ d, which: a ? '出荷数' : '広告' });
-    }
+    { const ms = document.getElementById('rcal-month'); if (ms) ms.addEventListener('change', () => { _rpt.calMonth = ms.value; rptRender(); }); }
+    // 対になっていない日（v5.20：表示している月だけでなく全部の月）
+    const miss = missAll;
     if (miss.length) {
-      noticeBox.innerHTML = '<div class="rpt-notice"><span style="font-size:16px;">⚠️</span><div><b>対になっていない日があります：' + miss.map(m => (mo + '/' + m.d)).join('・') + '</b>（' + miss[0].which + 'データが取り込まれていない日があります）。<br>通常は広告データと出荷数データを両方そろえて取り込むことをおすすめします。片方だけでよければ下にチェックしてください。<label class="rpt-chk"><input type="checkbox" id="report-allow-partial"> 片方しかない日も、そのまま取り込む</label></div></div>';
+      noticeBox.innerHTML = '<div class="rpt-notice"><span style="font-size:16px;">⚠️</span><div><b>対になっていない日があります：' + miss.map(m => (+m.ymd.slice(5, 7)) + '/' + (+m.ymd.slice(8, 10))).join('・') + '</b>（' + miss[0].which + 'データが取り込まれていない日があります）。<br>通常は広告データと出荷数データを両方そろえて取り込むことをおすすめします。片方だけでよければ下にチェックしてください。<label class="rpt-chk"><input type="checkbox" id="report-allow-partial"> 片方しかない日も、そのまま取り込む</label></div></div>';
       const cb = document.getElementById('report-allow-partial');
       cb.checked = _rpt.allowPartial;
       cb.addEventListener('change', () => { _rpt.allowPartial = cb.checked; rptUpdateApply(); });
@@ -7275,7 +7398,7 @@ function rptRender(){
       pdNote = '🛒 ④購入商品データ（日別・速報）' + ds.length + '日分（' + f(ds[0].key) + (ds.length > 1 ? '〜' + f(ds[ds.length - 1].key) : '') + '）：' + rows + '行・広告売上 ¥' + Math.round(sum).toLocaleString()
         + (empty.length ? '<br><b style="color:#b45309;">⚠️ ' + (empty.length === ds.length ? 'すべての日' : empty.length + '日（' + empty.slice(0, 10).map(x => f(x.key)).join('・') + (empty.length > 10 ? ' ほか' : '') + '）') + 'が 0行です。</b>Amazon にこの期間の購入商品データが残っていない可能性があります（商品-売上データの広告売上は空欄になります）' : '');
     } }
-  if (notesEl) notesEl.innerHTML = (pdNote ? '<div style="margin-top:6px;">' + pdNote + '</div>' : '') + (_rpt.notes || []).map(t => '<div style="margin-top:6px;">' + t + '</div>').join('');
+  if (notesEl) notesEl.innerHTML = rptFilesNoteHtml() + (pdNote ? '<div style="margin-top:6px;">' + pdNote + '</div>' : '') + (_rpt.notes || []).map(t => '<div style="margin-top:6px;">' + t + '</div>').join('');
   // 月末データの「対象月」を、取り込んだファイルから自動推定して既定にセット（誤って別の月へ入るのを防止）
   // 月が読めないファイル用の「対象月」は自動で決めず、選んでもらう（日別データの月に引っ張られて別の月へ入る事故を防ぐ）
   if (hasMe) {
@@ -7415,6 +7538,9 @@ function applyReportAll(){
         (_rpt.ad || []).forEach(a => (a.camps || []).forEach(x => { x.name = fx(x.name); }));
         (_rpt.kw || []).forEach(k => (k.dates || []).forEach(d => ((k.byDate || {})[d] || []).forEach(r => { r.campaign = fx(r.campaign); })));
         (_rpt.pd || []).forEach(x => (x.rows || []).forEach(r => { r.c = fx(r.c); })); } }
+      // v5.19：データの日付の古い順に入れる（同じ種類・同じ日付は rptDedupe で一番新しい取得の1つだけになっている）
+      { const fd = x => (x.dates || []).slice().sort()[0] || '', cmp = (a, b) => a < b ? -1 : a > b ? 1 : 0;
+        _rpt.ad.sort((a, b) => cmp(a.date, b.date)); _rpt.ship.sort((a, b) => cmp(fd(a), fd(b))); _rpt.kw.sort((a, b) => cmp(fd(a), fd(b))); _rpt.pd.sort((a, b) => cmp(a.key, b.key)); }
       // ① 出荷数データ（対象日をクリア→上書き）
       const shipDatesAll = new Set(); _rpt.ship.forEach(s => s.dates.forEach(d => shipDatesAll.add(d)));
       shipDatesAll.forEach(ymd => { const ym = ymd.slice(0, 7), day = String(+ymd.slice(8, 10)); if (shipments[ym]) Object.keys(shipments[ym]).forEach(f => { if (shipments[ym][f]) delete shipments[ym][f][day]; }); });
@@ -7478,6 +7604,13 @@ function applyReportAll(){
       try { renderAdTable(); } catch (e) {}
       _rptLastUndo = U;
       toast((parts.length ? parts.join(' / ') + ' を反映しました' : '反映しました') + clNote, { label: '元に戻す', onClick: () => rptUndoApply(U) });   // v4.90：全部戻す
+      // v5.19：取り込みの結果（選んだ数・取り込んだ数・読み飛ばした数・種類ごとの日付の範囲と抜け・読めなかったファイル）
+      try {
+        const res = { counts: rptFileCounts(), dupSkip: (_rpt.dupSkip || []).slice(), dupSame: (_rpt.dupSame || []).slice(), multi: (_rpt.multi || []).slice(),
+          errors: (_rpt.errors || []).concat((_rpt.unknown || []).map(n => n + '：種類を判別できません')),
+          kinds: [['①広告データ', _rpt.ad.map(a => a.date)], ['②出荷数データ', Array.from(shipDatesAll)], ['③KWデータ', Array.from(kwDays)], ['④購入商品データ（日別）', pdD.map(x => x.key)]].filter(k => k[1].length) };
+        if (res.counts.all > 1 || res.counts.dup || res.counts.same || res.errors.length) setTimeout(() => rptShowResult(res), 60);
+      } catch (e) { console.error(e); }
       if (kwSkipped.length) { const ks = Array.from(new Set(kwSkipped)).sort(); setTimeout(() => alert('次の ' + ks.length + '日はKWデータを取り込みませんでした。\n同じ日の広告データと費用合計が大きく違い、Amazon の保存期間（約5か月）切れのデータの形でした（費用がほぼ0、または1か月分）。\n\n' + ks.map(d => d.replace(/-/g, '/')).slice(0, 30).join('、') + (ks.length > 30 ? ' ほか' : '')), 300); }
     } finally {
       btn.disabled = false; btn.classList.remove('is-loading'); btn.innerHTML = orig;
