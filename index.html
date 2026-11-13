@@ -2094,7 +2094,25 @@
   .kw-pdate { color: var(--pc); font-size: 14px; font-weight: 800; }
   .kw-pnote { font-size: 11.5px; color: var(--text-tertiary); font-weight: 600; }
   .kw-psep { color: #cbd5e1; }
-  .kw-pctx { color: var(--text-secondary); }
+  .kw-pctx { color: var(--text-secondary); overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+  .kw-ptr-in { box-sizing: border-box; overflow: hidden; }
+  .kw-pchip, .kw-pdate, .kwp-ctl { flex-shrink: 0; }
+  .kw-pnote { overflow: hidden; text-overflow: ellipsis; min-width: 0; flex: 0 1 auto; }
+  /* v5.31：帯の右の期間の切り替え。選んでいるものは帯と同じ色（--c） */
+  .kwp-ctl { display: flex; align-items: center; gap: 6px; margin-left: auto; padding-left: 10px; }
+  .kwp-l { font-size: 11.5px; color: #64748b; font-weight: 700; }
+  .kwp-sel { height: 26px; font-size: 12.5px; font-weight: 700; border: 1px solid #d1d5db; border-radius: 6px; padding: 0 24px 0 9px; background: #fff url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6'%3E%3Cpath d='M0 0l5 6 5-6z' fill='%2364748b'/%3E%3C/svg%3E") no-repeat right 8px center; color: #334155; appearance: none; -webkit-appearance: none; font-family: inherit; cursor: pointer; }
+  .kwp-sel:hover { border-color: #94a3b8; }
+  .kwp-sel.on { border-color: var(--c); color: var(--c); box-shadow: 0 0 0 1px var(--c); }
+  .kwp-seg { display: inline-flex; background: #fff; border: 1px solid #d1d5db; border-radius: 7px; padding: 2px; gap: 2px; }
+  .kwp-seg button { border: 0; background: transparent; font-size: 12.5px; font-weight: 700; padding: 3px 11px; border-radius: 5px; color: #475569; font-family: inherit; cursor: pointer; }
+  .kwp-seg button:hover:not(.on) { background: #f1f5f9; }
+  .kwp-seg button.on { background: var(--c); color: #fff; }
+  .kwp-date { height: 26px; font-size: 12.5px; border: 1px solid #fdba74; border-radius: 6px; padding: 0 6px; font-family: inherit; color: #c2410c; font-weight: 700; }
+  .kwp-til { color: #94a3b8; font-size: 12px; }
+  #kwp-day { width: 112px; } #kwp-month { width: 158px; }   /* 選択肢の一番長い文字に合わせて広がらないように */
+  .kwp-date { width: 136px; }
+  @media (max-width: 1440px) { .kwp-l, .kw-pnote { display: none; } }
   table.kw-table tr.kw-ptr.pb-day th { --pc: #0d9488; --pbg: #f0fdfa; }
   table.kw-table tr.kw-ptr.pb-month th { --pc: #64748b; --pbg: #f8fafc; }
   table.kw-table tr.kw-ptr.xr-l th { --pc: #3b82f6; --pbg: #eff6ff; }
@@ -2775,7 +2793,7 @@
     <div class="name"><span class="ama">Ama</span><span class="check">check</span></div>
   </div>
   <button class="newtab-btn" id="open-newtab" title="商品マスタ画面を新しいタブで開く"><span class="nt-ico">↗</span> 新しいタブ</button>
-  <span class="version">v5.30</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
+  <span class="version">v5.31</span><!-- v4.14：バージョンは「新しいタブ」の右 -->
   <!-- v4.47：ヘッダーの右は ADcheck v1.1514 の決まりで3つのまとまり（ときどき使う｜毎日の作業｜表示・データ）。塗りつぶしは主役（レポート追加＝ブランドの橙）と警告（赤・光る）だけ -->
   <div class="header-right">
     <div class="hg">
@@ -8048,6 +8066,9 @@ function kwLast30(){ const ds = kwDates(), e = ds.length ? ds[ds.length - 1] : t
 const KW_LAST_TIP = 'データの最終日までの30日間。直近の日は売上がまだ増える途中（クリックから最大14日）なので、少し低めに出ることがあります';
 function kwSettled30(){ const ds = kwDates(), e = gAddDays(ds.length ? ds[ds.length - 1] : todayStr(), -30); return [gAddDays(e, -29), e]; }   // v5.27：今日ではなくデータの最終日から数える（直近30日のすぐ前の30日。重なり・すき間なし）
 const KW_SETTLED_TIP = '直近30日のすぐ前の30日間（データの最終日の30日前まで）。30日以上たった日だけなので、広告の売上（クリックした日から最大14日あとまで増える）が出そろった数字で見られます';
+// v5.31：KW-日月別データの期間の帯の中身を、表の見えている幅にそろえる（右端に期間の切り替えを置くため）。画面の幅が変わったときも
+function kwBandFit(){ const w = document.querySelector('#adkw-view .kw-wrap'), inn = w && w.querySelector('.kw-ptr-in'); if (inn) inn.style.width = w.clientWidth + 'px'; }
+window.addEventListener('resize', () => kwBandFit());
 function kwDates(){ return Object.keys(adKwData || {}).filter(d => /^\d{4}-\d{2}-\d{2}$/.test(d)).sort(); }
 // 選んだ期間 → [from, to]（基準はデータの最終日）
 function kwPeriod(){
@@ -8333,7 +8354,14 @@ function renderAdKwView(){
     const nColsH = (kwGroup === 'camp' ? 3 : 4) + (kwGroup === 'kwmatch' ? 2 : 0) + 11;
     h += '<table class="kw-table"><thead><tr class="kw-ptr ' + PB[1] + '"><th colspan="' + nColsH + '"><div class="kw-ptr-in"><span class="kw-pchip">' + PB[0] + '</span><b class="kw-pdate">' + pbDate + '</b>'
       + (kwRange === 'settled30' ? '<span class="kw-pnote">売上が出そろった30日</span>' : kwRange === 'last30' ? '<span class="kw-pnote">最後の1〜2週間は売上がまだ増える途中</span>' : '')
-      + '<span class="kw-psep">｜</span><span class="kw-pctx">' + crumbType + ' › ' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + ' › ' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + (kwSearch.trim() ? '　検索「' + escapeHtml(kwSearch.trim()) + '」' : '') + '</span></div></th></tr>'
+      + '<span class="kw-psep">｜</span><span class="kw-pctx">' + crumbType + ' › ' + (kwKind === 'all' ? 'すべての種別' : escapeHtml(kwKind)) + ' › ' + (kwCamp ? escapeHtml(kwCamp) : '全キャンペーン') + (kwSearch.trim() ? '　検索「' + escapeHtml(kwSearch.trim()) + '」' : '') + '</span>'
+      // v5.31：帯の右に期間の切り替え（上の「期間」の段と同じ動き。ヘッダー2を隠してスクロールしたままでも変えられる）
+      + '<span class="kwp-ctl"><span class="kwp-l">期間を変える</span>'
+      + '<select class="kwp-sel' + (dayMode ? ' on' : '') + '" id="kwp-day" style="--c:#0d9488" title="1日を選ぶ">' + (dayMode ? '' : '<option value="" selected>日別</option>') + dayOpts + '</select>'
+      + '<select class="kwp-sel' + (kwRange === 'month' ? ' on' : '') + '" id="kwp-month" style="--c:#64748b" title="年月を選ぶ">' + (kwRange === 'month' ? '' : '<option value="" selected>月別</option>') + kwMonthsWithData().map(ym => '<option value="' + ym + '"' + (kwRange === 'month' && ym === curYm ? ' selected' : '') + '>' + kwMonthLabel(ym) + '</option>').join('') + '</select>'
+      + '<span class="kwp-seg" id="kwp-range">' + [['last30', '直近30日', '#3b82f6', 'データの最終日までの30日間'], ['settled30', '確定30日', '#8b5cf6', KW_SETTLED_TIP], ['custom', '期間指定', '#ea580c', '日付を選んで見る']].map(([v, l, c, tp]) => '<button type="button" data-v="' + v + '" class="' + (kwRange === v ? 'on' : '') + '" style="--c:' + c + '" title="' + escapeHtml(tp) + '">' + l + '</button>').join('') + '</span>'
+      + (kwRange === 'custom' ? '<input type="date" class="kwp-date" id="kwp-from" value="' + (kwFrom || from) + '"><span class="kwp-til">〜</span><input type="date" class="kwp-date" id="kwp-to" value="' + (kwTo || to) + '">' : '')
+      + '</span></div></th></tr>'
       + '<tr class="kw-colh"><th class="sortable kw-jh' + (kwSortKey === 'roas' ? '' : '') + '" data-k="roas">判定</th>' + labelHead()
       + (kwGroup === 'kwmatch' ? th('bid', '入札額') : '') + th('imp', '表示') + th('clicks', 'クリック') + th('ctr', 'CTR') + th('cpc', 'CPC') + th('cost', '広告費') + th('orders', '注文') + th('sales', '売上') + th('cvr', 'CVR') + th('roas', 'ROAS') + th('acos', 'ACOS') + th('share', '上部シェア' + '<button type="button" class="kw-help kw-qs" data-help="share" title="上部シェアとは？" aria-label="上部シェアとは？">?</button>')
       + (kwGroup === 'kwmatch' ? '<th class="kwa-wh" title="☑すると【入札単価対策】の注視分に出ます">注視</th>' : '')   // v3.91
@@ -8356,6 +8384,7 @@ function renderAdKwView(){
 
   // イベント
   const segOn = (id, fn) => body.querySelectorAll('#' + id + ' button').forEach(b => b.addEventListener('click', () => { fn(b.dataset.v); renderAdKwView(); }));
+  kwBandFit();   // v5.31：帯の中身を表の見えている幅に合わせる（右に期間の切り替え）
   { const pb = body.querySelector('table.kw-table tr.kw-ptr th'); if (pb) { const hh = pb.offsetHeight; body.querySelectorAll('table.kw-table tr.kw-colh th').forEach(c => { c.style.top = hh + 'px'; }); } }   // v5.29：列名は期間の帯の下で止める
   segOn('kw-range', v => { kwRange = v; if (v === 'custom' && !kwFrom) { kwFrom = from; kwTo = to; } });
   // 上の段を変えても、下の段（種別・キャンペーン）は新しい条件に含まれていれば残す（含まれなければ描画時に「すべて」へ）
@@ -8366,6 +8395,12 @@ function renderAdKwView(){
   const on = (sel, ev, fn) => { const el = body.querySelector(sel); if (el) el.addEventListener(ev, fn); };
   on('#kw-from', 'change', e => { kwFrom = e.target.value; renderAdKwView(); });
   on('#kw-to', 'change', e => { kwTo = e.target.value; renderAdKwView(); });
+  // v5.31：帯の期間の切り替え（上の段と同じ）
+  on('#kwp-day', 'change', e => { const v = e.target.value; if (!v) return; kwDay = (v === all[all.length - 1]) ? null : v; kwRange = 'day'; renderAdKwView(); });
+  on('#kwp-month', 'change', e => { const v = e.target.value; if (!v) return; kwMonth = v; kwRange = 'month'; renderAdKwView(); });
+  body.querySelectorAll('#kwp-range button').forEach(b => b.addEventListener('click', () => { const v = b.dataset.v; kwRange = v; if (v === 'custom' && !kwFrom) { kwFrom = from; kwTo = to; } renderAdKwView(); }));
+  on('#kwp-from', 'change', e => { kwFrom = e.target.value; renderAdKwView(); });
+  on('#kwp-to', 'change', e => { kwTo = e.target.value; renderAdKwView(); });
   on('#kw-camp', 'change', e => { kwCamp = e.target.value; kwCampUrlEdit = false; renderAdKwView(); });
   on('#kw-cl-edit', 'click', () => { kwCampUrlEdit = true; renderAdKwView(); const i = document.getElementById('kw-cl-input'); if (i) { i.focus(); i.select(); } });
   on('#kw-cl-cancel', 'click', () => { kwCampUrlEdit = false; renderAdKwView(); });
